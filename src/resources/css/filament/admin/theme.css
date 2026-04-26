@@ -1,0 +1,29 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+.vpoint-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+}
+
+.vpoint-brand img {
+    height: 2.125rem;
+    width: 2.125rem;
+    flex: none;
+}
+
+.vpoint-brand span {
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dark .vpoint-brand span,
+.vpoint-brand-dark span {
+    color: #ffffff;
+}
