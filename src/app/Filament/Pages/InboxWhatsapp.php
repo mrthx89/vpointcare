@@ -8,10 +8,15 @@ use Filament\Pages\Page;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class InboxWhatsapp extends Page
 {
+    use WithFileUploads;
+
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
@@ -38,6 +43,8 @@ class InboxWhatsapp extends Page
     public ?array $selectedChat = null;
 
     public string $replyText = '';
+
+    public ?TemporaryUploadedFile $attachment = null;
 
     public string $filterText = '';
 
@@ -394,13 +401,30 @@ class InboxWhatsapp extends Page
             ->send();
     }
 
+    public function removeAttachment(): void
+    {
+        $this->attachment = null;
+    }
+
     public function kirimBalasanWaha(WahaSender $wahaSender): void
     {
         $this->validate([
-            'replyText' => ['required', 'string', 'max:4000'],
+            'replyText' => ['nullable', 'string', 'max:4000'],
+            'attachment' => ['nullable', 'file', 'max:51200'],
         ]);
 
         if (! $this->selectedChatId) {
+            return;
+        }
+
+        $reply = trim($this->replyText);
+
+        if ($reply === '' && ! $this->attachment) {
+            Notification::make()
+                ->title('Isi pesan atau lampirkan file dulu.')
+                ->warning()
+                ->send();
+
             return;
         }
 
@@ -420,30 +444,37 @@ class InboxWhatsapp extends Page
             return;
         }
 
-        $reply = $this->replyText;
-        $sent = $wahaSender->sendText(
-            $chat->KodeSesi ?: 'default',
-            $this->wahaChatId($chat),
-            $reply,
-            'WAHA_MANUAL_SEND_TEXT'
-        );
+        if ($this->attachment) {
+            $sent = $this->sendAttachmentReply($wahaSender, $chat, $reply);
+        } else {
+            $sent = [
+                'response' => $wahaSender->sendText(
+                    $chat->KodeSesi ?: 'default',
+                    $this->wahaChatId($chat),
+                    $reply,
+                    'WAHA_MANUAL_SEND_TEXT'
+                ),
+                'message' => [
+                    'JenisPesan' => 'Teks',
+                    'IsiPesan' => $reply,
+                ],
+            ];
+        }
 
-        $success = (bool) ($sent['ok'] ?? false);
+        $success = (bool) ($sent['response']['ok'] ?? false);
 
-        DB::table('TChatD')->insert([
+        DB::table('TChatD')->insert(array_merge([
             'Id' => (string) Str::orderedUuid(),
             'IdChatM' => $this->selectedChatId,
             'ArahPesan' => 'Keluar',
-            'JenisPesan' => 'Teks',
-            'IsiPesan' => $reply,
             'DikirimOlehCustomer' => false,
             'TglPesan' => now(),
             'TglDikirim' => $success ? now() : null,
             'StatusKirim' => $success ? 'Terkirim WAHA' : 'Gagal WAHA',
-            'PesanError' => $success ? null : ($sent['error'] ?? 'WAHA gagal mengirim pesan.'),
+            'PesanError' => $success ? null : ($sent['response']['error'] ?? 'WAHA gagal mengirim pesan.'),
             'DibalasOleh' => $this->currentPenggunaId(),
             'TglBuat' => now(),
-        ]);
+        ], $sent['message']));
 
         DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
             'TglDibalasTerakhir' => now(),
@@ -453,13 +484,155 @@ class InboxWhatsapp extends Page
         ]);
 
         $this->replyText = '';
+        $this->attachment = null;
         $this->loadInbox();
 
         Notification::make()
             ->title($success ? 'Balasan terkirim ke WAHA.' : 'Balasan gagal dikirim ke WAHA.')
-            ->body($success ? null : ($sent['error'] ?? null))
+            ->body($success ? null : ($sent['response']['error'] ?? null))
             ->{$success ? 'success' : 'danger'}()
             ->send();
+    }
+
+    /**
+     * @return array{response: array<string, mixed>, message: array<string, mixed>}
+     */
+    private function sendAttachmentReply(WahaSender $wahaSender, object $chat, string $caption): array
+    {
+        $file = $this->attachment;
+        $mimeType = $file?->getMimeType() ?: 'application/octet-stream';
+        $fileName = $file?->getClientOriginalName() ?: ('lampiran-whatsapp.'.($file?->extension() ?: 'bin'));
+        $realPath = $file?->getRealPath();
+        $contents = $realPath ? file_get_contents($realPath) : false;
+
+        if ($contents === false) {
+            return [
+                'response' => [
+                    'ok' => false,
+                    'error' => 'File lampiran tidak bisa dibaca.',
+                ],
+                'message' => $this->outgoingMediaMessage($mimeType, $fileName, $caption, null),
+            ];
+        }
+
+        [$sendContents, $sendMimeType, $sendFileName] = $this->wahaReadyFile($contents, $mimeType, $fileName);
+
+        $response = $wahaSender->sendMedia(
+            $chat->KodeSesi ?: 'default',
+            $this->wahaChatId($chat),
+            base64_encode($sendContents),
+            $sendMimeType,
+            $sendFileName,
+            $caption !== '' ? $caption : null,
+            'WAHA_MANUAL_SEND_MEDIA'
+        );
+
+        $storedUrl = null;
+        $path = $file?->store('chat-outgoing', 'public');
+
+        if ($path) {
+            $storedUrl = Storage::disk('public')->url($path);
+        }
+
+        return [
+            'response' => $response,
+            'message' => $this->outgoingMediaMessage($mimeType, $fileName, $caption, $storedUrl),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function outgoingMediaMessage(string $mimeType, string $fileName, string $caption, ?string $url): array
+    {
+        $message = [
+            'JenisPesan' => $this->outgoingMediaType($mimeType),
+            'IsiPesan' => $caption !== '' ? $caption : null,
+            'UrlMedia' => $url,
+        ];
+
+        if (Schema::hasColumn('TChatD', 'NamaFileMedia')) {
+            $message['NamaFileMedia'] = $fileName;
+        }
+
+        if (Schema::hasColumn('TChatD', 'TipeMime')) {
+            $message['TipeMime'] = $mimeType;
+        }
+
+        return $message;
+    }
+
+    private function outgoingMediaType(string $mimeType): string
+    {
+        if (str_starts_with($mimeType, 'image/')) {
+            return 'Gambar';
+        }
+
+        if (str_starts_with($mimeType, 'video/')) {
+            return 'Video';
+        }
+
+        if (str_starts_with($mimeType, 'audio/')) {
+            return 'Audio';
+        }
+
+        return 'Dokumen';
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function wahaReadyFile(string $contents, string $mimeType, string $fileName): array
+    {
+        if (! str_starts_with($mimeType, 'image/') || in_array($mimeType, ['image/jpeg', 'image/jpg'], true)) {
+            return [$contents, $mimeType, $fileName];
+        }
+
+        $jpeg = $this->convertImageToJpeg($contents);
+
+        if ($jpeg === null) {
+            return [$contents, $mimeType, $fileName];
+        }
+
+        $baseName = pathinfo($fileName, PATHINFO_FILENAME) ?: 'whatsapp-image';
+
+        return [$jpeg, 'image/jpeg', $baseName.'.jpg'];
+    }
+
+    private function convertImageToJpeg(string $contents): ?string
+    {
+        if (! function_exists('imagecreatefromstring')) {
+            return null;
+        }
+
+        $source = @imagecreatefromstring($contents);
+
+        if (! $source) {
+            return null;
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $canvas = imagecreatetruecolor($width, $height);
+
+        if (! $canvas) {
+            imagedestroy($source);
+
+            return null;
+        }
+
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, $width, $height, $white);
+        imagecopy($canvas, $source, 0, 0, 0, 0, $width, $height);
+
+        ob_start();
+        imagejpeg($canvas, null, 90);
+        $jpeg = ob_get_clean();
+
+        imagedestroy($source);
+        imagedestroy($canvas);
+
+        return is_string($jpeg) && $jpeg !== '' ? $jpeg : null;
     }
 
     private function loadChatHeader(string $chatId): ?array

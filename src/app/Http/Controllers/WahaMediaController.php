@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -29,6 +30,12 @@ class WahaMediaController extends Controller
 
         if (Str::startsWith($url, 'data:')) {
             return $this->dataUrlResponse($url, $row);
+        }
+
+        $localPath = $this->localPublicStoragePath($url);
+
+        if ($localPath) {
+            return $this->localStorageResponse($localPath, $row);
         }
 
         $request = Http::timeout(45);
@@ -96,6 +103,19 @@ class WahaMediaController extends Controller
         }
 
         return $baseUrl.'/'.ltrim($url, '/');
+    }
+
+    private function localPublicStoragePath(string $url): ?string
+    {
+        $path = Str::startsWith($url, ['http://', 'https://'])
+            ? (string) parse_url($url, PHP_URL_PATH)
+            : $url;
+
+        if (! Str::startsWith($path, '/storage/')) {
+            return null;
+        }
+
+        return ltrim(Str::after($path, '/storage/'), '/');
     }
 
     private function normalizeWahaAbsoluteUrl(string $url, string $baseUrl): string
@@ -189,6 +209,19 @@ class WahaMediaController extends Controller
         return response($message, 424, [
             'Content-Type' => 'text/plain; charset=UTF-8',
             'Cache-Control' => 'no-store',
+        ]);
+    }
+
+    private function localStorageResponse(string $path, object $row): Response
+    {
+        abort_if(! Storage::disk('public')->exists($path), 404);
+
+        $mimeType = $row->TipeMime ?: (Storage::disk('public')->mimeType($path) ?: 'application/octet-stream');
+
+        return response(Storage::disk('public')->get($path), 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.$this->fileName($row, $mimeType).'"',
+            'Cache-Control' => 'private, max-age=300',
         ]);
     }
 

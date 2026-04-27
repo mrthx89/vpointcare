@@ -1,6 +1,6 @@
 <x-filament-panels::page>
-    <div class="space-y-6" wire:poll.15s="loadInbox">
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="flex h-[calc(100dvh-8rem)] min-h-[680px] flex-col gap-4 overflow-hidden" wire:poll.15s="loadInbox">
+        <div class="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>
                 <div class="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
@@ -19,39 +19,39 @@
             </div>
         </div>
 
-        <div class="grid min-h-[680px] gap-4 xl:grid-cols-[340px_minmax(0,1fr)_340px]">
+        <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)_340px]">
             <section
-                class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="border-b border-gray-200 p-4 dark:border-gray-800">
+                class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="shrink-0 border-b border-gray-200 p-4 dark:border-gray-800">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Data masuk dari webhook WAHA.</div>
-                    <div class="mt-4 space-y-3">
+                    <div class="mt-4 space-y-2">
                         <input type="text" wire:model.live.debounce.300ms="filterText"
-                            class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
+                            class="h-11 w-full rounded-md border-gray-300 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
                             placeholder="Filter nama, nomor WA, atau ID WAHA">
-                        <div class="grid grid-cols-3 gap-2 text-xs font-medium">
+                        <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-[11px] font-medium">
                             <label
-                                class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-200 px-2 py-2 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
+                                class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
                                 <input type="radio" wire:model.live="filterType" value="pribadi"
-                                    class="h-3.5 w-3.5 border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    class="h-3 w-3 border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <span>Pribadi</span>
                             </label>
                             <label
-                                class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-200 px-2 py-2 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
+                                class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
                                 <input type="radio" wire:model.live="filterType" value="grup"
-                                    class="h-3.5 w-3.5 border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    class="h-3 w-3 border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <span>Grup</span>
                             </label>
                             <label
-                                class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-200 px-2 py-2 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
+                                class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
                                 <input type="radio" wire:model.live="filterType" value="keduanya"
-                                    class="h-3.5 w-3.5 border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    class="h-3 w-3 border-gray-300 text-blue-600 focus:ring-blue-500">
                                 <span>Keduanya</span>
                             </label>
                         </div>
                     </div>
                 </div>
-                <div class="max-h-[620px] divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
+                <div class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
                     @forelse ($chatRows as $chat)
                         <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
                             class="block w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60 {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30' : '' }}">
@@ -100,10 +100,10 @@
             </section>
 
             <section
-                class="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 @if ($selectedChat)
                     <div
-                        class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
+                        class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                         <div>
                             <div class="text-base font-semibold text-gray-950 dark:text-white">
                                 {{ $selectedChat['NamaInstansi'] }}</div>
@@ -131,7 +131,7 @@
                         </div>
                     </div>
 
-                    <div class="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950/60">
+                    <div class="min-h-0 flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950/60">
                         @forelse ($messages as $message)
                             @php($isOut = $message['ArahPesan'] === 'Keluar')
                             @php($hasMedia = $message['MediaCategory'] !== 'text')
@@ -196,23 +196,74 @@
                     </div>
 
                     <form wire:submit.prevent="kirimBalasanWaha"
-                        class="border-t border-gray-200 p-4 dark:border-gray-800">
+                        x-data="{
+                            handlePaste(event) {
+                                const items = event.clipboardData?.items || [];
+
+                                for (const item of items) {
+                                    if (item.kind !== 'file') {
+                                        continue;
+                                    }
+
+                                    const file = item.getAsFile();
+
+                                    if (! file) {
+                                        continue;
+                                    }
+
+                                    const files = new DataTransfer();
+                                    files.items.add(file);
+                                    this.$refs.attachmentInput.files = files.files;
+                                    this.$refs.attachmentInput.dispatchEvent(new Event('change', { bubbles: true }));
+                                    event.preventDefault();
+                                    break;
+                                }
+                            }
+                        }"
+                        @paste="handlePaste($event)"
+                        class="shrink-0 border-t border-gray-200 p-4 dark:border-gray-800">
+                        <input x-ref="attachmentInput" type="file" wire:model="attachment"
+                            accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
+                            class="hidden">
                         <textarea wire:model="replyText"
                             class="min-h-24 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                            placeholder="Tulis balasan WhatsApp"></textarea>
+                            placeholder="Tulis balasan WhatsApp. Paste gambar/video dengan Ctrl+V."></textarea>
                         @error('replyText')
                             <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                         @enderror
-                        <div class="mt-3 flex flex-wrap justify-end gap-2">
-                            <button type="button"
-                                class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Catatan
-                                Internal</button>
-                            <button type="button" wire:click="simpanBalasanLokal"
-                                class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Simpan
-                                Draft</button>
-                            <button
-                                class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Kirim
-                                ke WhatsApp</button>
+                        @error('attachment')
+                            <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                        @enderror
+                        <div wire:loading wire:target="attachment" class="mt-2 text-xs font-medium text-blue-600 dark:text-blue-300">
+                            Mengunggah lampiran...
+                        </div>
+                        @if ($attachment)
+                            <div
+                                class="mt-2 flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
+                                <div class="min-w-0 truncate">
+                                    Lampiran: {{ $attachment->getClientOriginalName() }}
+                                </div>
+                                <button type="button" wire:click="removeAttachment"
+                                    class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">Hapus</button>
+                            </div>
+                        @endif
+                        <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                            <button type="button" @click="$refs.attachmentInput.click()"
+                                class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Lampirkan
+                                File</button>
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <button type="button"
+                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Catatan
+                                    Internal</button>
+                                <button type="button" wire:click="simpanBalasanLokal"
+                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Simpan
+                                    Draft</button>
+                                <button
+                                    class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70"
+                                    wire:loading.attr="disabled"
+                                    wire:target="attachment,kirimBalasanWaha">Kirim
+                                    ke WhatsApp</button>
+                            </div>
                         </div>
                     </form>
                 @else
@@ -221,7 +272,7 @@
                 @endif
             </section>
 
-            <aside class="space-y-4">
+            <aside class="min-h-0 space-y-4 overflow-y-auto">
                 <div
                     class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between gap-3">
