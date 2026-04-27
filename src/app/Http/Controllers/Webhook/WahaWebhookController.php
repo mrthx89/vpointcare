@@ -23,6 +23,15 @@ class WahaWebhookController extends Controller
             ], 403);
         }
 
+        $hmacKey = config('services.waha.webhook_hmac_key');
+
+        if ($hmacKey && ! $this->validHmacSignature($request, (string) $hmacKey)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Invalid webhook HMAC signature.',
+            ], 403);
+        }
+
         $result = $processor->process($request->all());
 
         if (($result['ok'] ?? false) && ! empty($result['chat_id'])) {
@@ -42,5 +51,19 @@ class WahaWebhookController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    private function validHmacSignature(Request $request, string $hmacKey): bool
+    {
+        $signature = (string) $request->header('X-Webhook-Hmac', '');
+        $algorithm = strtolower((string) $request->header('X-Webhook-Hmac-Algorithm', 'sha512'));
+
+        if ($signature === '' || $algorithm !== 'sha512') {
+            return false;
+        }
+
+        $expected = hash_hmac('sha512', $request->getContent(), $hmacKey);
+
+        return hash_equals($expected, $signature);
     }
 }

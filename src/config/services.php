@@ -39,6 +39,7 @@ return [
         'base_url' => env('WAHA_BASE_URL', 'http://127.0.0.1:3000'),
         'api_key' => env('WAHA_API_KEY'),
         'webhook_token' => env('WAHA_WEBHOOK_TOKEN'),
+        'webhook_hmac_key' => env('WAHA_WEBHOOK_HMAC_KEY'),
         'send_text_path' => env('WAHA_SEND_TEXT_PATH', '/api/sendText'),
         'notification_session' => env('WAHA_NOTIFICATION_SESSION', 'default'),
     ],
