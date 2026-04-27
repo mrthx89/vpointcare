@@ -214,7 +214,15 @@ class AiAgent extends Page
 
         $column = $this->providerApiKeyColumn($provider);
 
-        return $settings->{$column} ?? ($settings->ApiKeyTerenkripsi ?? null);
+        $apiKey = $settings->{$column} ?? null;
+
+        if ($apiKey) {
+            return $apiKey;
+        }
+
+        return strtolower($provider) === 'openai'
+            ? ($settings->ApiKeyTerenkripsi ?? null)
+            : null;
     }
 
     private function providerApiKeyColumn(string $provider): string

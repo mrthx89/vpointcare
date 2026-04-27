@@ -117,7 +117,7 @@ class AiAutoReplyService
         }
 
         if (! $usedAi && ! $error) {
-            $error = 'AI tidak dipanggil karena API key kosong, provider bukan OpenAI, atau response AI tidak berisi output_text.';
+            $error = 'AI tidak dipanggil karena API key kosong untuk provider ' . ($settings->ProviderAi ?: '-') . ', provider tidak didukung, atau response AI tidak berisi output.';
         }
 
         DB::table('TAiPermintaan')->where('Id', $requestId)->update([
@@ -414,7 +414,15 @@ class AiAutoReplyService
             default => 'OpenAiApiKeyTerenkripsi',
         };
 
-        return $settings->{$column} ?? ($settings->ApiKeyTerenkripsi ?? null);
+        $apiKey = $settings->{$column} ?? null;
+
+        if ($apiKey) {
+            return $apiKey;
+        }
+
+        return $provider === 'openai'
+            ? ($settings->ApiKeyTerenkripsi ?? null)
+            : null;
     }
 
     /**
