@@ -195,6 +195,7 @@ class InboxWhatsapp extends Page
             'TglPesan' => now(),
             'TglDikirim' => now(),
             'StatusKirim' => 'Draft Lokal',
+            'DibalasOleh' => $this->currentPenggunaId(),
             'TglBuat' => now(),
         ]);
 
@@ -262,6 +263,7 @@ class InboxWhatsapp extends Page
             'TglDikirim' => $success ? now() : null,
             'StatusKirim' => $success ? 'Terkirim WAHA' : 'Gagal WAHA',
             'PesanError' => $success ? null : ($sent['error'] ?? 'WAHA gagal mengirim pesan.'),
+            'DibalasOleh' => $this->currentPenggunaId(),
             'TglBuat' => now(),
         ]);
 
@@ -327,6 +329,17 @@ class InboxWhatsapp extends Page
         }
 
         return $this->normalizeWahaChatId((string) $chat->NomorWhatsapp);
+    }
+
+    private function currentPenggunaId(): ?string
+    {
+        $email = auth()->user()?->email;
+
+        if (! $email) {
+            return null;
+        }
+
+        return DB::table('MPengguna')->where('Email', $email)->value('Id');
     }
 
     private function latestIncomingWahaChatId(string $chatId): ?string

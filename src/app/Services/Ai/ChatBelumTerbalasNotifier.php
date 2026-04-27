@@ -103,13 +103,23 @@ class ChatBelumTerbalasNotifier
             ->where('DikirimOlehCustomer', true)
             ->groupBy('IdChatM');
 
+        $latestCsReply = DB::table('TChatD')
+            ->select('IdChatM', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
+            ->where('ArahPesan', 'Keluar')
+            ->where(function ($query): void {
+                $query->whereNull('DihasilkanOlehAi')
+                    ->orWhere('DihasilkanOlehAi', false);
+            })
+            ->groupBy('IdChatM');
+
         return DB::table('TChatM as c')
             ->joinSub($latestIncoming, 'masuk', fn ($join) => $join->on('masuk.IdChatM', '=', 'c.Id'))
+            ->leftJoinSub($latestCsReply, 'cs', fn ($join) => $join->on('cs.IdChatM', '=', 'c.Id'))
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
             ->where(function ($query): void {
-                $query->whereNull('c.TglDibalasTerakhir')
-                    ->orWhereColumn('c.TglDibalasTerakhir', '<', 'masuk.TglPesanTerakhirMasuk');
+                $query->whereNull('cs.TglPesanTerakhirCs')
+                    ->orWhereColumn('cs.TglPesanTerakhirCs', '<', 'masuk.TglPesanTerakhirMasuk');
             })
             ->where('masuk.TglPesanTerakhirMasuk', '<=', now()->subMinutes($waitMinutes))
             ->where(function ($query) use ($cooldownMinutes): void {
