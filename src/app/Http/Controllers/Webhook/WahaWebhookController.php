@@ -34,7 +34,7 @@ class WahaWebhookController extends Controller
 
         $result = $processor->process($request->all());
 
-        if (($result['ok'] ?? false) && ! empty($result['chat_id'])) {
+        if (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id'])) {
             try {
                 $result['auto_reply'] = $autoReply->handleIncomingChat((string) $result['chat_id']);
             } catch (Throwable $exception) {

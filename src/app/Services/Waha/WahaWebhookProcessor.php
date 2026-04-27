@@ -33,10 +33,29 @@ class WahaWebhookProcessor
 
             try {
                 $parsed = $this->parseMessage($payload, $message);
+                $duplicate = $this->duplicateMessage($parsed['id_pesan']);
+
+                if ($duplicate) {
+                    DB::table('TLogWebhookWaha')->where('Id', $webhookId)->update([
+                        'SudahDiproses' => true,
+                        'TglDiproses' => now(),
+                        'TglEdit' => now(),
+                    ]);
+
+                    return [
+                        'ok' => true,
+                        'duplicate' => true,
+                        'chat_id' => $duplicate->IdChatM,
+                        'webhook_id' => $webhookId,
+                        'jenis_chat' => $parsed['jenis_chat'],
+                        'message' => 'Duplicate WAHA message event ignored.',
+                    ];
+                }
+
                 $mapping = $this->resolveCustomerMapping($parsed);
                 $chatId = $this->findOrCreateChat($session->Id, $parsed, $mapping);
 
-                DB::table('TChatD')->insert([
+                $chatMessage = [
                     'Id' => (string) Str::orderedUuid(),
                     'IdChatM' => $chatId,
                     'IdLogWebhookWaha' => $webhookId,
@@ -52,7 +71,17 @@ class WahaWebhookProcessor
                     'TglPesan' => $parsed['tgl_pesan'],
                     'StatusKirim' => $parsed['from_me'] ? 'Terkirim' : null,
                     'TglBuat' => now(),
-                ]);
+                ];
+
+                if (Schema::hasColumn('TChatD', 'NamaFileMedia')) {
+                    $chatMessage['NamaFileMedia'] = $parsed['nama_file_media'];
+                }
+
+                if (Schema::hasColumn('TChatD', 'TipeMime')) {
+                    $chatMessage['TipeMime'] = $parsed['tipe_mime'];
+                }
+
+                DB::table('TChatD')->insert($chatMessage);
 
                 DB::table('TChatM')->where('Id', $chatId)->update([
                     'TglChatTerakhir' => $parsed['tgl_pesan'],
@@ -96,6 +125,18 @@ class WahaWebhookProcessor
             ?? $payload;
 
         return is_array($message) ? $message : $payload;
+    }
+
+    private function duplicateMessage(?string $messageId): ?object
+    {
+        if (! $messageId) {
+            return null;
+        }
+
+        return DB::table('TChatD')
+            ->where('IdPesanWaha', $messageId)
+            ->select('Id', 'IdChatM')
+            ->first();
     }
 
     /**
@@ -173,6 +214,8 @@ class WahaWebhookProcessor
             ?? ($isGroup ? '' : $remoteId)
         );
         $senderJid = $isGroup ? $participant : $remoteId;
+        $mimeType = $this->mediaMimeType($message);
+        $mediaUrl = $this->mediaUrl($message);
 
         return [
             'id_pesan' => $this->messageId($message),
@@ -182,8 +225,10 @@ class WahaWebhookProcessor
             'pengirim_nomor' => $this->normalisasiNomorWhatsapp($senderJid),
             'pengirim_nama' => $this->stringValue(Arr::get($message, 'sender.pushname') ?? Arr::get($message, 'notifyName') ?? Arr::get($message, 'pushName') ?? ''),
             'isi_pesan' => $this->messageBody($message),
-            'jenis_pesan' => $this->stringValue(Arr::get($message, 'type') ?? Arr::get($message, 'media.mimetype') ?? 'Teks'),
-            'url_media' => Arr::get($message, 'media.url') ?? Arr::get($message, 'downloadUrl') ?? null,
+            'jenis_pesan' => $this->messageType($message, $mimeType, $mediaUrl),
+            'url_media' => $mediaUrl,
+            'nama_file_media' => $this->mediaFileName($message, $mediaUrl),
+            'tipe_mime' => $mimeType,
             'from_me' => $fromMe,
             'tgl_pesan' => $this->messageDate($message),
         ];
@@ -220,6 +265,128 @@ class WahaWebhookProcessor
     /**
      * @param  array<string, mixed>  $message
      */
+    private function messageType(array $message, ?string $mimeType, ?string $mediaUrl): string
+    {
+        $rawType = strtolower($this->stringValue(
+            Arr::get($message, 'type')
+            ?? Arr::get($message, 'message.type')
+            ?? Arr::get($message, '_data.type')
+            ?? ''
+        ));
+        $mime = strtolower((string) $mimeType);
+        $hasMedia = (bool) (Arr::get($message, 'hasMedia') ?? Arr::get($message, '_data.hasMedia') ?? false);
+
+        if (str_starts_with($mime, 'image/') || str_starts_with($rawType, 'image/') || in_array($rawType, ['image', 'gambar', 'photo', 'picture'], true)) {
+            return 'Gambar';
+        }
+
+        if (str_starts_with($mime, 'video/') || str_starts_with($rawType, 'video/') || $rawType === 'video') {
+            return 'Video';
+        }
+
+        if (str_starts_with($mime, 'audio/') || str_starts_with($rawType, 'audio/') || in_array($rawType, ['audio', 'ptt', 'voice'], true)) {
+            return 'Audio';
+        }
+
+        if ($rawType === 'sticker') {
+            return 'Stiker';
+        }
+
+        if ($mime !== '' || $mediaUrl || $hasMedia || in_array($rawType, ['document', 'file'], true)) {
+            return 'Dokumen';
+        }
+
+        return 'Teks';
+    }
+
+    /**
+     * @param  array<string, mixed>  $message
+     */
+    private function mediaMimeType(array $message): ?string
+    {
+        foreach ([
+            'media.mimetype',
+            'media.mimeType',
+            'mimetype',
+            'mimeType',
+            'file.mimetype',
+            'file.mimeType',
+            '_data.mimetype',
+        ] as $key) {
+            $value = Arr::get($message, $key);
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $message
+     */
+    private function mediaUrl(array $message): ?string
+    {
+        foreach ([
+            'media.url',
+            'media.downloadUrl',
+            'media.file.url',
+            'mediaUrl',
+            'downloadUrl',
+            'file.url',
+            'url',
+            '_data.deprecatedMms3Url',
+        ] as $key) {
+            $value = Arr::get($message, $key);
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $message
+     */
+    private function mediaFileName(array $message, ?string $mediaUrl): ?string
+    {
+        foreach ([
+            'media.filename',
+            'media.fileName',
+            'filename',
+            'fileName',
+            'file.name',
+            'document.filename',
+            '_data.filename',
+        ] as $key) {
+            $value = Arr::get($message, $key);
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        if (! $mediaUrl) {
+            return null;
+        }
+
+        $path = parse_url($mediaUrl, PHP_URL_PATH);
+
+        if (! is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        $fileName = basename($path);
+
+        return $fileName !== '' ? $fileName : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $message
+     */
     private function messageDate(array $message): \DateTimeInterface
     {
         $timestamp = Arr::get($message, 'timestamp') ?? Arr::get($message, 't') ?? null;
@@ -248,8 +415,8 @@ class WahaWebhookProcessor
             $wahaIds = array_values(array_filter(array_unique([
                 $parsed['pengirim_jid'] ?? null,
                 $parsed['pengirim_nomor'] ?? null,
-                $parsed['pengirim_nomor'] ? $parsed['pengirim_nomor'] . '@c.us' : null,
-                $parsed['pengirim_nomor'] ? $parsed['pengirim_nomor'] . '@lid' : null,
+                $parsed['pengirim_nomor'] ? $parsed['pengirim_nomor'].'@c.us' : null,
+                $parsed['pengirim_nomor'] ? $parsed['pengirim_nomor'].'@lid' : null,
             ])));
 
             if ($wahaIds !== []) {

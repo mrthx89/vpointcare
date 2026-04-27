@@ -25,6 +25,31 @@
                 <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Data masuk dari webhook WAHA.</div>
+                    <div class="mt-4 space-y-3">
+                        <input type="text" wire:model.live.debounce.300ms="filterText"
+                            class="w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
+                            placeholder="Filter nama, nomor WA, atau ID WAHA">
+                        <div class="grid grid-cols-3 gap-2 text-xs font-medium">
+                            <label
+                                class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-200 px-2 py-2 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
+                                <input type="radio" wire:model.live="filterType" value="pribadi"
+                                    class="h-3.5 w-3.5 border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span>Pribadi</span>
+                            </label>
+                            <label
+                                class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-200 px-2 py-2 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
+                                <input type="radio" wire:model.live="filterType" value="grup"
+                                    class="h-3.5 w-3.5 border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span>Grup</span>
+                            </label>
+                            <label
+                                class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-gray-200 px-2 py-2 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
+                                <input type="radio" wire:model.live="filterType" value="keduanya"
+                                    class="h-3.5 w-3.5 border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span>Keduanya</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="max-h-[620px] divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
                     @forelse ($chatRows as $chat)
@@ -41,6 +66,11 @@
                                             {{ $chat['NamaKontak'] }} &middot; {{ $chat['NomorWhatsapp'] }}
                                         @endif
                                     </div>
+                                    @if ($chat['IdWaha'])
+                                        <div class="truncate text-xs text-gray-400 dark:text-gray-500">
+                                            ID WAHA: {{ $chat['IdWaha'] }}
+                                        </div>
+                                    @endif
                                 </div>
                                 @if ($chat['BelumDibaca'] > 0)
                                     <div
@@ -84,6 +114,9 @@
                                 @else
                                     {{ $selectedChat['NamaKontak'] }} &middot; {{ $selectedChat['NomorWhatsapp'] }}
                                 @endif
+                                @if ($selectedChat['IdWaha'])
+                                    &middot; ID WAHA: {{ $selectedChat['IdWaha'] }}
+                                @endif
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2">
@@ -101,6 +134,7 @@
                     <div class="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950/60">
                         @forelse ($messages as $message)
                             @php($isOut = $message['ArahPesan'] === 'Keluar')
+                            @php($hasMedia = $message['MediaCategory'] !== 'text')
                             <div
                                 class="{{ $isOut ? 'ml-auto bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm shadow-sm">
                                 <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
@@ -111,8 +145,44 @@
                                         &middot; {{ $message['StatusKirim'] }}
                                     @endif
                                 </div>
-                                <p class="mt-1 whitespace-pre-line">{{ $message['IsiPesan'] ?: '[pesan non-teks]' }}
-                                </p>
+                                @if ($hasMedia)
+                                    <div class="mt-2 overflow-hidden rounded-md {{ $isOut ? 'bg-blue-700/40' : 'bg-gray-100 dark:bg-gray-950' }}">
+                                        @if ($message['MediaUrl'] && $message['MediaCategory'] === 'image')
+                                            <a href="{{ $message['MediaUrl'] }}" target="_blank" rel="noopener"
+                                                class="block">
+                                                <img src="{{ $message['MediaUrl'] }}"
+                                                    alt="{{ $message['MediaLabel'] }}"
+                                                    class="max-h-80 w-full object-contain">
+                                            </a>
+                                        @elseif ($message['MediaUrl'] && $message['MediaCategory'] === 'video')
+                                            <video controls preload="metadata" class="max-h-80 w-full">
+                                                <source src="{{ $message['MediaUrl'] }}"
+                                                    @if ($message['TipeMime']) type="{{ $message['TipeMime'] }}" @endif>
+                                            </video>
+                                        @elseif ($message['MediaUrl'] && $message['MediaCategory'] === 'audio')
+                                            <div class="p-3">
+                                                <audio controls preload="metadata" class="w-full">
+                                                    <source src="{{ $message['MediaUrl'] }}"
+                                                        @if ($message['TipeMime']) type="{{ $message['TipeMime'] }}" @endif>
+                                                </audio>
+                                            </div>
+                                        @elseif ($message['MediaUrl'])
+                                            <a href="{{ $message['MediaUrl'] }}" target="_blank" rel="noopener"
+                                                class="{{ $isOut ? 'text-blue-50 hover:text-white' : 'text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100' }} block px-3 py-2 text-sm font-medium underline underline-offset-2">
+                                                {{ $message['MediaLabel'] }}
+                                            </a>
+                                        @else
+                                            <div class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
+                                                {{ $message['MediaLabel'] }} diterima, URL media belum tersedia.
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                                @if ($message['IsiPesan'])
+                                    <p class="mt-2 whitespace-pre-line">{{ $message['IsiPesan'] }}</p>
+                                @elseif (! $hasMedia)
+                                    <p class="mt-1 whitespace-pre-line">[pesan non-teks]</p>
+                                @endif
                                 @if ($message['PesanError'])
                                     <div
                                         class="mt-2 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-500/10 dark:text-red-200">
@@ -182,6 +252,11 @@
                                 <dt class="text-gray-500">Grup</dt>
                                 <dd class="font-medium text-gray-900 dark:text-white">
                                     {{ $selectedChat['NamaGrupWhatsapp'] ?: '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-gray-500">ID WAHA</dt>
+                                <dd class="break-all font-medium text-gray-900 dark:text-white">
+                                    {{ $selectedChat['IdWaha'] ?: '-' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500">ID terdeteksi</dt>

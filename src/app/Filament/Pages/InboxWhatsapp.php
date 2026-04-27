@@ -12,9 +12,9 @@ use Illuminate\Support\Str;
 
 class InboxWhatsapp extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Operasional';
+    protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
 
     protected static ?string $navigationLabel = 'Inbox WhatsApp';
 
@@ -39,8 +39,28 @@ class InboxWhatsapp extends Page
 
     public string $replyText = '';
 
+    public string $filterText = '';
+
+    public string $filterType = 'keduanya';
+
     public function mount(): void
     {
+        $this->loadInbox();
+    }
+
+    public function updatedFilterText(): void
+    {
+        $this->resetSelectedChat();
+        $this->loadInbox();
+    }
+
+    public function updatedFilterType(): void
+    {
+        if (! in_array($this->filterType, ['pribadi', 'grup', 'keduanya'], true)) {
+            $this->filterType = 'keduanya';
+        }
+
+        $this->resetSelectedChat();
         $this->loadInbox();
     }
 
@@ -50,12 +70,23 @@ class InboxWhatsapp extends Page
             'baru' => (int) DB::table('TChatM')->count(),
             'belum_dibaca' => (int) DB::table('TChatM')->sum('JumlahPesanBelumDibaca'),
             'grup' => (int) DB::table('TChatM')->where('JenisChat', 'Grup')->count(),
-            'unknown' => (int) DB::table('TChatM')->whereNull('IdInstansi')->count(),
+            'unknown' => (int) DB::table('TChatM as c')
+                ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+                ->whereNull('c.IdInstansi')
+                ->whereNull('g.IdInstansi')
+                ->count(),
         ];
 
-        $rows = DB::table('TChatM as c')
+        $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
+        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
+        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
+
+        $query = DB::table('TChatM as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
+            ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->leftJoin('MInstansi as gi', 'gi.Id', '=', 'g.IdInstansi')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
             ->select(
                 'c.Id',
@@ -69,44 +100,81 @@ class InboxWhatsapp extends Page
                 'c.AiSudahMenyapa',
                 'c.TglAutoReplyAiTerakhir',
                 'i.NamaInstansi',
+                'gi.NamaInstansi as NamaInstansiGrup',
                 'm.NamaCustomer',
+                'n.NamaKontak as NamaKontakMaster',
+                'n.NomorWhatsapp as NomorWhatsappMaster',
+                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as NomorIdWaha'),
+                'g.NamaGrup as NamaGrupMaster',
+                'g.IdGrupWaha',
+                'g.NomorGrupWhatsapp',
                 's.NamaStatusChat'
-            )
+            );
+
+        if ($this->filterType === 'pribadi') {
+            $query->where('c.JenisChat', 'Pribadi');
+        } elseif ($this->filterType === 'grup') {
+            $query->where('c.JenisChat', 'Grup');
+        }
+
+        $search = trim($this->filterText);
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+
+            $query->where(function ($query) use ($like, $nomorHasIdWaha): void {
+                $query
+                    ->where('c.NamaKontak', 'like', $like)
+                    ->orWhere('c.NomorWhatsapp', 'like', $like)
+                    ->orWhere('c.NamaGrupWhatsapp', 'like', $like)
+                    ->orWhere('i.NamaInstansi', 'like', $like)
+                    ->orWhere('gi.NamaInstansi', 'like', $like)
+                    ->orWhere('m.NamaCustomer', 'like', $like)
+                    ->orWhere('n.NamaKontak', 'like', $like)
+                    ->orWhere('n.NomorWhatsapp', 'like', $like)
+                    ->orWhere('g.NamaGrup', 'like', $like)
+                    ->orWhere('g.IdGrupWaha', 'like', $like)
+                    ->orWhere('g.NomorGrupWhatsapp', 'like', $like);
+
+                if ($nomorHasIdWaha) {
+                    $query->orWhere('n.IdWaha', 'like', $like);
+                }
+            });
+        }
+
+        $rows = $query
             ->orderByDesc('c.TglChatTerakhir')
             ->limit(50)
             ->get();
 
-        $this->chatRows = $rows->map(function (object $row): array {
+        $this->chatRows = $rows->map(function (object $row) use ($chatDetailHasFileName, $chatDetailHasMimeType): array {
             $lastMessage = DB::table('TChatD')
                 ->where('IdChatM', $row->Id)
                 ->orderByDesc('TglPesan')
-                ->value('IsiPesan');
+                ->select(
+                    'IsiPesan',
+                    'JenisPesan',
+                    'UrlMedia',
+                    $chatDetailHasMimeType ? 'TipeMime' : DB::raw('NULL as TipeMime'),
+                    $chatDetailHasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia')
+                )
+                ->first();
 
-            return [
-                'Id' => $row->Id,
-                'JenisChat' => $row->JenisChat,
-                'NamaInstansi' => $row->NamaInstansi ?: 'Belum dipetakan',
-                'NamaCustomer' => $row->NamaCustomer,
-                'NamaKontak' => $row->NamaKontak ?: '-',
-                'NamaGrupWhatsapp' => $row->NamaGrupWhatsapp,
-                'NomorWhatsapp' => $row->NomorWhatsapp,
-                'Status' => $row->NamaStatusChat ?: 'Menunggu CS',
-                'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
-                'TglChatTerakhir' => $row->TglChatTerakhir,
-                'PesanTerakhir' => $lastMessage ?: '-',
-                'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
-                'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
-                'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
-                'MappingIdentifiers' => $this->mappingIdentifiers((object) [
-                    'Id' => $row->Id,
-                    'NomorWhatsapp' => $row->NomorWhatsapp,
-                    'NamaGrupWhatsapp' => $row->NamaGrupWhatsapp,
-                ]),
-            ];
+            return $this->formatChatRow($row, $this->messagePreview($lastMessage));
         })->all();
+
+        $selectedExists = $this->selectedChatId
+            && collect($this->chatRows)->contains('Id', $this->selectedChatId);
+
+        if (! $selectedExists) {
+            $this->selectedChatId = null;
+            $this->selectedChat = null;
+            $this->messages = [];
+        }
 
         if (! $this->selectedChatId && $this->chatRows) {
             $this->selectChat($this->chatRows[0]['Id']);
+
             return;
         }
 
@@ -115,21 +183,81 @@ class InboxWhatsapp extends Page
         }
     }
 
+    private function formatChatRow(object $row, string $lastMessage = '-'): array
+    {
+        $isGroup = $row->JenisChat === 'Grup';
+        $groupName = $row->NamaGrupMaster ?: $row->NamaGrupWhatsapp;
+        $groupWahaId = $row->IdGrupWaha ?? null;
+        $groupNumber = $row->NomorGrupWhatsapp ?: ($groupWahaId ?: $row->NomorWhatsapp);
+        $contactName = $row->NamaKontakMaster ?: $row->NamaKontak;
+        $contactNumber = $row->NomorWhatsappMaster ?: $row->NomorWhatsapp;
+        $displayInstansi = $isGroup
+            ? ($row->NamaInstansiGrup ?: $row->NamaInstansi)
+            : $row->NamaInstansi;
+
+        return [
+            'Id' => $row->Id,
+            'JenisChat' => $row->JenisChat,
+            'NamaInstansi' => $displayInstansi ?: 'Belum dipetakan',
+            'NamaCustomer' => $row->NamaCustomer,
+            'NamaKontak' => $contactName ?: '-',
+            'NamaGrupWhatsapp' => $groupName,
+            'NomorWhatsapp' => $isGroup ? $groupNumber : $contactNumber,
+            'IdWaha' => $isGroup ? $groupWahaId : ($row->NomorIdWaha ?? null),
+            'Status' => $row->NamaStatusChat ?: 'Menunggu CS',
+            'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
+            'TglChatTerakhir' => $row->TglChatTerakhir,
+            'PesanTerakhir' => $lastMessage,
+            'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
+            'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
+            'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
+            'MappingIdentifiers' => $this->mappingIdentifiers((object) [
+                'Id' => $row->Id,
+                'NomorWhatsapp' => $isGroup ? $groupWahaId : $contactNumber,
+                'NamaGrupWhatsapp' => $groupName,
+            ]),
+        ];
+    }
+
     public function selectChat(string $chatId): void
     {
         $this->selectedChatId = $chatId;
         $this->selectedChat = collect($this->chatRows)->firstWhere('Id', $chatId)
             ?? $this->loadChatHeader($chatId);
+        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
+        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
 
         $this->messages = DB::table('TChatD')
             ->where('IdChatM', $chatId)
             ->orderBy('TglPesan')
             ->limit(200)
+            ->select(
+                'Id',
+                'ArahPesan',
+                'JenisPesan',
+                'IsiPesan',
+                'UrlMedia',
+                $chatDetailHasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
+                $chatDetailHasMimeType ? 'TipeMime' : DB::raw('NULL as TipeMime'),
+                'PengirimNomorWhatsapp',
+                'PengirimNamaKontak',
+                'TglPesan',
+                'StatusKirim',
+                'PesanError',
+                'DihasilkanOlehAi'
+            )
             ->get()
             ->map(fn (object $row): array => [
                 'Id' => $row->Id,
                 'ArahPesan' => $row->ArahPesan,
+                'JenisPesan' => $row->JenisPesan,
                 'IsiPesan' => $row->IsiPesan,
+                'UrlMedia' => $row->UrlMedia,
+                'NamaFileMedia' => $row->NamaFileMedia,
+                'TipeMime' => $row->TipeMime,
+                'MediaCategory' => $this->mediaCategory($row->JenisPesan, $row->TipeMime),
+                'MediaLabel' => $this->mediaLabel($row->JenisPesan, $row->TipeMime, $row->NamaFileMedia),
+                'MediaUrl' => $row->UrlMedia ? route('admin.waha-media.show', ['message' => $row->Id]) : null,
                 'PengirimNomorWhatsapp' => $row->PengirimNomorWhatsapp,
                 'PengirimNamaKontak' => $row->PengirimNamaKontak,
                 'TglPesan' => $row->TglPesan,
@@ -200,7 +328,7 @@ class InboxWhatsapp extends Page
 
             Notification::make()
                 ->title('Mapping belum ditemukan.')
-                ->body('ID terdeteksi: ' . (implode(', ', array_slice($ids, 0, 8)) ?: '-') . '. Pastikan salah satu ID ini sama dengan master.')
+                ->body('ID terdeteksi: '.(implode(', ', array_slice($ids, 0, 8)) ?: '-').'. Pastikan salah satu ID ini sama dengan master.')
                 ->warning()
                 ->send();
 
@@ -336,35 +464,99 @@ class InboxWhatsapp extends Page
 
     private function loadChatHeader(string $chatId): ?array
     {
+        $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
+
         $row = DB::table('TChatM as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
+            ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->leftJoin('MInstansi as gi', 'gi.Id', '=', 'g.IdInstansi')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
             ->where('c.Id', $chatId)
-            ->select('c.*', 'i.NamaInstansi', 'm.NamaCustomer', 's.NamaStatusChat')
+            ->select(
+                'c.*',
+                'i.NamaInstansi',
+                'gi.NamaInstansi as NamaInstansiGrup',
+                'm.NamaCustomer',
+                'n.NamaKontak as NamaKontakMaster',
+                'n.NomorWhatsapp as NomorWhatsappMaster',
+                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as NomorIdWaha'),
+                'g.NamaGrup as NamaGrupMaster',
+                'g.IdGrupWaha',
+                'g.NomorGrupWhatsapp',
+                's.NamaStatusChat'
+            )
             ->first();
 
         if (! $row) {
             return null;
         }
 
-        return [
-            'Id' => $row->Id,
-            'JenisChat' => $row->JenisChat,
-            'NamaInstansi' => $row->NamaInstansi ?: 'Belum dipetakan',
-            'NamaCustomer' => $row->NamaCustomer,
-            'NamaKontak' => $row->NamaKontak ?: '-',
-            'NamaGrupWhatsapp' => $row->NamaGrupWhatsapp,
-            'NomorWhatsapp' => $row->NomorWhatsapp,
-            'Status' => $row->NamaStatusChat ?: 'Menunggu CS',
-            'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
-            'TglChatTerakhir' => $row->TglChatTerakhir,
-            'PesanTerakhir' => '-',
-            'AutoReplyAiAktif' => (bool) ($row->AutoReplyAiAktif ?? false),
-            'AiSudahMenyapa' => (bool) ($row->AiSudahMenyapa ?? false),
-            'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir ?? null,
-            'MappingIdentifiers' => $this->mappingIdentifiers($row),
-        ];
+        return $this->formatChatRow($row);
+    }
+
+    private function resetSelectedChat(): void
+    {
+        $this->selectedChatId = null;
+        $this->selectedChat = null;
+        $this->messages = [];
+    }
+
+    private function messagePreview(?object $message): string
+    {
+        if (! $message) {
+            return '-';
+        }
+
+        $text = trim((string) ($message->IsiPesan ?? ''));
+
+        if ($text !== '') {
+            return $text;
+        }
+
+        return '['.$this->mediaLabel($message->JenisPesan ?? null, $message->TipeMime ?? null, $message->NamaFileMedia ?? null).']';
+    }
+
+    private function mediaCategory(?string $jenisPesan, ?string $mimeType): string
+    {
+        $type = strtolower((string) $jenisPesan);
+        $mime = strtolower((string) $mimeType);
+
+        if (str_starts_with($mime, 'image/') || str_starts_with($type, 'image/') || in_array($type, ['gambar', 'image', 'photo', 'picture', 'stiker', 'sticker'], true)) {
+            return 'image';
+        }
+
+        if (str_starts_with($mime, 'video/') || str_starts_with($type, 'video/') || $type === 'video') {
+            return 'video';
+        }
+
+        if (str_starts_with($mime, 'audio/') || str_starts_with($type, 'audio/') || in_array($type, ['audio', 'voice', 'ptt'], true)) {
+            return 'audio';
+        }
+
+        if ($type !== '' && $type !== 'teks' && $type !== 'text') {
+            return 'file';
+        }
+
+        return 'text';
+    }
+
+    private function mediaLabel(?string $jenisPesan, ?string $mimeType, ?string $fileName): string
+    {
+        if ($fileName) {
+            return $fileName;
+        }
+
+        $category = $this->mediaCategory($jenisPesan, $mimeType);
+
+        return match ($category) {
+            'image' => 'Gambar',
+            'video' => 'Video',
+            'audio' => 'Audio',
+            'file' => (string) ($jenisPesan ?: 'Dokumen'),
+            default => 'Pesan',
+        };
     }
 
     private function wahaChatId(object $chat): string
@@ -554,9 +746,9 @@ class InboxWhatsapp extends Page
 
             if ($number) {
                 $expanded[] = $number;
-                $expanded[] = $number . '@c.us';
-                $expanded[] = $number . '@s.whatsapp.net';
-                $expanded[] = $number . '@lid';
+                $expanded[] = $number.'@c.us';
+                $expanded[] = $number.'@s.whatsapp.net';
+                $expanded[] = $number.'@lid';
             }
         }
 
@@ -641,6 +833,6 @@ class InboxWhatsapp extends Page
 
         $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;
 
-        return $number . '@c.us';
+        return $number.'@c.us';
     }
 }

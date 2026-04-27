@@ -37,6 +37,7 @@ return [
 
     'waha' => [
         'base_url' => env('WAHA_BASE_URL', 'http://127.0.0.1:3000'),
+        'media_base_url' => env('WAHA_MEDIA_BASE_URL', env('WAHA_BASE_URL', 'http://127.0.0.1:3000')),
         'api_key' => env('WAHA_API_KEY'),
         'webhook_token' => env('WAHA_WEBHOOK_TOKEN'),
         'webhook_hmac_key' => env('WAHA_WEBHOOK_HMAC_KEY'),
