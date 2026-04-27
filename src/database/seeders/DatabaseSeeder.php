@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
         ], [
             'name' => 'Admin VPoint Care',
             'password' => Hash::make('Ell1t3s3rv'),
+            'status' => User::STATUS_APPROVED,
+            'approved_at' => now(),
+            'blocked_at' => null,
         ]);
 
         if (! Schema::hasTable('MPeran') || ! Schema::hasTable('MPengguna')) {
