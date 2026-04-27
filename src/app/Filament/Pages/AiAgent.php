@@ -56,6 +56,11 @@ class AiAgent extends Page
             'pengaturan.TemplateDiluarJamKerja' => ['nullable', 'string', 'max:4000'],
             'pengaturan.TemplateJamKerjaSapaan' => ['nullable', 'string', 'max:4000'],
             'pengaturan.TemplateFallback' => ['nullable', 'string', 'max:4000'],
+            'pengaturan.NotifikasiChatBelumTerbalasAktif' => ['boolean'],
+            'pengaturan.MenitTungguNotifikasi' => ['required', 'integer', 'min:1', 'max:1440'],
+            'pengaturan.JedaNotifikasiMenit' => ['required', 'integer', 'min:1', 'max:1440'],
+            'pengaturan.KodePeranPenerimaNotifikasi' => ['required', 'string', 'max:200'],
+            'pengaturan.TemplateNotifikasiChatBelumTerbalas' => ['nullable', 'string', 'max:4000'],
             'pengaturan.BatasRiwayatPesan' => ['required', 'integer', 'min:1', 'max:20'],
             'pengaturan.KirimKeWaha' => ['boolean'],
             'pengaturan.ModeKirim' => ['required', 'string', 'max:50'],
@@ -122,6 +127,11 @@ class AiAgent extends Page
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,
             'TemplateJamKerjaSapaan' => $row->TemplateJamKerjaSapaan,
             'TemplateFallback' => $row->TemplateFallback,
+            'NotifikasiChatBelumTerbalasAktif' => (bool) ($row->NotifikasiChatBelumTerbalasAktif ?? true),
+            'MenitTungguNotifikasi' => (int) ($row->MenitTungguNotifikasi ?? 10),
+            'JedaNotifikasiMenit' => (int) ($row->JedaNotifikasiMenit ?? 30),
+            'KodePeranPenerimaNotifikasi' => $row->KodePeranPenerimaNotifikasi ?? 'ADMIN,SUPERVISOR_CS,CS',
+            'TemplateNotifikasiChatBelumTerbalas' => $row->TemplateNotifikasiChatBelumTerbalas ?? $this->defaultNotificationTemplate(),
             'BatasRiwayatPesan' => (int) $row->BatasRiwayatPesan,
             'KirimKeWaha' => (bool) $row->KirimKeWaha,
             'ModeKirim' => $row->ModeKirim ?: 'DraftLokal',
@@ -132,6 +142,7 @@ class AiAgent extends Page
             'chat_auto' => (int) DB::table('TChatM')->where('AutoReplyAiAktif', true)->count(),
             'balasan_ai' => (int) DB::table('TChatD')->where('DihasilkanOlehAi', true)->count(),
             'permintaan_hari_ini' => (int) DB::table('TAiPermintaan')->whereDate('TglBuat', now()->toDateString())->count(),
+            'penerima_notifikasi' => (int) DB::table('MPengguna')->where('NonAktif', false)->whereNotNull('NomorWhatsappInternal')->where('NomorWhatsappInternal', '<>', '')->count(),
         ];
     }
 
@@ -160,11 +171,21 @@ class AiAgent extends Page
             'TemplateDiluarJamKerja' => 'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
             'TemplateJamKerjaSapaan' => 'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.',
             'TemplateFallback' => 'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.',
+            'NotifikasiChatBelumTerbalasAktif' => true,
+            'MenitTungguNotifikasi' => 10,
+            'JedaNotifikasiMenit' => 30,
+            'KodePeranPenerimaNotifikasi' => 'ADMIN,SUPERVISOR_CS,CS',
+            'TemplateNotifikasiChatBelumTerbalas' => $this->defaultNotificationTemplate(),
             'BatasRiwayatPesan' => 8,
             'KirimKeWaha' => false,
             'ModeKirim' => 'DraftLokal',
             'NonAktif' => false,
             'TglBuat' => now(),
         ]);
+    }
+
+    private function defaultNotificationTemplate(): string
+    {
+        return 'Halo {nama_user}, ada chat WhatsApp dari {nama_instansi} yang belum dibalas selama {menit_menunggu} menit. Kontak: {nama_kontak} ({nomor_whatsapp}). Pesan terakhir: {pesan_terakhir}. Silakan cek VPoint Care: {url_admin}';
     }
 }

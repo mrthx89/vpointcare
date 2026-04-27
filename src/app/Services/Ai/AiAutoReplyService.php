@@ -2,6 +2,7 @@
 
 namespace App\Services\Ai;
 
+use App\Services\Waha\WahaSender;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
@@ -13,6 +14,10 @@ use Throwable;
 
 class AiAutoReplyService
 {
+    public function __construct(private readonly WahaSender $wahaSender)
+    {
+    }
+
     /**
      * @return array<string, mixed>|null
      */
@@ -367,58 +372,14 @@ class AiAutoReplyService
      */
     private function sendToWaha(object $chat, string $reply): array
     {
-        $baseUrl = rtrim((string) config('services.waha.base_url'), '/');
-        $path = '/' . ltrim((string) config('services.waha.send_text_path', '/api/sendText'), '/');
-        $url = $baseUrl . $path;
         $chatId = $this->wahaChatId($chat);
-        $payload = [
-            'session' => $chat->KodeSesi ?: 'default',
-            'chatId' => $chatId,
-            'text' => $reply,
-        ];
-        $logId = (string) Str::orderedUuid();
 
-        DB::table('TLogIntegrasi')->insert([
-            'Id' => $logId,
-            'KodeIntegrasi' => 'WAHA_SEND_TEXT',
-            'UrlEndpoint' => $url,
-            'MetodeHttp' => 'POST',
-            'RequestJson' => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            'TglRequest' => now(),
-            'TglBuat' => now(),
-        ]);
-
-        try {
-            $request = Http::acceptJson()->asJson()->timeout(20);
-
-            if (config('services.waha.api_key')) {
-                $request = $request->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
-            }
-
-            $response = $request->post($url, $payload);
-
-            DB::table('TLogIntegrasi')->where('Id', $logId)->update([
-                'ResponseJson' => $response->body(),
-                'StatusHttp' => $response->status(),
-                'Berhasil' => $response->successful(),
-                'PesanError' => $response->successful() ? null : $response->body(),
-                'TglResponse' => now(),
-                'TglEdit' => now(),
-            ]);
-
-            return $response->successful()
-                ? ['ok' => true]
-                : ['ok' => false, 'error' => $response->body()];
-        } catch (Throwable $exception) {
-            DB::table('TLogIntegrasi')->where('Id', $logId)->update([
-                'Berhasil' => false,
-                'PesanError' => $exception->getMessage(),
-                'TglResponse' => now(),
-                'TglEdit' => now(),
-            ]);
-
-            return ['ok' => false, 'error' => $exception->getMessage()];
-        }
+        return $this->wahaSender->sendText(
+            $chat->KodeSesi ?: 'default',
+            $chatId,
+            $reply,
+            'WAHA_SEND_TEXT'
+        );
     }
 
     private function wahaChatId(object $chat): string

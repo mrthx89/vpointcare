@@ -40,6 +40,7 @@ return [
         'api_key' => env('WAHA_API_KEY'),
         'webhook_token' => env('WAHA_WEBHOOK_TOKEN'),
         'send_text_path' => env('WAHA_SEND_TEXT_PATH', '/api/sendText'),
+        'notification_session' => env('WAHA_NOTIFICATION_SESSION', 'default'),
     ],
 
     'openai' => [

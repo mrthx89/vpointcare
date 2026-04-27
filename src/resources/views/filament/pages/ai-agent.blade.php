@@ -1,6 +1,6 @@
 <x-filament-panels::page>
     <form wire:submit.prevent="simpanPengaturan" class="space-y-6">
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Auto reply aktif</div>
                 <div class="mt-2 text-2xl font-semibold {{ $pengaturan['AutoReplyAktif'] ? 'text-emerald-600' : 'text-gray-400' }}">
@@ -14,6 +14,10 @@
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Balasan AI</div>
                 <div class="mt-2 text-2xl font-semibold text-amber-600">{{ $stats['balasan_ai'] ?? 0 }}</div>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="text-sm text-gray-500 dark:text-gray-400">Penerima notif</div>
+                <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $stats['penerima_notifikasi'] ?? 0 }}</div>
             </div>
         </div>
 
@@ -171,6 +175,40 @@
                         <div>
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Batas riwayat pesan</label>
                             <input type="number" min="1" max="20" wire:model="pengaturan.BatasRiwayatPesan" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">Notifikasi CS</div>
+                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">Job akan mengirim WhatsApp ke user internal jika chat klien belum terbalas.</div>
+                    <div class="mt-4 space-y-4">
+                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                            <input type="checkbox" wire:model="pengaturan.NotifikasiChatBelumTerbalasAktif" class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Aktifkan notifikasi chat belum terbalas</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Nomor user diambil dari data pengguna aktif.</span>
+                            </span>
+                        </label>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Kirim setelah menit</label>
+                                <input type="number" min="1" max="1440" wire:model="pengaturan.MenitTungguNotifikasi" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Jeda pengingat ulang</label>
+                                <input type="number" min="1" max="1440" wire:model="pengaturan.JedaNotifikasiMenit" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Role penerima</label>
+                            <input type="text" wire:model="pengaturan.KodePeranPenerimaNotifikasi" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950" placeholder="ADMIN,SUPERVISOR_CS,CS">
+                            <div class="mt-1 text-xs text-gray-500">Pisahkan kode role dengan koma. User harus memiliki Nomor WhatsApp Internal.</div>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template notifikasi</label>
+                            <textarea wire:model="pengaturan.TemplateNotifikasiChatBelumTerbalas" class="mt-2 min-h-32 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                            <div class="mt-1 text-xs text-gray-500">Placeholder: {nama_user}, {nama_instansi}, {jenis_chat}, {nama_kontak}, {nomor_whatsapp}, {pesan_terakhir}, {menit_menunggu}, {url_admin}</div>
                         </div>
                     </div>
                 </div>

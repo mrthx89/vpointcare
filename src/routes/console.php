@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 use Symfony\Component\Process\Process;
 
 Artisan::command('inspire', function () {
@@ -29,3 +30,8 @@ Artisan::command('serve:vpoint', function () {
 
     return $process->getExitCode() ?? 0;
 })->purpose('Serve VPoint Care using APP_SERVE_HOST and APP_SERVE_PORT from .env');
+
+Schedule::command('vpoint:kirim-notifikasi-chat-belum-terbalas')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->runInBackground();
