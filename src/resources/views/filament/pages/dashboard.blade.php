@@ -1,36 +1,62 @@
 <x-filament-panels::page>
     <div class="space-y-6" wire:poll.15s="loadDashboard">
-        <form wire:submit.prevent="loadDashboard"
-            class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div class="flex flex-wrap items-end gap-4">
-                <div>
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">Ringkasan Layanan WhatsApp</div>
-                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">Realtime setiap 15 detik. Update terakhir:
-                        {{ $lastUpdated ?: '-' }}</div>
-                </div>
-                <div class="ml-auto flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
-                    <div class="w-full sm:w-[320px] sm:shrink-0">
-                        {{ $this->getFiltersForm() }}
-                    </div>
-                    <button type="submit"
-                        class="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto sm:shrink-0">Terapkan</button>
+        <x-filament::section>
+            <div>
+                <h2 class="text-base font-semibold leading-6 text-gray-950 dark:text-white">
+                    Ringkasan Layanan WhatsApp
+                </h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Realtime setiap 15 detik. Update terakhir: {{ $lastUpdated ?: '-' }}
+                </p>
+
+                <div class="mt-6 flex flex-wrap items-center gap-2">
+                    <x-filament::button color="gray" size="sm" variant="outline" wire:click="setQuickRange('today')">
+                        Hari ini
+                    </x-filament::button>
+                    <x-filament::button color="gray" size="sm" variant="outline" wire:click="setQuickRange('7d')">
+                        7 hari
+                    </x-filament::button>
+                    <x-filament::button color="gray" size="sm" variant="outline"
+                        wire:click="setQuickRange('30d')">
+                        30 hari
+                    </x-filament::button>
+                    <x-filament::button color="gray" size="sm" variant="outline"
+                        wire:click="setQuickRange('month')">
+                        Bulan ini
+                    </x-filament::button>
+
+                    <x-filament::modal id="custom-period-modal" width="md">
+                        <x-slot name="trigger">
+                            <x-filament::button color="gray" size="sm" variant="outline"
+                                icon="heroicon-m-calendar"
+                                class="ring-1 ring-primary-600 bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400 dark:hover:bg-primary-500/20">
+                                {{ $this->filters['date_range'] ?? 'Custom Periode' }}
+                            </x-filament::button>
+                        </x-slot>
+
+                        <x-slot name="heading">
+                            Filter Periode Data
+                        </x-slot>
+
+                        <form wire:submit.prevent="loadDashboard"
+                            x-on:submit="$dispatch('close-modal', { id: 'custom-period-modal' })">
+                            <div class="py-4 full-width">
+                                {{ $this->getFiltersForm() }}
+                            </div>
+                            <div class="mt-4 flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+                                <x-filament::button color="gray"
+                                    x-on:click="$dispatch('close-modal', { id: 'custom-period-modal' })">
+                                    Batal
+                                </x-filament::button>
+                                <x-filament::button type="submit" color="primary">
+                                    Terapkan
+                                </x-filament::button>
+                            </div>
+                        </form>
+                    </x-filament::modal>
                 </div>
             </div>
-            <div class="mt-4 flex flex-wrap gap-2">
-                <button type="button" wire:click="setQuickRange('today')"
-                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Hari
-                    ini</button>
-                <button type="button" wire:click="setQuickRange('7d')"
-                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">7
-                    hari</button>
-                <button type="button" wire:click="setQuickRange('30d')"
-                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">30
-                    hari</button>
-                <button type="button" wire:click="setQuickRange('month')"
-                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Bulan
-                    ini</button>
-            </div>
-        </form>
+        </x-filament::section>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <section

@@ -470,7 +470,7 @@ class InboxWhatsapp extends Page
 
         if ($numbers !== []) {
             $grup = DB::table('MGrupWhatsapp')
-                ->whereIn('NomorGrupWhatsapp', $numbers)
+                ->whereIn('IdGrupWaha', $numbers)
                 ->where('NonAktif', false)
                 ->first();
 
