@@ -95,18 +95,24 @@
                                     @endif
                                 </div>
                                 <p class="mt-1 whitespace-pre-line">{{ $message['IsiPesan'] ?: '[pesan non-teks]' }}</p>
+                                @if ($message['PesanError'])
+                                    <div class="mt-2 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-500/10 dark:text-red-200">
+                                        Error: {{ $message['PesanError'] }}
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <div class="p-6 text-center text-sm text-gray-500">Belum ada pesan di chat ini.</div>
                         @endforelse
                     </div>
 
-                    <form wire:submit.prevent="simpanBalasanLokal" class="border-t border-gray-200 p-4 dark:border-gray-800">
+                    <form wire:submit.prevent="kirimBalasanWaha" class="border-t border-gray-200 p-4 dark:border-gray-800">
                         <textarea wire:model="replyText" class="min-h-24 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950" placeholder="Tulis balasan WhatsApp"></textarea>
                         @error('replyText') <div class="mt-1 text-xs text-red-600">{{ $message }}</div> @enderror
                         <div class="mt-3 flex flex-wrap justify-end gap-2">
                             <button type="button" class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Catatan Internal</button>
-                            <button class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Simpan Draft Balasan</button>
+                            <button type="button" wire:click="simpanBalasanLokal" class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Simpan Draft</button>
+                            <button class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Kirim ke WhatsApp</button>
                         </div>
                     </form>
                 @else

@@ -2,8 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Services\Waha\WahaSender;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -126,6 +128,7 @@ class InboxWhatsapp extends Page
                 'PengirimNamaKontak' => $row->PengirimNamaKontak,
                 'TglPesan' => $row->TglPesan,
                 'StatusKirim' => $row->StatusKirim,
+                'PesanError' => $row->PesanError,
                 'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
             ])
             ->all();
@@ -212,6 +215,73 @@ class InboxWhatsapp extends Page
             ->send();
     }
 
+    public function kirimBalasanWaha(WahaSender $wahaSender): void
+    {
+        $this->validate([
+            'replyText' => ['required', 'string', 'max:4000'],
+        ]);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $chat = DB::table('TChatM as c')
+            ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->where('c.Id', $this->selectedChatId)
+            ->select('c.*', 's.KodeSesi', 'g.IdGrupWaha')
+            ->first();
+
+        if (! $chat) {
+            Notification::make()
+                ->title('Chat tidak ditemukan.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $reply = $this->replyText;
+        $sent = $wahaSender->sendText(
+            $chat->KodeSesi ?: 'default',
+            $this->wahaChatId($chat),
+            $reply,
+            'WAHA_MANUAL_SEND_TEXT'
+        );
+
+        $success = (bool) ($sent['ok'] ?? false);
+
+        DB::table('TChatD')->insert([
+            'Id' => (string) Str::orderedUuid(),
+            'IdChatM' => $this->selectedChatId,
+            'ArahPesan' => 'Keluar',
+            'JenisPesan' => 'Teks',
+            'IsiPesan' => $reply,
+            'DikirimOlehCustomer' => false,
+            'TglPesan' => now(),
+            'TglDikirim' => $success ? now() : null,
+            'StatusKirim' => $success ? 'Terkirim WAHA' : 'Gagal WAHA',
+            'PesanError' => $success ? null : ($sent['error'] ?? 'WAHA gagal mengirim pesan.'),
+            'TglBuat' => now(),
+        ]);
+
+        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+            'TglDibalasTerakhir' => now(),
+            'TglChatTerakhir' => now(),
+            'JumlahPesanBelumDibaca' => 0,
+            'TglEdit' => now(),
+        ]);
+
+        $this->replyText = '';
+        $this->loadInbox();
+
+        Notification::make()
+            ->title($success ? 'Balasan terkirim ke WAHA.' : 'Balasan gagal dikirim ke WAHA.')
+            ->body($success ? null : ($sent['error'] ?? null))
+            ->{$success ? 'success' : 'danger'}()
+            ->send();
+    }
+
     private function loadChatHeader(string $chatId): ?array
     {
         $row = DB::table('TChatM as c')
@@ -242,5 +312,70 @@ class InboxWhatsapp extends Page
             'AiSudahMenyapa' => (bool) ($row->AiSudahMenyapa ?? false),
             'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir ?? null,
         ];
+    }
+
+    private function wahaChatId(object $chat): string
+    {
+        if ($chat->JenisChat === 'Grup' && $chat->IdGrupWaha) {
+            return $chat->IdGrupWaha;
+        }
+
+        $latestIncomingChatId = $this->latestIncomingWahaChatId((string) $chat->Id);
+
+        if ($latestIncomingChatId) {
+            return $latestIncomingChatId;
+        }
+
+        return $this->normalizeWahaChatId((string) $chat->NomorWhatsapp);
+    }
+
+    private function latestIncomingWahaChatId(string $chatId): ?string
+    {
+        $payloadJson = DB::table('TChatD')
+            ->where('IdChatM', $chatId)
+            ->where('ArahPesan', 'Masuk')
+            ->whereNotNull('PayloadJson')
+            ->orderByDesc('TglPesan')
+            ->value('PayloadJson');
+
+        if (! $payloadJson) {
+            return null;
+        }
+
+        $payload = json_decode((string) $payloadJson, true);
+
+        if (! is_array($payload)) {
+            return null;
+        }
+
+        foreach ([
+            'chatId',
+            'from',
+            'from.id',
+            '_data.id.remote',
+            '_data.Info.Chat',
+            'key.remoteJid',
+        ] as $key) {
+            $value = Arr::get($payload, $key);
+
+            if (is_string($value) && $value !== '') {
+                return $this->normalizeWahaChatId($value);
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeWahaChatId(string $chatIdOrNumber): string
+    {
+        if (str_contains($chatIdOrNumber, '@')) {
+            return str_ends_with($chatIdOrNumber, '@s.whatsapp.net')
+                ? str_replace('@s.whatsapp.net', '@c.us', $chatIdOrNumber)
+                : $chatIdOrNumber;
+        }
+
+        $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;
+
+        return $number . '@c.us';
     }
 }
