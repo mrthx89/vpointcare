@@ -50,6 +50,10 @@ class NomorWhatsappResource extends Resource
                     ->helperText('Gunakan format angka, contoh 6281234567890.')
                     ->maxLength(30)
                     ->required(),
+                TextInput::make('IdWaha')
+                    ->label('ID WAHA / JID')
+                    ->helperText('Isi jika WAHA mengirim ID internal seperti 137799747518482 atau JID @lid/@c.us.')
+                    ->maxLength(200),
                 TextInput::make('NamaKontak')
                     ->label('Nama di WhatsApp')
                     ->maxLength(150),
@@ -82,6 +86,10 @@ class NomorWhatsappResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
+                TextColumn::make('IdWaha')
+                    ->label('ID WAHA')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('NamaKontak')
                     ->label('Nama WA')
                     ->searchable(),

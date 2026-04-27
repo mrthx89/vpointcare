@@ -4,6 +4,7 @@ namespace App\Services\Waha;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -229,6 +230,22 @@ class WahaWebhookProcessor
 
         if ($parsed['pengirim_nomor']) {
             $nomor = DB::table('MNomorWhatsapp')->where('NomorWhatsapp', $parsed['pengirim_nomor'])->where('NonAktif', false)->first();
+        }
+
+        if (! $nomor && Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
+            $wahaIds = array_values(array_filter(array_unique([
+                $parsed['pengirim_jid'] ?? null,
+                $parsed['pengirim_nomor'] ?? null,
+                $parsed['pengirim_nomor'] ? $parsed['pengirim_nomor'] . '@c.us' : null,
+                $parsed['pengirim_nomor'] ? $parsed['pengirim_nomor'] . '@lid' : null,
+            ])));
+
+            if ($wahaIds !== []) {
+                $nomor = DB::table('MNomorWhatsapp')
+                    ->whereIn('IdWaha', $wahaIds)
+                    ->where('NonAktif', false)
+                    ->first();
+            }
         }
 
         if ($parsed['group_jid']) {
