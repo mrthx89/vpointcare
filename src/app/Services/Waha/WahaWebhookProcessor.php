@@ -142,8 +142,8 @@ class WahaWebhookProcessor
     private function parseMessage(array $payload, array $message): array
     {
         $remoteId = $this->stringValue(
-            Arr::get($message, 'from')
-            ?? Arr::get($message, 'chatId')
+            Arr::get($message, 'chatId')
+            ?? Arr::get($message, 'from')
             ?? Arr::get($message, 'from.id')
             ?? Arr::get($message, '_data.id.remote')
             ?? Arr::get($payload, 'chatId')

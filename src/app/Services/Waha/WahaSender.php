@@ -76,7 +76,9 @@ class WahaSender
     private function normalizeChatId(string $chatIdOrNumber): string
     {
         if (str_contains($chatIdOrNumber, '@')) {
-            return $chatIdOrNumber;
+            return str_ends_with($chatIdOrNumber, '@s.whatsapp.net')
+                ? str_replace('@s.whatsapp.net', '@c.us', $chatIdOrNumber)
+                : $chatIdOrNumber;
         }
 
         $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;

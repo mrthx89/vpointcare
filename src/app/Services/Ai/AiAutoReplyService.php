@@ -85,6 +85,7 @@ class AiAutoReplyService
         $responsePayload = null;
         $status = 'Selesai';
         $error = null;
+        $usedAi = false;
 
         DB::table('TAiPermintaan')->insert([
             'Id' => $requestId,
@@ -108,10 +109,15 @@ class AiAutoReplyService
             if ($generated) {
                 $reply = $generated['text'];
                 $responsePayload = $generated['payload'];
+                $usedAi = true;
             }
         } catch (Throwable $exception) {
             $status = 'Gagal Fallback';
             $error = $exception->getMessage();
+        }
+
+        if (! $usedAi && ! $error) {
+            $error = 'AI tidak dipanggil karena API key kosong, provider bukan OpenAI, atau response AI tidak berisi output_text.';
         }
 
         DB::table('TAiPermintaan')->where('Id', $requestId)->update([
@@ -127,7 +133,10 @@ class AiAutoReplyService
             'IdAiPermintaan' => $requestId,
             'JenisRespon' => $decision['mode'],
             'ResponRingkas' => $reply,
-            'ResponJson' => json_encode($responsePayload ?? ['fallback' => true], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'ResponJson' => json_encode($responsePayload ?? [
+                'fallback' => true,
+                'reason' => $error,
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglBuat' => now(),
         ]);
 
@@ -388,9 +397,63 @@ class AiAutoReplyService
             return $chat->IdGrupWaha;
         }
 
-        $number = preg_replace('/[^0-9]/', '', (string) $chat->NomorWhatsapp) ?: (string) $chat->NomorWhatsapp;
+        $latestIncomingChatId = $this->latestIncomingWahaChatId((string) $chat->Id);
 
-        return str_contains($number, '@') ? $number : $number . '@c.us';
+        if ($latestIncomingChatId) {
+            return $latestIncomingChatId;
+        }
+
+        return $this->normalizeWahaChatId((string) $chat->NomorWhatsapp);
+    }
+
+    private function latestIncomingWahaChatId(string $chatId): ?string
+    {
+        $payloadJson = DB::table('TChatD')
+            ->where('IdChatM', $chatId)
+            ->where('ArahPesan', 'Masuk')
+            ->whereNotNull('PayloadJson')
+            ->orderByDesc('TglPesan')
+            ->value('PayloadJson');
+
+        if (! $payloadJson) {
+            return null;
+        }
+
+        $payload = json_decode((string) $payloadJson, true);
+
+        if (! is_array($payload)) {
+            return null;
+        }
+
+        foreach ([
+            'chatId',
+            'from',
+            'from.id',
+            '_data.id.remote',
+            '_data.Info.Chat',
+            'key.remoteJid',
+        ] as $key) {
+            $value = Arr::get($payload, $key);
+
+            if (is_string($value) && $value !== '') {
+                return $this->normalizeWahaChatId($value);
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeWahaChatId(string $chatIdOrNumber): string
+    {
+        if (str_contains($chatIdOrNumber, '@')) {
+            return str_ends_with($chatIdOrNumber, '@s.whatsapp.net')
+                ? str_replace('@s.whatsapp.net', '@c.us', $chatIdOrNumber)
+                : $chatIdOrNumber;
+        }
+
+        $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;
+
+        return $number . '@c.us';
     }
 
     private function defaultOutsideTemplate(): string
