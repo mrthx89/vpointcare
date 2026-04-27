@@ -25,30 +25,8 @@
                 <div class="shrink-0 border-b border-gray-200 p-4 dark:border-gray-800">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Data masuk dari webhook WAHA.</div>
-                    <div class="mt-4 space-y-2">
-                        <input type="text" wire:model.live.debounce.300ms="filterText"
-                            class="h-11 w-full rounded-md border-gray-300 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                            placeholder="Filter nama, nomor WA, atau ID WAHA">
-                        <div class="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-[11px] font-medium">
-                            <label
-                                class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
-                                <input type="radio" wire:model.live="filterType" value="pribadi"
-                                    class="h-3 w-3 border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span>Pribadi</span>
-                            </label>
-                            <label
-                                class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
-                                <input type="radio" wire:model.live="filterType" value="grup"
-                                    class="h-3 w-3 border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span>Grup</span>
-                            </label>
-                            <label
-                                class="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-md border border-gray-200 px-2 py-1.5 text-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:text-blue-700 dark:border-gray-700 dark:text-gray-200 dark:has-[:checked]:border-blue-500 dark:has-[:checked]:bg-blue-500/10 dark:has-[:checked]:text-blue-300">
-                                <input type="radio" wire:model.live="filterType" value="keduanya"
-                                    class="h-3 w-3 border-gray-300 text-blue-600 focus:ring-blue-500">
-                                <span>Keduanya</span>
-                            </label>
-                        </div>
+                    <div class="mt-4 space-y-4">
+                        {{ $this->form }}
                     </div>
                 </div>
                 <div class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
@@ -146,7 +124,8 @@
                                     @endif
                                 </div>
                                 @if ($hasMedia)
-                                    <div class="mt-2 overflow-hidden rounded-md {{ $isOut ? 'bg-blue-700/40' : 'bg-gray-100 dark:bg-gray-950' }}">
+                                    <div
+                                        class="mt-2 overflow-hidden rounded-md {{ $isOut ? 'bg-blue-700/40' : 'bg-gray-100 dark:bg-gray-950' }}">
                                         @if ($message['MediaUrl'] && $message['MediaCategory'] === 'image')
                                             <a href="{{ $message['MediaUrl'] }}" target="_blank" rel="noopener"
                                                 class="block">
@@ -172,7 +151,8 @@
                                                 {{ $message['MediaLabel'] }}
                                             </a>
                                         @else
-                                            <div class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
+                                            <div
+                                                class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
                                                 {{ $message['MediaLabel'] }} diterima, URL media belum tersedia.
                                             </div>
                                         @endif
@@ -180,7 +160,7 @@
                                 @endif
                                 @if ($message['IsiPesan'])
                                     <p class="mt-2 whitespace-pre-line">{{ $message['IsiPesan'] }}</p>
-                                @elseif (! $hasMedia)
+                                @elseif (!$hasMedia)
                                     <p class="mt-1 whitespace-pre-line">[pesan non-teks]</p>
                                 @endif
                                 @if ($message['PesanError'])
@@ -195,32 +175,30 @@
                         @endforelse
                     </div>
 
-                    <form wire:submit.prevent="kirimBalasanWaha"
-                        x-data="{
-                            handlePaste(event) {
-                                const items = event.clipboardData?.items || [];
-
-                                for (const item of items) {
-                                    if (item.kind !== 'file') {
-                                        continue;
-                                    }
-
-                                    const file = item.getAsFile();
-
-                                    if (! file) {
-                                        continue;
-                                    }
-
-                                    const files = new DataTransfer();
-                                    files.items.add(file);
-                                    this.$refs.attachmentInput.files = files.files;
-                                    this.$refs.attachmentInput.dispatchEvent(new Event('change', { bubbles: true }));
-                                    event.preventDefault();
-                                    break;
+                    <form wire:submit.prevent="kirimBalasanWaha" x-data="{
+                        handlePaste(event) {
+                            const items = event.clipboardData?.items || [];
+                    
+                            for (const item of items) {
+                                if (item.kind !== 'file') {
+                                    continue;
                                 }
+                    
+                                const file = item.getAsFile();
+                    
+                                if (!file) {
+                                    continue;
+                                }
+                    
+                                const files = new DataTransfer();
+                                files.items.add(file);
+                                this.$refs.attachmentInput.files = files.files;
+                                this.$refs.attachmentInput.dispatchEvent(new Event('change', { bubbles: true }));
+                                event.preventDefault();
+                                break;
                             }
-                        }"
-                        @paste="handlePaste($event)"
+                        }
+                    }" @paste="handlePaste($event)"
                         class="shrink-0 border-t border-gray-200 p-4 dark:border-gray-800">
                         <input x-ref="attachmentInput" type="file" wire:model="attachment"
                             accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
@@ -234,7 +212,8 @@
                         @error('attachment')
                             <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                         @enderror
-                        <div wire:loading wire:target="attachment" class="mt-2 text-xs font-medium text-blue-600 dark:text-blue-300">
+                        <div wire:loading wire:target="attachment"
+                            class="mt-2 text-xs font-medium text-blue-600 dark:text-blue-300">
                             Mengunggah lampiran...
                         </div>
                         @if ($attachment)
@@ -260,8 +239,7 @@
                                     Draft</button>
                                 <button
                                     class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70"
-                                    wire:loading.attr="disabled"
-                                    wire:target="attachment,kirimBalasanWaha">Kirim
+                                    wire:loading.attr="disabled" wire:target="attachment,kirimBalasanWaha">Kirim
                                     ke WhatsApp</button>
                             </div>
                         </div>
@@ -296,7 +274,8 @@
                             </div>
                             <div>
                                 <dt class="text-gray-500">Kontak</dt>
-                                <dd class="font-medium text-gray-900 dark:text-white">{{ $selectedChat['NamaKontak'] }}
+                                <dd class="font-medium text-gray-900 dark:text-white">
+                                    {{ $selectedChat['NamaKontak'] }}
                                 </dd>
                             </div>
                             <div>

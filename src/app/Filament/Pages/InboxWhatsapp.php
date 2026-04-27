@@ -3,8 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Services\Waha\WahaSender;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Schema as FilamentSchema;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -13,8 +18,9 @@ use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
-class InboxWhatsapp extends Page
+class InboxWhatsapp extends Page implements HasForms
 {
+    use InteractsWithForms;
     use WithFileUploads;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
@@ -57,8 +63,7 @@ class InboxWhatsapp extends Page
 
     public function updatedFilterText(): void
     {
-        $this->resetSelectedChat();
-        $this->loadInbox();
+        $this->refreshFilteredInbox();
     }
 
     public function updatedFilterType(): void
@@ -67,6 +72,31 @@ class InboxWhatsapp extends Page
             $this->filterType = 'keduanya';
         }
 
+        $this->refreshFilteredInbox();
+    }
+
+    public function form(FilamentSchema $schema): FilamentSchema
+    {
+        return $schema
+            ->components([
+                TextInput::make('filterText')
+                    ->hiddenLabel()
+                    ->placeholder('Filter nama, nomor WA, atau ID WAHA')
+                    ->live(debounce: 300),
+                Radio::make('filterType')
+                    ->hiddenLabel()
+                    ->options([
+                        'pribadi' => 'Pribadi',
+                        'grup' => 'Grup',
+                        'keduanya' => 'Keduanya',
+                    ])
+                    ->inline()
+                    ->live(),
+            ]);
+    }
+
+    private function refreshFilteredInbox(): void
+    {
         $this->resetSelectedChat();
         $this->loadInbox();
     }
