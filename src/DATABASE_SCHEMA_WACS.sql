@@ -154,6 +154,46 @@ CREATE TABLE MNomorWhatsapp (
 );
 GO
 
+CREATE TABLE MGrupWhatsapp (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MGrupWhatsapp_Id DEFAULT NEWSEQUENTIALID(),
+    IdInstansi uniqueidentifier NOT NULL,
+    KodeGrup varchar(50) NOT NULL,
+    NamaGrup varchar(200) NOT NULL,
+    IdGrupWaha varchar(200) NULL,
+    NomorGrupWhatsapp varchar(100) NULL,
+    Deskripsi varchar(500) NULL,
+    SumberData varchar(50) NULL,
+    IdExternal varchar(100) NULL,
+    NonAktif bit NOT NULL CONSTRAINT DF_MGrupWhatsapp_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MGrupWhatsapp_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MGrupWhatsapp PRIMARY KEY (Id),
+    CONSTRAINT FK_MGrupWhatsapp_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
+    CONSTRAINT UQ_MGrupWhatsapp_KodeGrup UNIQUE (KodeGrup)
+);
+GO
+
+CREATE TABLE MAnggotaGrupWhatsapp (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MAnggotaGrupWhatsapp_Id DEFAULT NEWSEQUENTIALID(),
+    IdGrupWhatsapp uniqueidentifier NOT NULL,
+    IdNomorWhatsapp uniqueidentifier NOT NULL,
+    IdCustomer uniqueidentifier NULL,
+    PeranAnggota varchar(100) NULL,
+    NonAktif bit NOT NULL CONSTRAINT DF_MAnggotaGrupWhatsapp_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MAnggotaGrupWhatsapp_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MAnggotaGrupWhatsapp PRIMARY KEY (Id),
+    CONSTRAINT FK_MAnggotaGrupWhatsapp_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id),
+    CONSTRAINT FK_MAnggotaGrupWhatsapp_MNomorWhatsapp FOREIGN KEY (IdNomorWhatsapp) REFERENCES MNomorWhatsapp(Id),
+    CONSTRAINT FK_MAnggotaGrupWhatsapp_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
+    CONSTRAINT UQ_MAnggotaGrupWhatsapp UNIQUE (IdGrupWhatsapp, IdNomorWhatsapp)
+);
+GO
+
 CREATE TABLE MProdukCustomer (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MProdukCustomer_Id DEFAULT NEWSEQUENTIALID(),
     IdCustomer uniqueidentifier NULL,
@@ -391,8 +431,11 @@ CREATE TABLE TChatM (
     IdCustomer uniqueidentifier NULL,
     IdInstansi uniqueidentifier NULL,
     IdNomorWhatsapp uniqueidentifier NULL,
+    IdGrupWhatsapp uniqueidentifier NULL,
+    JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChatM_JenisChat DEFAULT 'Pribadi',
     NomorWhatsapp varchar(30) NOT NULL,
     NamaKontak varchar(150) NULL,
+    NamaGrupWhatsapp varchar(200) NULL,
     Prioritas varchar(50) NOT NULL CONSTRAINT DF_TChatM_Prioritas DEFAULT 'Normal',
     DitugaskanKepada uniqueidentifier NULL,
     DiambilOleh uniqueidentifier NULL,
@@ -412,7 +455,8 @@ CREATE TABLE TChatM (
     CONSTRAINT FK_TChatM_MStatusChat FOREIGN KEY (IdStatusChat) REFERENCES MStatusChat(Id),
     CONSTRAINT FK_TChatM_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
     CONSTRAINT FK_TChatM_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
-    CONSTRAINT FK_TChatM_MNomorWhatsapp FOREIGN KEY (IdNomorWhatsapp) REFERENCES MNomorWhatsapp(Id)
+    CONSTRAINT FK_TChatM_MNomorWhatsapp FOREIGN KEY (IdNomorWhatsapp) REFERENCES MNomorWhatsapp(Id),
+    CONSTRAINT FK_TChatM_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id)
 );
 GO
 
@@ -428,6 +472,8 @@ CREATE TABLE TChatD (
     NamaFileMedia varchar(255) NULL,
     TipeMime varchar(100) NULL,
     PayloadJson nvarchar(max) NULL,
+    PengirimNomorWhatsapp varchar(30) NULL,
+    PengirimNamaKontak varchar(150) NULL,
     DikirimOlehCustomer bit NOT NULL CONSTRAINT DF_TChatD_DikirimOlehCustomer DEFAULT 0,
     DibalasOleh uniqueidentifier NULL,
     TglPesan datetime2 NOT NULL,
@@ -607,6 +653,9 @@ GO
 CREATE INDEX IX_MCustomer_NamaCustomer ON MCustomer (NamaCustomer);
 CREATE INDEX IX_MInstansi_NamaInstansi ON MInstansi (NamaInstansi);
 CREATE INDEX IX_MNomorWhatsapp_NomorWhatsapp ON MNomorWhatsapp (NomorWhatsapp);
+CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi);
+CREATE INDEX IX_MGrupWhatsapp_IdGrupWaha ON MGrupWhatsapp (IdGrupWaha);
+CREATE INDEX IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp ON MAnggotaGrupWhatsapp (IdGrupWhatsapp);
 CREATE INDEX IX_MProdukCustomer_IdCustomer ON MProdukCustomer (IdCustomer);
 CREATE INDEX IX_TLogAktivitas_TglAktivitas ON TLogAktivitas (TglAktivitas);
 CREATE INDEX IX_TLogError_TglError ON TLogError (TglError);
@@ -616,6 +665,7 @@ CREATE INDEX IX_TLogWebhookWaha_SudahDiproses ON TLogWebhookWaha (SudahDiproses)
 CREATE INDEX IX_TChatM_NomorWhatsapp ON TChatM (NomorWhatsapp);
 CREATE INDEX IX_TChatM_IdCustomer ON TChatM (IdCustomer);
 CREATE INDEX IX_TChatM_IdInstansi ON TChatM (IdInstansi);
+CREATE INDEX IX_TChatM_IdGrupWhatsapp ON TChatM (IdGrupWhatsapp);
 CREATE INDEX IX_TChatM_IdStatusChat ON TChatM (IdStatusChat);
 CREATE INDEX IX_TChatM_DitugaskanKepada ON TChatM (DitugaskanKepada);
 CREATE INDEX IX_TChatM_TglChatTerakhir ON TChatM (TglChatTerakhir);
