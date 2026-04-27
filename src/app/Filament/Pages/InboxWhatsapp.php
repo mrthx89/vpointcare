@@ -7,6 +7,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class InboxWhatsapp extends Page
@@ -171,6 +172,48 @@ class InboxWhatsapp extends Page
 
         Notification::make()
             ->title('Status sapaan AI direset.')
+            ->success()
+            ->send();
+    }
+
+    public function refreshMappingChat(): void
+    {
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $chat = DB::table('TChatM')->where('Id', $this->selectedChatId)->first();
+
+        if (! $chat) {
+            return;
+        }
+
+        $mapping = $this->resolveMappingForChat($chat);
+
+        if (! ($mapping['IdInstansi'] ?? null)) {
+            Notification::make()
+                ->title('Mapping belum ditemukan.')
+                ->body('Pastikan Nomor WhatsApp atau ID WAHA / JID di master sama dengan ID yang tampil di chat.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+            'IdCustomer' => $mapping['IdCustomer'],
+            'IdInstansi' => $mapping['IdInstansi'],
+            'IdNomorWhatsapp' => $mapping['IdNomorWhatsapp'],
+            'IdGrupWhatsapp' => $mapping['IdGrupWhatsapp'],
+            'NamaKontak' => $mapping['NamaKontak'],
+            'NamaGrupWhatsapp' => $mapping['NamaGrupWhatsapp'],
+            'TglEdit' => now(),
+        ]);
+
+        $this->loadInbox();
+
+        Notification::make()
+            ->title('Mapping chat berhasil diperbarui.')
             ->success()
             ->send();
     }
@@ -342,7 +385,125 @@ class InboxWhatsapp extends Page
         return DB::table('MPengguna')->where('Email', $email)->value('Id');
     }
 
-    private function latestIncomingWahaChatId(string $chatId): ?string
+    /**
+     * @return array<string, mixed>
+     */
+    private function resolveMappingForChat(object $chat): array
+    {
+        $ids = $this->mappingIdentifiers($chat);
+        $nomor = $this->findNomorMapping($ids);
+        $grup = null;
+
+        if ($chat->JenisChat === 'Grup') {
+            $grup = DB::table('MGrupWhatsapp')
+                ->whereIn('IdGrupWaha', $ids)
+                ->where('NonAktif', false)
+                ->first();
+        }
+
+        return [
+            'IdCustomer' => $nomor->IdCustomer ?? null,
+            'IdInstansi' => $grup->IdInstansi ?? $nomor->IdInstansi ?? null,
+            'IdNomorWhatsapp' => $nomor->Id ?? null,
+            'IdGrupWhatsapp' => $grup->Id ?? null,
+            'NamaKontak' => $nomor->NamaKontak ?? $chat->NamaKontak ?? null,
+            'NamaGrupWhatsapp' => $grup->NamaGrup ?? $chat->NamaGrupWhatsapp ?? null,
+        ];
+    }
+
+    private function findNomorMapping(array $ids): ?object
+    {
+        $numbers = collect($ids)
+            ->map(fn (string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
+            ->map(fn (string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($numbers !== []) {
+            $nomor = DB::table('MNomorWhatsapp')
+                ->whereIn('NomorWhatsapp', $numbers)
+                ->where('NonAktif', false)
+                ->first();
+
+            if ($nomor) {
+                return $nomor;
+            }
+        }
+
+        if (! Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
+            return null;
+        }
+
+        return DB::table('MNomorWhatsapp')
+            ->whereIn('IdWaha', $ids)
+            ->where('NonAktif', false)
+            ->first();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function mappingIdentifiers(object $chat): array
+    {
+        $ids = [
+            (string) ($chat->NomorWhatsapp ?? ''),
+            (string) ($chat->NamaGrupWhatsapp ?? ''),
+        ];
+
+        $payload = $this->latestIncomingPayload((string) $chat->Id);
+
+        if ($payload) {
+            foreach ([
+                'chatId',
+                'from',
+                'from.id',
+                '_data.id.remote',
+                '_data.Info.Chat',
+                'key.remoteJid',
+                'participant',
+                'author',
+                'sender.id',
+                '_data.author',
+            ] as $key) {
+                $value = Arr::get($payload, $key);
+
+                if (is_string($value) && $value !== '') {
+                    $ids[] = $value;
+                }
+            }
+        }
+
+        $expanded = [];
+
+        foreach ($ids as $id) {
+            $id = trim($id);
+
+            if ($id === '' || $id === '-') {
+                continue;
+            }
+
+            $expanded[] = $id;
+            $number = preg_replace('/@.+$/', '', $id) ?: $id;
+            $number = preg_replace('/:.+$/', '', $number) ?: $number;
+            $number = preg_replace('/[^0-9]/', '', $number) ?: null;
+
+            if ($number) {
+                $expanded[] = $number;
+                $expanded[] = $number . '@c.us';
+                $expanded[] = $number . '@s.whatsapp.net';
+                $expanded[] = $number . '@lid';
+            }
+        }
+
+        return array_values(array_unique($expanded));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function latestIncomingPayload(string $chatId): ?array
     {
         $payloadJson = DB::table('TChatD')
             ->where('IdChatM', $chatId)
@@ -357,7 +518,14 @@ class InboxWhatsapp extends Page
 
         $payload = json_decode((string) $payloadJson, true);
 
-        if (! is_array($payload)) {
+        return is_array($payload) ? $payload : null;
+    }
+
+    private function latestIncomingWahaChatId(string $chatId): ?string
+    {
+        $payload = $this->latestIncomingPayload($chatId);
+
+        if (! $payload) {
             return null;
         }
 

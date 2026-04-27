@@ -40,7 +40,7 @@ class Dashboard extends BaseDashboard
 
     public function mount(): void
     {
-        $this->startDate = now()->subDays(6)->toDateString();
+        $this->startDate = now()->toDateString();
         $this->endDate = now()->toDateString();
 
         $this->loadDashboard();

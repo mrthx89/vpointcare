@@ -8,12 +8,12 @@
                 </div>
                 <div class="flex flex-wrap items-end gap-3">
                     <div>
-                        <label class="text-xs font-medium text-gray-600 dark:text-gray-300">Dari</label>
-                        <input type="date" wire:model="startDate" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
-                    </div>
-                    <div>
-                        <label class="text-xs font-medium text-gray-600 dark:text-gray-300">Sampai</label>
-                        <input type="date" wire:model="endDate" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                        <label class="text-xs font-medium text-gray-600 dark:text-gray-300">Date range</label>
+                        <div class="mt-1 flex overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <input type="date" wire:model="startDate" aria-label="Tanggal mulai" class="min-w-0 border-0 bg-transparent text-sm focus:ring-0 dark:bg-gray-950">
+                            <div class="flex items-center border-x border-gray-200 px-2 text-xs font-medium text-gray-500 dark:border-gray-700">s/d</div>
+                            <input type="date" wire:model="endDate" aria-label="Tanggal selesai" class="min-w-0 border-0 bg-transparent text-sm focus:ring-0 dark:bg-gray-950">
+                        </div>
                     </div>
                     <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Terapkan</button>
                 </div>
