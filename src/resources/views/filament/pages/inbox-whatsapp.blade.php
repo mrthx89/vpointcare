@@ -39,7 +39,7 @@
                                         @if ($chat['JenisChat'] === 'Grup')
                                             Grup: {{ $chat['NamaGrupWhatsapp'] ?: 'Belum dikenal' }}
                                         @else
-                                            {{ $chat['NamaKontak'] }} · {{ $chat['NomorWhatsapp'] }}
+                                            {{ $chat['NamaKontak'] }} &middot; {{ $chat['NomorWhatsapp'] }}
                                         @endif
                                     </div>
                                 </div>
@@ -51,6 +51,9 @@
                             <div class="mt-3 flex flex-wrap gap-2">
                                 <span class="rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">{{ $chat['Status'] }}</span>
                                 <span class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ $chat['JenisChat'] }}</span>
+                                @if ($chat['AutoReplyAiAktif'])
+                                    <span class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">AI aktif</span>
+                                @endif
                             </div>
                         </button>
                     @empty
@@ -66,13 +69,18 @@
                             <div class="text-base font-semibold text-gray-950 dark:text-white">{{ $selectedChat['NamaInstansi'] }}</div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">
                                 @if ($selectedChat['JenisChat'] === 'Grup')
-                                    {{ $selectedChat['NamaGrupWhatsapp'] ?: 'Grup belum dipetakan' }} · {{ $selectedChat['NomorWhatsapp'] }}
+                                    {{ $selectedChat['NamaGrupWhatsapp'] ?: 'Grup belum dipetakan' }} &middot; {{ $selectedChat['NomorWhatsapp'] }}
                                 @else
-                                    {{ $selectedChat['NamaKontak'] }} · {{ $selectedChat['NomorWhatsapp'] }}
+                                    {{ $selectedChat['NamaKontak'] }} &middot; {{ $selectedChat['NomorWhatsapp'] }}
                                 @endif
                             </div>
                         </div>
-                        <div class="inline-flex rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ $selectedChat['Status'] }}</div>
+                        <div class="flex flex-wrap gap-2">
+                            @if ($selectedChat['AutoReplyAiAktif'])
+                                <div class="inline-flex rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">AI Auto Reply</div>
+                            @endif
+                            <div class="inline-flex rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ $selectedChat['Status'] }}</div>
+                        </div>
                     </div>
 
                     <div class="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950/60">
@@ -80,10 +88,10 @@
                             @php($isOut = $message['ArahPesan'] === 'Keluar')
                             <div class="{{ $isOut ? 'ml-auto bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm shadow-sm">
                                 <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
-                                    {{ $isOut ? 'CS' : ($message['PengirimNamaKontak'] ?: $message['PengirimNomorWhatsapp'] ?: 'Customer') }}
-                                    · {{ \Illuminate\Support\Carbon::parse($message['TglPesan'])->format('d M H:i') }}
+                                    {{ $isOut ? ($message['DihasilkanOlehAi'] ? 'AI Agent' : 'CS') : ($message['PengirimNamaKontak'] ?: $message['PengirimNomorWhatsapp'] ?: 'Customer') }}
+                                    &middot; {{ \Illuminate\Support\Carbon::parse($message['TglPesan'])->format('d M H:i') }}
                                     @if ($message['StatusKirim'])
-                                        · {{ $message['StatusKirim'] }}
+                                        &middot; {{ $message['StatusKirim'] }}
                                     @endif
                                 </div>
                                 <p class="mt-1 whitespace-pre-line">{{ $message['IsiPesan'] ?: '[pesan non-teks]' }}</p>
@@ -118,6 +126,28 @@
                         </dl>
                     @else
                         <div class="mt-3 text-sm text-gray-500">Belum ada chat dipilih.</div>
+                    @endif
+                </div>
+                <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">Kontrol AI Chat</div>
+                    @if ($selectedChat)
+                        <div class="mt-4 space-y-3 text-sm">
+                            <div class="rounded-md {{ $selectedChat['AutoReplyAiAktif'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' }} px-3 py-2 font-medium">
+                                {{ $selectedChat['AutoReplyAiAktif'] ? 'AI akan terus menjawab sesi ini.' : 'AI hanya mengikuti setting global.' }}
+                            </div>
+                            <div class="grid gap-2 text-gray-600 dark:text-gray-300">
+                                <div>Sapaan AI: <span class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['AiSudahMenyapa'] ? 'Sudah' : 'Belum' }}</span></div>
+                                <div>Terakhir AI: <span class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['TglAutoReplyAiTerakhir'] ? \Illuminate\Support\Carbon::parse($selectedChat['TglAutoReplyAiTerakhir'])->format('d M Y H:i') : '-' }}</span></div>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" wire:click="toggleAutoReplyAi" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                    {{ $selectedChat['AutoReplyAiAktif'] ? 'Matikan Auto Reply' : 'Aktifkan Auto Reply' }}
+                                </button>
+                                <button type="button" wire:click="resetSapaanAi" class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Reset Sapaan</button>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-3 text-sm text-gray-500">Pilih chat untuk mengatur AI per sesi.</div>
                     @endif
                 </div>
                 <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">

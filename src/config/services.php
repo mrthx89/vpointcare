@@ -39,6 +39,13 @@ return [
         'base_url' => env('WAHA_BASE_URL', 'http://127.0.0.1:3000'),
         'api_key' => env('WAHA_API_KEY'),
         'webhook_token' => env('WAHA_WEBHOOK_TOKEN'),
+        'send_text_path' => env('WAHA_SEND_TEXT_PATH', '/api/sendText'),
+    ],
+
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-5'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1/responses'),
     ],
 
 ];

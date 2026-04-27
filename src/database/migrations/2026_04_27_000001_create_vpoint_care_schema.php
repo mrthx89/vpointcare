@@ -57,8 +57,6 @@ return new class extends Migration
     private function tablesInDropOrder(): array
     {
         return [
-            'TAiRespon',
-            'TAiPermintaan',
             'TTicketLampiran',
             'TTicketPenugasan',
             'TTicketD',
@@ -66,12 +64,15 @@ return new class extends Migration
             'TChatCatatanInternal',
             'TChatPenugasan',
             'TChatD',
+            'TAiRespon',
+            'TAiPermintaan',
             'TChatM',
             'TLogWebhookWaha',
             'TLogIntegrasi',
             'TLogError',
             'TLogAktivitas',
             'MPengetahuan',
+            'MPengaturanAi',
             'MAiProvider',
             'MEndpointIntegrasi',
             'MSesiWhatsapp',

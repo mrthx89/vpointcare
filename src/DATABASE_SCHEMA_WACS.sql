@@ -332,6 +332,39 @@ CREATE TABLE MAiProvider (
 );
 GO
 
+CREATE TABLE MPengaturanAi (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengaturanAi_Id DEFAULT NEWSEQUENTIALID(),
+    KodePengaturan varchar(50) NOT NULL,
+    NamaPengaturan varchar(100) NOT NULL,
+    AutoReplyAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyAktif DEFAULT 0,
+    AutoReplyDiluarJamKerja bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyDiluarJamKerja DEFAULT 1,
+    AutoReplyJamKerjaSapaan bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaSapaan DEFAULT 1,
+    AutoReplyJamKerjaBerlanjut bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaBerlanjut DEFAULT 0,
+    JamKerjaMulai time(0) NOT NULL CONSTRAINT DF_MPengaturanAi_JamKerjaMulai DEFAULT '08:00',
+    JamKerjaSelesai time(0) NOT NULL CONSTRAINT DF_MPengaturanAi_JamKerjaSelesai DEFAULT '17:00',
+    HariKerja varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_HariKerja DEFAULT '1,2,3,4,5',
+    ZonaWaktu varchar(100) NOT NULL CONSTRAINT DF_MPengaturanAi_ZonaWaktu DEFAULT 'Asia/Jakarta',
+    ProviderAi varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ProviderAi DEFAULT 'OpenAI',
+    ModelAi varchar(100) NULL,
+    BaseUrl varchar(255) NULL,
+    ApiKeyTerenkripsi nvarchar(max) NULL,
+    PromptSistem nvarchar(max) NULL,
+    TemplateDiluarJamKerja nvarchar(max) NULL,
+    TemplateJamKerjaSapaan nvarchar(max) NULL,
+    TemplateFallback nvarchar(max) NULL,
+    BatasRiwayatPesan int NOT NULL CONSTRAINT DF_MPengaturanAi_BatasRiwayatPesan DEFAULT 8,
+    KirimKeWaha bit NOT NULL CONSTRAINT DF_MPengaturanAi_KirimKeWaha DEFAULT 0,
+    ModeKirim varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ModeKirim DEFAULT 'DraftLokal',
+    NonAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MPengaturanAi_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MPengaturanAi PRIMARY KEY (Id),
+    CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan)
+);
+GO
+
 CREATE TABLE MPengetahuan (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengetahuan_Id DEFAULT NEWSEQUENTIALID(),
     KodePengetahuan varchar(50) NOT NULL,
@@ -446,6 +479,10 @@ CREATE TABLE TChatM (
     DitutupOleh uniqueidentifier NULL,
     TglDitutup datetime2 NULL,
     RingkasanAi nvarchar(max) NULL,
+    AutoReplyAiAktif bit NOT NULL CONSTRAINT DF_TChatM_AutoReplyAiAktif DEFAULT 0,
+    AiSudahMenyapa bit NOT NULL CONSTRAINT DF_TChatM_AiSudahMenyapa DEFAULT 0,
+    ModeAutoReplyAi varchar(50) NOT NULL CONSTRAINT DF_TChatM_ModeAutoReplyAi DEFAULT 'Default',
+    TglAutoReplyAiTerakhir datetime2 NULL,
     TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatM_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
@@ -475,6 +512,8 @@ CREATE TABLE TChatD (
     PengirimNomorWhatsapp varchar(30) NULL,
     PengirimNamaKontak varchar(150) NULL,
     DikirimOlehCustomer bit NOT NULL CONSTRAINT DF_TChatD_DikirimOlehCustomer DEFAULT 0,
+    DihasilkanOlehAi bit NOT NULL CONSTRAINT DF_TChatD_DihasilkanOlehAi DEFAULT 0,
+    IdAiRespon uniqueidentifier NULL,
     DibalasOleh uniqueidentifier NULL,
     TglPesan datetime2 NOT NULL,
     TglDikirim datetime2 NULL,
@@ -650,6 +689,10 @@ CREATE TABLE TAiRespon (
 );
 GO
 
+ALTER TABLE TChatD
+ADD CONSTRAINT FK_TChatD_TAiRespon FOREIGN KEY (IdAiRespon) REFERENCES TAiRespon(Id);
+GO
+
 CREATE INDEX IX_MCustomer_NamaCustomer ON MCustomer (NamaCustomer);
 CREATE INDEX IX_MInstansi_NamaInstansi ON MInstansi (NamaInstansi);
 CREATE INDEX IX_MNomorWhatsapp_NomorWhatsapp ON MNomorWhatsapp (NomorWhatsapp);
@@ -679,6 +722,7 @@ CREATE INDEX IX_TTicketM_TglTargetSelesai ON TTicketM (TglTargetSelesai);
 CREATE INDEX IX_TTicketD_IdTicketM_TglAktivitas ON TTicketD (IdTicketM, TglAktivitas);
 CREATE INDEX IX_TAiPermintaan_IdChatM ON TAiPermintaan (IdChatM);
 CREATE INDEX IX_TAiPermintaan_IdTicketM ON TAiPermintaan (IdTicketM);
+CREATE INDEX IX_TChatD_IdAiRespon ON TChatD (IdAiRespon);
 GO
 
 INSERT INTO MPeran (KodePeran, NamaPeran, Keterangan)
@@ -729,4 +773,50 @@ VALUES
 ('AKSES', 'Masalah Akses', 'Login, role, permission, atau akses menu'),
 ('REQUEST', 'Permintaan Fitur', 'Permintaan fitur baru atau perubahan fitur'),
 ('KONSULTASI', 'Konsultasi', 'Pertanyaan penggunaan aplikasi');
+GO
+
+INSERT INTO MPengaturanAi (
+    KodePengaturan,
+    NamaPengaturan,
+    AutoReplyAktif,
+    AutoReplyDiluarJamKerja,
+    AutoReplyJamKerjaSapaan,
+    AutoReplyJamKerjaBerlanjut,
+    JamKerjaMulai,
+    JamKerjaSelesai,
+    HariKerja,
+    ZonaWaktu,
+    ProviderAi,
+    ModelAi,
+    BaseUrl,
+    PromptSistem,
+    TemplateDiluarJamKerja,
+    TemplateJamKerjaSapaan,
+    TemplateFallback,
+    BatasRiwayatPesan,
+    KirimKeWaha,
+    ModeKirim
+)
+VALUES (
+    'DEFAULT',
+    'Pengaturan Default AI Agent',
+    0,
+    1,
+    1,
+    0,
+    '08:00',
+    '17:00',
+    '1,2,3,4,5',
+    'Asia/Jakarta',
+    'OpenAI',
+    'gpt-5',
+    'https://api.openai.com/v1/responses',
+    N'Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan. Jika masalah perlu ditangani manusia, arahkan bahwa tim customer service akan menindaklanjuti.',
+    N'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
+    N'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.',
+    N'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.',
+    8,
+    0,
+    'DraftLokal'
+);
 GO

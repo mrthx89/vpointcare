@@ -62,6 +62,9 @@ class InboxWhatsapp extends Page
                 'c.NamaGrupWhatsapp',
                 'c.JumlahPesanBelumDibaca',
                 'c.TglChatTerakhir',
+                'c.AutoReplyAiAktif',
+                'c.AiSudahMenyapa',
+                'c.TglAutoReplyAiTerakhir',
                 'i.NamaInstansi',
                 'm.NamaCustomer',
                 's.NamaStatusChat'
@@ -88,6 +91,9 @@ class InboxWhatsapp extends Page
                 'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
                 'TglChatTerakhir' => $row->TglChatTerakhir,
                 'PesanTerakhir' => $lastMessage ?: '-',
+                'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
+                'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
+                'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
             ];
         })->all();
 
@@ -120,8 +126,50 @@ class InboxWhatsapp extends Page
                 'PengirimNamaKontak' => $row->PengirimNamaKontak,
                 'TglPesan' => $row->TglPesan,
                 'StatusKirim' => $row->StatusKirim,
+                'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
             ])
             ->all();
+    }
+
+    public function toggleAutoReplyAi(): void
+    {
+        if (! $this->selectedChatId || ! $this->selectedChat) {
+            return;
+        }
+
+        $active = ! (bool) ($this->selectedChat['AutoReplyAiAktif'] ?? false);
+
+        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+            'AutoReplyAiAktif' => $active,
+            'ModeAutoReplyAi' => $active ? 'ChatAktif' : 'Default',
+            'TglEdit' => now(),
+        ]);
+
+        $this->loadInbox();
+
+        Notification::make()
+            ->title($active ? 'Auto reply AI sesi ini aktif.' : 'Auto reply AI sesi ini dimatikan.')
+            ->success()
+            ->send();
+    }
+
+    public function resetSapaanAi(): void
+    {
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+            'AiSudahMenyapa' => false,
+            'TglEdit' => now(),
+        ]);
+
+        $this->loadInbox();
+
+        Notification::make()
+            ->title('Status sapaan AI direset.')
+            ->success()
+            ->send();
     }
 
     public function simpanBalasanLokal(): void
@@ -190,6 +238,9 @@ class InboxWhatsapp extends Page
             'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
             'TglChatTerakhir' => $row->TglChatTerakhir,
             'PesanTerakhir' => '-',
+            'AutoReplyAiAktif' => (bool) ($row->AutoReplyAiAktif ?? false),
+            'AiSudahMenyapa' => (bool) ($row->AiSudahMenyapa ?? false),
+            'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir ?? null,
         ];
     }
 }

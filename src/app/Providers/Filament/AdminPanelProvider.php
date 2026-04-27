@@ -58,6 +58,10 @@ class AdminPanelProvider extends PanelProvider
 </script>
 HTML
             )
+            ->renderHook(
+                PanelsRenderHook::FOOTER,
+                fn (): string => '<div style="padding: 1rem 1.5rem; text-align: center; font-size: 0.8125rem; color: rgb(100 116 139);">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
+            )
             ->colors([
                 'primary' => Color::Blue,
                 'danger' => Color::Red,
