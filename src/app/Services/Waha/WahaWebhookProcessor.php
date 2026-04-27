@@ -33,6 +33,23 @@ class WahaWebhookProcessor
 
             try {
                 $parsed = $this->parseMessage($payload, $message);
+
+                if ($parsed['is_status_broadcast']) {
+                    DB::table('TLogWebhookWaha')->where('Id', $webhookId)->update([
+                        'SudahDiproses' => true,
+                        'TglDiproses' => now(),
+                        'TglEdit' => now(),
+                    ]);
+
+                    return [
+                        'ok' => true,
+                        'ignored' => true,
+                        'webhook_id' => $webhookId,
+                        'jenis_chat' => 'Status',
+                        'message' => 'WhatsApp status broadcast ignored.',
+                    ];
+                }
+
                 $duplicate = $this->duplicateMessage($parsed['id_pesan']);
 
                 if ($duplicate) {
@@ -216,9 +233,10 @@ class WahaWebhookProcessor
         $senderJid = $isGroup ? $participant : $remoteId;
         $mimeType = $this->mediaMimeType($message);
         $mediaUrl = $this->mediaUrl($message);
+        $messageId = $this->messageId($message);
 
         return [
-            'id_pesan' => $this->messageId($message),
+            'id_pesan' => $messageId,
             'jenis_chat' => $isGroup ? 'Grup' : 'Pribadi',
             'group_jid' => $isGroup ? $remoteId : null,
             'pengirim_jid' => $senderJid,
@@ -231,7 +249,49 @@ class WahaWebhookProcessor
             'tipe_mime' => $mimeType,
             'from_me' => $fromMe,
             'tgl_pesan' => $this->messageDate($message),
+            'is_status_broadcast' => $this->isStatusBroadcast($payload, $message, $remoteId, $messageId),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $message
+     */
+    private function isStatusBroadcast(array $payload, array $message, string $remoteId, ?string $messageId): bool
+    {
+        $candidates = [
+            $remoteId,
+            $messageId,
+            Arr::get($message, 'chatId'),
+            Arr::get($message, 'from'),
+            Arr::get($message, 'from.id'),
+            Arr::get($message, 'id.remote'),
+            Arr::get($message, 'id._serialized'),
+            Arr::get($message, '_data.id._serialized'),
+            Arr::get($message, '_data.id.remote'),
+            Arr::get($message, '_data.Info.Chat'),
+            Arr::get($message, '_data.chatId'),
+            Arr::get($message, 'key.remoteJid'),
+            Arr::get($message, 'chat.id'),
+            Arr::get($message, 'chat.id._serialized'),
+            Arr::get($message, 'to'),
+            Arr::get($message, 'to.id'),
+            Arr::get($payload, 'chatId'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (! is_scalar($candidate)) {
+                continue;
+            }
+
+            $value = (string) $candidate;
+
+            if ($value === 'status@broadcast' || str_contains($value, '_status@broadcast_')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
