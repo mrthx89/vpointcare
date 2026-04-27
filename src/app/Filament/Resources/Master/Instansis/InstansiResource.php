@@ -5,11 +5,8 @@ namespace App\Filament\Resources\Master\Instansis;
 use App\Filament\Resources\Master\Instansis\Pages\ManageInstansis;
 use App\Models\Master\Instansi;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -17,40 +14,48 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class InstansiResource extends Resource
 {
     protected static ?string $model = Instansi::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+
+    protected static ?string $navigationLabel = 'Klien / Instansi';
+
+    protected static ?string $modelLabel = 'Klien / Instansi';
+
+    protected static ?string $pluralModelLabel = 'Klien / Instansi';
+
+    protected static ?int $navigationSort = 41;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('KodeInstansi')
+                    ->label('Kode')
+                    ->maxLength(50)
                     ->required(),
                 TextInput::make('NamaInstansi')
+                    ->label('Nama Klien')
+                    ->maxLength(200)
                     ->required(),
-                TextInput::make('Alamat'),
-                TextInput::make('Kota'),
-                TextInput::make('Provinsi'),
-                TextInput::make('Negara'),
-                TextInput::make('KodePos'),
-                TextInput::make('Telepon'),
-                TextInput::make('Email'),
-                TextInput::make('Website'),
-                TextInput::make('SumberData'),
-                TextInput::make('IdExternal'),
-                DateTimePicker::make('TglSinkronTerakhir'),
-                Toggle::make('NonAktif')
-                    ->required(),
-                DateTimePicker::make('TglBuat')
-                    ->required(),
-                TextInput::make('DibuatOleh'),
-                DateTimePicker::make('TglEdit'),
-                TextInput::make('DieditOleh'),
+                Textarea::make('Alamat')
+                    ->rows(3)
+                    ->columnSpanFull(),
+                TextInput::make('Kota')->maxLength(100),
+                TextInput::make('Provinsi')->maxLength(100),
+                TextInput::make('Telepon')->tel()->maxLength(50),
+                TextInput::make('Email')->email()->maxLength(150),
+                TextInput::make('Website')->url()->maxLength(200),
+                Toggle::make('NonAktif')->label('Nonaktif'),
             ]);
     }
 
@@ -58,56 +63,47 @@ class InstansiResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('Id'),
                 TextColumn::make('KodeInstansi')
-                    ->searchable(),
+                    ->label('Kode')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('NamaInstansi')
-                    ->searchable(),
-                TextColumn::make('Alamat')
-                    ->searchable(),
+                    ->label('Nama Klien')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('semibold'),
                 TextColumn::make('Kota')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('Provinsi')
-                    ->searchable(),
-                TextColumn::make('Negara')
-                    ->searchable(),
-                TextColumn::make('KodePos')
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('Telepon')
                     ->searchable(),
                 TextColumn::make('Email')
                     ->searchable(),
-                TextColumn::make('Website')
-                    ->searchable(),
-                TextColumn::make('SumberData')
-                    ->searchable(),
-                TextColumn::make('IdExternal')
-                    ->searchable(),
-                TextColumn::make('TglSinkronTerakhir')
-                    ->dateTime()
-                    ->sortable(),
-                IconColumn::make('NonAktif')
-                    ->boolean(),
+                ToggleColumn::make('NonAktif')
+                    ->label('Nonaktif'),
                 TextColumn::make('TglBuat')
+                    ->label('Dibuat')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DibuatOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
+                    ->label('Diedit')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DieditOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                TernaryFilter::make('NonAktif')
+                    ->label('Status nonaktif'),
             ])
+            ->defaultSort('NamaInstansi')
+            ->striped()
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(10)
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

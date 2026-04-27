@@ -20,6 +20,15 @@ class AnggotaGrupWhatsapp extends Model
         'TglEdit' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $anggota): void {
+            if ($anggota->IdNomorWhatsapp && ! $anggota->IdCustomer) {
+                $anggota->IdCustomer = NomorWhatsapp::query()->whereKey($anggota->IdNomorWhatsapp)->value('IdCustomer');
+            }
+        });
+    }
+
     public function grupWhatsapp(): BelongsTo
     {
         return $this->belongsTo(GrupWhatsapp::class, 'IdGrupWhatsapp', 'Id');

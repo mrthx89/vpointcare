@@ -5,49 +5,63 @@ namespace App\Filament\Resources\Master\NomorWhatsapps;
 use App\Filament\Resources\Master\NomorWhatsapps\Pages\ManageNomorWhatsapps;
 use App\Models\Master\NomorWhatsapp;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class NomorWhatsappResource extends Resource
 {
     protected static ?string $model = NomorWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDevicePhoneMobile;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+
+    protected static ?string $navigationLabel = 'Nomor WhatsApp';
+
+    protected static ?string $modelLabel = 'Nomor WhatsApp';
+
+    protected static ?string $pluralModelLabel = 'Nomor WhatsApp';
+
+    protected static ?int $navigationSort = 43;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextInput::make('IdCustomer'),
-                TextInput::make('IdInstansi'),
+                Select::make('IdCustomer')
+                    ->label('Kontak')
+                    ->relationship('customer', 'NamaCustomer')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 TextInput::make('NomorWhatsapp')
+                    ->label('Nomor WhatsApp')
+                    ->helperText('Gunakan format angka, contoh 6281234567890.')
+                    ->maxLength(30)
                     ->required(),
-                TextInput::make('NamaKontak'),
-                TextInput::make('JabatanKontak'),
+                TextInput::make('NamaKontak')
+                    ->label('Nama di WhatsApp')
+                    ->maxLength(150),
+                TextInput::make('JabatanKontak')
+                    ->label('Jabatan')
+                    ->maxLength(100),
                 Toggle::make('NomorUtama')
-                    ->required(),
+                    ->label('Nomor utama'),
                 Toggle::make('Terverifikasi')
-                    ->required(),
-                TextInput::make('SumberData'),
-                TextInput::make('IdExternal'),
+                    ->label('Terverifikasi'),
                 Toggle::make('NonAktif')
-                    ->required(),
-                DateTimePicker::make('TglBuat')
-                    ->required(),
-                TextInput::make('DibuatOleh'),
-                DateTimePicker::make('TglEdit'),
-                TextInput::make('DieditOleh'),
+                    ->label('Nonaktif'),
             ]);
     }
 
@@ -55,45 +69,57 @@ class NomorWhatsappResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('Id'),
-                TextColumn::make('IdCustomer'),
-                TextColumn::make('IdInstansi'),
+                TextColumn::make('instansi.NamaInstansi')
+                    ->label('Klien')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('customer.NamaCustomer')
+                    ->label('Kontak')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('NomorWhatsapp')
-                    ->searchable(),
+                    ->label('Nomor WA')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('semibold'),
                 TextColumn::make('NamaKontak')
+                    ->label('Nama WA')
                     ->searchable(),
                 TextColumn::make('JabatanKontak')
+                    ->label('Jabatan')
                     ->searchable(),
-                IconColumn::make('NomorUtama')
-                    ->boolean(),
-                IconColumn::make('Terverifikasi')
-                    ->boolean(),
-                TextColumn::make('SumberData')
-                    ->searchable(),
-                TextColumn::make('IdExternal')
-                    ->searchable(),
-                IconColumn::make('NonAktif')
-                    ->boolean(),
+                ToggleColumn::make('NomorUtama')
+                    ->label('Utama'),
+                ToggleColumn::make('Terverifikasi')
+                    ->label('Verified'),
+                ToggleColumn::make('NonAktif')
+                    ->label('Nonaktif'),
                 TextColumn::make('TglBuat')
+                    ->label('Dibuat')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DibuatOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
+                    ->label('Diedit')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DieditOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('IdCustomer')
+                    ->label('Kontak')
+                    ->relationship('customer', 'NamaCustomer')
+                    ->searchable()
+                    ->preload(),
+                TernaryFilter::make('NonAktif')
+                    ->label('Status nonaktif'),
             ])
+            ->defaultSort('NamaKontak')
+            ->striped()
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(10)
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

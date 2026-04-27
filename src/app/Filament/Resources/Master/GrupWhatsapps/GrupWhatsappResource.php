@@ -5,48 +5,66 @@ namespace App\Filament\Resources\Master\GrupWhatsapps;
 use App\Filament\Resources\Master\GrupWhatsapps\Pages\ManageGrupWhatsapps;
 use App\Models\Master\GrupWhatsapp;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class GrupWhatsappResource extends Resource
 {
     protected static ?string $model = GrupWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+
+    protected static ?string $navigationLabel = 'Grup WhatsApp';
+
+    protected static ?string $modelLabel = 'Grup WhatsApp';
+
+    protected static ?string $pluralModelLabel = 'Grup WhatsApp';
+
+    protected static ?int $navigationSort = 44;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextInput::make('IdInstansi')
+                Select::make('IdInstansi')
+                    ->label('Klien / Instansi')
+                    ->relationship('instansi', 'NamaInstansi')
+                    ->searchable()
+                    ->preload()
                     ->required(),
                 TextInput::make('KodeGrup')
+                    ->label('Kode Grup')
+                    ->maxLength(50)
                     ->required(),
                 TextInput::make('NamaGrup')
+                    ->label('Nama Grup')
+                    ->maxLength(200)
                     ->required(),
-                TextInput::make('IdGrupWaha'),
-                TextInput::make('NomorGrupWhatsapp'),
-                TextInput::make('Deskripsi'),
-                TextInput::make('SumberData'),
-                TextInput::make('IdExternal'),
+                TextInput::make('IdGrupWaha')
+                    ->label('ID Grup WAHA')
+                    ->maxLength(200),
+                TextInput::make('NomorGrupWhatsapp')
+                    ->label('Nomor Grup WhatsApp')
+                    ->maxLength(50),
+                Textarea::make('Deskripsi')
+                    ->rows(3)
+                    ->columnSpanFull(),
                 Toggle::make('NonAktif')
-                    ->required(),
-                DateTimePicker::make('TglBuat')
-                    ->required(),
-                TextInput::make('DibuatOleh'),
-                DateTimePicker::make('TglEdit'),
-                TextInput::make('DieditOleh'),
+                    ->label('Nonaktif'),
             ]);
     }
 
@@ -54,44 +72,60 @@ class GrupWhatsappResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('Id'),
-                TextColumn::make('IdInstansi'),
+                TextColumn::make('instansi.NamaInstansi')
+                    ->label('Klien')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('KodeGrup')
-                    ->searchable(),
+                    ->label('Kode')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('NamaGrup')
-                    ->searchable(),
+                    ->label('Nama Grup')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('semibold'),
                 TextColumn::make('IdGrupWaha')
+                    ->label('ID Grup WAHA')
                     ->searchable(),
                 TextColumn::make('NomorGrupWhatsapp')
+                    ->label('Nomor Grup')
                     ->searchable(),
                 TextColumn::make('Deskripsi')
-                    ->searchable(),
-                TextColumn::make('SumberData')
-                    ->searchable(),
-                TextColumn::make('IdExternal')
-                    ->searchable(),
-                IconColumn::make('NonAktif')
-                    ->boolean(),
+                    ->limit(50)
+                    ->toggleable(),
+                TextColumn::make('anggota_count')
+                    ->label('Anggota')
+                    ->counts('anggota')
+                    ->sortable(),
+                ToggleColumn::make('NonAktif')
+                    ->label('Nonaktif'),
                 TextColumn::make('TglBuat')
+                    ->label('Dibuat')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DibuatOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
+                    ->label('Diedit')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DieditOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('IdInstansi')
+                    ->label('Klien')
+                    ->relationship('instansi', 'NamaInstansi')
+                    ->searchable()
+                    ->preload(),
+                TernaryFilter::make('NonAktif')
+                    ->label('Status nonaktif'),
             ])
+            ->defaultSort('NamaGrup')
+            ->striped()
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(10)
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

@@ -23,6 +23,17 @@ class NomorWhatsapp extends Model
         'TglEdit' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $nomor): void {
+            $nomor->NomorWhatsapp = preg_replace('/[^0-9]/', '', (string) $nomor->NomorWhatsapp) ?: $nomor->NomorWhatsapp;
+
+            if ($nomor->IdCustomer && ! $nomor->IdInstansi) {
+                $nomor->IdInstansi = Customer::query()->whereKey($nomor->IdCustomer)->value('IdInstansi');
+            }
+        });
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'IdCustomer', 'Id');

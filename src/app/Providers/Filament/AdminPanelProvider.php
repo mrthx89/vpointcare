@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -42,6 +43,21 @@ class AdminPanelProvider extends PanelProvider
             ->collapsedSidebarWidth('4.75rem')
             ->favicon(asset('images/logo_primary.svg'))
             ->viteTheme('resources/css/filament/admin/theme.css')
+            ->renderHook(
+                PanelsRenderHook::HEAD_START,
+                fn (): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">'
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => <<<'HTML'
+<script>
+    document.documentElement.setAttribute('translate', 'no')
+    document.documentElement.classList.add('notranslate')
+    document.body.setAttribute('translate', 'no')
+    document.body.classList.add('notranslate')
+</script>
+HTML
+            )
             ->colors([
                 'primary' => Color::Blue,
                 'danger' => Color::Red,

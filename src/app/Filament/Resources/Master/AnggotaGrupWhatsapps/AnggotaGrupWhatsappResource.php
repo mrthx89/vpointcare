@@ -5,43 +5,57 @@ namespace App\Filament\Resources\Master\AnggotaGrupWhatsapps;
 use App\Filament\Resources\Master\AnggotaGrupWhatsapps\Pages\ManageAnggotaGrupWhatsapps;
 use App\Models\Master\AnggotaGrupWhatsapp;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class AnggotaGrupWhatsappResource extends Resource
 {
     protected static ?string $model = AnggotaGrupWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+
+    protected static ?string $navigationLabel = 'Anggota Grup';
+
+    protected static ?string $modelLabel = 'Anggota Grup';
+
+    protected static ?string $pluralModelLabel = 'Anggota Grup';
+
+    protected static ?int $navigationSort = 45;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextInput::make('IdGrupWhatsapp')
+                Select::make('IdGrupWhatsapp')
+                    ->label('Grup WhatsApp')
+                    ->relationship('grupWhatsapp', 'NamaGrup')
+                    ->searchable()
+                    ->preload()
                     ->required(),
-                TextInput::make('IdNomorWhatsapp')
+                Select::make('IdNomorWhatsapp')
+                    ->label('Nomor WhatsApp')
+                    ->relationship('nomorWhatsapp', 'NomorWhatsapp')
+                    ->searchable(['NomorWhatsapp', 'NamaKontak'])
+                    ->preload()
                     ->required(),
-                TextInput::make('IdCustomer'),
-                TextInput::make('PeranAnggota'),
+                TextInput::make('PeranAnggota')
+                    ->label('Peran Anggota')
+                    ->maxLength(100),
                 Toggle::make('NonAktif')
-                    ->required(),
-                DateTimePicker::make('TglBuat')
-                    ->required(),
-                TextInput::make('DibuatOleh'),
-                DateTimePicker::make('TglEdit'),
-                TextInput::make('DieditOleh'),
+                    ->label('Nonaktif'),
             ]);
     }
 
@@ -49,34 +63,58 @@ class AnggotaGrupWhatsappResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('Id'),
-                TextColumn::make('IdGrupWhatsapp'),
-                TextColumn::make('IdNomorWhatsapp'),
-                TextColumn::make('IdCustomer'),
+                TextColumn::make('grupWhatsapp.instansi.NamaInstansi')
+                    ->label('Klien')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('grupWhatsapp.NamaGrup')
+                    ->label('Grup')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('semibold'),
+                TextColumn::make('nomorWhatsapp.NamaKontak')
+                    ->label('Nama WA')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('nomorWhatsapp.NomorWhatsapp')
+                    ->label('Nomor WA')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('customer.NamaCustomer')
+                    ->label('Kontak Customer')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('PeranAnggota')
+                    ->label('Peran')
                     ->searchable(),
-                IconColumn::make('NonAktif')
-                    ->boolean(),
+                ToggleColumn::make('NonAktif')
+                    ->label('Nonaktif'),
                 TextColumn::make('TglBuat')
+                    ->label('Dibuat')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DibuatOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
+                    ->label('Diedit')
                     ->dateTime()
-                    ->sortable(),
-                TextColumn::make('DieditOleh'),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('IdGrupWhatsapp')
+                    ->label('Grup')
+                    ->relationship('grupWhatsapp', 'NamaGrup')
+                    ->searchable()
+                    ->preload(),
+                TernaryFilter::make('NonAktif')
+                    ->label('Status nonaktif'),
             ])
+            ->defaultSort('PeranAnggota')
+            ->striped()
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(10)
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 
