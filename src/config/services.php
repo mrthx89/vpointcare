@@ -50,4 +50,18 @@ return [
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1/responses'),
     ],
 
+    'deepseek' => [
+        'api_key' => env('DEEPSEEK_API_KEY'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com/chat/completions'),
+    ],
+
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'deepseek/deepseek-chat-v3.1:free'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1/chat/completions'),
+        'site_url' => env('OPENROUTER_SITE_URL', env('APP_URL')),
+        'site_name' => env('OPENROUTER_SITE_NAME', env('APP_NAME', 'VPoint Care')),
+    ],
+
 ];

@@ -262,12 +262,33 @@ class AiAutoReplyService
      */
     private function generateReply(object $settings, string $prompt): ?array
     {
-        $apiKey = $this->apiKey($settings);
+        $provider = strtolower((string) $settings->ProviderAi);
+        $apiKey = $this->apiKey($settings, $provider);
 
-        if (! $apiKey || strtolower((string) $settings->ProviderAi) !== 'openai') {
+        if (! $apiKey) {
             return null;
         }
 
+        if ($provider === 'deepseek') {
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'deepseek');
+        }
+
+        if ($provider === 'openrouter') {
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'openrouter');
+        }
+
+        if ($provider === 'openai') {
+            return $this->generateOpenAiReply($settings, $prompt, $apiKey);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{text: string, payload: array<string, mixed>}|null
+     */
+    private function generateOpenAiReply(object $settings, string $prompt, string $apiKey): ?array
+    {
         $baseUrl = $settings->BaseUrl ?: config('services.openai.base_url');
         $model = $settings->ModelAi ?: config('services.openai.model');
 
@@ -299,17 +320,101 @@ class AiAutoReplyService
         ];
     }
 
-    private function apiKey(object $settings): ?string
+    /**
+     * @return array{text: string, payload: array<string, mixed>}|null
+     */
+    private function generateChatCompletionReply(object $settings, string $prompt, string $apiKey, string $provider): ?array
     {
-        if ($settings->ApiKeyTerenkripsi) {
+        $baseUrl = $this->chatCompletionEndpoint((string) ($settings->BaseUrl ?: config("services.{$provider}.base_url")));
+        $model = $settings->ModelAi ?: config("services.{$provider}.model");
+        $request = Http::withToken($apiKey)
+            ->acceptJson()
+            ->asJson()
+            ->timeout(30);
+
+        if ($provider === 'openrouter') {
+            $request = $request->withHeaders(array_filter([
+                'HTTP-Referer' => config('services.openrouter.site_url'),
+                'X-Title' => config('services.openrouter.site_name'),
+            ]));
+        }
+
+        $response = $request->post($baseUrl, [
+            'model' => $model,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => $settings->PromptSistem ?: 'Anda adalah AI Agent customer service yang menjawab singkat, sopan, dan jelas.',
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $prompt,
+                ],
+            ],
+            'stream' => false,
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException(ucfirst($provider) . ' API gagal: HTTP ' . $response->status() . ' - ' . $response->body());
+        }
+
+        $payload = $response->json();
+        $text = trim((string) Arr::get($payload, 'choices.0.message.content', ''));
+
+        if ($text === '') {
+            return null;
+        }
+
+        return [
+            'text' => $text,
+            'payload' => $payload,
+        ];
+    }
+
+    private function chatCompletionEndpoint(string $baseUrl): string
+    {
+        $baseUrl = rtrim($baseUrl, '/');
+
+        if (str_ends_with($baseUrl, '/chat/completions')) {
+            return $baseUrl;
+        }
+
+        return $baseUrl . '/chat/completions';
+    }
+
+    private function apiKey(object $settings, string $provider): ?string
+    {
+        $encryptedApiKey = $this->providerDbApiKey($settings, $provider);
+
+        if ($encryptedApiKey) {
             try {
-                return Crypt::decryptString($settings->ApiKeyTerenkripsi);
+                return Crypt::decryptString($encryptedApiKey);
             } catch (Throwable) {
-                return config('services.openai.api_key');
+                return $this->providerApiKey($provider);
             }
         }
 
-        return config('services.openai.api_key');
+        return $this->providerApiKey($provider);
+    }
+
+    private function providerApiKey(string $provider): ?string
+    {
+        return match ($provider) {
+            'deepseek' => config('services.deepseek.api_key'),
+            'openrouter' => config('services.openrouter.api_key'),
+            default => config('services.openai.api_key'),
+        };
+    }
+
+    private function providerDbApiKey(object $settings, string $provider): ?string
+    {
+        $column = match ($provider) {
+            'deepseek' => 'DeepSeekApiKeyTerenkripsi',
+            'openrouter' => 'OpenRouterApiKeyTerenkripsi',
+            default => 'OpenAiApiKeyTerenkripsi',
+        };
+
+        return $settings->{$column} ?? ($settings->ApiKeyTerenkripsi ?? null);
     }
 
     /**

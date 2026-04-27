@@ -28,14 +28,35 @@ class AiAgent extends Page
     /** @var array<string, int> */
     public array $stats = [];
 
+    /** @var array<string, array<string, string>> */
+    public array $providerPresets = [];
+
     public string $apiKeyBaru = '';
 
     public bool $apiKeyTerisi = false;
 
+    public string $apiKeyInfo = '';
+
     public function mount(): void
     {
+        $this->providerPresets = $this->providerPresets();
         $this->ensureDefaultSettings();
         $this->loadPengaturan();
+    }
+
+    public function applyProviderPreset(string $provider): void
+    {
+        if (! array_key_exists($provider, $this->providerPresets)) {
+            return;
+        }
+
+        $preset = $this->providerPresets[$provider];
+
+        $this->pengaturan['ProviderAi'] = $provider;
+        $this->pengaturan['ModelAi'] = $preset['model'];
+        $this->pengaturan['BaseUrl'] = $preset['base_url'];
+
+        $this->refreshApiKeyState();
     }
 
     public function simpanPengaturan(): void
@@ -69,12 +90,13 @@ class AiAgent extends Page
 
         $data = $validated['pengaturan'];
         $data['HariKerja'] = implode(',', $data['HariKerja']);
+        $data = $this->normalizeProviderSettings($data);
         $data['KirimKeWaha'] = (bool) $data['KirimKeWaha'] || $data['ModeKirim'] === 'KirimWaha';
         $data['ModeKirim'] = $data['KirimKeWaha'] ? 'KirimWaha' : 'DraftLokal';
         $data['TglEdit'] = now();
 
         if ($this->apiKeyBaru !== '') {
-            $data['ApiKeyTerenkripsi'] = Crypt::encryptString($this->apiKeyBaru);
+            $data[$this->providerApiKeyColumn((string) $data['ProviderAi'])] = Crypt::encryptString($this->apiKeyBaru);
         }
 
         DB::table('MPengaturanAi')
@@ -92,10 +114,12 @@ class AiAgent extends Page
 
     public function hapusApiKey(): void
     {
+        $provider = (string) ($this->pengaturan['ProviderAi'] ?? 'OpenAI');
+
         DB::table('MPengaturanAi')
             ->where('KodePengaturan', 'DEFAULT')
             ->update([
-                'ApiKeyTerenkripsi' => null,
+                $this->providerApiKeyColumn($provider) => null,
                 'TglEdit' => now(),
             ]);
 
@@ -121,8 +145,8 @@ class AiAgent extends Page
             'HariKerja' => array_values(array_filter(explode(',', (string) $row->HariKerja))),
             'ZonaWaktu' => $row->ZonaWaktu ?: 'Asia/Jakarta',
             'ProviderAi' => $row->ProviderAi ?: 'OpenAI',
-            'ModelAi' => $row->ModelAi ?: 'gpt-5',
-            'BaseUrl' => $row->BaseUrl ?: 'https://api.openai.com/v1/responses',
+            'ModelAi' => $row->ModelAi ?: $this->defaultModel($row->ProviderAi ?: 'OpenAI'),
+            'BaseUrl' => $row->BaseUrl ?: $this->defaultBaseUrl($row->ProviderAi ?: 'OpenAI'),
             'PromptSistem' => $row->PromptSistem,
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,
             'TemplateJamKerjaSapaan' => $row->TemplateJamKerjaSapaan,
@@ -137,13 +161,69 @@ class AiAgent extends Page
             'ModeKirim' => $row->ModeKirim ?: 'DraftLokal',
         ];
 
-        $this->apiKeyTerisi = filled($row->ApiKeyTerenkripsi) || filled(config('services.openai.api_key'));
+        $this->refreshApiKeyState($row);
+
         $this->stats = [
             'chat_auto' => (int) DB::table('TChatM')->where('AutoReplyAiAktif', true)->count(),
             'balasan_ai' => (int) DB::table('TChatD')->where('DihasilkanOlehAi', true)->count(),
             'permintaan_hari_ini' => (int) DB::table('TAiPermintaan')->whereDate('TglBuat', now()->toDateString())->count(),
             'penerima_notifikasi' => (int) DB::table('MPengguna')->where('NonAktif', false)->whereNotNull('NomorWhatsappInternal')->where('NomorWhatsappInternal', '<>', '')->count(),
         ];
+    }
+
+    private function refreshApiKeyState(?object $settings = null): void
+    {
+        $settings ??= DB::table('MPengaturanAi')->where('KodePengaturan', 'DEFAULT')->first();
+
+        $provider = (string) ($this->pengaturan['ProviderAi'] ?? 'OpenAI');
+        $providerKey = strtolower($provider);
+        $hasDbKey = filled($this->providerDbApiKey($settings, $provider));
+        $hasEnvKey = filled($this->providerEnvApiKey($providerKey));
+
+        $this->apiKeyTerisi = $hasDbKey || $hasEnvKey;
+
+        if ($hasDbKey) {
+            $this->apiKeyInfo = 'API key tersimpan di database dan akan dipakai untuk provider terpilih.';
+
+            return;
+        }
+
+        if ($hasEnvKey) {
+            $this->apiKeyInfo = 'API key provider ini tersedia dari .env.';
+
+            return;
+        }
+
+        $this->apiKeyInfo = 'API key provider ini belum diisi. AI akan memakai template fallback.';
+    }
+
+    private function providerEnvApiKey(string $provider): ?string
+    {
+        return match ($provider) {
+            'deepseek' => config('services.deepseek.api_key'),
+            'openrouter' => config('services.openrouter.api_key'),
+            default => config('services.openai.api_key'),
+        };
+    }
+
+    private function providerDbApiKey(?object $settings, string $provider): ?string
+    {
+        if (! $settings) {
+            return null;
+        }
+
+        $column = $this->providerApiKeyColumn($provider);
+
+        return $settings->{$column} ?? ($settings->ApiKeyTerenkripsi ?? null);
+    }
+
+    private function providerApiKeyColumn(string $provider): string
+    {
+        return match (strtolower($provider)) {
+            'deepseek' => 'DeepSeekApiKeyTerenkripsi',
+            'openrouter' => 'OpenRouterApiKeyTerenkripsi',
+            default => 'OpenAiApiKeyTerenkripsi',
+        };
     }
 
     private function ensureDefaultSettings(): void
@@ -182,6 +262,89 @@ class AiAgent extends Page
             'NonAktif' => false,
             'TglBuat' => now(),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function normalizeProviderSettings(array $data): array
+    {
+        $provider = strtolower((string) ($data['ProviderAi'] ?? 'OpenAI'));
+        $baseUrl = (string) ($data['BaseUrl'] ?? '');
+        $model = (string) ($data['ModelAi'] ?? '');
+
+        if (in_array($provider, ['deepseek', 'openrouter'], true)) {
+            $service = $provider === 'openrouter' ? 'openrouter' : 'deepseek';
+
+            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || ($provider === 'openrouter' && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && str_contains($baseUrl, 'openrouter.ai'))) {
+                $data['BaseUrl'] = config("services.{$service}.base_url");
+            }
+
+            if ($model === '' || str_starts_with($model, 'gpt-') || ($provider === 'openrouter' && str_starts_with($model, 'deepseek-')) || ($provider === 'deepseek' && str_contains($model, '/'))) {
+                $data['ModelAi'] = config("services.{$service}.model");
+            }
+
+            return $data;
+        }
+
+        if ($baseUrl === '' || str_contains($baseUrl, 'api.deepseek.com') || str_contains($baseUrl, 'openrouter.ai')) {
+            $data['BaseUrl'] = config('services.openai.base_url');
+        }
+
+        if ($model === '' || str_starts_with($model, 'deepseek-') || str_contains($model, '/')) {
+            $data['ModelAi'] = config('services.openai.model');
+        }
+
+        return $data;
+    }
+
+    private function defaultModel(string $provider): string
+    {
+        return match (strtolower($provider)) {
+            'deepseek' => (string) config('services.deepseek.model'),
+            'openrouter' => (string) config('services.openrouter.model'),
+            default => (string) config('services.openai.model'),
+        };
+    }
+
+    private function defaultBaseUrl(string $provider): string
+    {
+        return match (strtolower($provider)) {
+            'deepseek' => (string) config('services.deepseek.base_url'),
+            'openrouter' => (string) config('services.openrouter.base_url'),
+            default => (string) config('services.openai.base_url'),
+        };
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private function providerPresets(): array
+    {
+        return [
+            'OpenAI' => [
+                'label' => 'OpenAI',
+                'summary' => 'Stabil untuk customer service.',
+                'model' => (string) config('services.openai.model'),
+                'base_url' => (string) config('services.openai.base_url'),
+                'key_label' => 'OPENAI_API_KEY',
+            ],
+            'DeepSeek' => [
+                'label' => 'DeepSeek',
+                'summary' => 'Alternatif hemat dengan API sendiri.',
+                'model' => (string) config('services.deepseek.model'),
+                'base_url' => (string) config('services.deepseek.base_url'),
+                'key_label' => 'DEEPSEEK_API_KEY',
+            ],
+            'OpenRouter' => [
+                'label' => 'OpenRouter',
+                'summary' => 'Router banyak model, termasuk opsi free.',
+                'model' => (string) config('services.openrouter.model'),
+                'base_url' => (string) config('services.openrouter.base_url'),
+                'key_label' => 'OPENROUTER_API_KEY',
+            ],
+        ];
     }
 
     private function defaultNotificationTemplate(): string

@@ -128,28 +128,47 @@
                 <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">Provider AI</div>
                     <div class="mt-4 space-y-4">
+                        <div class="grid gap-2">
+                            @foreach ($providerPresets as $provider => $preset)
+                                <button
+                                    type="button"
+                                    wire:click="applyProviderPreset('{{ $provider }}')"
+                                    class="rounded-md border px-3 py-2 text-left text-sm transition {{ ($pengaturan['ProviderAi'] ?? 'OpenAI') === $provider ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-500/10 dark:text-blue-200' : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800' }}"
+                                >
+                                    <span class="flex items-center justify-between gap-3">
+                                        <span class="font-semibold">{{ $preset['label'] }}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ $preset['key_label'] }}</span>
+                                    </span>
+                                    <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ $preset['summary'] }}</span>
+                                </button>
+                            @endforeach
+                        </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Provider</label>
-                            <select wire:model="pengaturan.ProviderAi" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <select wire:model="pengaturan.ProviderAi" wire:change="applyProviderPreset($event.target.value)" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                                 <option value="OpenAI">OpenAI / ChatGPT</option>
+                                <option value="DeepSeek">DeepSeek</option>
+                                <option value="OpenRouter">OpenRouter</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Model</label>
                             <input type="text" wire:model="pengaturan.ModelAi" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <div class="mt-1 text-xs text-gray-500">Preset: {{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['model'] ?? '-' }}</div>
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Endpoint</label>
                             <input type="url" wire:model="pengaturan.BaseUrl" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <div class="mt-1 break-all text-xs text-gray-500">{{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['base_url'] ?? '' }}</div>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">API key baru</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">API key provider terpilih</label>
                             <input type="password" wire:model="apiKeyBaru" autocomplete="new-password" class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950" placeholder="{{ $apiKeyTerisi ? 'API key sudah tersimpan' : 'Masukkan API key' }}">
                             <div class="mt-2 text-xs {{ $apiKeyTerisi ? 'text-emerald-600' : 'text-amber-600' }}">
-                                {{ $apiKeyTerisi ? 'API key tersedia.' : 'API key belum diisi. AI akan memakai template fallback.' }}
+                                {{ $apiKeyInfo }}
                             </div>
                             @if ($apiKeyTerisi)
-                                <button type="button" wire:click="hapusApiKey" class="mt-3 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">Hapus API Key DB</button>
+                                <button type="button" wire:click="hapusApiKey" class="mt-3 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">Hapus API key provider ini</button>
                             @endif
                         </div>
                     </div>
