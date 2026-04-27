@@ -228,12 +228,14 @@ class AiAutoReplyService
     private function buildPrompt(object $settings, object $chat, string $template): string
     {
         $limit = max(1, min((int) $settings->BatasRiwayatPesan, 20));
-        $messages = DB::table('TChatD')
+        $chatMessages = DB::table('TChatD')
             ->where('IdChatM', $chat->Id)
             ->orderByDesc('TglPesan')
             ->limit($limit)
             ->get()
-            ->reverse()
+            ->reverse();
+
+        $messages = $chatMessages
             ->map(function (object $row): string {
                 $speaker = $row->ArahPesan === 'Keluar'
                     ? ((bool) ($row->DihasilkanOlehAi ?? false) ? 'AI Agent' : 'Customer Service')
@@ -243,18 +245,92 @@ class AiAutoReplyService
             })
             ->implode("\n");
 
+        $latestCustomerMessage = (string) ($chatMessages
+            ->where('ArahPesan', 'Masuk')
+            ->where('IsiPesan', '<>', null)
+            ->last()
+            ->IsiPesan ?? '');
+
         $customer = $chat->NamaInstansi ?: $chat->NamaCustomer ?: 'Belum dipetakan';
+        $knowledge = $this->relevantKnowledge($latestCustomerMessage . ' ' . $messages . ' ' . $customer);
 
         return trim(implode("\n\n", array_filter([
             $settings->PromptSistem ?: null,
             'Konteks customer: ' . $customer,
             'Jenis chat: ' . $chat->JenisChat,
-            'Instruksi mode: gunakan template berikut sebagai arah balasan, lalu sesuaikan dengan isi chat jika memang relevan. Jangan menjawab teknis yang belum pasti.',
+            'Instruksi mode: gunakan template berikut hanya sebagai arah balasan, bukan kalimat yang harus diulang persis.',
             'Template: ' . $template,
+            $knowledge ? 'Pengetahuan internal yang boleh dipakai:' . "\n" . $knowledge : null,
             'Riwayat chat:',
             $messages,
-            'Buat satu balasan WhatsApp yang halus, ringkas, dan siap dikirim.',
+            'Buat satu balasan WhatsApp yang halus, ringkas, natural, dan siap dikirim. AI boleh mengimprovisasi susunan kalimat agar tidak kaku atau berulang, tetapi fakta, prosedur, harga, jadwal, dan janji layanan harus mengikuti pengetahuan internal atau riwayat chat. Jika informasi tidak tersedia, minta detail tambahan atau arahkan ke customer service tanpa mengarang.',
         ])));
+    }
+
+    private function relevantKnowledge(string $context): string
+    {
+        $rows = DB::table('MPengetahuan')
+            ->where('NonAktif', false)
+            ->select('JudulPengetahuan', 'IsiPengetahuan', 'Tag')
+            ->orderBy('JudulPengetahuan')
+            ->limit(100)
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return '';
+        }
+
+        $tokens = collect(preg_split('/[\s,.;:!?()\[\]{}"\'\/\\\\\-]+/u', Str::lower($context)) ?: [])
+            ->map(fn (string $token): string => trim($token))
+            ->filter(fn (string $token): bool => mb_strlen($token) >= 4)
+            ->reject(fn (string $token): bool => in_array($token, [
+                'yang',
+                'dari',
+                'untuk',
+                'dengan',
+                'atau',
+                'kami',
+                'saya',
+                'anda',
+                'bapak',
+                'ibu',
+                'halo',
+                'terima',
+                'kasih',
+                'pesan',
+                'customer',
+            ], true))
+            ->unique()
+            ->values();
+
+        $scored = $rows
+            ->map(function (object $row) use ($tokens): array {
+                $haystack = Str::lower(trim(implode(' ', [
+                    $row->JudulPengetahuan,
+                    $row->Tag,
+                    $row->IsiPengetahuan,
+                ])));
+
+                $score = $tokens->sum(fn (string $token): int => str_contains($haystack, $token) ? 1 : 0);
+
+                return [
+                    'score' => $score,
+                    'title' => (string) $row->JudulPengetahuan,
+                    'content' => Str::limit((string) $row->IsiPengetahuan, 900, ''),
+                ];
+            })
+            ->filter(fn (array $row): bool => $row['score'] > 0)
+            ->sortByDesc('score')
+            ->take(5)
+            ->values();
+
+        if ($scored->isEmpty()) {
+            return '';
+        }
+
+        return $scored
+            ->map(fn (array $row): string => '- ' . $row['title'] . ': ' . $row['content'])
+            ->implode("\n");
     }
 
     /**
