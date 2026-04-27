@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <div class="flex h-[calc(100dvh-8rem)] min-h-[680px] flex-col gap-4 overflow-hidden" wire:poll.15s="loadInbox">
+    <div class="flex flex-col gap-4 overflow-hidden" style="height: calc(100dvh - 8rem);" wire:poll.15s="loadInbox">
         <div class="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>
@@ -19,9 +19,10 @@
             </div>
         </div>
 
-        <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)_340px]">
-            <section
-                class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
+            <div class="grid h-full gap-4" style="min-width: 1120px; grid-template-columns: 340px minmax(420px, 1fr) 340px;">
+                <section
+                    class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="shrink-0 border-b border-gray-200 p-4 dark:border-gray-800">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Data masuk dari webhook WAHA.</div>
@@ -29,7 +30,7 @@
                         {{ $this->form }}
                     </div>
                 </div>
-                <div class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
+                <div class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto overflow-x-hidden dark:divide-gray-800">
                     @forelse ($chatRows as $chat)
                         <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
                             class="block w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60 {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30' : '' }}">
@@ -75,7 +76,7 @@
                             webhook WAHA untuk mulai mengisi inbox.</div>
                     @endforelse
                 </div>
-            </section>
+                </section>
 
             <section
                 class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -109,7 +110,7 @@
                         </div>
                     </div>
 
-                    <div class="min-h-0 flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950/60">
+                    <div class="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 dark:bg-gray-950/60">
                         @forelse ($messages as $message)
                             @php($isOut = $message['ArahPesan'] === 'Keluar')
                             @php($hasMedia = $message['MediaCategory'] !== 'text')
@@ -178,18 +179,18 @@
                     <form wire:submit.prevent="kirimBalasanWaha" x-data="{
                         handlePaste(event) {
                             const items = event.clipboardData?.items || [];
-                    
+
                             for (const item of items) {
                                 if (item.kind !== 'file') {
                                     continue;
                                 }
-                    
+
                                 const file = item.getAsFile();
-                    
+
                                 if (!file) {
                                     continue;
                                 }
-                    
+
                                 const files = new DataTransfer();
                                 files.items.add(file);
                                 this.$refs.attachmentInput.files = files.files;
@@ -250,7 +251,7 @@
                 @endif
             </section>
 
-            <aside class="min-h-0 space-y-4 overflow-y-auto">
+            <aside class="min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
                 <div
                     class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between gap-3">
@@ -346,6 +347,7 @@
                         menerima request tanpa token.</p>
                 </div>
             </aside>
+            </div>
         </div>
     </div>
 </x-filament-panels::page>
