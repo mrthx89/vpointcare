@@ -97,6 +97,11 @@ class InboxWhatsapp extends Page
                 'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
                 'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
                 'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
+                'MappingIdentifiers' => $this->mappingIdentifiers((object) [
+                    'Id' => $row->Id,
+                    'NomorWhatsapp' => $row->NomorWhatsapp,
+                    'NamaGrupWhatsapp' => $row->NamaGrupWhatsapp,
+                ]),
             ];
         })->all();
 
@@ -191,9 +196,11 @@ class InboxWhatsapp extends Page
         $mapping = $this->resolveMappingForChat($chat);
 
         if (! ($mapping['IdInstansi'] ?? null)) {
+            $ids = $this->mappingIdentifiers($chat);
+
             Notification::make()
                 ->title('Mapping belum ditemukan.')
-                ->body('Pastikan Nomor WhatsApp atau ID WAHA / JID di master sama dengan ID yang tampil di chat.')
+                ->body('ID terdeteksi: ' . (implode(', ', array_slice($ids, 0, 8)) ?: '-') . '. Pastikan salah satu ID ini sama dengan master.')
                 ->warning()
                 ->send();
 
@@ -356,6 +363,7 @@ class InboxWhatsapp extends Page
             'AutoReplyAiAktif' => (bool) ($row->AutoReplyAiAktif ?? false),
             'AiSudahMenyapa' => (bool) ($row->AiSudahMenyapa ?? false),
             'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir ?? null,
+            'MappingIdentifiers' => $this->mappingIdentifiers($row),
         ];
     }
 
@@ -459,9 +467,19 @@ class InboxWhatsapp extends Page
                 'chatId',
                 'from',
                 'from.id',
+                'id.remote',
+                'id._serialized',
+                '_data.id._serialized',
                 '_data.id.remote',
                 '_data.Info.Chat',
+                '_data.chatId',
                 'key.remoteJid',
+                'chat.id',
+                'chat.id._serialized',
+                'to',
+                'to.id',
+                'groupId',
+                'group.id',
                 'participant',
                 'author',
                 'sender.id',
@@ -472,6 +490,10 @@ class InboxWhatsapp extends Page
                 if (is_string($value) && $value !== '') {
                     $ids[] = $value;
                 }
+            }
+
+            foreach ($this->payloadIdentifierStrings($payload) as $value) {
+                $ids[] = $value;
             }
         }
 
@@ -498,6 +520,27 @@ class InboxWhatsapp extends Page
         }
 
         return array_values(array_unique($expanded));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function payloadIdentifierStrings(array $payload): array
+    {
+        $values = [];
+        array_walk_recursive($payload, function ($value) use (&$values): void {
+            if (! is_string($value)) {
+                return;
+            }
+
+            if (preg_match_all('/[0-9A-Za-z_.:-]+@(g\.us|c\.us|s\.whatsapp\.net|lid)/', $value, $matches)) {
+                foreach ($matches[0] as $match) {
+                    $values[] = $match;
+                }
+            }
+        });
+
+        return array_values(array_unique($values));
     }
 
     /**

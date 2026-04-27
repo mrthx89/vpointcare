@@ -7,12 +7,172 @@
                     <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">Realtime setiap 15 detik. Update terakhir: {{ $lastUpdated ?: '-' }}</div>
                 </div>
                 <div class="flex flex-wrap items-end gap-3">
-                    <div>
+                    <div
+                        class="relative"
+                        x-data="{
+                            open: false,
+                            start: @entangle('startDate'),
+                            end: @entangle('endDate'),
+                            cursor: null,
+                            init() {
+                                this.cursor = this.monthStart(this.start || this.today())
+                            },
+                            today() {
+                                const date = new Date()
+                                return this.toDateString(date)
+                            },
+                            toDateString(date) {
+                                const year = date.getFullYear()
+                                const month = String(date.getMonth() + 1).padStart(2, '0')
+                                const day = String(date.getDate()).padStart(2, '0')
+                                return `${year}-${month}-${day}`
+                            },
+                            parse(value) {
+                                const parts = String(value || this.today()).split('-').map(Number)
+                                return new Date(parts[0], parts[1] - 1, parts[2])
+                            },
+                            monthStart(value) {
+                                const date = this.parse(value)
+                                return new Date(date.getFullYear(), date.getMonth(), 1)
+                            },
+                            addMonths(date, months) {
+                                return new Date(date.getFullYear(), date.getMonth() + months, 1)
+                            },
+                            monthLabel(date) {
+                                return date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+                            },
+                            display(value) {
+                                return this.parse(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                            },
+                            rangeLabel() {
+                                if (! this.start || ! this.end) return 'Pilih periode'
+                                return `${this.display(this.start)} s/d ${this.display(this.end)}`
+                            },
+                            days(monthDate) {
+                                const first = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
+                                const last = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+                                const startOffset = (first.getDay() + 6) % 7
+                                const total = startOffset + last.getDate()
+                                const cells = Math.ceil(total / 7) * 7
+                                const items = []
+
+                                for (let index = 0; index < cells; index++) {
+                                    const day = index - startOffset + 1
+                                    const date = new Date(first.getFullYear(), first.getMonth(), day)
+                                    items.push({
+                                        value: this.toDateString(date),
+                                        label: date.getDate(),
+                                        currentMonth: date.getMonth() === first.getMonth(),
+                                    })
+                                }
+
+                                return items
+                            },
+                            choose(value) {
+                                if (! this.start || (this.start && this.end)) {
+                                    this.start = value
+                                    this.end = null
+                                    return
+                                }
+
+                                if (value < this.start) {
+                                    this.end = this.start
+                                    this.start = value
+                                    return
+                                }
+
+                                this.end = value
+                            },
+                            isStart(value) {
+                                return value === this.start
+                            },
+                            isEnd(value) {
+                                return value === this.end
+                            },
+                            inRange(value) {
+                                return this.start && this.end && value > this.start && value < this.end
+                            },
+                            apply() {
+                                if (! this.end) this.end = this.start
+                                this.open = false
+                                this.$wire.loadDashboard()
+                            },
+                            clearToToday() {
+                                this.start = this.today()
+                                this.end = this.today()
+                                this.cursor = this.monthStart(this.start)
+                            },
+                        }"
+                        x-on:keydown.escape.window="open = false"
+                    >
                         <label class="text-xs font-medium text-gray-600 dark:text-gray-300">Date range</label>
-                        <div class="mt-1 flex overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
-                            <input type="date" wire:model="startDate" aria-label="Tanggal mulai" class="min-w-0 border-0 bg-transparent text-sm focus:ring-0 dark:bg-gray-950">
-                            <div class="flex items-center border-x border-gray-200 px-2 text-xs font-medium text-gray-500 dark:border-gray-700">s/d</div>
-                            <input type="date" wire:model="endDate" aria-label="Tanggal selesai" class="min-w-0 border-0 bg-transparent text-sm focus:ring-0 dark:bg-gray-950">
+                        <button
+                            type="button"
+                            x-on:click="open = ! open"
+                            class="mt-1 flex min-w-[290px] items-center justify-between gap-3 rounded-md border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm hover:bg-gray-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950 dark:hover:bg-gray-900"
+                        >
+                            <span class="font-medium text-gray-800 dark:text-gray-100" x-text="rangeLabel()"></span>
+                            <span class="text-xs text-gray-500">Ubah</span>
+                        </button>
+
+                        <div
+                            x-cloak
+                            x-show="open"
+                            x-transition
+                            x-on:click.outside="open = false"
+                            class="absolute right-0 z-50 mt-2 w-[min(92vw,720px)] rounded-lg border border-gray-200 bg-white p-4 shadow-xl dark:border-gray-800 dark:bg-gray-900"
+                        >
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3 dark:border-gray-800">
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-950 dark:text-white">Pilih periode</div>
+                                    <div class="mt-1 text-xs text-gray-500" x-text="rangeLabel()"></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="button" x-on:click="cursor = addMonths(cursor, -1)" class="rounded-md border border-gray-300 px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">&lt;</button>
+                                    <button type="button" x-on:click="cursor = addMonths(cursor, 1)" class="rounded-md border border-gray-300 px-2.5 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">&gt;</button>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                                <template x-for="monthDate in [cursor, addMonths(cursor, 1)]" :key="monthDate.toISOString()">
+                                    <div>
+                                        <div class="text-center text-sm font-semibold text-gray-950 dark:text-white" x-text="monthLabel(monthDate)"></div>
+                                        <div class="mt-3 grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500">
+                                            <div>Sen</div>
+                                            <div>Sel</div>
+                                            <div>Rab</div>
+                                            <div>Kam</div>
+                                            <div>Jum</div>
+                                            <div>Sab</div>
+                                            <div>Min</div>
+                                        </div>
+                                        <div class="mt-2 grid grid-cols-7 gap-1">
+                                            <template x-for="day in days(monthDate)" :key="day.value">
+                                                <button
+                                                    type="button"
+                                                    x-on:click="choose(day.value)"
+                                                    class="h-9 rounded-md text-sm transition"
+                                                    x-bind:class="{
+                                                        'text-gray-300 dark:text-gray-700': ! day.currentMonth,
+                                                        'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800': day.currentMonth && ! inRange(day.value) && ! isStart(day.value) && ! isEnd(day.value),
+                                                        'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-100': inRange(day.value),
+                                                        'bg-blue-600 font-semibold text-white hover:bg-blue-700': isStart(day.value) || isEnd(day.value),
+                                                    }"
+                                                    x-text="day.label"
+                                                ></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="mt-4 flex flex-wrap justify-between gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+                                <button type="button" x-on:click="clearToToday()" class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Hari ini</button>
+                                <div class="flex gap-2">
+                                    <button type="button" x-on:click="open = false" class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Batal</button>
+                                    <button type="button" x-on:click="apply()" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Terapkan</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <button type="submit" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Terapkan</button>

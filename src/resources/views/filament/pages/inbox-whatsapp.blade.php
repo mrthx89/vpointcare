@@ -183,6 +183,16 @@
                                 <dd class="font-medium text-gray-900 dark:text-white">
                                     {{ $selectedChat['NamaGrupWhatsapp'] ?: '-' }}</dd>
                             </div>
+                            <div>
+                                <dt class="text-gray-500">ID terdeteksi</dt>
+                                <dd class="space-y-1 font-mono text-xs text-gray-700 dark:text-gray-200">
+                                    @forelse (array_slice($selectedChat['MappingIdentifiers'] ?? [], 0, 6) as $identifier)
+                                        <div class="break-all rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-950">{{ $identifier }}</div>
+                                    @empty
+                                        <div>-</div>
+                                    @endforelse
+                                </dd>
+                            </div>
                         </dl>
                     @else
                         <div class="mt-3 text-sm text-gray-500">Belum ada chat dipilih.</div>
