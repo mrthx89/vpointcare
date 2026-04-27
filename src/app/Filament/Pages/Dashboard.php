@@ -3,12 +3,18 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 
 class Dashboard extends BaseDashboard
 {
+    use HasFiltersForm;
+
     protected static bool $isDiscovered = false;
 
     protected static ?string $title = 'Dasbor';
@@ -40,10 +46,35 @@ class Dashboard extends BaseDashboard
 
     public function mount(): void
     {
+        if ($this->syncDatesFromFilters()) {
+            $this->loadDashboard();
+
+            return;
+        }
+
         $this->startDate = now()->toDateString();
         $this->endDate = now()->toDateString();
+        $this->filters['date_range'] = $this->formatDateRangeValue($this->startDate, $this->endDate);
 
         $this->loadDashboard();
+    }
+
+    public function filtersForm(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('')
+                    ->schema([
+                        DateRangePicker::make('date_range')
+                            ->label('Periode')
+                            ->format('d-m-Y')
+                            ->rangeSeparator(' to ')
+                            ->showDropdowns()
+                            ->autoApply(),
+                    ])
+                    ->columns(1)
+                    ->compact(),
+            ]);
     }
 
     public function setQuickRange(string $range): void
@@ -56,11 +87,15 @@ class Dashboard extends BaseDashboard
             default => null,
         };
 
+        $this->filters['date_range'] = $this->formatDateRangeValue($this->startDate, $this->endDate);
+
         $this->loadDashboard();
     }
 
     public function loadDashboard(): void
     {
+        $this->syncDatesFromFilters();
+
         [$start, $end] = $this->periodBounds();
 
         $messageRows = DB::table('TChatD')
@@ -105,6 +140,73 @@ class Dashboard extends BaseDashboard
         $this->topClients = $this->topClients($start, $end);
         $this->satisfaction = $this->satisfactionIndex($incomingChats, $unansweredChats, $deliveryTotal, $sentWaha, $avgResponseMinutes, $periodChats, $mappedChats);
         $this->lastUpdated = now()->format('d M Y H:i:s');
+    }
+
+    private function syncDatesFromFilters(): bool
+    {
+        $range = data_get($this->filters, 'date_range');
+
+        if (! is_string($range) || trim($range) === '') {
+            return false;
+        }
+
+        [$startDate, $endDate] = $this->parseDateRangeValue($range);
+
+        if (! $startDate || ! $endDate) {
+            return false;
+        }
+
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+
+        return true;
+    }
+
+    /**
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function parseDateRangeValue(string $range): array
+    {
+        $value = trim($range);
+
+        foreach ([' to ', ' - ', ' s/d '] as $separator) {
+            if (! str_contains($value, $separator)) {
+                continue;
+            }
+
+            [$rawStart, $rawEnd] = array_map('trim', explode($separator, $value, 2));
+
+            return [
+                $this->parseSingleFilterDate($rawStart),
+                $this->parseSingleFilterDate($rawEnd),
+            ];
+        }
+
+        $singleDate = $this->parseSingleFilterDate($value);
+
+        return [$singleDate, $singleDate];
+    }
+
+    private function parseSingleFilterDate(string $value): ?string
+    {
+        foreach (['d-m-Y', 'Y-m-d', 'd/m/Y'] as $format) {
+            try {
+                return Carbon::createFromFormat($format, $value)->toDateString();
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
+    private function formatDateRangeValue(?string $startDate, ?string $endDate): ?string
+    {
+        if (! $startDate || ! $endDate) {
+            return null;
+        }
+
+        return Carbon::parse($startDate)->format('d-m-Y') . ' to ' . Carbon::parse($endDate)->format('d-m-Y');
     }
 
     /**

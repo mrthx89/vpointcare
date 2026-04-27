@@ -399,14 +399,13 @@ class InboxWhatsapp extends Page
     private function resolveMappingForChat(object $chat): array
     {
         $ids = $this->mappingIdentifiers($chat);
-        $nomor = $this->findNomorMapping($ids);
         $grup = null;
+        $nomor = null;
 
         if ($chat->JenisChat === 'Grup') {
-            $grup = DB::table('MGrupWhatsapp')
-                ->whereIn('IdGrupWaha', $ids)
-                ->where('NonAktif', false)
-                ->first();
+            $grup = $this->findGrupMapping($ids, $chat);
+        } else {
+            $nomor = $this->findNomorMapping($ids);
         }
 
         return [
@@ -446,6 +445,48 @@ class InboxWhatsapp extends Page
 
         return DB::table('MNomorWhatsapp')
             ->whereIn('IdWaha', $ids)
+            ->where('NonAktif', false)
+            ->first();
+    }
+
+    private function findGrupMapping(array $ids, object $chat): ?object
+    {
+        $grup = DB::table('MGrupWhatsapp')
+            ->whereIn('IdGrupWaha', $ids)
+            ->where('NonAktif', false)
+            ->first();
+
+        if ($grup) {
+            return $grup;
+        }
+
+        $numbers = collect($ids)
+            ->map(fn (string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
+            ->map(fn (string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($numbers !== []) {
+            $grup = DB::table('MGrupWhatsapp')
+                ->whereIn('NomorGrupWhatsapp', $numbers)
+                ->where('NonAktif', false)
+                ->first();
+
+            if ($grup) {
+                return $grup;
+            }
+        }
+
+        $namaGrup = trim((string) ($chat->NamaGrupWhatsapp ?? ''));
+
+        if ($namaGrup === '') {
+            return null;
+        }
+
+        return DB::table('MGrupWhatsapp')
+            ->where('NamaGrup', $namaGrup)
             ->where('NonAktif', false)
             ->first();
     }

@@ -187,7 +187,8 @@
                                 <dt class="text-gray-500">ID terdeteksi</dt>
                                 <dd class="space-y-1 font-mono text-xs text-gray-700 dark:text-gray-200">
                                     @forelse (array_slice($selectedChat['MappingIdentifiers'] ?? [], 0, 6) as $identifier)
-                                        <div class="break-all rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-950">{{ $identifier }}</div>
+                                        <div class="break-all rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-950">
+                                            {{ $identifier }}</div>
                                     @empty
                                         <div>-</div>
                                     @endforelse
