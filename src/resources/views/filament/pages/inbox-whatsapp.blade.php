@@ -1,5 +1,4 @@
 <x-filament-panels::page>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {{-- Komponen utama: mengelola sound notifikasi + WS status --}}
     <div
         x-data="{
@@ -34,6 +33,9 @@
         class="flex flex-col gap-4 overflow-hidden"
         style="height: calc(100dvh - 8rem);"
         wire:poll.60s="loadInbox">
+        <div class="hidden">
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        </div>
         <div class="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>
