@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             ->where('email', 'admin@vpointcare.local')
             ->delete();
 
-        User::query()->updateOrCreate([
+        User::query()->firstOrCreate([
             'email' => 'mrthx.89@gmail.com',
         ], [
             'name' => 'Admin VPoint Care',
@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        DB::table('MPeran')->updateOrInsert([
+        DB::table('MPeran')->firstOrCreate([
             'KodePeran' => 'ADMIN',
         ], [
             'NamaPeran' => 'Admin',
@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
 
         $peranAdmin = DB::table('MPeran')->where('KodePeran', 'ADMIN')->first();
 
-        DB::table('MPengguna')->updateOrInsert([
+        DB::table('MPengguna')->firstOrCreate([
             'Email' => 'mrthx.89@gmail.com',
         ], [
             'IdPeran' => $peranAdmin->Id,
