@@ -57,6 +57,9 @@ class InboxWhatsapp extends Page implements HasForms
 
     public string $filterType = 'keduanya';
 
+    /** Cache ID pengguna agar tidak query DB berulang kali per request. */
+    private ?string $cachedPenggunaId = null;
+
     public function mount(): void
     {
         $this->loadInbox();
@@ -130,6 +133,8 @@ class InboxWhatsapp extends Page implements HasForms
         $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
         $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
 
+        $hasDiambilOleh = Schema::hasColumn('TChatM', 'DiambilOleh');
+
         $query = DB::table('TChatM as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
@@ -137,6 +142,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
             ->leftJoin('MInstansi as gi', 'gi.Id', '=', 'g.IdInstansi')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
+            ->leftJoin('MPengguna as pd', 'pd.Id', '=', 'c.DiambilOleh')
             ->select(
                 'c.Id',
                 'c.JenisChat',
@@ -148,6 +154,7 @@ class InboxWhatsapp extends Page implements HasForms
                 'c.AutoReplyAiAktif',
                 'c.AiSudahMenyapa',
                 'c.TglAutoReplyAiTerakhir',
+                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
                 'i.NamaInstansi',
                 'gi.NamaInstansi as NamaInstansiGrup',
                 'm.NamaCustomer',
@@ -157,7 +164,8 @@ class InboxWhatsapp extends Page implements HasForms
                 'g.NamaGrup as NamaGrupMaster',
                 'g.IdGrupWaha',
                 'g.NomorGrupWhatsapp',
-                's.NamaStatusChat'
+                's.NamaStatusChat',
+                'pd.NamaPengguna as NamaDiambilOleh'
             );
 
         if ($this->filterType === 'pribadi') {
@@ -260,6 +268,15 @@ class InboxWhatsapp extends Page implements HasForms
             'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
             'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
             'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
+            // Handler info: siapa CS yang sedang menangani chat ini
+            'DiambilOleh' => $row->DiambilOleh ?? null,
+            'DiambilNamaCS' => $row->NamaDiambilOleh
+                ? (mb_strlen($row->NamaDiambilOleh) > 18
+                    ? mb_substr($row->NamaDiambilOleh, 0, 15).'...'
+                    : $row->NamaDiambilOleh)
+                : null,
+            'DiambilOlehSaya' => isset($row->DiambilOleh)
+                && $row->DiambilOleh === $this->currentPenggunaId(),
             'MappingIdentifiers' => $this->mappingIdentifiers((object) [
                 'Id' => $row->Id,
                 'NomorWhatsapp' => $isGroup ? $groupWahaId : $contactNumber,
@@ -315,6 +332,21 @@ class InboxWhatsapp extends Page implements HasForms
                 'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
             ])
             ->all();
+
+        // Auto-claim chat jika belum ada yang menangani
+        if (Schema::hasColumn('TChatM', 'DiambilOleh')) {
+            $current = DB::table('TChatM')->where('Id', $chatId)->value('DiambilOleh');
+            if (! $current) {
+                $myId = $this->currentPenggunaId();
+                if ($myId) {
+                    DB::table('TChatM')->where('Id', $chatId)->update([
+                        'DiambilOleh' => $myId,
+                        'TglDiambil'  => now(),
+                        'TglEdit'     => now(),
+                    ]);
+                }
+            }
+        }
     }
 
     public function toggleAutoReplyAi(): void
@@ -791,13 +823,21 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function currentPenggunaId(): ?string
     {
+        if ($this->cachedPenggunaId !== null) {
+            return $this->cachedPenggunaId ?: null;
+        }
+
         $email = auth()->user()?->email;
 
         if (! $email) {
+            $this->cachedPenggunaId = '';
+
             return null;
         }
 
-        return DB::table('MPengguna')->where('Email', $email)->value('Id');
+        $this->cachedPenggunaId = (string) (DB::table('MPengguna')->where('Email', $email)->value('Id') ?? '');
+
+        return $this->cachedPenggunaId ?: null;
     }
 
     /**

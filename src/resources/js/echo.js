@@ -1,19 +1,14 @@
 /**
  * Laravel Echo + Reverb WebSocket client
  *
- * File ini mengatur koneksi WebSocket ke server Reverb.
- * Reverb adalah padanan SignalR untuk Laravel — push real-time
- * dari server ke browser tanpa polling.
- *
- * Dipanggil dari app.js, dan berjalan di halaman mana pun yang
- * memuat bundle Vite (termasuk semua halaman Filament admin).
+ * Menghubungkan browser ke server Reverb (WebSocket).
+ * Ketika WAHA webhook menerima pesan baru, server broadcast event
+ * ke sini, dan kita trigger Livewire refresh + sound notification.
  */
 
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
-// Pusher-js digunakan sebagai transport layer oleh Echo,
-// tapi server-nya adalah Reverb (bukan Pusher cloud).
 window.Pusher = Pusher;
 
 window.Echo = new Echo({
@@ -24,23 +19,35 @@ window.Echo = new Echo({
     wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'http') === 'https',
     enabledTransports: ['ws', 'wss'],
-    // Nonaktifkan Pusher stats (tidak perlu untuk Reverb)
     disableStats: true,
 });
 
 /**
- * Subscribe ke channel 'waha-inbox' dan dengarkan event 'inbox.updated'.
- *
- * Ketika event diterima, kita cari komponen Livewire InboxWhatsapp di halaman
- * dan trigger event 'waha-inbox-updated' yang akan memanggil handleInboxUpdate().
- *
- * Menggunakan 'window.Livewire.dispatch' agar tidak perlu referensi spesifik
- * ke instance komponen — semua komponen yang punya listener #[On] akan merespons.
+ * Subscribe ke channel 'waha-inbox'.
+ * Ketika event diterima:
+ * 1. Trigger Livewire dispatch → loadInbox() di PHP
+ * 2. Dispatch custom DOM event → sound notification di Alpine.js
  */
 window.Echo.channel('waha-inbox')
     .listen('.inbox.updated', (event) => {
-        // Kirim event ke semua komponen Livewire di halaman ini
+        // 1. Refresh data via Livewire
         if (window.Livewire) {
             window.Livewire.dispatch('waha-inbox-updated', { chatId: event.chat_id });
         }
+
+        // 2. Trigger sound notification (dihandle Alpine.js di blade)
+        window.dispatchEvent(new CustomEvent('waha-new-message', {
+            detail: { chatId: event.chat_id },
+        }));
     });
+
+// Expose Echo connection state untuk UI indicator
+window.Echo.connector.pusher.connection.bind('connected', () => {
+    window.dispatchEvent(new CustomEvent('waha-ws-connected'));
+});
+window.Echo.connector.pusher.connection.bind('disconnected', () => {
+    window.dispatchEvent(new CustomEvent('waha-ws-disconnected'));
+});
+window.Echo.connector.pusher.connection.bind('unavailable', () => {
+    window.dispatchEvent(new CustomEvent('waha-ws-disconnected'));
+});
