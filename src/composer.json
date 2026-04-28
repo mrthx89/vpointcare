@@ -46,6 +46,10 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74,#86efac\" \"php artisan serve:vpoint\" \"php artisan queue:listen --tries=1 --timeout=0\" \"npm run dev\" \"php artisan reverb:start\" --names=server,queue,vite,reverb --kill-others"
         ],
+        "start": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#86efac\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan reverb:start\" --names=server,queue,reverb --kill-others"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"

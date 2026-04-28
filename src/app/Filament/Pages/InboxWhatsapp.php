@@ -48,6 +48,11 @@ class InboxWhatsapp extends Page implements HasForms
     /** @var array<int, array<string, mixed>> */
     public array $historyChats = [];
 
+    /** @var array<int, array<string, mixed>> */
+    public array $internalNotes = [];
+
+    public string $newInternalNote = '';
+
     public ?string $selectedChatId = null;
 
     public ?array $selectedChat = null;
@@ -86,7 +91,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function updatedFilterType(): void
     {
-        if (! in_array($this->filterType, ['pribadi', 'grup', 'keduanya'], true)) {
+        if (!in_array($this->filterType, ['pribadi', 'grup', 'keduanya'], true)) {
             $this->filterType = 'keduanya';
         }
 
@@ -117,6 +122,57 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $this->resetSelectedChat();
         $this->loadInbox();
+    }
+
+    public function loadInternalNotes(): void
+    {
+        if (!$this->selectedChatId) {
+            $this->internalNotes = [];
+            return;
+        }
+
+        $this->internalNotes = DB::table('TChatCatatanInternal')
+            ->where('IdChatM', $this->selectedChatId)
+            ->orderBy('TglBuat', 'asc')
+            ->get()
+            ->map(function ($row) {
+                // Fetch creator name if table Pengguna exists
+                $creatorName = 'Sistem';
+                if ($row->DibuatOleh && Schema::hasTable('Pengguna')) {
+                    $creatorName = DB::table('Pengguna')->where('Id', $row->DibuatOleh)->value('NamaPengguna') ?? 'Sistem';
+                }
+
+                return [
+                    'Id' => $row->Id,
+                    'IsiCatatan' => $row->IsiCatatan,
+                    'TglBuat' => $row->TglBuat,
+                    'DibuatOlehNama' => $creatorName,
+                ];
+            })
+            ->all();
+    }
+
+    public function saveInternalNote(): void
+    {
+        if (!$this->selectedChatId || trim($this->newInternalNote) === '') {
+            return;
+        }
+
+        DB::table('TChatCatatanInternal')->insert([
+            'Id' => (string) Str::orderedUuid(),
+            'IdChatM' => $this->selectedChatId,
+            'IsiCatatan' => trim($this->newInternalNote),
+            'DibuatOleh' => $this->currentPenggunaId(),
+            'TglBuat' => now(),
+        ]);
+
+        $this->newInternalNote = '';
+        $this->loadInternalNotes();
+
+        Notification::make()
+            ->title('Catatan internal berhasil disimpan.')
+            ->success()
+            ->send();
     }
 
     public function loadInbox(): void
@@ -180,7 +236,7 @@ class InboxWhatsapp extends Page implements HasForms
         $search = trim($this->filterText);
 
         if ($search !== '') {
-            $like = '%'.$search.'%';
+            $like = '%' . $search . '%';
 
             $query->where(function ($query) use ($like, $nomorHasIdWaha): void {
                 $query
@@ -206,7 +262,7 @@ class InboxWhatsapp extends Page implements HasForms
         if ($statusDitutupId) {
             $query->where(function ($q) use ($statusDitutupId) {
                 $q->where('c.IdStatusChat', '!=', $statusDitutupId)
-                  ->orWhereNull('c.IdStatusChat');
+                    ->orWhereNull('c.IdStatusChat');
             });
         }
 
@@ -234,13 +290,13 @@ class InboxWhatsapp extends Page implements HasForms
         $selectedExists = $this->selectedChatId
             && collect($this->chatRows)->contains('Id', $this->selectedChatId);
 
-        if (! $selectedExists) {
+        if (!$selectedExists) {
             $this->selectedChatId = null;
             $this->selectedChat = null;
             $this->messages = [];
         }
 
-        if (! $this->selectedChatId && $this->chatRows) {
+        if (!$this->selectedChatId && $this->chatRows) {
             $this->selectChat($this->chatRows[0]['Id']);
 
             return;
@@ -283,7 +339,7 @@ class InboxWhatsapp extends Page implements HasForms
             'DiambilOleh' => $row->DiambilOleh ?? null,
             'DiambilNamaCS' => $row->NamaDiambilOleh
                 ? (mb_strlen($row->NamaDiambilOleh) > 18
-                    ? mb_substr($row->NamaDiambilOleh, 0, 15).'...'
+                    ? mb_substr($row->NamaDiambilOleh, 0, 15) . '...'
                     : $row->NamaDiambilOleh)
                 : null,
             'DiambilOlehSaya' => isset($row->DiambilOleh)
@@ -298,22 +354,26 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function loadHistoryChats(): void
     {
-        if (! $this->selectedChatId) {
+        if (!$this->selectedChatId) {
             $this->historyChats = [];
             return;
         }
 
         $rawChat = DB::table('TChatM')->where('Id', $this->selectedChatId)->first();
         if (!$rawChat) {
-             $this->historyChats = [];
-             return;
+            $this->historyChats = [];
+            return;
         }
 
         $conditions = [];
-        if ($rawChat->IdCustomer) $conditions[] = ['c.IdCustomer', '=', $rawChat->IdCustomer];
-        if ($rawChat->IdInstansi) $conditions[] = ['c.IdInstansi', '=', $rawChat->IdInstansi];
-        if ($rawChat->IdNomorWhatsapp) $conditions[] = ['c.IdNomorWhatsapp', '=', $rawChat->IdNomorWhatsapp];
-        if ($rawChat->NomorWhatsapp) $conditions[] = ['c.NomorWhatsapp', '=', $rawChat->NomorWhatsapp];
+        if ($rawChat->IdCustomer)
+            $conditions[] = ['c.IdCustomer', '=', $rawChat->IdCustomer];
+        if ($rawChat->IdInstansi)
+            $conditions[] = ['c.IdInstansi', '=', $rawChat->IdInstansi];
+        if ($rawChat->IdNomorWhatsapp)
+            $conditions[] = ['c.IdNomorWhatsapp', '=', $rawChat->IdNomorWhatsapp];
+        if ($rawChat->NomorWhatsapp)
+            $conditions[] = ['c.NomorWhatsapp', '=', $rawChat->NomorWhatsapp];
 
         $query = DB::table('TChatM as c')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
@@ -371,7 +431,7 @@ class InboxWhatsapp extends Page implements HasForms
                 'DihasilkanOlehAi'
             )
             ->get()
-            ->map(fn (object $row): array => [
+            ->map(fn(object $row): array => [
                 'Id' => $row->Id,
                 'ArahPesan' => $row->ArahPesan,
                 'JenisPesan' => $row->JenisPesan,
@@ -392,17 +452,18 @@ class InboxWhatsapp extends Page implements HasForms
             ->all();
 
         $this->loadHistoryChats();
+        $this->loadInternalNotes();
 
         // Auto-claim chat jika belum ada yang menangani
         if (Schema::hasColumn('TChatM', 'DiambilOleh')) {
             $current = DB::table('TChatM')->where('Id', $chatId)->value('DiambilOleh');
-            if (! $current) {
+            if (!$current) {
                 $myId = $this->currentPenggunaId();
                 if ($myId) {
                     DB::table('TChatM')->where('Id', $chatId)->update([
                         'DiambilOleh' => $myId,
-                        'TglDiambil'  => now(),
-                        'TglEdit'     => now(),
+                        'TglDiambil' => now(),
+                        'TglEdit' => now(),
                     ]);
                 }
             }
@@ -411,11 +472,11 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function toggleAutoReplyAi(): void
     {
-        if (! $this->selectedChatId || ! $this->selectedChat) {
+        if (!$this->selectedChatId || !$this->selectedChat) {
             return;
         }
 
-        $active = ! (bool) ($this->selectedChat['AutoReplyAiAktif'] ?? false);
+        $active = !(bool) ($this->selectedChat['AutoReplyAiAktif'] ?? false);
 
         DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
             'AutoReplyAiAktif' => $active,
@@ -433,12 +494,12 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function tutupPercakapan(\App\Services\Ai\AiAutoReplyService $aiService): void
     {
-        if (! $this->selectedChatId || ! $this->selectedChat) {
+        if (!$this->selectedChatId || !$this->selectedChat) {
             return;
         }
 
         $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
-        
+
         $updateData = [
             'IdStatusChat' => $statusDitutupId,
             'AutoReplyAiAktif' => false,
@@ -464,7 +525,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function resetSapaanAi(): void
     {
-        if (! $this->selectedChatId) {
+        if (!$this->selectedChatId) {
             return;
         }
 
@@ -483,24 +544,24 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function refreshMappingChat(): void
     {
-        if (! $this->selectedChatId) {
+        if (!$this->selectedChatId) {
             return;
         }
 
         $chat = DB::table('TChatM')->where('Id', $this->selectedChatId)->first();
 
-        if (! $chat) {
+        if (!$chat) {
             return;
         }
 
         $mapping = $this->resolveMappingForChat($chat);
 
-        if (! ($mapping['IdInstansi'] ?? null)) {
+        if (!($mapping['IdInstansi'] ?? null)) {
             $ids = $this->mappingIdentifiers($chat);
 
             Notification::make()
                 ->title('Mapping belum ditemukan.')
-                ->body('ID terdeteksi: '.(implode(', ', array_slice($ids, 0, 8)) ?: '-').'. Pastikan salah satu ID ini sama dengan master.')
+                ->body('ID terdeteksi: ' . (implode(', ', array_slice($ids, 0, 8)) ?: '-') . '. Pastikan salah satu ID ini sama dengan master.')
                 ->warning()
                 ->send();
 
@@ -531,7 +592,7 @@ class InboxWhatsapp extends Page implements HasForms
             'replyText' => ['required', 'string', 'max:4000'],
         ]);
 
-        if (! $this->selectedChatId) {
+        if (!$this->selectedChatId) {
             return;
         }
 
@@ -578,13 +639,13 @@ class InboxWhatsapp extends Page implements HasForms
             'attachment' => ['nullable', 'file', 'max:51200'],
         ]);
 
-        if (! $this->selectedChatId) {
+        if (!$this->selectedChatId) {
             return;
         }
 
         $reply = trim($this->replyText);
 
-        if ($reply === '' && ! $this->attachment) {
+        if ($reply === '' && !$this->attachment) {
             Notification::make()
                 ->title('Isi pesan atau lampirkan file dulu.')
                 ->warning()
@@ -600,7 +661,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->select('c.*', 's.KodeSesi', 'g.IdGrupWaha')
             ->first();
 
-        if (! $chat) {
+        if (!$chat) {
             Notification::make()
                 ->title('Chat tidak ditemukan.')
                 ->danger()
@@ -653,10 +714,10 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title($success ? 'Balasan terkirim ke WAHA.' : 'Balasan gagal dikirim ke WAHA.')
-            ->body($success ? null : ($sent['response']['error'] ?? null))
+                    ->title($success ? 'Balasan terkirim ke WAHA.' : 'Balasan gagal dikirim ke WAHA.')
+                    ->body($success ? null : ($sent['response']['error'] ?? null))
             ->{$success ? 'success' : 'danger'}()
-            ->send();
+                ->send();
     }
 
     /**
@@ -666,7 +727,7 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $file = $this->attachment;
         $mimeType = $file?->getMimeType() ?: 'application/octet-stream';
-        $fileName = $file?->getClientOriginalName() ?: ('lampiran-whatsapp.'.($file?->extension() ?: 'bin'));
+        $fileName = $file?->getClientOriginalName() ?: ('lampiran-whatsapp.' . ($file?->extension() ?: 'bin'));
         $realPath = $file?->getRealPath();
         $contents = $realPath ? file_get_contents($realPath) : false;
 
@@ -749,7 +810,7 @@ class InboxWhatsapp extends Page implements HasForms
      */
     private function wahaReadyFile(string $contents, string $mimeType, string $fileName): array
     {
-        if (! str_starts_with($mimeType, 'image/') || in_array($mimeType, ['image/jpeg', 'image/jpg'], true)) {
+        if (!str_starts_with($mimeType, 'image/') || in_array($mimeType, ['image/jpeg', 'image/jpg'], true)) {
             return [$contents, $mimeType, $fileName];
         }
 
@@ -761,18 +822,18 @@ class InboxWhatsapp extends Page implements HasForms
 
         $baseName = pathinfo($fileName, PATHINFO_FILENAME) ?: 'whatsapp-image';
 
-        return [$jpeg, 'image/jpeg', $baseName.'.jpg'];
+        return [$jpeg, 'image/jpeg', $baseName . '.jpg'];
     }
 
     private function convertImageToJpeg(string $contents): ?string
     {
-        if (! function_exists('imagecreatefromstring')) {
+        if (!function_exists('imagecreatefromstring')) {
             return null;
         }
 
         $source = @imagecreatefromstring($contents);
 
-        if (! $source) {
+        if (!$source) {
             return null;
         }
 
@@ -780,7 +841,7 @@ class InboxWhatsapp extends Page implements HasForms
         $height = imagesy($source);
         $canvas = imagecreatetruecolor($width, $height);
 
-        if (! $canvas) {
+        if (!$canvas) {
             imagedestroy($source);
 
             return null;
@@ -827,7 +888,7 @@ class InboxWhatsapp extends Page implements HasForms
             )
             ->first();
 
-        if (! $row) {
+        if (!$row) {
             return null;
         }
 
@@ -843,7 +904,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function messagePreview(?object $message): string
     {
-        if (! $message) {
+        if (!$message) {
             return '-';
         }
 
@@ -853,7 +914,7 @@ class InboxWhatsapp extends Page implements HasForms
             return $text;
         }
 
-        return '['.$this->mediaLabel($message->JenisPesan ?? null, $message->TipeMime ?? null, $message->NamaFileMedia ?? null).']';
+        return '[' . $this->mediaLabel($message->JenisPesan ?? null, $message->TipeMime ?? null, $message->NamaFileMedia ?? null) . ']';
     }
 
     private function mediaCategory(?string $jenisPesan, ?string $mimeType): string
@@ -920,7 +981,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         $email = auth()->user()?->email;
 
-        if (! $email) {
+        if (!$email) {
             $this->cachedPenggunaId = '';
 
             return null;
@@ -959,8 +1020,8 @@ class InboxWhatsapp extends Page implements HasForms
     private function findNomorMapping(array $ids): ?object
     {
         $numbers = collect($ids)
-            ->map(fn (string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
-            ->map(fn (string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
+            ->map(fn(string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
+            ->map(fn(string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
             ->filter()
             ->unique()
             ->values()
@@ -977,7 +1038,7 @@ class InboxWhatsapp extends Page implements HasForms
             }
         }
 
-        if (! Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
+        if (!Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
             return null;
         }
 
@@ -999,8 +1060,8 @@ class InboxWhatsapp extends Page implements HasForms
         }
 
         $numbers = collect($ids)
-            ->map(fn (string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
-            ->map(fn (string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
+            ->map(fn(string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
+            ->map(fn(string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
             ->filter()
             ->unique()
             ->values()
@@ -1092,9 +1153,9 @@ class InboxWhatsapp extends Page implements HasForms
 
             if ($number) {
                 $expanded[] = $number;
-                $expanded[] = $number.'@c.us';
-                $expanded[] = $number.'@s.whatsapp.net';
-                $expanded[] = $number.'@lid';
+                $expanded[] = $number . '@c.us';
+                $expanded[] = $number . '@s.whatsapp.net';
+                $expanded[] = $number . '@lid';
             }
         }
 
@@ -1108,7 +1169,7 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $values = [];
         array_walk_recursive($payload, function ($value) use (&$values): void {
-            if (! is_string($value)) {
+            if (!is_string($value)) {
                 return;
             }
 
@@ -1134,7 +1195,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->orderByDesc('TglPesan')
             ->value('PayloadJson');
 
-        if (! $payloadJson) {
+        if (!$payloadJson) {
             return null;
         }
 
@@ -1147,7 +1208,7 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $payload = $this->latestIncomingPayload($chatId);
 
-        if (! $payload) {
+        if (!$payload) {
             return null;
         }
 
@@ -1179,6 +1240,6 @@ class InboxWhatsapp extends Page implements HasForms
 
         $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;
 
-        return $number.'@c.us';
+        return $number . '@c.us';
     }
 }

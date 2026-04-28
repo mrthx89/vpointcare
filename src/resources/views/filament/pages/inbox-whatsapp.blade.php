@@ -4,6 +4,7 @@
         x-data="{
             soundOn: localStorage.getItem('wacs_sound') !== 'false',
             wsOnline: false,
+            activeAgents: window.wahaActiveUsers ? window.wahaActiveUsers.length : 0,
             toggleSound() {
                 this.soundOn = !this.soundOn;
                 localStorage.setItem('wacs_sound', String(this.soundOn));
@@ -30,13 +31,18 @@
         @waha-new-message.window="playSound()"
         @waha-ws-connected.window="wsOnline = true"
         @waha-ws-disconnected.window="wsOnline = false"
+        @waha-agents-updated.window="activeAgents = $event.detail.count"
         class="flex flex-col gap-4 overflow-hidden"
         style="height: calc(100dvh - 8rem);"
         wire:poll.60s="loadInbox">
         <div class="hidden">
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         </div>
-        <div class="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
+            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="text-sm text-gray-500 dark:text-gray-400">Tim Aktif (Online)</div>
+                <div class="mt-2 text-2xl font-semibold text-emerald-600" x-text="activeAgents">0</div>
+            </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>
                 <div class="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
@@ -347,9 +353,6 @@
                                     class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Lampirkan
                                     File</button>
                                 <div class="flex flex-wrap justify-end gap-2">
-                                    <button type="button"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Catatan
-                                        Internal</button>
                                     <button type="button" wire:click="simpanBalasanLokal"
                                         class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Simpan
                                         Draft</button>
@@ -417,7 +420,15 @@
                                     </dd>
                                 </div>
                             </dl>
-                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                                <x-filament::button color="warning" size="sm" variant="outline" class="w-full"
+                                    x-on:click="$dispatch('open-modal', { id: 'internal-notes-modal' })"
+                                    :badge="count($internalNotes) > 0 ? count($internalNotes) : null"
+                                    badge-color="warning"
+                                >
+                                    Catatan Internal
+                                </x-filament::button>
+
                                 <x-filament::button color="gray" size="sm" variant="outline" class="w-full"
                                     x-on:click="$dispatch('open-modal', { id: 'history-chat-modal' })">
                                     History Chat Sebelumnya
@@ -498,4 +509,38 @@
             @endif
         </div>
     </x-filament::modal>
+
+    <x-filament::modal id="internal-notes-modal" width="xl">
+        <x-slot name="heading">Catatan Internal</x-slot>
+        <x-slot name="description">Catatan ini hanya untuk tim internal dan tidak akan dikirim ke WhatsApp.</x-slot>
+        
+        <div class="space-y-4">
+            <div class="max-h-96 overflow-y-auto space-y-3 pr-2">
+                @forelse ($internalNotes as $note)
+                    <div class="rounded-lg bg-yellow-50 p-3 text-sm dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20">
+                        <div class="font-medium text-yellow-800 dark:text-yellow-400 mb-1 flex justify-between">
+                            <span>{{ $note['DibuatOlehNama'] }}</span>
+                            <span class="text-xs opacity-70">{{ \Illuminate\Support\Carbon::parse($note['TglBuat'])->format('d M Y H:i') }}</span>
+                        </div>
+                        <div class="text-yellow-900 dark:text-yellow-300 whitespace-pre-wrap">{{ $note['IsiCatatan'] }}</div>
+                    </div>
+                @empty
+                    <div class="text-sm text-gray-500 text-center py-4">Belum ada catatan internal.</div>
+                @endforelse
+            </div>
+            
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
+                <textarea wire:model="newInternalNote" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" placeholder="Tulis catatan internal baru di sini..."></textarea>
+                <div class="mt-3 flex justify-end">
+                    <x-filament::button color="warning" wire:click="saveInternalNote" wire:loading.attr="disabled">
+                        Simpan Catatan
+                    </x-filament::button>
+                </div>
+            </div>
+        </div>
+    </x-filament::modal>
+
+    @push('scripts')
+        @vite('resources/js/app.js')
+    @endpush
 </x-filament-panels::page>
