@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Webhook;
 
+use App\Events\WahaInboxUpdated;
 use App\Http\Controllers\Controller;
 use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaWebhookProcessor;
@@ -35,6 +36,10 @@ class WahaWebhookController extends Controller
         $result = $processor->process($request->all());
 
         if (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id'])) {
+            // Broadcast real-time ke semua browser via Reverb WebSocket.
+            // Menggunakan queue (database) agar response webhook tidak tertunda.
+            broadcast(new WahaInboxUpdated((string) $result['chat_id']))->toOthers();
+
             try {
                 $result['auto_reply'] = $autoReply->handleIncomingChat((string) $result['chat_id']);
             } catch (Throwable $exception) {

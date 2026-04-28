@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
@@ -57,6 +58,17 @@ class InboxWhatsapp extends Page implements HasForms
     public string $filterType = 'keduanya';
 
     public function mount(): void
+    {
+        $this->loadInbox();
+    }
+
+    /**
+     * Dipanggil oleh Laravel Echo (via JavaScript) ketika Reverb
+     * WebSocket menerima event 'WahaInboxUpdated' dari webhook.
+     * Ini yang membuat halaman ini real-time seperti SignalR.
+     */
+    #[On('waha-inbox-updated')]
+    public function handleInboxUpdate(): void
     {
         $this->loadInbox();
     }
