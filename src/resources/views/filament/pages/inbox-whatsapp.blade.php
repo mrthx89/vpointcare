@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {{-- Komponen utama: mengelola sound notifikasi + WS status --}}
     <div
         x-data="{
@@ -185,8 +186,21 @@
                                     {{ $selectedChat['Status'] }}</div>
                                     
                                 @if (!str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
-                                    <x-filament::button color="danger" size="sm" wire:click="tutupPercakapan"
-                                        wire:confirm="Yakin ingin menutup percakapan ini? Pesan penutup otomatis dari AI akan dikirim ke customer."
+                                    <x-filament::button color="danger" size="sm" 
+                                        x-on:click="Swal.fire({
+                                            title: 'Tutup Percakapan?',
+                                            text: 'Pesan penutup otomatis dari AI akan dikirim ke customer.',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#d33',
+                                            cancelButtonColor: '#3085d6',
+                                            confirmButtonText: 'Ya, Tutup',
+                                            cancelButtonText: 'Batal'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                $wire.tutupPercakapan();
+                                            }
+                                        })"
                                         icon="heroicon-o-x-circle">
                                         Tutup
                                     </x-filament::button>
@@ -401,6 +415,12 @@
                                     </dd>
                                 </div>
                             </dl>
+                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                                <x-filament::button color="gray" size="sm" variant="outline" class="w-full"
+                                    x-on:click="$dispatch('open-modal', { id: 'history-chat-modal' })">
+                                    History Chat Sebelumnya
+                                </x-filament::button>
+                            </div>
                         @else
                             <div class="mt-3 text-sm text-gray-500">Belum ada chat dipilih.</div>
                         @endif
@@ -450,4 +470,30 @@
                 </aside>
         </div>{{-- end grid 3-kolom --}}
     </div>{{-- end outer flex-col --}}
+
+    {{-- History Chat Modal --}}
+    <x-filament::modal id="history-chat-modal" width="2xl">
+        <x-slot name="heading">
+            History Chat
+        </x-slot>
+        <div class="space-y-4" wire:init="loadHistoryChats">
+            @if (empty($historyChats))
+                <div class="text-sm text-gray-500 text-center py-8">Memuat data history atau tidak ada history chat sebelumnya.</div>
+            @else
+                <div class="divide-y divide-gray-200 dark:divide-gray-800">
+                    @foreach ($historyChats as $history)
+                        <div class="py-3 flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <div class="font-medium text-gray-900 dark:text-white">{{ \Illuminate\Support\Carbon::parse($history['TglChatTerakhir'])->format('d M Y H:i') }}</div>
+                                <div class="text-sm text-gray-500">{{ $history['NamaStatusChat'] }} &middot; {{ $history['JumlahPesanBelumDibaca'] }} unread</div>
+                            </div>
+                            <x-filament::button size="sm" color="gray" variant="outline" wire:click="selectChat('{{ $history['Id'] }}')" x-on:click="$dispatch('close-modal', { id: 'history-chat-modal' })">
+                                Buka Sesi
+                            </x-filament::button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </x-filament::modal>
 </x-filament-panels::page>

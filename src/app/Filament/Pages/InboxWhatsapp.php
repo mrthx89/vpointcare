@@ -45,6 +45,9 @@ class InboxWhatsapp extends Page implements HasForms
     /** @var array<int, array<string, mixed>> */
     public array $messages = [];
 
+    /** @var array<int, array<string, mixed>> */
+    public array $historyChats = [];
+
     public ?string $selectedChatId = null;
 
     public ?array $selectedChat = null;
@@ -199,6 +202,14 @@ class InboxWhatsapp extends Page implements HasForms
             });
         }
 
+        $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
+        if ($statusDitutupId) {
+            $query->where(function ($q) use ($statusDitutupId) {
+                $q->where('c.IdStatusChat', '!=', $statusDitutupId)
+                  ->orWhereNull('c.IdStatusChat');
+            });
+        }
+
         $rows = $query
             ->orderByDesc('c.TglChatTerakhir')
             ->limit(50)
@@ -285,6 +296,53 @@ class InboxWhatsapp extends Page implements HasForms
         ];
     }
 
+    public function loadHistoryChats(): void
+    {
+        if (! $this->selectedChatId) {
+            $this->historyChats = [];
+            return;
+        }
+
+        $rawChat = DB::table('TChatM')->where('Id', $this->selectedChatId)->first();
+        if (!$rawChat) {
+             $this->historyChats = [];
+             return;
+        }
+
+        $conditions = [];
+        if ($rawChat->IdCustomer) $conditions[] = ['c.IdCustomer', '=', $rawChat->IdCustomer];
+        if ($rawChat->IdInstansi) $conditions[] = ['c.IdInstansi', '=', $rawChat->IdInstansi];
+        if ($rawChat->IdNomorWhatsapp) $conditions[] = ['c.IdNomorWhatsapp', '=', $rawChat->IdNomorWhatsapp];
+        if ($rawChat->NomorWhatsapp) $conditions[] = ['c.NomorWhatsapp', '=', $rawChat->NomorWhatsapp];
+
+        $query = DB::table('TChatM as c')
+            ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
+            ->where('c.Id', '!=', $this->selectedChatId);
+
+        if (empty($conditions)) {
+            $this->historyChats = [];
+            return;
+        }
+
+        $query->where(function ($q) use ($conditions) {
+            foreach ($conditions as $cond) {
+                $q->orWhere($cond[0], $cond[1], $cond[2]);
+            }
+        });
+
+        $this->historyChats = $query->orderByDesc('c.TglChatTerakhir')
+            ->select('c.Id', 'c.TglChatTerakhir', 's.NamaStatusChat', 'c.JumlahPesanBelumDibaca')
+            ->limit(20)
+            ->get()
+            ->map(fn($r) => [
+                'Id' => $r->Id,
+                'TglChatTerakhir' => $r->TglChatTerakhir,
+                'NamaStatusChat' => $r->NamaStatusChat ?: 'Selesai',
+                'JumlahPesanBelumDibaca' => (int) $r->JumlahPesanBelumDibaca,
+            ])
+            ->all();
+    }
+
     public function selectChat(string $chatId): void
     {
         $this->selectedChatId = $chatId;
@@ -332,6 +390,8 @@ class InboxWhatsapp extends Page implements HasForms
                 'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
             ])
             ->all();
+
+        $this->loadHistoryChats();
 
         // Auto-claim chat jika belum ada yang menangani
         if (Schema::hasColumn('TChatM', 'DiambilOleh')) {
