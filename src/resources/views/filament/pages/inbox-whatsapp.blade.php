@@ -1,5 +1,38 @@
 <x-filament-panels::page>
-    <div class="flex flex-col gap-4 overflow-hidden" style="height: calc(100dvh - 8rem);" wire:poll.15s="loadInbox">
+    {{-- Komponen utama: mengelola sound notifikasi + WS status --}}
+    <div
+        x-data="{
+            soundOn: localStorage.getItem('wacs_sound') !== 'false',
+            wsOnline: false,
+            toggleSound() {
+                this.soundOn = !this.soundOn;
+                localStorage.setItem('wacs_sound', String(this.soundOn));
+            },
+            playSound() {
+                if (!this.soundOn) return;
+                try {
+                    const Ctx = window.AudioContext || window.webkitAudioContext;
+                    if (!Ctx) return;
+                    const ctx = new Ctx();
+                    [[880, 0], [1100, 0.15]].forEach(([freq, delay]) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.type = 'sine'; osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.25, ctx.currentTime + delay);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
+                        osc.start(ctx.currentTime + delay);
+                        osc.stop(ctx.currentTime + delay + 0.35);
+                    });
+                } catch(e) {}
+            }
+        }"
+        @waha-new-message.window="playSound()"
+        @waha-ws-connected.window="wsOnline = true"
+        @waha-ws-disconnected.window="wsOnline = false"
+        class="flex flex-col gap-4 overflow-hidden"
+        style="height: calc(100dvh - 8rem);"
+        wire:poll.60s="loadInbox">
         <div class="grid shrink-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>
@@ -25,11 +58,25 @@
                 {{-- KOLOM KIRI: Daftar Chat --}}
                 <section
                     class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    {{-- Header Daftar Chat: Tidak Ikut Scroll --}}
-                    <div class="shrink-0 border-b border-gray-200 p-4 dark:border-gray-800">
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Data masuk dari webhook WAHA.</div>
-                        <div class="mt-4 space-y-4">
+                    {{-- Header Daftar Chat --}}
+                    <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span x-show="wsOnline" class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full bg-gray-400"></span>
+                                    <span class="text-xs text-gray-400" x-text="wsOnline ? 'Real-time aktif' : 'Polling 60s'"></span>
+                                </div>
+                            </div>
+                            <button @click="toggleSound()" type="button" title="Toggle notifikasi suara"
+                                class="shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors"
+                                :class="soundOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
+                                <span x-text="soundOn ? '🔔' : '🔕'"></span>
+                                <span x-text="soundOn ? 'Suara On' : 'Suara Off'"></span>
+                            </button>
+                        </div>
+                        <div class="mt-3 space-y-3">
                             {{ $this->form }}
                         </div>
                     </div>
@@ -38,47 +85,68 @@
                         class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto overflow-x-hidden dark:divide-gray-800">
                         @forelse ($chatRows as $chat)
                             <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
-                                class="block w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60 {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30' : '' }}">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="min-w-0">
-                                        <div class="truncate text-sm font-semibold text-gray-950 dark:text-white">
-                                            {{ $chat['NamaInstansi'] }}</div>
-                                        <div class="truncate text-xs text-gray-500 dark:text-gray-400">
-                                            @if ($chat['JenisChat'] === 'Grup')
-                                                Grup: {{ $chat['NamaGrupWhatsapp'] ?: 'Belum dikenal' }}
-                                            @else
-                                                {{ $chat['NamaKontak'] }} &middot; {{ $chat['NomorWhatsapp'] }}
+                                class="block w-full p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60
+                                    {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30 border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-transparent' }}">
+                                {{-- Layout item chat: Avatar + Info --}}
+                                <div class="flex items-start gap-3">
+                                    {{-- Avatar inisial --}}
+                                    <div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold
+                                        {{ $chat['BelumDibaca'] > 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }}">
+                                        {{ mb_strtoupper(mb_substr($chat['NamaInstansi'] ?: $chat['NamaKontak'] ?: '?', 0, 2)) }}
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-start justify-between gap-1">
+                                            <div class="truncate text-sm font-semibold text-gray-950 dark:text-white leading-tight">
+                                                {{ $chat['NamaInstansi'] }}
+                                            </div>
+                                            @if ($chat['BelumDibaca'] > 0)
+                                                <div class="shrink-0 min-w-[1.2rem] h-5 rounded-full bg-emerald-500 px-1.5 flex items-center justify-center text-xs font-bold text-white">
+                                                    {{ min($chat['BelumDibaca'], 99) }}
+                                                </div>
                                             @endif
                                         </div>
-                                        @if ($chat['IdWaha'])
-                                            <div class="truncate text-xs text-gray-400 dark:text-gray-500">
-                                                ID WAHA: {{ $chat['IdWaha'] }}
-                                            </div>
-                                        @endif
+                                        <div class="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            @if ($chat['JenisChat'] === 'Grup')
+                                                📋 {{ $chat['NamaGrupWhatsapp'] ?: 'Grup belum dikenal' }}
+                                            @else
+                                                {{ $chat['NamaKontak'] !== '-' ? $chat['NamaKontak'] : $chat['NomorWhatsapp'] }}
+                                            @endif
+                                        </div>
+                                        <div class="mt-1 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $chat['PesanTerakhir'] }}
+                                        </div>
+                                        <div class="mt-2 flex flex-wrap items-center gap-1">
+                                            {{-- Status badge --}}
+                                            @php
+                                                $statusColor = match(true) {
+                                                    str_contains($chat['Status'], 'Proses') => 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300',
+                                                    str_contains($chat['Status'], 'Selesai') || str_contains($chat['Status'], 'Ditutup') => 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                                                    str_contains($chat['Status'], 'Tunggu') => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
+                                                    default => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+                                                };
+                                            @endphp
+                                            <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $statusColor }}">{{ $chat['Status'] }}</span>
+                                            {{-- Handler badge --}}
+                                            @if ($chat['DiambilNamaCS'] ?? null)
+                                                <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold
+                                                    {{ ($chat['DiambilOlehSaya'] ?? false) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' }}">
+                                                    👤 {{ ($chat['DiambilOlehSaya'] ?? false) ? 'Anda' : $chat['DiambilNamaCS'] }}
+                                                </span>
+                                            @endif
+                                            {{-- AI badge --}}
+                                            @if ($chat['AutoReplyAiAktif'])
+                                                <span class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">✨ AI</span>
+                                            @endif
+                                        </div>
                                     </div>
-                                    @if ($chat['BelumDibaca'] > 0)
-                                        <div
-                                            class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                                            {{ $chat['BelumDibaca'] }}</div>
-                                    @endif
-                                </div>
-                                <div class="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
-                                    {{ $chat['PesanTerakhir'] }}</div>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    <span
-                                        class="rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">{{ $chat['Status'] }}</span>
-                                    <span
-                                        class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ $chat['JenisChat'] }}</span>
-                                    @if ($chat['AutoReplyAiAktif'])
-                                        <span
-                                            class="rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">AI
-                                            aktif</span>
-                                    @endif
                                 </div>
                             </button>
                         @empty
-                            <div class="p-6 text-center text-sm text-gray-500">Belum ada chat. Kirim POST ke endpoint
-                                webhook WAHA untuk mulai mengisi inbox.</div>
+                            <div class="p-8 text-center">
+                                <div class="text-3xl mb-2">💬</div>
+                                <div class="text-sm font-medium text-gray-600 dark:text-gray-400">Belum ada chat</div>
+                                <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">Kirim POST ke endpoint webhook WAHA</div>
+                            </div>
                         @endforelse
                     </div>
                 </section>
@@ -106,7 +174,7 @@
                                     @endif
                                 </div>
                             </div>
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 @if ($selectedChat['AutoReplyAiAktif'])
                                     <div
                                         class="inline-flex rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
@@ -115,6 +183,14 @@
                                 <div
                                     class="inline-flex rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                                     {{ $selectedChat['Status'] }}</div>
+                                    
+                                @if (!str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
+                                    <x-filament::button color="danger" size="sm" wire:click="tutupPercakapan"
+                                        wire:confirm="Yakin ingin menutup percakapan ini? Pesan penutup otomatis dari AI akan dikirim ke customer."
+                                        icon="heroicon-o-x-circle">
+                                        Tutup
+                                    </x-filament::button>
+                                @endif
                             </div>
                         </div>
 

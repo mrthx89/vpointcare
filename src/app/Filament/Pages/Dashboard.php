@@ -120,6 +120,23 @@ class Dashboard extends BaseDashboard
             ->whereBetween('TglChatTerakhir', [$start, $end])
             ->count();
 
+        $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
+        $activeChats = DB::table('TChatM')
+            ->whereNotNull('DiambilOleh')
+            ->where(function ($query) use ($statusDitutupId): void {
+                if ($statusDitutupId) {
+                    $query->where('IdStatusChat', '!=', $statusDitutupId)
+                          ->orWhereNull('IdStatusChat');
+                }
+            })
+            ->count();
+
+        $closedChats = DB::table('TChatM')
+            ->whereNotNull('DiambilOleh')
+            ->where('IdStatusChat', $statusDitutupId)
+            ->whereBetween('TglChatTerakhir', [$start, $end])
+            ->count();
+
         $this->summary = [
             'incoming_messages' => $incomingRows->count(),
             'incoming_chats' => $incomingChats,
@@ -133,6 +150,8 @@ class Dashboard extends BaseDashboard
             'avg_response_minutes' => $avgResponseMinutes,
             'period_chats' => $periodChats,
             'mapped_chats' => $mappedChats,
+            'active_chats' => $activeChats,
+            'closed_chats' => $closedChats,
         ];
 
         $this->teamRows = $this->teamPerformance($start, $end, $messageRows);

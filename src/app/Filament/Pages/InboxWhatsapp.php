@@ -371,6 +371,37 @@ class InboxWhatsapp extends Page implements HasForms
             ->send();
     }
 
+    public function tutupPercakapan(\App\Services\Ai\AiAutoReplyService $aiService): void
+    {
+        if (! $this->selectedChatId || ! $this->selectedChat) {
+            return;
+        }
+
+        $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
+        
+        $updateData = [
+            'IdStatusChat' => $statusDitutupId,
+            'AutoReplyAiAktif' => false,
+            'TglEdit' => now(),
+        ];
+
+        if (Schema::hasColumn('TChatM', 'DitutupOleh')) {
+            $updateData['DitutupOleh'] = $this->currentPenggunaId();
+            $updateData['TglDitutup'] = now();
+        }
+
+        DB::table('TChatM')->where('Id', $this->selectedChatId)->update($updateData);
+
+        $aiService->sendClosingMessage($this->selectedChatId);
+
+        $this->loadInbox();
+
+        Notification::make()
+            ->title('Percakapan telah ditutup.')
+            ->success()
+            ->send();
+    }
+
     public function resetSapaanAi(): void
     {
         if (! $this->selectedChatId) {

@@ -58,7 +58,7 @@
             </div>
         </x-filament::section>
 
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Pesan masuk</div>
@@ -81,6 +81,13 @@
                     {{ $summary['unanswered_chats'] ?? 0 }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ $summary['unread_messages'] ?? 0 }} pesan belum dibaca total
                 </div>
+            </section>
+            <section
+                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="text-sm text-gray-500 dark:text-gray-400">Status Penanganan (CS)</div>
+                <div class="mt-2 text-3xl font-semibold text-violet-600">{{ $summary['active_chats'] ?? 0 }} /
+                    {{ $summary['closed_chats'] ?? 0 }}</div>
+                <div class="mt-1 text-sm text-gray-500">Aktif dihandle / Selesai (periode ini)</div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">

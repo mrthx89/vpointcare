@@ -516,8 +516,9 @@ class WahaWebhookProcessor
         }
 
         $chat = $query->orderByDesc('TglChatTerakhir')->first();
+        $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
 
-        if ($chat) {
+        if ($chat && $chat->IdStatusChat !== $statusDitutupId) {
             DB::table('TChatM')->where('Id', $chat->Id)->update([
                 'IdCustomer' => $mapping['IdCustomer'],
                 'IdInstansi' => $mapping['IdInstansi'],

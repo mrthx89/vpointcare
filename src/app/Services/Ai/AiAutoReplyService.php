@@ -167,6 +167,74 @@ class AiAutoReplyService
             ->first();
     }
 
+    public function sendClosingMessage(string $chatId): void
+    {
+        $settings = $this->settings();
+        
+        if (! $settings) {
+            return;
+        }
+
+        $chat = DB::table('TChatM as c')
+            ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
+            ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
+            ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->where('c.Id', $chatId)
+            ->select('c.*', 's.KodeSesi', 'i.NamaInstansi', 'm.NamaCustomer', 'g.IdGrupWaha')
+            ->first();
+
+        if (! $chat) {
+            return;
+        }
+
+        $prompt = $this->buildPrompt($settings, $chat, 'Tutup percakapan ini dengan sopan dan profesional. Ucapkan terima kasih karena telah menghubungi VPoint Care, dan sampaikan bahwa sesi percakapan ini telah ditutup. Tanyakan apakah ada hal lain yang bisa dibantu untuk ke depannya (meskipun sesi sudah ditutup). Jangan terlalu panjang.');
+        $requestId = (string) Str::orderedUuid();
+        $reply = 'Terima kasih telah menghubungi VPoint Care. Sesi percakapan ini telah ditutup.';
+
+        DB::table('TAiPermintaan')->insert([
+            'Id' => $requestId,
+            'JenisPermintaan' => 'Tutup Chat',
+            'ProviderAi' => $settings->ProviderAi ?: 'OpenAI',
+            'ModelAi' => $settings->ModelAi ?: config('services.openai.model'),
+            'IdChatM' => $chatId,
+            'PromptRingkas' => Str::limit($prompt, 2000, ''),
+            'PromptJson' => json_encode(['prompt' => $prompt], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'StatusPermintaan' => 'Diproses',
+            'TglMulai' => now(),
+            'TglBuat' => now(),
+        ]);
+
+        $error = null;
+        try {
+            $generated = $this->generateReply($settings, $prompt);
+            if ($generated) {
+                $reply = $generated['text'];
+            }
+        } catch (Throwable $e) {
+            $error = $e->getMessage();
+        }
+
+        DB::table('TAiPermintaan')->where('Id', $requestId)->update([
+            'StatusPermintaan' => $error ? 'Gagal Fallback' : 'Selesai',
+            'TglSelesai' => now(),
+            'PesanError' => $error,
+            'TglEdit' => now(),
+        ]);
+
+        $responseId = (string) Str::orderedUuid();
+        DB::table('TAiRespon')->insert([
+            'Id' => $responseId,
+            'IdAiPermintaan' => $requestId,
+            'JenisRespon' => 'Tutup Chat',
+            'ResponRingkas' => $reply,
+            'ResponJson' => json_encode([], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'TglBuat' => now(),
+        ]);
+
+        $this->storeReply($settings, $chat, $reply, $responseId, 'Tutup Chat');
+    }
+
     /**
      * @return array{boleh: bool, alasan: string, mode: string, template: string}
      */
