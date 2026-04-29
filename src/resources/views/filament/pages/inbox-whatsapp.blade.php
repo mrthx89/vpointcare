@@ -35,8 +35,41 @@
         class="flex flex-col gap-4 overflow-hidden"
         style="height: calc(100dvh - 8rem);"
         wire:poll.60s="loadInbox">
-        <div class="hidden">
-            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+        {{-- Banner izin suara: muncul sekali sampai user klik --}}
+        <div
+            x-data="{
+                shown: !localStorage.getItem('wacs_audio_allowed'),
+                allowAudio() {
+                    try {
+                        const Ctx = window.AudioContext || window.webkitAudioContext;
+                        if (Ctx) {
+                            const ctx = new Ctx();
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.connect(gain); gain.connect(ctx.destination);
+                            gain.gain.setValueAtTime(0.001, ctx.currentTime);
+                            osc.start(); osc.stop(ctx.currentTime + 0.05);
+                        }
+                    } catch(e) {}
+                    localStorage.setItem('wacs_audio_allowed', '1');
+                    this.shown = false;
+                }
+            }"
+            x-show="shown"
+            x-cloak
+            class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <span>🔔</span>
+                <span>Izinkan notifikasi suara untuk peringatan pesan WhatsApp masuk.</span>
+            </div>
+            <button
+                type="button"
+                x-on:click="allowAudio()"
+                class="rounded-md border border-gray-400 bg-white px-4 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 transition dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                ✓ Izinkan Suara
+            </button>
         </div>
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -500,9 +533,12 @@
                                 <div class="font-medium text-gray-900 dark:text-white">{{ \Illuminate\Support\Carbon::parse($history['TglChatTerakhir'])->format('d M Y H:i') }}</div>
                                 <div class="text-sm text-gray-500">{{ $history['NamaStatusChat'] }} &middot; {{ $history['JumlahPesanBelumDibaca'] }} unread</div>
                             </div>
-                            <x-filament::button size="sm" color="gray" variant="outline" wire:click="selectChat('{{ $history['Id'] }}')" x-on:click="$dispatch('close-modal', { id: 'history-chat-modal' })">
+                            <a href="{{ route('filament.admin.pages.view-chat-session') . '?id=' . $history['Id'] }}"
+                               target="_blank"
+                               class="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition">
+                                <x-heroicon-s-arrow-top-right-on-square class="w-3.5 h-3.5" />
                                 Buka Sesi
-                            </x-filament::button>
+                            </a>
                         </div>
                     @endforeach
                 </div>
