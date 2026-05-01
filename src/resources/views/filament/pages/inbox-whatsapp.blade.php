@@ -247,7 +247,22 @@
                                     
                                 @if (!str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
                                     <x-filament::button color="danger" size="sm" 
-                                        x-on:click="if (window.confirm('Tutup percakapan ini? Pesan penutup otomatis dari AI akan dikirim ke customer.')) { $wire.tutupPercakapan(); }"
+                                        x-on:click="
+                                            Swal.fire({
+                                                title: 'Tutup Percakapan?',
+                                                text: 'Pesan penutup otomatis dari AI akan dikirim ke customer.',
+                                                icon: 'warning',
+                                                showCancelButton: true,
+                                                confirmButtonColor: '#dc2626',
+                                                cancelButtonColor: '#6b7280',
+                                                confirmButtonText: 'Ya, Tutup',
+                                                cancelButtonText: 'Batal'
+                                            }).then((result) => {
+                                                if (result.isConfirmed) {
+                                                    $wire.tutupPercakapan();
+                                                }
+                                            })
+                                        "
                                         icon="heroicon-o-x-circle">
                                         Tutup
                                     </x-filament::button>
