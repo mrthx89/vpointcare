@@ -519,7 +519,7 @@ class WahaWebhookProcessor
         $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
 
         if ($chat && strtoupper((string) $chat->IdStatusChat) !== strtoupper((string) $statusDitutupId)) {
-            DB::table('TChatM')->where('Id', $chat->Id)->update([
+            $update = [
                 'IdCustomer' => $mapping['IdCustomer'],
                 'IdInstansi' => $mapping['IdInstansi'],
                 'IdNomorWhatsapp' => $mapping['IdNomorWhatsapp'],
@@ -527,13 +527,23 @@ class WahaWebhookProcessor
                 'NamaKontak' => $mapping['NamaKontak'],
                 'NamaGrupWhatsapp' => $mapping['NamaGrupWhatsapp'],
                 'TglEdit' => now(),
-            ]);
+            ];
+
+            if (Schema::hasColumn('TChatM', 'IdWahaTerdeteksi')) {
+                $update['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
+            }
+
+            if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && ! str_contains((string) $parsed['pengirim_jid'], '@lid')) {
+                $update['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
+            }
+
+            DB::table('TChatM')->where('Id', $chat->Id)->update($update);
 
             return $chat->Id;
         }
 
         $id = (string) Str::orderedUuid();
-        DB::table('TChatM')->insert([
+        $chat = [
             'Id' => $id,
             'IdSesiWhatsapp' => $sessionId,
             'IdStatusChat' => DB::table('MStatusChat')->where('KodeStatusChat', 'MENUNGGU_CS')->value('Id'),
@@ -549,7 +559,17 @@ class WahaWebhookProcessor
             'TglChatTerakhir' => $parsed['tgl_pesan'],
             'JumlahPesanBelumDibaca' => 0,
             'TglBuat' => now(),
-        ]);
+        ];
+
+        if (Schema::hasColumn('TChatM', 'IdWahaTerdeteksi')) {
+            $chat['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
+        }
+
+        if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && ! str_contains((string) $parsed['pengirim_jid'], '@lid')) {
+            $chat['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
+        }
+
+        DB::table('TChatM')->insert($chat);
 
         return $id;
     }

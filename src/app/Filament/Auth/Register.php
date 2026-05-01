@@ -4,6 +4,7 @@ namespace App\Filament\Auth;
 
 use App\Http\Responses\Auth\PendingRegistrationResponse;
 use App\Models\User;
+use App\Services\Auth\UserPenggunaSyncService;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Auth\Events\Registered;
@@ -50,6 +51,8 @@ class Register extends BaseRegister
         });
 
         event(new Registered($user));
+
+        app(UserPenggunaSyncService::class)->syncFromUser($user);
 
         Notification::make()
             ->title('Registrasi berhasil')

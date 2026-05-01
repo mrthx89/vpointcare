@@ -63,11 +63,13 @@ GO
 
 CREATE TABLE MPengguna (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengguna_Id DEFAULT NEWSEQUENTIALID(),
+    UserId bigint NULL,
     IdPeran uniqueidentifier NOT NULL,
     NamaPengguna varchar(150) NOT NULL,
     Email varchar(150) NOT NULL,
     Password varchar(255) NOT NULL,
     NomorWhatsappInternal varchar(30) NULL,
+    FotoProfilPath nvarchar(500) NULL,
     Jabatan varchar(100) NULL,
     RememberToken varchar(100) NULL,
     EmailTerverifikasiPada datetime2 NULL,
@@ -78,6 +80,7 @@ CREATE TABLE MPengguna (
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_MPengguna PRIMARY KEY (Id),
+    CONSTRAINT FK_MPengguna_users FOREIGN KEY (UserId) REFERENCES users(id),
     CONSTRAINT FK_MPengguna_MPeran FOREIGN KEY (IdPeran) REFERENCES MPeran(Id),
     CONSTRAINT UQ_MPengguna_Email UNIQUE (Email)
 );
@@ -491,6 +494,10 @@ CREATE TABLE TChatM (
     NomorWhatsapp varchar(30) NOT NULL,
     NamaKontak varchar(150) NULL,
     NamaGrupWhatsapp varchar(200) NULL,
+    IdWahaTerdeteksi varchar(200) NULL,
+    NomorWhatsappTerdeteksi varchar(30) NULL,
+    UrlFotoProfil nvarchar(1000) NULL,
+    TglFotoProfilDiambil datetime2 NULL,
     Prioritas varchar(50) NOT NULL CONSTRAINT DF_TChatM_Prioritas DEFAULT 'Normal',
     DitugaskanKepada uniqueidentifier NULL,
     DiambilOleh uniqueidentifier NULL,
@@ -718,6 +725,7 @@ ADD CONSTRAINT FK_TChatD_TAiRespon FOREIGN KEY (IdAiRespon) REFERENCES TAiRespon
 GO
 
 CREATE INDEX IX_MCustomer_NamaCustomer ON MCustomer (NamaCustomer);
+CREATE UNIQUE INDEX UX_MPengguna_UserId ON MPengguna (UserId) WHERE UserId IS NOT NULL;
 CREATE INDEX IX_MInstansi_NamaInstansi ON MInstansi (NamaInstansi);
 CREATE INDEX IX_MNomorWhatsapp_NomorWhatsapp ON MNomorWhatsapp (NomorWhatsapp);
 CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi);
@@ -731,6 +739,8 @@ CREATE INDEX IX_TLogIntegrasi_TglRequest ON TLogIntegrasi (TglRequest);
 CREATE INDEX IX_TLogWebhookWaha_TglDiterima ON TLogWebhookWaha (TglDiterima);
 CREATE INDEX IX_TLogWebhookWaha_SudahDiproses ON TLogWebhookWaha (SudahDiproses);
 CREATE INDEX IX_TChatM_NomorWhatsapp ON TChatM (NomorWhatsapp);
+CREATE INDEX IX_TChatM_IdWahaTerdeteksi ON TChatM (IdWahaTerdeteksi);
+CREATE INDEX IX_TChatM_NomorWhatsappTerdeteksi ON TChatM (NomorWhatsappTerdeteksi);
 CREATE INDEX IX_TChatM_IdCustomer ON TChatM (IdCustomer);
 CREATE INDEX IX_TChatM_IdInstansi ON TChatM (IdInstansi);
 CREATE INDEX IX_TChatM_IdGrupWhatsapp ON TChatM (IdGrupWhatsapp);

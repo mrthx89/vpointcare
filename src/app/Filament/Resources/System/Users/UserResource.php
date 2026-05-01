@@ -4,17 +4,22 @@ namespace App\Filament\Resources\System\Users;
 
 use App\Filament\Resources\System\Users\Pages\ManageUsers;
 use App\Models\User;
+use App\Services\Auth\UserPenggunaSyncService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use UnitEnum;
 
@@ -47,6 +52,33 @@ class UserResource extends Resource
                     ->maxLength(255)
                     ->unique(User::class, 'email', ignoreRecord: true)
                     ->required(),
+                Select::make('IdPeran')
+                    ->label('Peran')
+                    ->options(fn (): array => DB::table('MPeran')
+                        ->where('NonAktif', false)
+                        ->orderBy('NamaPeran')
+                        ->pluck('NamaPeran', 'Id')
+                        ->all())
+                    ->default(fn (): ?string => static::defaultRoleId())
+                    ->searchable()
+                    ->required(),
+                TextInput::make('NomorWhatsappInternal')
+                    ->label('Nomor WhatsApp Internal')
+                    ->tel()
+                    ->maxLength(30)
+                    ->helperText('Dipakai untuk notifikasi chat belum terbalas ke tim CS. Gunakan format angka, contoh 62812xxxx.'),
+                TextInput::make('Jabatan')
+                    ->maxLength(100),
+                FileUpload::make('FotoProfilPath')
+                    ->label('Foto Profil')
+                    ->disk('public')
+                    ->directory('pengguna-profil')
+                    ->visibility('public')
+                    ->image()
+                    ->avatar()
+                    ->imageEditor()
+                    ->maxSize(2048)
+                    ->helperText('File disimpan di storage public, database hanya menyimpan path.'),
                 Select::make('status')
                     ->label('Status')
                     ->options(User::STATUSES)
@@ -66,6 +98,11 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('FotoProfilPath')
+                    ->label('Foto')
+                    ->disk('public')
+                    ->circular()
+                    ->getStateUsing(fn (User $record): ?string => static::profileForUser($record)?->FotoProfilPath),
                 TextColumn::make('name')
                     ->label('Nama')
                     ->searchable()
@@ -74,6 +111,14 @@ class UserResource extends Resource
                 TextColumn::make('email')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('NamaPeran')
+                    ->label('Peran')
+                    ->badge()
+                    ->getStateUsing(fn (User $record): ?string => static::profileForUser($record)?->NamaPeran),
+                TextColumn::make('NomorWhatsappInternal')
+                    ->label('WA Internal')
+                    ->placeholder('Belum diisi')
+                    ->getStateUsing(fn (User $record): ?string => static::profileForUser($record)?->NomorWhatsappInternal),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -115,34 +160,129 @@ class UserResource extends Resource
                     ->icon(Heroicon::CheckCircle)
                     ->color('success')
                     ->visible(fn (User $record): bool => $record->status !== User::STATUS_APPROVED)
-                    ->action(fn (User $record): bool => $record->update([
-                        'status' => User::STATUS_APPROVED,
-                        'approved_at' => now(),
-                        'blocked_at' => null,
-                    ])),
+                    ->action(function (User $record): void {
+                        $record->update([
+                            'status' => User::STATUS_APPROVED,
+                            'approved_at' => now(),
+                            'blocked_at' => null,
+                        ]);
+
+                        app(UserPenggunaSyncService::class)->syncFromUser($record->refresh());
+                    }),
                 Action::make('block')
                     ->label('Block')
                     ->icon(Heroicon::NoSymbol)
                     ->color('danger')
                     ->requiresConfirmation()
                     ->visible(fn (User $record): bool => $record->status !== User::STATUS_BLOCKED && $record->getKey() !== auth()->id())
-                    ->action(fn (User $record): bool => $record->update([
-                        'status' => User::STATUS_BLOCKED,
-                        'blocked_at' => now(),
-                    ])),
+                    ->action(function (User $record): void {
+                        $record->update([
+                            'status' => User::STATUS_BLOCKED,
+                            'blocked_at' => now(),
+                        ]);
+
+                        app(UserPenggunaSyncService::class)->syncFromUser($record->refresh());
+                    }),
                 Action::make('pending')
                     ->label('Pending')
                     ->icon(Heroicon::Clock)
                     ->color('warning')
                     ->requiresConfirmation()
                     ->visible(fn (User $record): bool => $record->status !== User::STATUS_PENDING && $record->getKey() !== auth()->id())
-                    ->action(fn (User $record): bool => $record->update([
-                        'status' => User::STATUS_PENDING,
-                        'approved_at' => null,
-                        'blocked_at' => null,
-                    ])),
-                EditAction::make(),
+                    ->action(function (User $record): void {
+                        $record->update([
+                            'status' => User::STATUS_PENDING,
+                            'approved_at' => null,
+                            'blocked_at' => null,
+                        ]);
+
+                        app(UserPenggunaSyncService::class)->syncFromUser($record->refresh());
+                    }),
+                EditAction::make()
+                    ->mutateRecordDataUsing(fn (array $data, User $record): array => array_merge($data, static::profileFormData($record)))
+                    ->using(function (array $data, User $record): User {
+                        [$userData, $profileData] = static::splitFormData($data);
+
+                        $record->update(static::normalizeUserData($userData, $record));
+                        static::syncProfile($record->refresh(), $profileData);
+
+                        return $record;
+                    }),
             ]);
+    }
+
+    /**
+     * @return array{0: array<string, mixed>, 1: array<string, mixed>}
+     */
+    public static function splitFormData(array $data): array
+    {
+        $profileKeys = ['IdPeran', 'NomorWhatsappInternal', 'Jabatan', 'FotoProfilPath'];
+
+        return [
+            Arr::except($data, $profileKeys),
+            Arr::only($data, $profileKeys),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function normalizeUserData(array $data, ?User $record = null): array
+    {
+        $status = $data['status'] ?? User::STATUS_PENDING;
+
+        if ($status === User::STATUS_APPROVED) {
+            $data['approved_at'] = $record?->approved_at ?? now();
+            $data['blocked_at'] = null;
+        } elseif ($status === User::STATUS_PENDING) {
+            $data['approved_at'] = null;
+            $data['blocked_at'] = null;
+        } elseif ($status === User::STATUS_BLOCKED) {
+            $data['blocked_at'] = $record?->blocked_at ?? now();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $profileData
+     */
+    public static function syncProfile(User $user, array $profileData): void
+    {
+        app(UserPenggunaSyncService::class)->syncFromUser($user, $profileData);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function profileFormData(User $user): array
+    {
+        $profile = static::profileForUser($user);
+
+        return [
+            'IdPeran' => $profile?->IdPeran ?? static::defaultRoleId(),
+            'NomorWhatsappInternal' => $profile?->NomorWhatsappInternal,
+            'Jabatan' => $profile?->Jabatan,
+            'FotoProfilPath' => $profile?->FotoProfilPath,
+        ];
+    }
+
+    public static function profileForUser(User $user): ?object
+    {
+        return DB::table('MPengguna as p')
+            ->leftJoin('MPeran as r', 'r.Id', '=', 'p.IdPeran')
+            ->select('p.IdPeran', 'p.NomorWhatsappInternal', 'p.Jabatan', 'p.FotoProfilPath', 'r.NamaPeran')
+            ->where('p.UserId', $user->getKey())
+            ->orWhere('p.Email', $user->email)
+            ->first();
+    }
+
+    public static function defaultRoleId(): ?string
+    {
+        return DB::table('MPeran')->where('KodePeran', 'CS')->value('Id')
+            ?? DB::table('MPeran')->where('KodePeran', 'ADMIN')->value('Id')
+            ?? DB::table('MPeran')->orderBy('NamaPeran')->value('Id');
     }
 
     public static function getPages(): array

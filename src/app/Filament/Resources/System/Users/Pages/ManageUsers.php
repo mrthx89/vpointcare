@@ -15,12 +15,13 @@ class ManageUsers extends ManageRecords
     {
         return [
             CreateAction::make()
-                ->mutateDataUsing(function (array $data): array {
-                    if (($data['status'] ?? User::STATUS_PENDING) === User::STATUS_APPROVED) {
-                        $data['approved_at'] = now();
-                    }
+                ->using(function (array $data): User {
+                    [$userData, $profileData] = UserResource::splitFormData($data);
 
-                    return $data;
+                    $record = User::query()->create(UserResource::normalizeUserData($userData));
+                    UserResource::syncProfile($record, $profileData);
+
+                    return $record;
                 }),
         ];
     }

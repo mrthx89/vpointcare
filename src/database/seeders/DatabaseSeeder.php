@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Services\Auth\UserPenggunaSyncService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class DatabaseSeeder extends Seeder
             ->where('email', 'admin@vpointcare.local')
             ->delete();
 
-        User::query()->firstOrCreate([
+        $user = User::query()->firstOrCreate([
             'email' => 'mrthx.89@gmail.com',
         ], [
             'name' => 'Admin VPoint Care',
@@ -36,7 +37,7 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        DB::table('MPeran')->firstOrCreate([
+        DB::table('MPeran')->updateOrInsert([
             'KodePeran' => 'ADMIN',
         ], [
             'NamaPeran' => 'Admin',
@@ -47,14 +48,25 @@ class DatabaseSeeder extends Seeder
 
         $peranAdmin = DB::table('MPeran')->where('KodePeran', 'ADMIN')->first();
 
-        DB::table('MPengguna')->firstOrCreate([
-            'Email' => 'mrthx.89@gmail.com',
-        ], [
+        $penggunaDefaults = [
             'IdPeran' => $peranAdmin->Id,
             'NamaPengguna' => 'Admin VPoint Care',
             'Password' => Hash::make('Ell1t3s3rv'),
             'NonAktif' => false,
             'TglEdit' => now(),
+        ];
+
+        if (Schema::hasColumn('MPengguna', 'UserId')) {
+            $penggunaDefaults['UserId'] = $user->getKey();
+        }
+
+        DB::table('MPengguna')->updateOrInsert([
+            'Email' => 'mrthx.89@gmail.com',
+        ], $penggunaDefaults);
+
+        app(UserPenggunaSyncService::class)->syncFromUser($user, [
+            'IdPeran' => $peranAdmin->Id,
+            'NamaPengguna' => 'Admin VPoint Care',
         ]);
     }
 }

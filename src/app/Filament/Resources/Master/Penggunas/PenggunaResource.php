@@ -6,12 +6,14 @@ use App\Filament\Resources\Master\Penggunas\Pages\ManagePenggunas;
 use App\Models\Master\Pengguna;
 use BackedEnum;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
@@ -23,6 +25,8 @@ use UnitEnum;
 class PenggunaResource extends Resource
 {
     protected static ?string $model = Pengguna::class;
+
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
@@ -62,6 +66,16 @@ class PenggunaResource extends Resource
                     ->tel()
                     ->maxLength(30)
                     ->helperText('Wajib diisi agar user menerima notifikasi chat belum terbalas. Gunakan format angka, contoh 62812xxxx.'),
+                FileUpload::make('FotoProfilPath')
+                    ->label('Foto Profil')
+                    ->disk('public')
+                    ->directory('pengguna-profil')
+                    ->visibility('public')
+                    ->image()
+                    ->avatar()
+                    ->imageEditor()
+                    ->maxSize(2048)
+                    ->helperText('File disimpan di storage public, database hanya menyimpan path.'),
                 TextInput::make('Jabatan')
                     ->maxLength(100),
                 TextInput::make('Password')
@@ -79,6 +93,10 @@ class PenggunaResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('FotoProfilPath')
+                    ->label('Foto')
+                    ->disk('public')
+                    ->circular(),
                 TextColumn::make('NamaPengguna')
                     ->label('Nama')
                     ->searchable()

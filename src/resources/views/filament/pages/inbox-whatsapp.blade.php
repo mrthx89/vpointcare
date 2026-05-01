@@ -132,10 +132,15 @@
                                 {{-- Layout item chat: Avatar + Info --}}
                                 <div class="flex items-start gap-3">
                                     {{-- Avatar inisial --}}
-                                    <div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold
-                                        {{ $chat['BelumDibaca'] > 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }}">
-                                        {{ mb_strtoupper(mb_substr($chat['NamaInstansi'] ?: $chat['NamaKontak'] ?: '?', 0, 2)) }}
-                                    </div>
+                                    @if ($chat['FotoProfilUrl'] ?? null)
+                                        <img src="{{ $chat['FotoProfilUrl'] }}" alt=""
+                                            class="shrink-0 h-9 w-9 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700">
+                                    @else
+                                        <div class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold
+                                            {{ $chat['BelumDibaca'] > 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }}">
+                                            {{ mb_strtoupper(mb_substr($chat['NamaInstansi'] ?: $chat['NamaKontak'] ?: '?', 0, 2)) }}
+                                        </div>
+                                    @endif
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-start justify-between gap-1">
                                             <div class="truncate text-sm font-semibold text-gray-950 dark:text-white leading-tight">
@@ -153,6 +158,9 @@
                                             @else
                                                 {{ $chat['NamaKontak'] !== '-' ? $chat['NamaKontak'] : $chat['NomorWhatsapp'] }}
                                             @endif
+                                        </div>
+                                        <div class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
+                                            {{ $chat['NomorWhatsapp'] ?: ($chat['IdWaha'] ?: '-') }}
                                         </div>
                                         <div class="mt-1 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
                                             {{ $chat['PesanTerakhir'] }}
@@ -200,20 +208,31 @@
                         {{-- Header Chat: Tidak Ikut Scroll --}}
                         <div
                             class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
-                            <div>
-                                <div class="text-base font-semibold text-gray-950 dark:text-white">
-                                    {{ $selectedChat['NamaInstansi'] }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    @if ($selectedChat['JenisChat'] === 'Grup')
-                                        {{ $selectedChat['NamaGrupWhatsapp'] ?: 'Grup belum dipetakan' }} &middot;
-                                        {{ $selectedChat['NomorWhatsapp'] }}
-                                    @else
-                                        {{ $selectedChat['NamaKontak'] }} &middot;
-                                        {{ $selectedChat['NomorWhatsapp'] }}
-                                    @endif
-                                    @if ($selectedChat['IdWaha'])
-                                        &middot; ID WAHA: {{ $selectedChat['IdWaha'] }}
-                                    @endif
+                            <div class="flex min-w-0 items-center gap-3">
+                                @if ($selectedChat['FotoProfilUrl'] ?? null)
+                                    <img src="{{ $selectedChat['FotoProfilUrl'] }}" alt=""
+                                        class="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700">
+                                @else
+                                    <div
+                                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        {{ mb_strtoupper(mb_substr($selectedChat['NamaKontak'] ?: $selectedChat['NamaInstansi'] ?: '?', 0, 2)) }}
+                                    </div>
+                                @endif
+                                <div class="min-w-0">
+                                    <div class="truncate text-base font-semibold text-gray-950 dark:text-white">
+                                        {{ $selectedChat['NamaInstansi'] }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        @if ($selectedChat['JenisChat'] === 'Grup')
+                                            {{ $selectedChat['NamaGrupWhatsapp'] ?: 'Grup belum dipetakan' }} &middot;
+                                            {{ $selectedChat['NomorWhatsapp'] }}
+                                        @else
+                                            {{ $selectedChat['NamaKontak'] }} &middot;
+                                            {{ $selectedChat['NomorWhatsapp'] }}
+                                        @endif
+                                        @if ($selectedChat['IdWaha'])
+                                            &middot; ID WAHA: {{ $selectedChat['IdWaha'] }}
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
@@ -266,10 +285,18 @@
                             @forelse ($messages as $message)
                                 @php($isOut = $message['ArahPesan'] === 'Keluar')
                                 @php($hasMedia = $message['MediaCategory'] !== 'text')
-                                <div
-                                    class="{{ $isOut ? 'ml-auto bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm shadow-sm">
+                                @php($senderAvatar = $message['SenderAvatarUrl'] ?? null)
+                                <div class="flex items-end gap-2 {{ $isOut ? 'justify-end' : 'justify-start' }}">
+                                    @if (!$isOut)
+                                        <div
+                                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                            {{ mb_strtoupper(mb_substr($message['SenderName'] ?: 'C', 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <div
+                                        class="{{ $isOut ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm shadow-sm">
                                     <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
-                                        {{ $isOut ? ($message['DihasilkanOlehAi'] ? 'AI Agent' : 'CS') : ($message['PengirimNamaKontak'] ?: $message['PengirimNomorWhatsapp'] ?: 'Customer') }}
+                                        {{ $message['SenderName'] }}
                                         &middot;
                                         {{ \Illuminate\Support\Carbon::parse($message['TglPesan'])->format('d M H:i') }}
                                         @if ($message['StatusKirim'])
@@ -321,6 +348,18 @@
                                             class="mt-2 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-500/10 dark:text-red-200">
                                             Error: {{ $message['PesanError'] }}
                                         </div>
+                                    @endif
+                                    </div>
+                                    @if ($isOut)
+                                        @if ($senderAvatar)
+                                            <img src="{{ $senderAvatar }}" alt=""
+                                                class="h-8 w-8 shrink-0 rounded-full bg-white object-cover ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700">
+                                        @else
+                                            <div
+                                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-100 dark:ring-blue-500/30">
+                                                {{ mb_strtoupper(mb_substr($message['SenderName'] ?: 'CS', 0, 2)) }}
+                                            </div>
+                                        @endif
                                     @endif
                                 </div>
                             @empty
@@ -408,8 +447,12 @@
                         <div class="flex items-center justify-between gap-3">
                             <div class="text-base font-semibold text-gray-950 dark:text-white">Profil Mapping</div>
                             @if ($selectedChat)
-                                <button type="button" wire:click="refreshMappingChat"
-                                    class="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Refresh</button>
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    <button type="button" wire:click="refreshProfilWaha"
+                                        class="rounded-md border border-blue-300 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">Ambil Profil</button>
+                                    <button type="button" wire:click="refreshMappingChat"
+                                        class="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Refresh</button>
+                                </div>
                             @endif
                         </div>
                         @if ($selectedChat)
@@ -429,6 +472,12 @@
                                     <dt class="text-gray-500">Kontak</dt>
                                     <dd class="font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['NamaKontak'] }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-gray-500">Nomor WhatsApp</dt>
+                                    <dd class="break-all font-mono text-sm font-medium text-gray-900 dark:text-white">
+                                        {{ $selectedChat['NomorWhatsapp'] ?: '-' }}
                                     </dd>
                                 </div>
                                 <div>

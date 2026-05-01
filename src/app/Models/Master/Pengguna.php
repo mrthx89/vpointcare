@@ -3,6 +3,7 @@
 namespace App\Models\Master;
 
 use App\Models\Concerns\UsesSqlServerUuid;
+use App\Services\Auth\UserPenggunaSyncService;
 use Illuminate\Database\Eloquent\Model;
 
 class Pengguna extends Model
@@ -25,4 +26,11 @@ class Pengguna extends Model
         'TglBuat' => 'datetime',
         'TglEdit' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $pengguna): void {
+            app(UserPenggunaSyncService::class)->syncFromPengguna($pengguna->getAttributes());
+        });
+    }
 }
