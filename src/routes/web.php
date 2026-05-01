@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\WahaMediaController;
+use App\Http\Controllers\PublicStorageController;
 use App\Http\Controllers\Webhook\WahaWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,3 +15,7 @@ Route::post('/webhooks/waha/{token?}', WahaWebhookController::class)
 Route::get('/admin/waha-media/{message}', WahaMediaController::class)
     ->middleware('auth')
     ->name('admin.waha-media.show');
+
+Route::get('/profile-storage/{path}', PublicStorageController::class)
+    ->where('path', '.*')
+    ->name('public-storage.show');

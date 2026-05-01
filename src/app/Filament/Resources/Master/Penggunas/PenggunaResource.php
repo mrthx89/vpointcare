@@ -95,8 +95,10 @@ class PenggunaResource extends Resource
             ->columns([
                 ImageColumn::make('FotoProfilPath')
                     ->label('Foto')
-                    ->disk('public')
-                    ->circular(),
+                    ->circular()
+                    ->getStateUsing(fn (Pengguna $record): ?string => $record->FotoProfilPath
+                        ? route('public-storage.show', ['path' => ltrim((string) $record->FotoProfilPath, '/')])
+                        : null),
                 TextColumn::make('NamaPengguna')
                     ->label('Nama')
                     ->searchable()

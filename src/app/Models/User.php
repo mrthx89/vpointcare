@@ -14,7 +14,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['name', 'email', 'password', 'status', 'approved_at', 'blocked_at'])]
 #[Hidden(['password', 'remember_token'])]
@@ -74,6 +73,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             ->where('NonAktif', false)
             ->value('FotoProfilPath');
 
-        return $path ? Storage::disk('public')->url((string) $path) : null;
+        return $path ? route('public-storage.show', ['path' => ltrim((string) $path, '/')]) : null;
     }
 }

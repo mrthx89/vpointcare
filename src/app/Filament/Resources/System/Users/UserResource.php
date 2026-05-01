@@ -100,9 +100,12 @@ class UserResource extends Resource
             ->columns([
                 ImageColumn::make('FotoProfilPath')
                     ->label('Foto')
-                    ->disk('public')
                     ->circular()
-                    ->getStateUsing(fn (User $record): ?string => static::profileForUser($record)?->FotoProfilPath),
+                    ->getStateUsing(function (User $record): ?string {
+                        $path = static::profileForUser($record)?->FotoProfilPath;
+
+                        return $path ? route('public-storage.show', ['path' => ltrim((string) $path, '/')]) : null;
+                    }),
                 TextColumn::make('name')
                     ->label('Nama')
                     ->searchable()
@@ -273,8 +276,11 @@ class UserResource extends Resource
         return DB::table('MPengguna as p')
             ->leftJoin('MPeran as r', 'r.Id', '=', 'p.IdPeran')
             ->select('p.IdPeran', 'p.NomorWhatsappInternal', 'p.Jabatan', 'p.FotoProfilPath', 'r.NamaPeran')
-            ->where('p.UserId', $user->getKey())
-            ->orWhere('p.Email', $user->email)
+            ->where(function ($query) use ($user): void {
+                $query
+                    ->where('p.UserId', $user->getKey())
+                    ->orWhere('p.Email', $user->email);
+            })
             ->first();
     }
 

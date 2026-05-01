@@ -1107,7 +1107,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function profileUrlFromPath(?string $path): ?string
     {
-        return $path ? Storage::disk('public')->url($path) : null;
+        return $path ? route('public-storage.show', ['path' => ltrim($path, '/')]) : null;
     }
 
     private function mediaCategory(?string $jenisPesan, ?string $mimeType): string
