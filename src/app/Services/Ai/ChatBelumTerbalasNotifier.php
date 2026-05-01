@@ -5,6 +5,7 @@ namespace App\Services\Ai;
 use App\Services\Waha\WahaSender;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ChatBelumTerbalasNotifier
@@ -24,23 +25,19 @@ class ChatBelumTerbalasNotifier
             ->first();
 
         if (! $settings || ! (bool) ($settings->NotifikasiChatBelumTerbalasAktif ?? false)) {
-            return [
-                'chat_diperiksa' => 0,
-                'notifikasi_terkirim' => 0,
-                'notifikasi_gagal' => 0,
-                'penerima' => 0,
-            ];
+            return $this->emptyResult();
+        }
+
+        if (! $this->insideWorkingSchedule($settings)) {
+            return $this->emptyResult([
+                'dilewati_jadwal' => 1,
+            ]);
         }
 
         $recipients = $this->recipients((string) ($settings->KodePeranPenerimaNotifikasi ?? ''));
 
         if ($recipients->isEmpty()) {
-            return [
-                'chat_diperiksa' => 0,
-                'notifikasi_terkirim' => 0,
-                'notifikasi_gagal' => 0,
-                'penerima' => 0,
-            ];
+            return $this->emptyResult();
         }
 
         $waitMinutes = max(1, (int) ($settings->MenitTungguNotifikasi ?? 10));
@@ -75,7 +72,64 @@ class ChatBelumTerbalasNotifier
             'notifikasi_terkirim' => $sent,
             'notifikasi_gagal' => $failed,
             'penerima' => $recipients->count(),
+            'dilewati_jadwal' => 0,
         ];
+    }
+
+    /**
+     * @param  array<string, int>  $overrides
+     * @return array<string, int>
+     */
+    private function emptyResult(array $overrides = []): array
+    {
+        return array_merge([
+            'chat_diperiksa' => 0,
+            'notifikasi_terkirim' => 0,
+            'notifikasi_gagal' => 0,
+            'penerima' => 0,
+            'dilewati_jadwal' => 0,
+        ], $overrides);
+    }
+
+    private function insideWorkingSchedule(object $settings): bool
+    {
+        $timezone = $settings->ZonaWaktu ?: config('app.timezone', 'Asia/Jakarta');
+        $now = Carbon::now($timezone);
+        $workdays = array_map('intval', explode(',', (string) $settings->HariKerja));
+
+        if (! in_array($now->dayOfWeekIso, $workdays, true)) {
+            return false;
+        }
+
+        if ($this->isHoliday($now)) {
+            return false;
+        }
+
+        $start = Carbon::parse($now->toDateString() . ' ' . (string) $settings->JamKerjaMulai, $timezone);
+        $end = Carbon::parse($now->toDateString() . ' ' . (string) $settings->JamKerjaSelesai, $timezone);
+
+        return $now->betweenIncluded($start, $end);
+    }
+
+    private function isHoliday(Carbon $date): bool
+    {
+        if (! Schema::hasTable('MHariLibur')) {
+            return false;
+        }
+
+        return DB::table('MHariLibur')
+            ->where('NonAktif', false)
+            ->where(function ($query) use ($date): void {
+                $query
+                    ->whereDate('TanggalLibur', $date->toDateString())
+                    ->orWhere(function ($query) use ($date): void {
+                        $query
+                            ->where('BerlakuTahunan', true)
+                            ->whereRaw('MONTH(TanggalLibur) = ?', [$date->month])
+                            ->whereRaw('DAY(TanggalLibur) = ?', [$date->day]);
+                    });
+            })
+            ->exists();
     }
 
     private function recipients(string $roleCodes)

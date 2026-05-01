@@ -73,6 +73,7 @@ return new class extends Migration
             'TLogAktivitas',
             'MPengetahuan',
             'MPengaturanAi',
+            'MHariLibur',
             'MAiProvider',
             'MEndpointIntegrasi',
             'MSesiWhatsapp',

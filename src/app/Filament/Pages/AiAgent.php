@@ -6,6 +6,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AiAgent extends Page
@@ -64,6 +65,7 @@ class AiAgent extends Page
         $validated = $this->validate([
             'pengaturan.AutoReplyAktif' => ['boolean'],
             'pengaturan.AutoReplyDiluarJamKerja' => ['boolean'],
+            'pengaturan.AutoReplyHariLibur' => ['boolean'],
             'pengaturan.AutoReplyJamKerjaSapaan' => ['boolean'],
             'pengaturan.AutoReplyJamKerjaBerlanjut' => ['boolean'],
             'pengaturan.JamKerjaMulai' => ['required', 'date_format:H:i'],
@@ -75,6 +77,7 @@ class AiAgent extends Page
             'pengaturan.BaseUrl' => ['nullable', 'url', 'max:255'],
             'pengaturan.PromptSistem' => ['nullable', 'string', 'max:8000'],
             'pengaturan.TemplateDiluarJamKerja' => ['nullable', 'string', 'max:4000'],
+            'pengaturan.TemplateHariLibur' => ['nullable', 'string', 'max:4000'],
             'pengaturan.TemplateJamKerjaSapaan' => ['nullable', 'string', 'max:4000'],
             'pengaturan.TemplateFallback' => ['nullable', 'string', 'max:4000'],
             'pengaturan.NotifikasiChatBelumTerbalasAktif' => ['boolean'],
@@ -138,6 +141,7 @@ class AiAgent extends Page
         $this->pengaturan = [
             'AutoReplyAktif' => (bool) $row->AutoReplyAktif,
             'AutoReplyDiluarJamKerja' => (bool) $row->AutoReplyDiluarJamKerja,
+            'AutoReplyHariLibur' => (bool) ($row->AutoReplyHariLibur ?? true),
             'AutoReplyJamKerjaSapaan' => (bool) $row->AutoReplyJamKerjaSapaan,
             'AutoReplyJamKerjaBerlanjut' => (bool) $row->AutoReplyJamKerjaBerlanjut,
             'JamKerjaMulai' => substr((string) $row->JamKerjaMulai, 0, 5),
@@ -149,6 +153,7 @@ class AiAgent extends Page
             'BaseUrl' => $row->BaseUrl ?: $this->defaultBaseUrl($row->ProviderAi ?: 'OpenAI'),
             'PromptSistem' => $row->PromptSistem,
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,
+            'TemplateHariLibur' => $row->TemplateHariLibur ?? $this->defaultHolidayTemplate(),
             'TemplateJamKerjaSapaan' => $row->TemplateJamKerjaSapaan,
             'TemplateFallback' => $row->TemplateFallback,
             'NotifikasiChatBelumTerbalasAktif' => (bool) ($row->NotifikasiChatBelumTerbalasAktif ?? true),
@@ -167,6 +172,7 @@ class AiAgent extends Page
             'chat_auto' => (int) DB::table('TChatM')->where('AutoReplyAiAktif', true)->count(),
             'balasan_ai' => (int) DB::table('TChatD')->where('DihasilkanOlehAi', true)->count(),
             'permintaan_hari_ini' => (int) DB::table('TAiPermintaan')->whereDate('TglBuat', now()->toDateString())->count(),
+            'hari_libur_aktif' => Schema::hasTable('MHariLibur') ? (int) DB::table('MHariLibur')->where('NonAktif', false)->count() : 0,
             'penerima_notifikasi' => (int) DB::table('MPengguna')->where('NonAktif', false)->whereNotNull('NomorWhatsappInternal')->where('NomorWhatsappInternal', '<>', '')->count(),
         ];
     }
@@ -246,6 +252,7 @@ class AiAgent extends Page
             'NamaPengaturan' => 'Pengaturan Default AI Agent',
             'AutoReplyAktif' => false,
             'AutoReplyDiluarJamKerja' => true,
+            'AutoReplyHariLibur' => true,
             'AutoReplyJamKerjaSapaan' => true,
             'AutoReplyJamKerjaBerlanjut' => false,
             'JamKerjaMulai' => '08:00',
@@ -257,6 +264,7 @@ class AiAgent extends Page
             'BaseUrl' => 'https://api.openai.com/v1/responses',
             'PromptSistem' => 'Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan.',
             'TemplateDiluarJamKerja' => 'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
+            'TemplateHariLibur' => $this->defaultHolidayTemplate(),
             'TemplateJamKerjaSapaan' => 'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.',
             'TemplateFallback' => 'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.',
             'NotifikasiChatBelumTerbalasAktif' => true,
@@ -358,5 +366,10 @@ class AiAgent extends Page
     private function defaultNotificationTemplate(): string
     {
         return 'Halo {nama_user}, ada chat WhatsApp dari {nama_instansi} yang belum dibalas selama {menit_menunggu} menit. Kontak: {nama_kontak} ({nomor_whatsapp}). Pesan terakhir: {pesan_terakhir}. Silakan cek VPoint Care: {url_admin}';
+    }
+
+    private function defaultHolidayTemplate(): string
+    {
+        return 'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.';
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -240,6 +241,17 @@ class AiAutoReplyService
      */
     private function replyDecision(object $settings, object $chat): array
     {
+        $holiday = $this->activeHoliday($settings);
+
+        if ($holiday && (bool) ($settings->AutoReplyHariLibur ?? true)) {
+            return [
+                'boleh' => true,
+                'alasan' => 'Hari libur: ' . $holiday['name'] . '.',
+                'mode' => 'Hari Libur',
+                'template' => $this->formatHolidayTemplate($settings, $holiday),
+            ];
+        }
+
         $outsideWorkingHour = ! $this->insideWorkingHour($settings);
 
         if ($outsideWorkingHour && (bool) $settings->AutoReplyDiluarJamKerja) {
@@ -277,6 +289,86 @@ class AiAutoReplyService
         ];
     }
 
+    /**
+     * @return array{name: string, date: Carbon, next_working_date: ?Carbon}|null
+     */
+    private function activeHoliday(object $settings): ?array
+    {
+        $timezone = $settings->ZonaWaktu ?: config('app.timezone', 'Asia/Jakarta');
+        $today = Carbon::now($timezone)->startOfDay();
+        $holiday = $this->holidayForDate($today);
+
+        if (! $holiday) {
+            return null;
+        }
+
+        return [
+            'name' => (string) $holiday->NamaHariLibur,
+            'date' => $today,
+            'next_working_date' => $this->nextWorkingDate($settings, $today),
+        ];
+    }
+
+    private function holidayForDate(Carbon $date): ?object
+    {
+        if (! Schema::hasTable('MHariLibur')) {
+            return null;
+        }
+
+        return DB::table('MHariLibur')
+            ->where('NonAktif', false)
+            ->where(function ($query) use ($date): void {
+                $query
+                    ->whereDate('TanggalLibur', $date->toDateString())
+                    ->orWhere(function ($query) use ($date): void {
+                        $query
+                            ->where('BerlakuTahunan', true)
+                            ->whereRaw('MONTH(TanggalLibur) = ?', [$date->month])
+                            ->whereRaw('DAY(TanggalLibur) = ?', [$date->day]);
+                    });
+            })
+            ->orderByDesc('BerlakuTahunan')
+            ->orderBy('NamaHariLibur')
+            ->first();
+    }
+
+    private function nextWorkingDate(object $settings, Carbon $fromDate): ?Carbon
+    {
+        $workdays = array_map('intval', explode(',', (string) $settings->HariKerja));
+        $date = $fromDate->copy()->addDay()->startOfDay();
+
+        for ($attempt = 0; $attempt < 60; $attempt++, $date->addDay()) {
+            if (! in_array($date->dayOfWeekIso, $workdays, true)) {
+                continue;
+            }
+
+            if ($this->holidayForDate($date)) {
+                continue;
+            }
+
+            return $date->copy();
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array{name: string, date: Carbon, next_working_date: ?Carbon}  $holiday
+     */
+    private function formatHolidayTemplate(object $settings, array $holiday): string
+    {
+        $template = ($settings->TemplateHariLibur ?? null) ?: $this->defaultHolidayTemplate();
+        $nextWorkingDate = $holiday['next_working_date']
+            ? $this->formatIndonesianDate($holiday['next_working_date'])
+            : 'hari kerja berikutnya';
+
+        return strtr($template, [
+            '{nama_hari_libur}' => $holiday['name'],
+            '{tanggal_libur}' => $this->formatIndonesianDate($holiday['date']),
+            '{tanggal_masuk_kerja}' => $nextWorkingDate,
+        ]);
+    }
+
     private function insideWorkingHour(object $settings): bool
     {
         $timezone = $settings->ZonaWaktu ?: config('app.timezone', 'Asia/Jakarta');
@@ -291,6 +383,41 @@ class AiAutoReplyService
         $end = Carbon::parse($now->toDateString() . ' ' . (string) $settings->JamKerjaSelesai, $timezone);
 
         return $now->betweenIncluded($start, $end);
+    }
+
+    private function formatIndonesianDate(Carbon $date): string
+    {
+        $days = [
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        ];
+        $months = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+
+        return sprintf(
+            '%s, %d %s %d',
+            $days[$date->dayOfWeekIso],
+            $date->day,
+            $months[$date->month],
+            $date->year
+        );
     }
 
     private function buildPrompt(object $settings, object $chat, string $template): string
@@ -716,6 +843,11 @@ class AiAutoReplyService
     private function defaultOutsideTemplate(): string
     {
         return 'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.';
+    }
+
+    private function defaultHolidayTemplate(): string
+    {
+        return 'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.';
     }
 
     private function defaultGreetingTemplate(): string

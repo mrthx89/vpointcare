@@ -52,6 +52,16 @@
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                            <input type="checkbox" wire:model="pengaturan.AutoReplyHariLibur"
+                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Balas saat hari
+                                    libur</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Tanggal libur diambil
+                                    dari master Hari Libur.</span>
+                            </span>
+                        </label>
+                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.AutoReplyJamKerjaSapaan"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
@@ -136,12 +146,20 @@
                             <textarea wire:model="pengaturan.PromptSistem"
                                 class="mt-2 min-h-28 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
                         </div>
-                        <div class="grid gap-4 lg:grid-cols-3">
+                        <div class="grid gap-4 lg:grid-cols-4">
                             <div>
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template luar jam
                                     kerja</label>
                                 <textarea wire:model="pengaturan.TemplateDiluarJamKerja"
                                     class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template hari
+                                    libur</label>
+                                <textarea wire:model="pengaturan.TemplateHariLibur"
+                                    class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                                <div class="mt-1 text-xs text-gray-500">Placeholder: {nama_hari_libur}, {tanggal_libur},
+                                    {tanggal_masuk_kerja}</div>
                             </div>
                             <div>
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template sapaan jam
@@ -258,8 +276,8 @@
                 <div
                     class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">Notifikasi CS</div>
-                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">Job akan mengirim WhatsApp ke user
-                        internal jika chat klien belum terbalas.</div>
+                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">Job mengirim WhatsApp ke user internal
+                        hanya saat jam kerja aktif dan bukan hari libur.</div>
                     <div class="mt-4 space-y-4">
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.NotifikasiChatBelumTerbalasAktif"

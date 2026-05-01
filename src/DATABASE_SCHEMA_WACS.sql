@@ -332,12 +332,28 @@ CREATE TABLE MAiProvider (
 );
 GO
 
+CREATE TABLE MHariLibur (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MHariLibur_Id DEFAULT NEWSEQUENTIALID(),
+    TanggalLibur date NOT NULL,
+    NamaHariLibur varchar(200) NOT NULL,
+    Keterangan varchar(1000) NULL,
+    BerlakuTahunan bit NOT NULL CONSTRAINT DF_MHariLibur_BerlakuTahunan DEFAULT 0,
+    NonAktif bit NOT NULL CONSTRAINT DF_MHariLibur_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MHariLibur_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MHariLibur PRIMARY KEY (Id)
+);
+GO
+
 CREATE TABLE MPengaturanAi (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengaturanAi_Id DEFAULT NEWSEQUENTIALID(),
     KodePengaturan varchar(50) NOT NULL,
     NamaPengaturan varchar(100) NOT NULL,
     AutoReplyAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyAktif DEFAULT 0,
     AutoReplyDiluarJamKerja bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyDiluarJamKerja DEFAULT 1,
+    AutoReplyHariLibur bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyHariLibur DEFAULT 1,
     AutoReplyJamKerjaSapaan bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaSapaan DEFAULT 1,
     AutoReplyJamKerjaBerlanjut bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaBerlanjut DEFAULT 0,
     JamKerjaMulai time(0) NOT NULL CONSTRAINT DF_MPengaturanAi_JamKerjaMulai DEFAULT '08:00',
@@ -350,6 +366,7 @@ CREATE TABLE MPengaturanAi (
     ApiKeyTerenkripsi nvarchar(max) NULL,
     PromptSistem nvarchar(max) NULL,
     TemplateDiluarJamKerja nvarchar(max) NULL,
+    TemplateHariLibur nvarchar(max) NULL,
     TemplateJamKerjaSapaan nvarchar(max) NULL,
     TemplateFallback nvarchar(max) NULL,
     NotifikasiChatBelumTerbalasAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NotifikasiChatBelumTerbalasAktif DEFAULT 1,
@@ -707,6 +724,7 @@ CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi);
 CREATE INDEX IX_MGrupWhatsapp_IdGrupWaha ON MGrupWhatsapp (IdGrupWaha);
 CREATE INDEX IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp ON MAnggotaGrupWhatsapp (IdGrupWhatsapp);
 CREATE INDEX IX_MProdukCustomer_IdCustomer ON MProdukCustomer (IdCustomer);
+CREATE INDEX IX_MHariLibur_TanggalLibur ON MHariLibur (TanggalLibur, NonAktif);
 CREATE INDEX IX_TLogAktivitas_TglAktivitas ON TLogAktivitas (TglAktivitas);
 CREATE INDEX IX_TLogError_TglError ON TLogError (TglError);
 CREATE INDEX IX_TLogIntegrasi_TglRequest ON TLogIntegrasi (TglRequest);
@@ -787,6 +805,7 @@ INSERT INTO MPengaturanAi (
     NamaPengaturan,
     AutoReplyAktif,
     AutoReplyDiluarJamKerja,
+    AutoReplyHariLibur,
     AutoReplyJamKerjaSapaan,
     AutoReplyJamKerjaBerlanjut,
     JamKerjaMulai,
@@ -798,6 +817,7 @@ INSERT INTO MPengaturanAi (
     BaseUrl,
     PromptSistem,
     TemplateDiluarJamKerja,
+    TemplateHariLibur,
     TemplateJamKerjaSapaan,
     TemplateFallback,
     NotifikasiChatBelumTerbalasAktif,
@@ -815,6 +835,7 @@ VALUES (
     0,
     1,
     1,
+    1,
     0,
     '08:00',
     '17:00',
@@ -825,6 +846,7 @@ VALUES (
     'https://api.openai.com/v1/responses',
     N'Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan. Jika masalah perlu ditangani manusia, arahkan bahwa tim customer service akan menindaklanjuti.',
     N'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
+    N'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.',
     N'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.',
     N'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.',
     1,
