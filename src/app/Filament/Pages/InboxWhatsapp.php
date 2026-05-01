@@ -533,6 +533,16 @@ class InboxWhatsapp extends Page implements HasForms
 
         $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
 
+        if (! $statusDitutupId) {
+            Notification::make()
+                ->title('Status DITUTUP belum tersedia.')
+                ->body('Tambahkan status chat dengan kode DITUTUP terlebih dahulu.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         $updateData = [
             'IdStatusChat' => $statusDitutupId,
             'AutoReplyAiAktif' => false,
