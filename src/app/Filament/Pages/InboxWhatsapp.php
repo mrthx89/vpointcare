@@ -977,13 +977,40 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        $lastFetchedAt = DB::table('TChatM')->where('Id', $chatId)->value('TglFotoProfilDiambil');
+        $chat = DB::table('TChatM')
+            ->where('Id', $chatId)
+            ->select('Id', 'JenisChat', 'NomorWhatsapp', 'IdWahaTerdeteksi', 'NomorWhatsappTerdeteksi', 'TglFotoProfilDiambil')
+            ->first();
 
-        if ($lastFetchedAt && Carbon::parse($lastFetchedAt)->gt(now()->subDay())) {
+        if (! $chat) {
+            return;
+        }
+
+        $lastFetchedAt = $chat->TglFotoProfilDiambil;
+
+        if ($lastFetchedAt && Carbon::parse($lastFetchedAt)->gt(now()->subDay()) && ! $this->needsLidPhoneResolve($chat)) {
             return;
         }
 
         $this->refreshWahaProfile($chatId, false);
+    }
+
+    private function needsLidPhoneResolve(object $chat): bool
+    {
+        if (($chat->JenisChat ?? null) === 'Grup') {
+            return false;
+        }
+
+        if (($chat->NomorWhatsappTerdeteksi ?? null) && ($chat->NomorWhatsapp ?? null) !== $chat->NomorWhatsappTerdeteksi) {
+            return true;
+        }
+
+        if (str_contains((string) ($chat->NomorWhatsapp ?? ''), '@lid') || str_contains((string) ($chat->IdWahaTerdeteksi ?? ''), '@lid')) {
+            return true;
+        }
+
+        return (bool) collect($this->mappingIdentifiers($chat))
+            ->first(fn (string $identifier): bool => str_contains($identifier, '@lid'));
     }
 
     private function refreshWahaProfile(string $chatId, bool $forceRefresh): bool
@@ -1046,6 +1073,11 @@ class InboxWhatsapp extends Page implements HasForms
         $update['IdWahaTerdeteksi'] = $detectedWahaId ?: $contactId;
         $update['NomorWhatsappTerdeteksi'] = $detectedPhone;
 
+        if (($chat->JenisChat ?? null) !== 'Grup' && $detectedPhone) {
+            $update['NomorWhatsapp'] = $detectedPhone;
+            $this->updateIncomingSenderNumber($chatId, $detectedPhone);
+        }
+
         if (($picture['ok'] ?? false)) {
             $update['UrlFotoProfil'] = $picture['url'] ?? null;
         }
@@ -1053,6 +1085,17 @@ class InboxWhatsapp extends Page implements HasForms
         DB::table('TChatM')->where('Id', $chatId)->update($update);
 
         return (bool) (($picture['url'] ?? null) || $detectedPhone);
+    }
+
+    private function updateIncomingSenderNumber(string $chatId, string $phone): void
+    {
+        DB::table('TChatD')
+            ->where('IdChatM', $chatId)
+            ->where('ArahPesan', 'Masuk')
+            ->update([
+                'PengirimNomorWhatsapp' => $phone,
+                'TglEdit' => now(),
+            ]);
     }
 
     /**

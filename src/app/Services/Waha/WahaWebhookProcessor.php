@@ -10,6 +10,10 @@ use Throwable;
 
 class WahaWebhookProcessor
 {
+    public function __construct(private readonly WahaSender $wahaSender)
+    {
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
@@ -33,6 +37,7 @@ class WahaWebhookProcessor
 
             try {
                 $parsed = $this->parseMessage($payload, $message);
+                $parsed = $this->resolveLidPhoneNumber((string) $session->KodeSesi, $parsed);
 
                 if ($parsed['is_status_broadcast']) {
                     DB::table('TLogWebhookWaha')->where('Id', $webhookId)->update([
@@ -512,7 +517,13 @@ class WahaWebhookProcessor
         if ($parsed['jenis_chat'] === 'Grup' && $mapping['IdGrupWhatsapp']) {
             $query->where('IdGrupWhatsapp', $mapping['IdGrupWhatsapp']);
         } else {
-            $query->where('NomorWhatsapp', $parsed['pengirim_nomor'] ?: '-');
+            $query->where(function ($query) use ($parsed): void {
+                $query->where('NomorWhatsapp', $parsed['pengirim_nomor'] ?: '-');
+
+                if (Schema::hasColumn('TChatM', 'IdWahaTerdeteksi') && ($parsed['pengirim_jid'] ?? null)) {
+                    $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_jid']);
+                }
+            });
         }
 
         $chat = $query->orderByDesc('TglChatTerakhir')->first();
@@ -533,8 +544,12 @@ class WahaWebhookProcessor
                 $update['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
             }
 
-            if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && ! str_contains((string) $parsed['pengirim_jid'], '@lid')) {
+            if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
                 $update['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
+            }
+
+            if ($parsed['jenis_chat'] !== 'Grup' && $parsed['pengirim_nomor']) {
+                $update['NomorWhatsapp'] = $parsed['pengirim_nomor'];
             }
 
             DB::table('TChatM')->where('Id', $chat->Id)->update($update);
@@ -565,7 +580,7 @@ class WahaWebhookProcessor
             $chat['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
         }
 
-        if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && ! str_contains((string) $parsed['pengirim_jid'], '@lid')) {
+        if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
             $chat['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
         }
 
@@ -580,10 +595,37 @@ class WahaWebhookProcessor
             return null;
         }
 
+        if (str_contains($nomor, '@lid')) {
+            return null;
+        }
+
         $nomor = preg_replace('/@.+$/', '', $nomor) ?: $nomor;
         $nomor = preg_replace('/:.+$/', '', $nomor) ?: $nomor;
 
         return preg_replace('/[^0-9]/', '', $nomor) ?: null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parsed
+     * @return array<string, mixed>
+     */
+    private function resolveLidPhoneNumber(string $session, array $parsed): array
+    {
+        $jid = (string) ($parsed['pengirim_jid'] ?? '');
+
+        if (! str_contains($jid, '@lid')) {
+            return $parsed;
+        }
+
+        $result = $this->wahaSender->getPhoneNumberByLid($session ?: 'default', $jid);
+        $phone = $result['phone'] ?? null;
+
+        if (is_string($phone) && $phone !== '') {
+            $parsed['pengirim_nomor'] = $phone;
+            $parsed['pengirim_phone_jid'] = ($result['pn'] ?? null) ?: $phone . '@c.us';
+        }
+
+        return $parsed;
     }
 
     private function stringValue(mixed $value): string

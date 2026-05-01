@@ -94,14 +94,20 @@ class WahaSender
      */
     public function getPhoneNumberByLid(string $session, string $lid): array
     {
-        $response = $this->getJson('/api/' . rawurlencode($session) . '/lids/' . rawurlencode($this->normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE');
+        $response = $this->getJson('/api/' . rawurlencode($session) . '/lids/' . $this->encodeWahaPathId($this->normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE');
 
         if (! ($response['ok'] ?? false)) {
             return $response;
         }
 
-        $payload = json_decode((string) ($response['body'] ?? ''), true);
-        $pn = is_array($payload) ? Arr::get($payload, 'pn') : null;
+        $body = (string) ($response['body'] ?? '');
+        $payload = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $payload = $body;
+        }
+
+        $pn = $this->firstPhoneContactId($payload);
         $phone = is_string($pn) ? $this->phoneNumberFromContactId($pn) : null;
 
         return array_merge($response, [
@@ -262,5 +268,42 @@ class WahaSender
         $number = preg_replace('/:.+$/', '', $number) ?: $number;
 
         return preg_replace('/[^0-9]/', '', $number) ?: null;
+    }
+
+    private function firstPhoneContactId(mixed $payload): ?string
+    {
+        if (is_string($payload) && trim($payload) !== '') {
+            return trim($payload);
+        }
+
+        if (! is_array($payload)) {
+            return null;
+        }
+
+        foreach ([
+            'pn',
+            'phone',
+            'phoneNumber',
+            'number',
+            'jid',
+            'id',
+            'contact.pn',
+            'contact.phone',
+            'contact.phoneNumber',
+            'contact.id',
+        ] as $key) {
+            $value = Arr::get($payload, $key);
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        return null;
+    }
+
+    private function encodeWahaPathId(string $id): string
+    {
+        return str_replace('%40', '@', rawurlencode($id));
     }
 }
