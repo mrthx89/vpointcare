@@ -4,7 +4,6 @@
         x-data="{
             soundOn: localStorage.getItem('wacs_sound') !== 'false',
             wsOnline: false,
-            activeAgents: window.wahaActiveUsers ? window.wahaActiveUsers.length : 0,
             toggleSound() {
                 this.soundOn = !this.soundOn;
                 localStorage.setItem('wacs_sound', String(this.soundOn));
@@ -31,7 +30,6 @@
         @waha-new-message.window="playSound()"
         @waha-ws-connected.window="wsOnline = true"
         @waha-ws-disconnected.window="wsOnline = false"
-        @waha-agents-updated.window="activeAgents = $event.detail.count"
         class="flex flex-col gap-4 overflow-hidden"
         style="height: calc(100dvh - 8rem);"
         wire:poll.60s="loadInbox">
@@ -74,7 +72,7 @@
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Tim Aktif (Online)</div>
-                <div class="mt-2 text-2xl font-semibold text-emerald-600" x-text="activeAgents">0</div>
+                <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $activeAgents }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>

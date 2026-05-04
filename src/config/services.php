@@ -45,6 +45,10 @@ return [
         'notification_session' => env('WAHA_NOTIFICATION_SESSION', 'default'),
     ],
 
+    'vtoken' => [
+        'open_customers_url' => env('VTOKEN_OPEN_CUSTOMERS_URL'),
+    ],
+
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'model' => env('OPENAI_MODEL', 'gpt-5'),
