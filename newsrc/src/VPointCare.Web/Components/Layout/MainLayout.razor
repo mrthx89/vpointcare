@@ -1,0 +1,57 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Dense="true" Color="Color.Surface">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <img src="images/logo_primary.svg" alt="VPoint Care" class="app-logo" />
+        <MudText Typo="Typo.subtitle1" Class="app-title">VPoint Care</MudText>
+        <MudSpacer />
+        <MudButton Href="/logout" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Logout">Keluar</MudButton>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="1" Variant="DrawerVariant.Responsive" Width="260px">
+        <MudNavMenu Dense="true" Class="pt-3">
+            <MudNavLink Href="/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SpaceDashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/admin/inbox-whatsapp" Icon="@Icons.Material.Filled.MarkUnreadChatAlt">Inbox WhatsApp</MudNavLink>
+            <MudNavLink Href="/admin/ticketing" Icon="@Icons.Material.Filled.ConfirmationNumber">Ticketing</MudNavLink>
+            <MudNavLink Href="/admin/ai-agent" Icon="@Icons.Material.Filled.SmartToy">AI Agent</MudNavLink>
+            <MudNavLink Href="/admin/ai-agent/knowledge-base" Icon="@Icons.Material.Filled.Book">Knowledge Base AI</MudNavLink>
+            <MudNavLink Href="/admin/master-customer" Icon="@Icons.Material.Filled.Business">Master Customer</MudNavLink>
+            <MudNavLink Href="/admin/master-customer/instansi" Icon="@Icons.Material.Filled.Apartment">Klien / Instansi</MudNavLink>
+            <MudNavLink Href="/admin/master-customer/customers" Icon="@Icons.Material.Filled.Groups">Kontak Customer</MudNavLink>
+            <MudNavLink Href="/admin/master-customer/nomor-whatsapp" Icon="@Icons.Material.Filled.PhoneIphone">Nomor WhatsApp</MudNavLink>
+            <MudNavLink Href="/admin/master-customer/grup-whatsapp" Icon="@Icons.Material.Filled.Forum">Grup WhatsApp</MudNavLink>
+            <MudNavLink Href="/admin/log-data" Icon="@Icons.Material.Filled.Article">Log Data</MudNavLink>
+            <MudDivider Class="my-3" />
+            <MudNavLink Href="/admin/jobs" Icon="@Icons.Material.Filled.WorkHistory">Hangfire Jobs</MudNavLink>
+            <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.ManageAccounts">MUser</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="main-content">
+        <MudContainer MaxWidth="MaxWidth.False" Class="content-shell">
+            @Body
+        </MudContainer>
+        <footer class="app-footer">VPoint Care ASP.NET 8 Migration</footer>
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui">
+    Terjadi kesalahan aplikasi.
+    <a href="" class="reload">Muat ulang</a>
+    <a class="dismiss">Tutup</a>
+</div>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

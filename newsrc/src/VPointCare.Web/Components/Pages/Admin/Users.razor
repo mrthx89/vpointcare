@@ -1,0 +1,53 @@
+@page "/admin/users"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>MUser - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div>
+        <MudText Typo="Typo.h5">MUser</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">User login hasil migrasi dari tabel Laravel `users`, terhubung ke `MPengguna`.</MudText>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" sm="4"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.ManageAccounts" /><span>MUser</span><strong>@_users</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="4"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Person" /><span>MPengguna</span><strong>@_pengguna</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="4"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" /><span>Peran</span><strong>@_roles</strong></MudPaper></MudItem>
+    </MudGrid>
+
+    <MudPaper Class="section-panel" Elevation="0">
+        <MudText Typo="Typo.subtitle1">User Login</MudText>
+        <table class="data-table"><thead><tr><th>Nama</th><th>Email</th><th>Status</th><th>Pengguna Internal</th><th>Login Terakhir</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.Name</td><td>@row.Email</td><td>@row.Status</td><td>@row.NamaPengguna</td><td>@(row.LoginTerakhir?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private int _users;
+    private int _pengguna;
+    private int _roles;
+    private List<UserRow> _rows = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await Db.Users.CountAsync();
+        _pengguna = await Db.Penggunas.CountAsync();
+        _roles = await Db.Perans.CountAsync();
+        _rows = await (
+            from user in Db.Users.AsNoTracking()
+            join pengguna in Db.Penggunas.AsNoTracking() on user.Id equals pengguna.UserId into penggunaJoin
+            from pengguna in penggunaJoin.DefaultIfEmpty()
+            orderby user.Name
+            select new UserRow(user.Name, user.Email, user.Status, pengguna == null ? "-" : pengguna.NamaPengguna, pengguna == null ? null : pengguna.LoginTerakhirPada))
+            .Take(50)
+            .ToListAsync();
+    }
+
+    private sealed record UserRow(string Name, string Email, string Status, string NamaPengguna, DateTime? LoginTerakhir);
+}

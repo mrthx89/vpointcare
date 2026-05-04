@@ -1,0 +1,62 @@
+@page "/admin/log-data"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Log Data - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div>
+        <MudText Typo="Typo.h5">Log Data</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Monitoring webhook WAHA, integrasi, aktivitas, dan error aplikasi.</MudText>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Webhook" /><span>Webhook</span><strong>@_webhookCount</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.SyncAlt" /><span>Integrasi</span><strong>@_integrationCount</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.History" /><span>Aktivitas</span><strong>@_activityCount</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" /><span>Error</span><strong>@_errorCount</strong></MudPaper></MudItem>
+    </MudGrid>
+
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="section-panel" Elevation="0"><MudText Typo="Typo.subtitle1">Webhook WAHA Terakhir</MudText>
+                <table class="data-table"><thead><tr><th>Event</th><th>Diproses</th><th>Diterima</th><th>Error</th></tr></thead><tbody>
+                @foreach (var row in _webhooks)
+                {
+                    <tr><td>@row.JenisEvent</td><td>@(row.SudahDiproses ? "Ya" : "Belum")</td><td>@row.TglDiterima.ToString("dd/MM HH:mm")</td><td>@(row.PesanError ?? "-")</td></tr>
+                }
+                </tbody></table>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="section-panel" Elevation="0"><MudText Typo="Typo.subtitle1">Integrasi Terakhir</MudText>
+                <table class="data-table"><thead><tr><th>Kode</th><th>HTTP</th><th>Berhasil</th><th>Waktu</th></tr></thead><tbody>
+                @foreach (var row in _integrations)
+                {
+                    <tr><td>@row.KodeIntegrasi</td><td>@(row.StatusHttp?.ToString() ?? "-")</td><td>@(row.Berhasil ? "Ya" : "Tidak")</td><td>@row.TglRequest.ToString("dd/MM HH:mm")</td></tr>
+                }
+                </tbody></table>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code {
+    private int _webhookCount;
+    private int _integrationCount;
+    private int _activityCount;
+    private int _errorCount;
+    private List<VPointCare.Web.Data.Entities.TLogWebhookWaha> _webhooks = [];
+    private List<VPointCare.Web.Data.Entities.TLogIntegrasi> _integrations = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _webhookCount = await Db.LogWebhookWahas.CountAsync();
+        _integrationCount = await Db.LogIntegrasis.CountAsync();
+        _activityCount = await Db.TLogAktivitasSet.CountAsync();
+        _errorCount = await Db.TLogErrorSet.CountAsync();
+        _webhooks = await Db.LogWebhookWahas.AsNoTracking().OrderByDescending(x => x.TglDiterima).Take(20).ToListAsync();
+        _integrations = await Db.LogIntegrasis.AsNoTracking().OrderByDescending(x => x.TglRequest).Take(20).ToListAsync();
+    }
+}

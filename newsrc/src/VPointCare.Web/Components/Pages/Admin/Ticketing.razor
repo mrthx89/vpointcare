@@ -1,0 +1,65 @@
+@page "/admin/ticketing"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Ticketing - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div>
+            <MudText Typo="Typo.h5">Ticketing</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Daftar ticket dari chat, prioritas, status, dan assignment developer.</MudText>
+        </div>
+        <MudChip T="string" Color="Color.Info" Variant="Variant.Filled">@_totalTicket ticket</MudChip>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.ConfirmationNumber" /><span>Total</span><strong>@_totalTicket</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.PendingActions" /><span>Aktif</span><strong>@_openTicket</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.AssignmentInd" /><span>Ditugaskan</span><strong>@_assignedTicket</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.DoneAll" /><span>Selesai</span><strong>@_closedTicket</strong></MudPaper></MudItem>
+    </MudGrid>
+
+    <MudPaper Class="section-panel" Elevation="0">
+        <MudText Typo="Typo.subtitle1">Ticket Terakhir</MudText>
+        <table class="data-table">
+            <thead><tr><th>No Ticket</th><th>Judul</th><th>Status</th><th>Prioritas</th><th>Dibuat</th></tr></thead>
+            <tbody>
+                @foreach (var row in _tickets)
+                {
+                    <tr><td>@row.NomorTicket</td><td>@row.JudulTicket</td><td>@row.Status</td><td>@row.Prioritas</td><td>@row.TglBuat.ToString("dd/MM/yyyy HH:mm")</td></tr>
+                }
+            </tbody>
+        </table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private int _totalTicket;
+    private int _openTicket;
+    private int _assignedTicket;
+    private int _closedTicket;
+    private List<TicketRow> _tickets = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _totalTicket = await Db.TTicketMSet.CountAsync();
+        _openTicket = await Db.TTicketMSet.CountAsync(x => x.TglDitutup == null && x.TglSelesai == null);
+        _assignedTicket = await Db.TTicketMSet.CountAsync(x => x.DitugaskanKepada != null);
+        _closedTicket = await Db.TTicketMSet.CountAsync(x => x.TglDitutup != null || x.TglSelesai != null);
+
+        _tickets = await (
+            from t in Db.TTicketMSet.AsNoTracking()
+            join s in Db.MStatusTicketSet.AsNoTracking() on t.IdStatusTicket equals s.Id into statusJoin
+            from s in statusJoin.DefaultIfEmpty()
+            join p in Db.MPrioritasTicketSet.AsNoTracking() on t.IdPrioritasTicket equals p.Id into priorityJoin
+            from p in priorityJoin.DefaultIfEmpty()
+            orderby t.TglBuat descending
+            select new TicketRow(t.NomorTicket, t.JudulTicket, s == null ? "-" : s.NamaStatusTicket, p == null ? "-" : p.NamaPrioritasTicket, t.TglBuat))
+            .Take(25)
+            .ToListAsync();
+    }
+
+    private sealed record TicketRow(string NomorTicket, string JudulTicket, string Status, string Prioritas, DateTime TglBuat);
+}

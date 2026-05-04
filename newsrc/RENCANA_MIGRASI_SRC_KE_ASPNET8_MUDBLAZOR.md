@@ -11,6 +11,22 @@ Keputusan runtime tambahan:
 - Queue/job lama Laravel yang sekarang dijalankan melalui Windows Task Scheduler + `cmd php artisan ...` diganti menjadi Hangfire.
 - Tabel auth lama Laravel `users` diganti menjadi tabel master `MUser` di target ASP.NET.
 
+Status eksekusi awal per 2026-05-04:
+
+- Solution ASP.NET Core 8 dibuat di `newsrc/VPointCare.sln` dengan project `src/VPointCare.Web`.
+- MudBlazor, EF Core SQL Server, SignalR, Hangfire SQL Server, dan BCrypt sudah terpasang.
+- Schema SQL disalin ke `newsrc/database/DATABASE_SCHEMA_WACS.sql`; tabel auth `users` sudah diganti menjadi `MUser`, dan FK `MPengguna.UserId` diarahkan ke `MUser(id)`.
+- Asset logo SVG dari `src/public/images` sudah disalin ke `newsrc/src/VPointCare.Web/wwwroot/images`.
+- Program startup sudah memuat Razor Components interactive server, MudBlazor, cookie auth, EF Core, SignalR hub `/hubs/waha-inbox`, controller webhook `POST /webhooks/waha/{token?}`, dan Hangfire opsional jika `ConnectionStrings:Hangfire` diisi.
+- Implementasi awal sudah dibuat untuk `MUser` auth, `MPengguna`, tracking CS aktif, SignalR notification, WAHA webhook processor, Hangfire job skeleton, dashboard, inbox realtime, dan route placeholder modul besar.
+- `appsettings.json` sudah diisi dari `src/.env`: SQL Server WACS, WAHA, VToken, OpenAI, DeepSeek, OpenRouter, dan URL publik aplikasi.
+- Koneksi Hangfire dipisahkan ke database `DBVPointCare_Hangfire`, tidak memakai tabel domain WACS.
+- Serilog sudah ditambahkan dengan rolling file harian `Logs/wacs-.log`.
+- Command Laravel `vpoint:import-instansi-vtoken` sudah dikonversi ke `VTokenSyncJob` Hangfire dengan validasi `jsonResult/jsonValue`, log `TLogIntegrasi`, dan upsert `MInstansi`.
+- Command Laravel `vpoint:kirim-notifikasi-chat-belum-terbalas` sudah dikonversi ke `UnansweredChatNotificationJob` Hangfire dengan aturan `MPengaturanAi`, jam kerja, `MHariLibur`, penerima role, template notifikasi, dan pengiriman WAHA.
+- `AiAutoReplyService.php` sudah mulai dikonversi ke `Services/Ai/AiAutoReplyService.cs` dan dipanggil dari webhook WAHA setelah pesan masuk berhasil diproses.
+- Validasi terakhir: `dotnet build newsrc\VPointCare.sln` berhasil tanpa warning dan error.
+
 ## 1. Prinsip Wajib Migrasi
 
 1. Schema database harus sama persis dengan source lama.

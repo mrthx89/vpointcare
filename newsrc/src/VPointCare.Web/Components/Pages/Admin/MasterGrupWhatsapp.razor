@@ -1,0 +1,35 @@
+@page "/admin/master-customer/grup-whatsapp"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Grup WhatsApp - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Grup WhatsApp</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Mapping grup WhatsApp WAHA ke instansi.</MudText></div>
+        <MudButton Href="/admin/master-customer" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Ringkasan</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Kode</th><th>Nama Grup</th><th>Instansi</th><th>Id WAHA</th><th>Nomor Grup</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.Kode</td><td>@row.Nama</td><td>@row.Instansi</td><td>@row.IdGrupWaha</td><td>@row.NomorGrup</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<GrupRow> _rows = [];
+    protected override async Task OnInitializedAsync()
+    {
+        _rows = await (from g in Db.MGrupWhatsappSet.AsNoTracking()
+            join i in Db.MInstansiSet.AsNoTracking() on g.IdInstansi equals i.Id into instansiJoin
+            from i in instansiJoin.DefaultIfEmpty()
+            orderby g.NamaGrup
+            select new GrupRow(g.KodeGrup, g.NamaGrup, i == null ? "-" : i.NamaInstansi, g.IdGrupWaha, g.NomorGrupWhatsapp))
+            .Take(100).ToListAsync();
+    }
+    private sealed record GrupRow(string Kode, string Nama, string Instansi, string? IdGrupWaha, string? NomorGrup);
+}

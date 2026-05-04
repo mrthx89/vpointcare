@@ -1,0 +1,26 @@
+@page "/admin/master-customer/instansi"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Instansi - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Klien / Instansi</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Data `MInstansi`, termasuk hasil sinkron VToken.</MudText></div>
+        <MudButton Href="/admin/master-customer" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Ringkasan</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th>Kota</th><th>Email</th><th>Sumber</th><th>Nonaktif</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.KodeInstansi</td><td>@row.NamaInstansi</td><td>@row.Kota</td><td>@row.Email</td><td>@row.SumberData</td><td>@(row.NonAktif ? "Ya" : "Tidak")</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<VPointCare.Web.Data.Entities.MInstansi> _rows = [];
+    protected override async Task OnInitializedAsync() => _rows = await Db.MInstansiSet.AsNoTracking().OrderBy(x => x.NamaInstansi).Take(100).ToListAsync();
+}

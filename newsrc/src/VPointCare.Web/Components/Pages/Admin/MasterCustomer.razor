@@ -1,0 +1,59 @@
+@page "/admin/master-customer"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Master Customer - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div>
+        <MudText Typo="Typo.h5">Master Customer</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Ringkasan instansi, kontak customer, nomor WhatsApp, grup, anggota, dan produk customer.</MudText>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Business" /><span>Instansi</span><strong>@_instansi</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Groups" /><span>Customer</span><strong>@_customer</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.PhoneIphone" /><span>Nomor WA</span><strong>@_nomor</strong></MudPaper></MudItem>
+        <MudItem xs="12" sm="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Forum" /><span>Grup WA</span><strong>@_grup</strong></MudPaper></MudItem>
+    </MudGrid>
+
+    <MudPaper Class="section-panel" Elevation="0">
+        <div class="section-header-row">
+            <MudText Typo="Typo.subtitle1">Navigasi Master</MudText>
+            <div class="button-row">
+                <MudButton Href="/admin/master-customer/instansi" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Business">Instansi</MudButton>
+                <MudButton Href="/admin/master-customer/customers" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Groups">Customer</MudButton>
+                <MudButton Href="/admin/master-customer/nomor-whatsapp" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.PhoneIphone">Nomor WA</MudButton>
+                <MudButton Href="/admin/master-customer/grup-whatsapp" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Forum">Grup WA</MudButton>
+            </div>
+        </div>
+    </MudPaper>
+
+    <MudPaper Class="section-panel" Elevation="0">
+        <MudText Typo="Typo.subtitle1">Instansi Terakhir Sinkron</MudText>
+        <table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th>Kota</th><th>Sumber</th><th>Sinkron</th></tr></thead><tbody>
+            @foreach (var row in _latestInstansi)
+            {
+                <tr><td>@row.KodeInstansi</td><td>@row.NamaInstansi</td><td>@row.Kota</td><td>@row.SumberData</td><td>@(row.TglSinkronTerakhir?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
+            }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private int _instansi;
+    private int _customer;
+    private int _nomor;
+    private int _grup;
+    private List<VPointCare.Web.Data.Entities.MInstansi> _latestInstansi = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _instansi = await Db.MInstansiSet.CountAsync(x => !x.NonAktif);
+        _customer = await Db.MCustomerSet.CountAsync(x => !x.NonAktif);
+        _nomor = await Db.MNomorWhatsappSet.CountAsync(x => !x.NonAktif);
+        _grup = await Db.MGrupWhatsappSet.CountAsync(x => !x.NonAktif);
+        _latestInstansi = await Db.MInstansiSet.AsNoTracking().OrderByDescending(x => x.TglSinkronTerakhir ?? x.TglBuat).Take(25).ToListAsync();
+    }
+}

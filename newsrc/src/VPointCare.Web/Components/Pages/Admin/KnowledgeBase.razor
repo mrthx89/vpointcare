@@ -1,0 +1,26 @@
+@page "/admin/ai-agent/knowledge-base"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Knowledge Base AI - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Knowledge Base AI</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Data `MPengetahuan` yang dipakai `AiAutoReplyService`.</MudText></div>
+        <MudButton Href="/admin/ai-agent" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">AI Agent</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Kode</th><th>Judul</th><th>Tag</th><th>Status</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.KodePengetahuan</td><td>@row.JudulPengetahuan</td><td>@row.Tag</td><td>@(row.NonAktif ? "Nonaktif" : "Aktif")</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<VPointCare.Web.Data.Entities.MPengetahuan> _rows = [];
+    protected override async Task OnInitializedAsync() => _rows = await Db.MPengetahuanSet.AsNoTracking().OrderBy(x => x.JudulPengetahuan).Take(100).ToListAsync();
+}

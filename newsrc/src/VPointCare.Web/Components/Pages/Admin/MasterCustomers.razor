@@ -1,0 +1,35 @@
+@page "/admin/master-customer/customers"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Kontak Customer - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Kontak Customer</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Data `MCustomer` dan relasinya ke instansi.</MudText></div>
+        <MudButton Href="/admin/master-customer" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Ringkasan</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th>Instansi</th><th>Email</th><th>Telepon</th><th>Jabatan</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.Kode</td><td>@row.Nama</td><td>@row.Instansi</td><td>@row.Email</td><td>@row.Telepon</td><td>@row.Jabatan</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<CustomerRow> _rows = [];
+    protected override async Task OnInitializedAsync()
+    {
+        _rows = await (from c in Db.MCustomerSet.AsNoTracking()
+            join i in Db.MInstansiSet.AsNoTracking() on c.IdInstansi equals i.Id into instansiJoin
+            from i in instansiJoin.DefaultIfEmpty()
+            orderby c.NamaCustomer
+            select new CustomerRow(c.KodeCustomer, c.NamaCustomer, i == null ? "-" : i.NamaInstansi, c.Email, c.Telepon, c.Jabatan))
+            .Take(100).ToListAsync();
+    }
+    private sealed record CustomerRow(string Kode, string Nama, string Instansi, string? Email, string? Telepon, string? Jabatan);
+}

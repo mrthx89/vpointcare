@@ -1,0 +1,59 @@
+@page "/admin/ai-agent"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>AI Agent - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div>
+        <MudText Typo="Typo.h5">AI Agent</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Konfigurasi auto reply, provider AI, knowledge base, dan riwayat permintaan AI.</MudText>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" md="4"><MudPaper Class="section-panel" Elevation="0"><MudText Typo="Typo.subtitle1">Setting DEFAULT</MudText><MudText Typo="Typo.body2">Auto Reply: @(_settings?.AutoReplyAktif == true ? "Aktif" : "Nonaktif")</MudText><MudText Typo="Typo.body2">Provider: @(_settings?.ProviderAi ?? "-")</MudText><MudText Typo="Typo.body2">Jam Kerja: @_workHour</MudText></MudPaper></MudItem>
+        <MudItem xs="12" md="8">
+            <MudGrid>
+                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.SmartToy" /><span>Chat Auto</span><strong>@_autoChats</strong></MudPaper></MudItem>
+                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.AutoAwesome" /><span>Balasan AI</span><strong>@_aiReplies</strong></MudPaper></MudItem>
+                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Book" /><span>Knowledge</span><strong>@_knowledgeCount</strong></MudPaper></MudItem>
+                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.EventBusy" /><span>Hari Libur</span><strong>@_holidayCount</strong></MudPaper></MudItem>
+            </MudGrid>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Class="section-panel" Elevation="0">
+        <div class="section-header-row"><MudText Typo="Typo.subtitle1">Permintaan AI Terakhir</MudText><MudButton Href="/admin/ai-agent/knowledge-base" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Book">Knowledge Base</MudButton></div>
+        <table class="data-table">
+            <thead><tr><th>Jenis</th><th>Provider</th><th>Model</th><th>Status</th><th>Mulai</th></tr></thead>
+            <tbody>
+                @foreach (var row in _requests)
+                {
+                    <tr><td>@row.JenisPermintaan</td><td>@row.ProviderAi</td><td>@row.ModelAi</td><td>@row.StatusPermintaan</td><td>@(row.TglMulai?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
+                }
+            </tbody>
+        </table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private VPointCare.Web.Data.Entities.MPengaturanAi? _settings;
+    private string _workHour = "-";
+    private int _autoChats;
+    private int _aiReplies;
+    private int _knowledgeCount;
+    private int _holidayCount;
+    private List<VPointCare.Web.Data.Entities.TAiPermintaan> _requests = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await Db.MPengaturanAiSet.AsNoTracking().FirstOrDefaultAsync(x => x.KodePengaturan == "DEFAULT" && !x.NonAktif);
+        _workHour = _settings is null ? "-" : $"{_settings.JamKerjaMulai:hh\\:mm} - {_settings.JamKerjaSelesai:hh\\:mm}";
+        _autoChats = await Db.ChatMasters.CountAsync(x => x.AutoReplyAiAktif);
+        _aiReplies = await Db.ChatDetails.CountAsync(x => x.DihasilkanOlehAi);
+        _knowledgeCount = await Db.MPengetahuanSet.CountAsync(x => !x.NonAktif);
+        _holidayCount = await Db.MHariLiburSet.CountAsync(x => !x.NonAktif);
+        _requests = await Db.TAiPermintaanSet.AsNoTracking().OrderByDescending(x => x.TglBuat).Take(25).ToListAsync();
+    }
+}
