@@ -25,6 +25,7 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
     public DbSet<MAiProvider> MAiProviderSet => Set<MAiProvider>();
     public DbSet<MHariLibur> MHariLiburSet => Set<MHariLibur>();
     public DbSet<MPengaturanAi> MPengaturanAiSet => Set<MPengaturanAi>();
+    public DbSet<MPengaturanHangfireJob> MPengaturanHangfireJobSet => Set<MPengaturanHangfireJob>();
     public DbSet<MPengetahuan> MPengetahuanSet => Set<MPengetahuan>();
     public DbSet<TLogAktivitas> TLogAktivitasSet => Set<TLogAktivitas>();
     public DbSet<TLogError> TLogErrorSet => Set<TLogError>();
@@ -472,6 +473,25 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+        });
+
+        modelBuilder.Entity<MPengaturanHangfireJob>(entity =>
+        {
+            entity.ToTable("MPengaturanHangfireJob");
+            entity.Property(e => e.Id).HasColumnName("Id");
+            entity.Property(e => e.KodeJob).HasColumnName("KodeJob").HasColumnType("varchar(100)");
+            entity.Property(e => e.NamaJob).HasColumnName("NamaJob").HasColumnType("varchar(150)");
+            entity.Property(e => e.JobIdHangfire).HasColumnName("JobIdHangfire").HasColumnType("varchar(150)");
+            entity.Property(e => e.CronExpression).HasColumnName("CronExpression").HasColumnType("varchar(100)");
+            entity.Property(e => e.Aktif).HasColumnName("Aktif");
+            entity.Property(e => e.Keterangan).HasColumnName("Keterangan").HasColumnType("varchar(500)");
+            entity.Property(e => e.NonAktif).HasColumnName("NonAktif");
+            entity.Property(e => e.TglBuat).HasColumnName("TglBuat");
+            entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
+            entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
+            entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+            entity.HasIndex(e => e.KodeJob).IsUnique();
+            entity.HasIndex(e => e.JobIdHangfire).IsUnique();
         });
 
         modelBuilder.Entity<MPengetahuan>(entity =>

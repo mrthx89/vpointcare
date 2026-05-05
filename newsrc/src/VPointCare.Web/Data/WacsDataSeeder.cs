@@ -15,6 +15,7 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
         await SeedTicketPrioritiesAsync(now, cancellationToken);
         await SeedTicketCategoriesAsync(now, cancellationToken);
         await SeedAiSettingsAsync(now, cancellationToken);
+        await SeedHangfireJobSettingsAsync(now, cancellationToken);
         await SeedAdminUserAsync(now, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -23,6 +24,7 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
 
     private async Task SeedRolesAsync(DateTime now, CancellationToken cancellationToken)
     {
+        await UpsertRoleAsync("ROOT", "Root", "Akses tertinggi untuk pengaturan sistem", now, cancellationToken);
         await UpsertRoleAsync("ADMIN", "Admin", "Akses penuh aplikasi", now, cancellationToken);
         await UpsertRoleAsync("SUPERVISOR_CS", "Supervisor CS", "Monitoring dan pengaturan customer service", now, cancellationToken);
         await UpsertRoleAsync("CS", "Customer Service", "Menangani chat dan membuat ticket", now, cancellationToken);
@@ -304,5 +306,74 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
         pengguna.Password = passwordHash;
         pengguna.NonAktif = false;
         pengguna.TglEdit = now;
+    }
+
+    private async Task SeedHangfireJobSettingsAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        await UpsertHangfireJobSettingAsync(
+            "VTOKEN_OPEN_CUSTOMERS_SYNC",
+            "Sinkron VToken Open Customers",
+            "vtoken-open-customers-sync",
+            "0 * * * *",
+            true,
+            "Sinkron data open customers dari VToken ke master instansi/customer.",
+            now,
+            cancellationToken);
+
+        await UpsertHangfireJobSettingAsync(
+            "UNANSWERED_CHAT_NOTIFICATION",
+            "Notifikasi Chat Belum Terbalas",
+            "unanswered-chat-notification",
+            "*/5 * * * *",
+            true,
+            "Mengirim notifikasi internal untuk chat WhatsApp yang belum dibalas.",
+            now,
+            cancellationToken);
+
+        await UpsertHangfireJobSettingAsync(
+            "AI_AUTO_REPLY",
+            "AI Auto Reply",
+            "ai-auto-reply",
+            "*/2 * * * *",
+            true,
+            "Memproses balasan otomatis AI untuk chat WhatsApp.",
+            now,
+            cancellationToken);
+    }
+
+    private async Task UpsertHangfireJobSettingAsync(
+        string code,
+        string name,
+        string jobId,
+        string cronExpression,
+        bool enabled,
+        string description,
+        DateTime now,
+        CancellationToken cancellationToken)
+    {
+        var row = await dbContext.MPengaturanHangfireJobSet.FirstOrDefaultAsync(x => x.KodeJob == code, cancellationToken);
+        if (row is null)
+        {
+            dbContext.MPengaturanHangfireJobSet.Add(new MPengaturanHangfireJob
+            {
+                Id = Guid.NewGuid(),
+                KodeJob = code,
+                NamaJob = name,
+                JobIdHangfire = jobId,
+                CronExpression = cronExpression,
+                Aktif = enabled,
+                Keterangan = description,
+                NonAktif = false,
+                TglBuat = now
+            });
+            return;
+        }
+
+        row.NamaJob = name;
+        row.JobIdHangfire = string.IsNullOrWhiteSpace(row.JobIdHangfire) ? jobId : row.JobIdHangfire;
+        row.CronExpression = string.IsNullOrWhiteSpace(row.CronExpression) ? cronExpression : row.CronExpression;
+        row.Keterangan = description;
+        row.NonAktif = false;
+        row.TglEdit = now;
     }
 }

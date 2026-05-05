@@ -11,6 +11,7 @@ using VPointCare.Web.Jobs;
 using VPointCare.Web.Services.Ai;
 using VPointCare.Web.Services.Auth;
 using VPointCare.Web.Services.Dashboard;
+using VPointCare.Web.Services.Jobs;
 using VPointCare.Web.Services.Realtime;
 using VPointCare.Web.Services.Waha;
 
@@ -56,6 +57,7 @@ builder.Services.AddHttpClient<AiAutoReplyService>();
 builder.Services.AddScoped<UnansweredChatNotificationJob>();
 builder.Services.AddScoped<AiAutoReplyJob>();
 builder.Services.AddScoped<WacsDataSeeder>();
+builder.Services.AddScoped<HangfireRecurringJobScheduler>();
 
 var hangfireConnection = builder.Configuration.GetConnectionString("Hangfire");
 var hangfireEnabled = !string.IsNullOrWhiteSpace(hangfireConnection);
@@ -110,9 +112,9 @@ app.MapRazorComponents<App>()
 if (hangfireEnabled)
 {
     app.UseHangfireDashboard("/admin/jobs");
-    RecurringJob.AddOrUpdate<VTokenSyncJob>("vtoken-open-customers-sync", job => job.ExecuteAsync(CancellationToken.None), Cron.Hourly);
-    RecurringJob.AddOrUpdate<UnansweredChatNotificationJob>("unanswered-chat-notification", job => job.ExecuteAsync(CancellationToken.None), "*/5 * * * *");
-    RecurringJob.AddOrUpdate<AiAutoReplyJob>("ai-auto-reply", job => job.ExecuteAsync(CancellationToken.None), "*/2 * * * *");
+    using var schedulerScope = app.Services.CreateScope();
+    var scheduler = schedulerScope.ServiceProvider.GetRequiredService<HangfireRecurringJobScheduler>();
+    await scheduler.SyncAsync();
 }
 
 app.Run();

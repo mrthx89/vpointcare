@@ -44,9 +44,20 @@ public class WacsAuthService(VPointCareDbContext dbContext, IHttpContextAccessor
 
         if (pengguna is not null)
         {
+            var peran = await dbContext.Perans
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == pengguna.IdPeran, cancellationToken);
+
             claims.Add(new Claim("pengguna_id", pengguna.Id.ToString()));
             claims.Add(new Claim("pengguna_nama", pengguna.NamaPengguna));
             claims.Add(new Claim("peran_id", pengguna.IdPeran.ToString()));
+
+            if (peran is not null)
+            {
+                claims.Add(new Claim("peran_kode", peran.KodePeran));
+                claims.Add(new Claim("peran_nama", peran.NamaPeran));
+                claims.Add(new Claim(ClaimTypes.Role, peran.KodePeran));
+            }
         }
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -407,6 +407,25 @@ CREATE TABLE MPengaturanAi (
 );
 GO
 
+CREATE TABLE MPengaturanHangfireJob (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengaturanHangfireJob_Id DEFAULT NEWSEQUENTIALID(),
+    KodeJob varchar(100) NOT NULL,
+    NamaJob varchar(150) NOT NULL,
+    JobIdHangfire varchar(150) NOT NULL,
+    CronExpression varchar(100) NOT NULL,
+    Aktif bit NOT NULL CONSTRAINT DF_MPengaturanHangfireJob_Aktif DEFAULT 1,
+    Keterangan varchar(500) NULL,
+    NonAktif bit NOT NULL CONSTRAINT DF_MPengaturanHangfireJob_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MPengaturanHangfireJob_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MPengaturanHangfireJob PRIMARY KEY (Id),
+    CONSTRAINT UQ_MPengaturanHangfireJob_KodeJob UNIQUE (KodeJob),
+    CONSTRAINT UQ_MPengaturanHangfireJob_JobIdHangfire UNIQUE (JobIdHangfire)
+);
+GO
+
 CREATE TABLE MPengetahuan (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengetahuan_Id DEFAULT NEWSEQUENTIALID(),
     KodePengetahuan varchar(50) NOT NULL,
@@ -779,6 +798,7 @@ GO
 
 INSERT INTO MPeran (KodePeran, NamaPeran, Keterangan)
 VALUES
+('ROOT', 'Root', 'Akses tertinggi untuk pengaturan sistem'),
 ('ADMIN', 'Admin', 'Akses penuh aplikasi'),
 ('SUPERVISOR_CS', 'Supervisor CS', 'Monitoring dan pengaturan customer service'),
 ('CS', 'Customer Service', 'Menangani chat dan membuat ticket'),
@@ -885,4 +905,18 @@ VALUES (
     0,
     'DraftLokal'
 );
+GO
+
+INSERT INTO MPengaturanHangfireJob (
+    KodeJob,
+    NamaJob,
+    JobIdHangfire,
+    CronExpression,
+    Aktif,
+    Keterangan
+)
+VALUES
+('VTOKEN_OPEN_CUSTOMERS_SYNC', 'Sinkron VToken Open Customers', 'vtoken-open-customers-sync', '0 * * * *', 1, 'Sinkron data open customers dari VToken ke master instansi/customer.'),
+('UNANSWERED_CHAT_NOTIFICATION', 'Notifikasi Chat Belum Terbalas', 'unanswered-chat-notification', '*/5 * * * *', 1, 'Mengirim notifikasi internal untuk chat WhatsApp yang belum dibalas.'),
+('AI_AUTO_REPLY', 'AI Auto Reply', 'ai-auto-reply', '*/2 * * * *', 1, 'Memproses balasan otomatis AI untuk chat WhatsApp.');
 GO
