@@ -27,3 +27,163 @@ Thumbs.db
 .tools/
 [Ss]torage/
 storage/
+
+# =========================
+# Build results
+# =========================
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+*.csproj.user
+
+# =========================
+# Rider / JetBrains
+# =========================
+.idea/
+*.sln.iml
+
+# =========================
+# VS Code
+# =========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# =========================
+# .NET / ASP.NET Core
+# =========================
+project.lock.json
+project.fragment.lock.json
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.opencover.xml
+coverage.cobertura.xml
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!**/packages/build/
+*.nuspec
+
+# =========================
+# Publish output
+# =========================
+publish/
+Published/
+app.publish/
+*.Publish.xml
+*.pubxml.user
+
+# =========================
+# Logs
+# =========================
+logs/
+Logs/
+*.log
+log-*.txt
+serilog-*.txt
+
+# =========================
+# ASP.NET app settings
+# =========================
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Jangan commit secrets
+secrets.json
+.env
+.env.*
+!.env.example
+
+# =========================
+# User secrets
+# =========================
+*.usersecrets
+
+# =========================
+# Database files
+# =========================
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Blazor / MudBlazor / Frontend
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Jika pakai bundler seperti Vite/Webpack
+dist/
+wwwroot/dist/
+wwwroot/build/
+
+# =========================
+# Static web assets generated
+# =========================
+wwwroot/**/*.gz
+wwwroot/**/*.br
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.cache
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# IIS / hosting
+# =========================
+*.deploy.cmd
+*.SetParameters.xml
+*.SourceManifest.xml
+*.zip
+
+# =========================
+# Docker optional
+# =========================
+docker-compose.override.yml
