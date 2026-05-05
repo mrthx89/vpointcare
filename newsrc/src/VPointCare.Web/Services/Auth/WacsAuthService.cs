@@ -27,7 +27,7 @@ public class WacsAuthService(VPointCareDbContext dbContext, IHttpContextAccessor
 
         var pengguna = await dbContext.Penggunas
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.UserId == user.Id || x.Email == normalizedEmail, cancellationToken);
+            .FirstOrDefaultAsync(x => x.IdUser == user.Id || x.Email == normalizedEmail, cancellationToken);
 
         if (pengguna is not null && pengguna.NonAktif)
         {

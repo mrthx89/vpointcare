@@ -287,7 +287,7 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
             dbContext.Penggunas.Add(new MPengguna
             {
                 Id = Guid.NewGuid(),
-                UserId = user.Id,
+                IdUser = user.Id,
                 IdPeran = adminRole.Id,
                 NamaPengguna = name,
                 Email = email,
@@ -298,7 +298,7 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
             return;
         }
 
-        pengguna.UserId = user.Id;
+        pengguna.IdUser = user.Id;
         pengguna.IdPeran = adminRole.Id;
         pengguna.NamaPengguna = name;
         pengguna.Password = passwordHash;

@@ -44,7 +44,7 @@
         _roles = await Db.Perans.CountAsync();
         _rows = await (
             from user in Db.Users.AsNoTracking()
-            join pengguna in Db.Penggunas.AsNoTracking() on user.Id equals pengguna.UserId into penggunaJoin
+            join pengguna in Db.Penggunas.AsNoTracking() on user.Id equals pengguna.IdUser into penggunaJoin
             from pengguna in penggunaJoin.DefaultIfEmpty()
             orderby user.Name
             select new UserRow(user.Name, user.Email, user.Status, pengguna == null ? "-" : pengguna.NamaPengguna, pengguna == null ? null : pengguna.LoginTerakhirPada))
