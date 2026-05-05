@@ -82,7 +82,7 @@
         }
 
         _session = await (
-            from c in Db.ChatMasters.AsNoTracking()
+            from c in Db.TChatSet.AsNoTracking()
             join s in Db.MStatusChatSet.AsNoTracking() on c.IdStatusChat equals s.Id into statusJoin
             from s in statusJoin.DefaultIfEmpty()
             join n in Db.MNomorWhatsappSet.AsNoTracking() on c.IdNomorWhatsapp equals n.Id into nomorJoin
@@ -113,7 +113,7 @@
             return;
         }
 
-        _messages = await Db.ChatDetails.AsNoTracking()
+        _messages = await Db.TChatDSet.AsNoTracking()
             .Where(x => x.IdChat == chatId)
             .OrderBy(x => x.TglPesan)
             .Take(500)
@@ -127,7 +127,7 @@
             .ToListAsync();
 
         _notes = await (
-            from note in Db.TChatCatatanInternalSet.AsNoTracking()
+            from note in Db.TChatDCatatanInternalSet.AsNoTracking()
             join p in Db.Penggunas.AsNoTracking() on note.DibuatOleh equals p.Id into penggunaJoin
             from p in penggunaJoin.DefaultIfEmpty()
             where note.IdChat == chatId

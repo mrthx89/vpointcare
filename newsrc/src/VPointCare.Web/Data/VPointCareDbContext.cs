@@ -30,14 +30,14 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
     public DbSet<TLogError> TLogErrorSet => Set<TLogError>();
     public DbSet<TLogIntegrasi> LogIntegrasis => Set<TLogIntegrasi>();
     public DbSet<TLogWebhookWaha> LogWebhookWahas => Set<TLogWebhookWaha>();
-    public DbSet<TChat> ChatMasters => Set<TChat>();
-    public DbSet<TChatD> ChatDetails => Set<TChatD>();
-    public DbSet<TChatDPenugasan> TChatPenugasanSet => Set<TChatDPenugasan>();
-    public DbSet<TChatDCatatanInternal> TChatCatatanInternalSet => Set<TChatDCatatanInternal>();
-    public DbSet<TTicket> TTicketMSet => Set<TTicket>();
+    public DbSet<TChat> TChatSet => Set<TChat>();
+    public DbSet<TChatD> TChatDSet => Set<TChatD>();
+    public DbSet<TChatDPenugasan> TChatDPenugasanSet => Set<TChatDPenugasan>();
+    public DbSet<TChatDCatatanInternal> TChatDCatatanInternalSet => Set<TChatDCatatanInternal>();
+    public DbSet<TTicket> TTicketSet => Set<TTicket>();
     public DbSet<TTicketD> TTicketDSet => Set<TTicketD>();
-    public DbSet<TTicketDPenugasan> TTicketPenugasanSet => Set<TTicketDPenugasan>();
-    public DbSet<TTicketDLampiran> TTicketLampiranSet => Set<TTicketDLampiran>();
+    public DbSet<TTicketDPenugasan> TTicketDPenugasanSet => Set<TTicketDPenugasan>();
+    public DbSet<TTicketDLampiran> TTicketDLampiranSet => Set<TTicketDLampiran>();
     public DbSet<TAiPermintaan> TAiPermintaanSet => Set<TAiPermintaan>();
     public DbSet<TAiRespon> TAiResponSet => Set<TAiRespon>();
 

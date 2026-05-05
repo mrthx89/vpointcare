@@ -55,7 +55,7 @@ public class UnansweredChatNotificationJob(
                 }
             }
 
-            await dbContext.ChatMasters
+            await dbContext.TChatSet
                 .Where(x => x.Id == chat.Id)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(x => x.TglNotifikasiBelumTerbalasTerakhir, DateTime.UtcNow)
@@ -130,20 +130,20 @@ public class UnansweredChatNotificationJob(
         var incomingCutoff = DateTime.UtcNow.AddMinutes(-waitMinutes);
         var cooldownCutoff = DateTime.UtcNow.AddMinutes(-cooldownMinutes);
 
-        var latestIncoming = dbContext.ChatDetails
+        var latestIncoming = dbContext.TChatDSet
             .Where(x => x.ArahPesan == "Masuk" && x.DikirimOlehCustomer)
             .GroupBy(x => x.IdChat)
-            .Select(group => new { IdChatM = group.Key, TglPesanTerakhirMasuk = group.Max(x => x.TglPesan) });
+            .Select(group => new { IdChat = group.Key, TglPesanTerakhirMasuk = group.Max(x => x.TglPesan) });
 
-        var latestCsReply = dbContext.ChatDetails
+        var latestCsReply = dbContext.TChatDSet
             .Where(x => x.ArahPesan == "Keluar" && !x.DihasilkanOlehAi)
             .GroupBy(x => x.IdChat)
-            .Select(group => new { IdChatM = group.Key, TglPesanTerakhirCs = group.Max(x => x.TglPesan) });
+            .Select(group => new { IdChat = group.Key, TglPesanTerakhirCs = group.Max(x => x.TglPesan) });
 
         var rows = await (
-            from chat in dbContext.ChatMasters.AsNoTracking()
-            join incoming in latestIncoming on chat.Id equals incoming.IdChatM
-            join csReply in latestCsReply on chat.Id equals csReply.IdChatM into csReplyJoin
+            from chat in dbContext.TChatSet.AsNoTracking()
+            join incoming in latestIncoming on chat.Id equals incoming.IdChat
+            join csReply in latestCsReply on chat.Id equals csReply.IdChat into csReplyJoin
             from csReply in csReplyJoin.DefaultIfEmpty()
             join instansi in dbContext.MInstansiSet.AsNoTracking() on chat.IdInstansi equals instansi.Id into instansiJoin
             from instansi in instansiJoin.DefaultIfEmpty()
@@ -169,7 +169,7 @@ public class UnansweredChatNotificationJob(
         for (var i = 0; i < rows.Count; i++)
         {
             var row = rows[i];
-            var lastMessage = await dbContext.ChatDetails
+            var lastMessage = await dbContext.TChatDSet
                 .AsNoTracking()
                 .Where(x => x.IdChat == row.Id && x.ArahPesan == "Masuk" && x.TglPesan == row.TglPesanTerakhirMasuk)
                 .Select(x => x.IsiPesan)

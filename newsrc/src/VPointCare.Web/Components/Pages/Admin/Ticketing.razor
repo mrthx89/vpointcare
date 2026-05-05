@@ -44,13 +44,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _totalTicket = await Db.TTicketMSet.CountAsync();
-        _openTicket = await Db.TTicketMSet.CountAsync(x => x.TglDitutup == null && x.TglSelesai == null);
-        _assignedTicket = await Db.TTicketMSet.CountAsync(x => x.DitugaskanKepada != null);
-        _closedTicket = await Db.TTicketMSet.CountAsync(x => x.TglDitutup != null || x.TglSelesai != null);
+        _totalTicket = await Db.TTicketSet.CountAsync();
+        _openTicket = await Db.TTicketSet.CountAsync(x => x.TglDitutup == null && x.TglSelesai == null);
+        _assignedTicket = await Db.TTicketSet.CountAsync(x => x.DitugaskanKepada != null);
+        _closedTicket = await Db.TTicketSet.CountAsync(x => x.TglDitutup != null || x.TglSelesai != null);
 
         _tickets = await (
-            from t in Db.TTicketMSet.AsNoTracking()
+            from t in Db.TTicketSet.AsNoTracking()
             join s in Db.MStatusTicketSet.AsNoTracking() on t.IdStatusTicket equals s.Id into statusJoin
             from s in statusJoin.DefaultIfEmpty()
             join p in Db.MPrioritasTicketSet.AsNoTracking() on t.IdPrioritasTicket equals p.Id into priorityJoin

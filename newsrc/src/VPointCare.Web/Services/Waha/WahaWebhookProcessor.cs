@@ -50,7 +50,7 @@ public class WahaWebhookProcessor(
 
             if (!string.IsNullOrWhiteSpace(parsed.MessageId))
             {
-                var duplicate = await dbContext.ChatDetails
+                var duplicate = await dbContext.TChatDSet
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.IdPesanWaha == parsed.MessageId, cancellationToken);
 
@@ -87,7 +87,7 @@ public class WahaWebhookProcessor(
                 TglBuat = now
             };
 
-            dbContext.ChatDetails.Add(chatMessage);
+            dbContext.TChatDSet.Add(chatMessage);
             chat.TglChatTerakhir = parsed.MessageAt;
             chat.TglEdit = now;
             if (!parsed.FromMe)
@@ -152,7 +152,7 @@ public class WahaWebhookProcessor(
 
     private async Task<TChat> FindOrCreateChatAsync(Guid sessionId, ParsedWahaMessage parsed, DateTime now, CancellationToken cancellationToken)
     {
-        var query = dbContext.ChatMasters.Where(x => x.IdSesiWhatsapp == sessionId && x.JenisChat == parsed.ChatType);
+        var query = dbContext.TChatSet.Where(x => x.IdSesiWhatsapp == sessionId && x.JenisChat == parsed.ChatType);
         query = parsed.ChatType == "Grup"
             ? query.Where(x => x.IdWahaTerdeteksi == parsed.ChatJid)
             : query.Where(x => x.NomorWhatsapp == parsed.SenderPhone);
@@ -181,7 +181,7 @@ public class WahaWebhookProcessor(
             TglChatTerakhir = parsed.MessageAt,
             TglBuat = now
         };
-        dbContext.ChatMasters.Add(chat);
+        dbContext.TChatSet.Add(chat);
         await dbContext.SaveChangesAsync(cancellationToken);
         return chat;
     }

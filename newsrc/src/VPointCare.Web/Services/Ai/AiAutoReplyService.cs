@@ -33,7 +33,7 @@ public class AiAutoReplyService(
             return null;
         }
 
-        var latestIncoming = await dbContext.ChatDetails
+        var latestIncoming = await dbContext.TChatDSet
             .AsNoTracking()
             .Where(x => x.IdChat == chatId && x.ArahPesan == "Masuk" && x.DikirimOlehCustomer && x.IsiPesan != null)
             .OrderByDescending(x => x.TglPesan)
@@ -44,7 +44,7 @@ public class AiAutoReplyService(
             return null;
         }
 
-        var alreadyAnswered = await dbContext.ChatDetails
+        var alreadyAnswered = await dbContext.TChatDSet
             .AsNoTracking()
             .AnyAsync(x => x.IdChat == chatId
                 && x.ArahPesan == "Keluar"
@@ -130,7 +130,7 @@ public class AiAutoReplyService(
 
         var delivery = await StoreReplyAsync(settings, chat, reply, responseId, decision.Mode, cancellationToken);
 
-        await dbContext.ChatMasters
+        await dbContext.TChatSet
             .Where(x => x.Id == chatId)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(x => x.AiSudahMenyapa, x => decision.Mode == "Sapaan Jam Kerja" || x.AiSudahMenyapa)
@@ -216,7 +216,7 @@ public class AiAutoReplyService(
     private async Task<AiChatContext?> LoadChatContextAsync(Guid chatId, CancellationToken cancellationToken)
     {
         return await (
-            from chat in dbContext.ChatMasters.AsNoTracking()
+            from chat in dbContext.TChatSet.AsNoTracking()
             join session in dbContext.SesiWhatsapps.AsNoTracking() on chat.IdSesiWhatsapp equals session.Id into sessionJoin
             from session in sessionJoin.DefaultIfEmpty()
             join instansi in dbContext.MInstansiSet.AsNoTracking() on chat.IdInstansi equals instansi.Id into instansiJoin
@@ -324,7 +324,7 @@ public class AiAutoReplyService(
     private async Task<string> BuildPromptAsync(MPengaturanAi settings, AiChatContext chat, string template, CancellationToken cancellationToken)
     {
         var limit = Math.Max(1, Math.Min(settings.BatasRiwayatPesan, 20));
-        var rows = await dbContext.ChatDetails
+        var rows = await dbContext.TChatDSet
             .AsNoTracking()
             .Where(x => x.IdChat == chat.Id)
             .OrderByDescending(x => x.TglPesan)
@@ -498,7 +498,7 @@ public class AiAutoReplyService(
             error = sent.Error;
         }
 
-        dbContext.ChatDetails.Add(new TChatD
+        dbContext.TChatDSet.Add(new TChatD
         {
             Id = Guid.NewGuid(),
             IdChat = chat.Id,
@@ -521,7 +521,7 @@ public class AiAutoReplyService(
 
     private async Task<string?> LatestIncomingWahaChatIdAsync(Guid chatId, CancellationToken cancellationToken)
     {
-        var payloadJson = await dbContext.ChatDetails
+        var payloadJson = await dbContext.TChatDSet
             .AsNoTracking()
             .Where(x => x.IdChat == chatId && x.ArahPesan == "Masuk" && x.PayloadJson != null)
             .OrderByDescending(x => x.TglPesan)

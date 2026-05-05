@@ -8,8 +8,8 @@ public class DashboardQueryService(VPointCareDbContext dbContext)
     public async Task<DashboardSnapshot> GetSnapshotAsync(CancellationToken cancellationToken = default)
     {
         var today = DateTime.UtcNow.Date;
-        var chats = dbContext.ChatMasters.AsNoTracking();
-        var messages = dbContext.ChatDetails.AsNoTracking();
+        var chats = dbContext.TChatSet.AsNoTracking();
+        var messages = dbContext.TChatDSet.AsNoTracking();
 
         var totalChats = await chats.CountAsync(cancellationToken);
         var unread = await chats.SumAsync(x => (int?)x.JumlahPesanBelumDibaca, cancellationToken) ?? 0;

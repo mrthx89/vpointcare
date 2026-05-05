@@ -50,8 +50,8 @@
     {
         _settings = await Db.MPengaturanAiSet.AsNoTracking().FirstOrDefaultAsync(x => x.KodePengaturan == "DEFAULT" && !x.NonAktif);
         _workHour = _settings is null ? "-" : $"{_settings.JamKerjaMulai:hh\\:mm} - {_settings.JamKerjaSelesai:hh\\:mm}";
-        _autoChats = await Db.ChatMasters.CountAsync(x => x.AutoReplyAiAktif);
-        _aiReplies = await Db.ChatDetails.CountAsync(x => x.DihasilkanOlehAi);
+        _autoChats = await Db.TChatSet.CountAsync(x => x.AutoReplyAiAktif);
+        _aiReplies = await Db.TChatDSet.CountAsync(x => x.DihasilkanOlehAi);
         _knowledgeCount = await Db.MPengetahuanSet.CountAsync(x => !x.NonAktif);
         _holidayCount = await Db.MHariLiburSet.CountAsync(x => !x.NonAktif);
         _requests = await Db.TAiPermintaanSet.AsNoTracking().OrderByDescending(x => x.TglBuat).Take(25).ToListAsync();

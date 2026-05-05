@@ -8,23 +8,23 @@ public class AiAutoReplyJob(VPointCareDbContext dbContext, AiAutoReplyService ai
 {
     public async Task<int> ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var latestIncoming = dbContext.ChatDetails
+        var latestIncoming = dbContext.TChatDSet
             .Where(x => x.ArahPesan == "Masuk" && x.DikirimOlehCustomer && x.IsiPesan != null)
             .GroupBy(x => x.IdChat)
-            .Select(group => new { IdChatM = group.Key, TglPesanTerakhirMasuk = group.Max(x => x.TglPesan) });
+            .Select(group => new { IdChat = group.Key, TglPesanTerakhirMasuk = group.Max(x => x.TglPesan) });
 
-        var latestAiReply = dbContext.ChatDetails
+        var latestAiReply = dbContext.TChatDSet
             .Where(x => x.ArahPesan == "Keluar" && x.DihasilkanOlehAi)
             .GroupBy(x => x.IdChat)
-            .Select(group => new { IdChatM = group.Key, TglPesanTerakhirAi = group.Max(x => x.TglPesan) });
+            .Select(group => new { IdChat = group.Key, TglPesanTerakhirAi = group.Max(x => x.TglPesan) });
 
         var chatIds = await (
             from incoming in latestIncoming
-            join aiReply in latestAiReply on incoming.IdChatM equals aiReply.IdChatM into aiReplyJoin
+            join aiReply in latestAiReply on incoming.IdChat equals aiReply.IdChat into aiReplyJoin
             from aiReply in aiReplyJoin.DefaultIfEmpty()
             where aiReply == null || aiReply.TglPesanTerakhirAi < incoming.TglPesanTerakhirMasuk
             orderby incoming.TglPesanTerakhirMasuk
-            select incoming.IdChatM)
+            select incoming.IdChat)
             .Take(20)
             .ToListAsync(cancellationToken);
 
