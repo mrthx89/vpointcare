@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VPointCare.Web.Data.Entities;
+using VPointCare.Web.Services.Auth;
 
 namespace VPointCare.Web.Data;
 
@@ -10,6 +11,9 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
         var now = DateTime.UtcNow;
 
         await SeedRolesAsync(now, cancellationToken);
+        await SeedHakAksesAsync(now, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await SeedPeranHakAksesAsync(now, cancellationToken);
         await SeedChatStatusesAsync(now, cancellationToken);
         await SeedTicketStatusesAsync(now, cancellationToken);
         await SeedTicketPrioritiesAsync(now, cancellationToken);
@@ -24,7 +28,6 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
 
     private async Task SeedRolesAsync(DateTime now, CancellationToken cancellationToken)
     {
-        await UpsertRoleAsync("ROOT", "Root", "Akses tertinggi untuk pengaturan sistem", now, cancellationToken);
         await UpsertRoleAsync("ADMIN", "Admin", "Akses penuh aplikasi", now, cancellationToken);
         await UpsertRoleAsync("SUPERVISOR_CS", "Supervisor CS", "Monitoring dan pengaturan customer service", now, cancellationToken);
         await UpsertRoleAsync("CS", "Customer Service", "Menangani chat dan membuat ticket", now, cancellationToken);
@@ -53,6 +56,138 @@ public class WacsDataSeeder(VPointCareDbContext dbContext, IConfiguration config
         row.Keterangan = description;
         row.NonAktif = false;
         row.TglEdit = now;
+    }
+
+    private async Task SeedHakAksesAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        await UpsertHakAksesAsync(AppPermissions.MenuDashboard, "Dashboard", "Utama", "Akses menu dashboard", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuInboxWhatsapp, "Inbox WhatsApp", "Operasional", "Akses menu inbox WhatsApp", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuTicketing, "Ticketing", "Operasional", "Akses menu ticketing", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuAiAgent, "AI Agent", "Asisten AI", "Akses menu AI Agent", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuKnowledgeBaseAi, "Knowledge Base AI", "Asisten AI", "Akses menu knowledge base AI", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuHariLibur, "Hari Libur", "Asisten AI", "Akses menu hari libur", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuMasterCustomer, "Ringkasan Customer", "Master Data", "Akses ringkasan master customer", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuInstansi, "Klien / Instansi", "Master Data", "Akses master instansi", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuCustomer, "Kontak Customer", "Master Data", "Akses master customer", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuNomorWhatsapp, "Nomor WhatsApp", "Master Data", "Akses master nomor WhatsApp", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuGrupWhatsapp, "Grup WhatsApp", "Master Data", "Akses master grup WhatsApp", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuAnggotaGrup, "Anggota Grup", "Master Data", "Akses master anggota grup", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuLogData, "Log Data", "Monitoring", "Akses menu log data", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuHangfireJobs, "Hangfire Jobs", "Monitoring", "Akses dashboard Hangfire", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuPengaturanJobs, "Pengaturan Jobs", "Pengaturan", "Akses pengaturan jadwal Hangfire", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuUsers, "MUser", "Pengaturan", "Akses user login", now, cancellationToken);
+        await UpsertHakAksesAsync(AppPermissions.MenuPenggunaInternal, "Pengguna Internal", "Pengaturan", "Akses pengguna internal", now, cancellationToken);
+    }
+
+    private async Task UpsertHakAksesAsync(string code, string name, string module, string description, DateTime now, CancellationToken cancellationToken)
+    {
+        var row = await dbContext.MHakAksesSet.FirstOrDefaultAsync(x => x.KodeHakAkses == code, cancellationToken);
+        if (row is null)
+        {
+            dbContext.MHakAksesSet.Add(new MHakAkses
+            {
+                Id = Guid.NewGuid(),
+                KodeHakAkses = code,
+                NamaHakAkses = name,
+                Modul = module,
+                Keterangan = description,
+                NonAktif = false,
+                TglBuat = now
+            });
+            return;
+        }
+
+        row.NamaHakAkses = name;
+        row.Modul = module;
+        row.Keterangan = description;
+        row.NonAktif = false;
+        row.TglEdit = now;
+    }
+
+    private async Task SeedPeranHakAksesAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        await UpsertPeranHakAksesAsync("ADMIN", AppPermissions.All, now, cancellationToken);
+        await UpsertPeranHakAksesAsync("SUPERVISOR_CS",
+        [
+            AppPermissions.MenuDashboard,
+            AppPermissions.MenuInboxWhatsapp,
+            AppPermissions.MenuTicketing,
+            AppPermissions.MenuAiAgent,
+            AppPermissions.MenuKnowledgeBaseAi,
+            AppPermissions.MenuHariLibur,
+            AppPermissions.MenuMasterCustomer,
+            AppPermissions.MenuInstansi,
+            AppPermissions.MenuCustomer,
+            AppPermissions.MenuNomorWhatsapp,
+            AppPermissions.MenuGrupWhatsapp,
+            AppPermissions.MenuAnggotaGrup,
+            AppPermissions.MenuLogData
+        ], now, cancellationToken);
+        await UpsertPeranHakAksesAsync("CS",
+        [
+            AppPermissions.MenuDashboard,
+            AppPermissions.MenuInboxWhatsapp,
+            AppPermissions.MenuTicketing,
+            AppPermissions.MenuMasterCustomer,
+            AppPermissions.MenuInstansi,
+            AppPermissions.MenuCustomer,
+            AppPermissions.MenuNomorWhatsapp,
+            AppPermissions.MenuGrupWhatsapp,
+            AppPermissions.MenuAnggotaGrup
+        ], now, cancellationToken);
+        await UpsertPeranHakAksesAsync("DEVELOPER",
+        [
+            AppPermissions.MenuDashboard,
+            AppPermissions.MenuTicketing,
+            AppPermissions.MenuKnowledgeBaseAi
+        ], now, cancellationToken);
+        await UpsertPeranHakAksesAsync("VIEWER",
+        [
+            AppPermissions.MenuDashboard,
+            AppPermissions.MenuMasterCustomer,
+            AppPermissions.MenuInstansi,
+            AppPermissions.MenuCustomer,
+            AppPermissions.MenuNomorWhatsapp,
+            AppPermissions.MenuGrupWhatsapp,
+            AppPermissions.MenuAnggotaGrup
+        ], now, cancellationToken);
+    }
+
+    private async Task UpsertPeranHakAksesAsync(string roleCode, IEnumerable<string> permissionCodes, DateTime now, CancellationToken cancellationToken)
+    {
+        var role = await dbContext.Perans.FirstOrDefaultAsync(x => x.KodePeran == roleCode, cancellationToken);
+        if (role is null)
+        {
+            return;
+        }
+
+        foreach (var permissionCode in permissionCodes)
+        {
+            var access = await dbContext.MHakAksesSet.FirstOrDefaultAsync(x => x.KodeHakAkses == permissionCode, cancellationToken);
+            if (access is null)
+            {
+                continue;
+            }
+
+            var row = await dbContext.MPeranHakAksesSet
+                .FirstOrDefaultAsync(x => x.IdPeran == role.Id && x.IdHakAkses == access.Id, cancellationToken);
+
+            if (row is null)
+            {
+                dbContext.MPeranHakAksesSet.Add(new MPeranHakAkses
+                {
+                    Id = Guid.NewGuid(),
+                    IdPeran = role.Id,
+                    IdHakAkses = access.Id,
+                    NonAktif = false,
+                    TglBuat = now
+                });
+                continue;
+            }
+
+            row.NonAktif = false;
+            row.TglEdit = now;
+        }
     }
 
     private async Task SeedChatStatusesAsync(DateTime now, CancellationToken cancellationToken)

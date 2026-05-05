@@ -1,59 +1,558 @@
 @page "/admin/ai-agent"
 @attribute [Authorize]
 @inject VPointCare.Web.Data.VPointCareDbContext Db
+@inject ISnackbar Snackbar
 @using Microsoft.EntityFrameworkCore
+@using VPointCare.Web.Data.Entities
 
 <PageTitle>AI Agent - VPoint Care</PageTitle>
 
-<MudStack Spacing="3">
+<MudStack Spacing="4">
     <div>
         <MudText Typo="Typo.h5">AI Agent</MudText>
-        <MudText Typo="Typo.body2" Color="Color.Secondary">Konfigurasi auto reply, provider AI, knowledge base, dan riwayat permintaan AI.</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Konfigurasi auto reply, provider AI, knowledge base, dan notifikasi customer service.</MudText>
     </div>
 
     <MudGrid>
-        <MudItem xs="12" md="4"><MudPaper Class="section-panel" Elevation="0"><MudText Typo="Typo.subtitle1">Setting DEFAULT</MudText><MudText Typo="Typo.body2">Auto Reply: @(_settings?.AutoReplyAktif == true ? "Aktif" : "Nonaktif")</MudText><MudText Typo="Typo.body2">Provider: @(_settings?.ProviderAi ?? "-")</MudText><MudText Typo="Typo.body2">Jam Kerja: @_workHour</MudText></MudPaper></MudItem>
-        <MudItem xs="12" md="8">
-            <MudGrid>
-                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.SmartToy" /><span>Chat Auto</span><strong>@_autoChats</strong></MudPaper></MudItem>
-                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.AutoAwesome" /><span>Balasan AI</span><strong>@_aiReplies</strong></MudPaper></MudItem>
-                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.Book" /><span>Knowledge</span><strong>@_knowledgeCount</strong></MudPaper></MudItem>
-                <MudItem xs="6" md="3"><MudPaper Class="metric-tile" Elevation="0"><MudIcon Icon="@Icons.Material.Filled.EventBusy" /><span>Hari Libur</span><strong>@_holidayCount</strong></MudPaper></MudItem>
-            </MudGrid>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-tile" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.PowerSettingsNew" />
+                <span>Auto reply aktif</span>
+                <strong>@(_form.AutoReplyAktif ? "Aktif" : "Nonaktif")</strong>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-tile" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.SmartToy" />
+                <span>Sesi auto reply</span>
+                <strong>@_autoChats</strong>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-tile" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" />
+                <span>Balasan AI</span>
+                <strong>@_aiReplies</strong>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-tile" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.NotificationsActive" />
+                <span>Penerima notif</span>
+                <strong>@_notificationRecipients</strong>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid>
+        <MudItem xs="12" xl="8">
+            <MudStack Spacing="3">
+                <MudPaper Class="section-panel" Elevation="0">
+                    <div class="section-header-row">
+                        <div>
+                            <MudText Typo="Typo.subtitle1">Mode Auto Reply</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Atur kapan AI boleh menjawab chat WhatsApp.</MudText>
+                        </div>
+                    </div>
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="ai-option-panel" Elevation="0">
+                                <MudSwitch T="bool" @bind-Value="_form.AutoReplyAktif" Color="Color.Success">Aktifkan AI Agent</MudSwitch>
+                                <MudText Typo="Typo.caption">Jika mati, webhook hanya menyimpan chat tanpa balasan AI.</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="ai-option-panel" Elevation="0">
+                                <MudSwitch T="bool" @bind-Value="_form.AutoReplyDiluarJamKerja" Color="Color.Success">Balas di luar jam kerja</MudSwitch>
+                                <MudText Typo="Typo.caption">AI mengirim kalimat halus saat kantor tutup.</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="ai-option-panel" Elevation="0">
+                                <MudSwitch T="bool" @bind-Value="_form.AutoReplyHariLibur" Color="Color.Success">Balas saat hari libur</MudSwitch>
+                                <MudText Typo="Typo.caption">Tanggal libur diambil dari master Hari Libur.</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudPaper Class="ai-option-panel" Elevation="0">
+                                <MudSwitch T="bool" @bind-Value="_form.AutoReplyJamKerjaSapaan" Color="Color.Success">Sapaan awal jam kerja</MudSwitch>
+                                <MudText Typo="Typo.caption">AI menyapa satu kali, lalu CS melanjutkan.</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudPaper Class="ai-option-panel" Elevation="0">
+                                <MudSwitch T="bool" @bind-Value="_form.AutoReplyJamKerjaBerlanjut" Color="Color.Warning">Berlanjut untuk semua sesi</MudSwitch>
+                                <MudText Typo="Typo.caption">AI terus menjawab saat jam kerja. Lebih aman memakai kontrol per sesi di Inbox.</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudPaper Class="section-panel" Elevation="0">
+                    <div class="section-header-row">
+                        <div>
+                            <MudText Typo="Typo.subtitle1">Jam Kerja</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Di luar jadwal ini AI memakai mode luar jam kerja.</MudText>
+                        </div>
+                    </div>
+                    <MudGrid>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="_form.JamKerjaMulai" Label="Mulai" Placeholder="08:00" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="_form.JamKerjaSelesai" Label="Selesai" Placeholder="17:00" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <MudTextField @bind-Value="_form.ZonaWaktu" Label="Zona waktu" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudText Typo="Typo.body2" Class="mt-3">Hari kerja</MudText>
+                    <MudGrid Class="mt-1">
+                        @foreach (var day in _workDays)
+                        {
+                            <MudItem xs="6" sm="4" md="2">
+                                <MudCheckBox T="bool" Value="@IsWorkDay(day.Value)" ValueChanged="@((bool selected) => SetWorkDay(day.Value, selected))" Label="@day.Label" Color="Color.Primary" />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudPaper>
+
+                <MudPaper Class="section-panel" Elevation="0">
+                    <div class="section-header-row">
+                        <div>
+                            <MudText Typo="Typo.subtitle1">Kalimat dan Prompt</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Semua balasan dibuat singkat dan sopan dengan konteks chat terakhir.</MudText>
+                        </div>
+                    </div>
+                    <MudTextField @bind-Value="_form.PromptSistem" Label="Prompt sistem" Lines="5" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudGrid>
+                        <MudItem xs="12" lg="6">
+                            <MudTextField @bind-Value="_form.TemplateDiluarJamKerja" Label="Template luar jam kerja" Lines="6" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" lg="6">
+                            <MudTextField @bind-Value="_form.TemplateHariLibur" Label="Template hari libur" HelperText="Placeholder: {nama_hari_libur}, {tanggal_libur}, {tanggal_masuk_kerja}" Lines="6" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" lg="6">
+                            <MudTextField @bind-Value="_form.TemplateJamKerjaSapaan" Label="Template sapaan jam kerja" Lines="6" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" lg="6">
+                            <MudTextField @bind-Value="_form.TemplateFallback" Label="Template berlanjut" Lines="6" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="12" xl="4">
+            <MudStack Spacing="3">
+                <MudPaper Class="section-panel" Elevation="0">
+                    <MudText Typo="Typo.subtitle1">Provider AI</MudText>
+                    <MudStack Spacing="2" Class="mt-3">
+                        @foreach (var preset in _providerPresets)
+                        {
+                            var selected = string.Equals(_form.ProviderAi, preset.Provider, StringComparison.OrdinalIgnoreCase);
+                            <MudButton Variant="@(selected ? Variant.Filled : Variant.Outlined)" Color="@(selected ? Color.Primary : Color.Default)" FullWidth="true" Class="provider-preset-button" OnClick="@(() => ApplyProviderPreset(preset.Provider))">
+                                <div>
+                                    <strong>@preset.Label</strong>
+                                    <span>@preset.KeyLabel</span>
+                                    <small>@preset.Summary</small>
+                                </div>
+                            </MudButton>
+                        }
+                    </MudStack>
+
+                    <MudSelect T="string" Value="@_form.ProviderAi" ValueChanged="OnProviderChanged" Label="Provider" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var preset in _providerPresets)
+                        {
+                            <MudSelectItem Value="@preset.Provider">@preset.Label</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField @bind-Value="_form.ModelAi" Label="Model" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudTextField @bind-Value="_form.BaseUrl" Label="Endpoint" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudTextField Value="@_apiKeyDisplay" Label="API key provider terpilih" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" InputType="InputType.Password" HelperText="@_apiKeyInfo" />
+                </MudPaper>
+
+                <MudPaper Class="section-panel" Elevation="0">
+                    <MudText Typo="Typo.subtitle1">Pengiriman</MudText>
+                    <MudPaper Class="ai-option-panel warning" Elevation="0">
+                        <MudSwitch T="bool" @bind-Value="_form.KirimKeWaha" Color="Color.Warning">Kirim langsung ke WAHA</MudSwitch>
+                        <MudText Typo="Typo.caption">Jika nonaktif, balasan AI disimpan sebagai draft lokal di chat.</MudText>
+                    </MudPaper>
+                    <MudSelect T="string" @bind-Value="_form.ModeKirim" Label="Mode kirim" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem Value="@("DraftLokal")">Draft lokal</MudSelectItem>
+                        <MudSelectItem Value="@("KirimWaha")">Kirim WAHA</MudSelectItem>
+                    </MudSelect>
+                    <MudNumericField T="int" @bind-Value="_form.BatasRiwayatPesan" Label="Batas riwayat pesan" Min="1" Max="20" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudPaper>
+
+                <MudPaper Class="section-panel" Elevation="0">
+                    <MudText Typo="Typo.subtitle1">Notifikasi CS</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Job mengirim WhatsApp ke user internal hanya saat jam kerja aktif dan bukan hari libur.</MudText>
+                    <MudPaper Class="ai-option-panel" Elevation="0">
+                        <MudSwitch T="bool" @bind-Value="_form.NotifikasiChatBelumTerbalasAktif" Color="Color.Success">Aktifkan notifikasi chat belum terbalas</MudSwitch>
+                        <MudText Typo="Typo.caption">Nomor user diambil dari data pengguna aktif.</MudText>
+                    </MudPaper>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="int" @bind-Value="_form.MenitTungguNotifikasi" Label="Kirim setelah menit" Min="1" Max="1440" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="int" @bind-Value="_form.JedaNotifikasiMenit" Label="Jeda pengingat ulang" Min="1" Max="1440" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudTextField @bind-Value="_form.KodePeranPenerimaNotifikasi" Label="Role penerima" Placeholder="ADMIN,SUPERVISOR_CS,CS" HelperText="Pisahkan kode role dengan koma. User harus memiliki Nomor WhatsApp Internal." Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudTextField @bind-Value="_form.TemplateNotifikasiChatBelumTerbalas" Label="Template notifikasi" HelperText="Placeholder: {nama_user}, {nama_instansi}, {jenis_chat}, {nama_kontak}, {nomor_whatsapp}, {pesan_terakhir}, {menit_menunggu}, {url_admin}" Lines="6" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudPaper>
+
+                <MudStack Row="true" Justify="Justify.FlexEnd">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveAsync">Simpan Pengaturan</MudButton>
+                </MudStack>
+            </MudStack>
         </MudItem>
     </MudGrid>
 
     <MudPaper Class="section-panel" Elevation="0">
-        <div class="section-header-row"><MudText Typo="Typo.subtitle1">Permintaan AI Terakhir</MudText><MudButton Href="/admin/ai-agent/knowledge-base" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Book">Knowledge Base</MudButton></div>
-        <table class="data-table">
-            <thead><tr><th>Jenis</th><th>Provider</th><th>Model</th><th>Status</th><th>Mulai</th></tr></thead>
-            <tbody>
-                @foreach (var row in _requests)
-                {
-                    <tr><td>@row.JenisPermintaan</td><td>@row.ProviderAi</td><td>@row.ModelAi</td><td>@row.StatusPermintaan</td><td>@(row.TglMulai?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
-                }
-            </tbody>
-        </table>
+        <div class="section-header-row">
+            <MudText Typo="Typo.subtitle1">Permintaan AI Terakhir</MudText>
+            <MudButton Href="/admin/ai-agent/knowledge-base" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Book">Knowledge Base</MudButton>
+        </div>
+        <MudTable T="TAiPermintaan" Items="@_requests" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterRow">
+            <ToolBarContent>
+                <MudText Typo="Typo.subtitle1">Riwayat Permintaan AI</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_search" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<TAiPermintaan, object>(x => x.JenisPermintaan)">Jenis</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<TAiPermintaan, object>(x => x.ProviderAi)">Provider</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<TAiPermintaan, object?>(x => x.ModelAi)">Model</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<TAiPermintaan, object>(x => x.StatusPermintaan)">Status</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<TAiPermintaan, object?>(x => x.TglMulai)">Mulai</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Jenis">@context.JenisPermintaan</MudTd>
+                <MudTd DataLabel="Provider">@context.ProviderAi</MudTd>
+                <MudTd DataLabel="Model">@context.ModelAi</MudTd>
+                <MudTd DataLabel="Status">@context.StatusPermintaan</MudTd>
+                <MudTd DataLabel="Mulai">@(context.TglMulai?.ToString("dd/MM/yyyy HH:mm") ?? "-")</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
     </MudPaper>
 </MudStack>
 
 @code {
-    private VPointCare.Web.Data.Entities.MPengaturanAi? _settings;
-    private string _workHour = "-";
+    private readonly AiSettingsForm _form = new();
+    private readonly HashSet<string> _selectedWorkDays = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IReadOnlyList<WorkDayOption> _workDays =
+    [
+        new("1", "Sen"),
+        new("2", "Sel"),
+        new("3", "Rab"),
+        new("4", "Kam"),
+        new("5", "Jum"),
+        new("6", "Sab"),
+        new("7", "Min")
+    ];
+    private readonly IReadOnlyList<ProviderPreset> _providerPresets =
+    [
+        new("OpenAI", "OpenAI", "Stabil untuk customer service.", "gpt-5", "https://api.openai.com/v1/responses", "OPENAI_API_KEY"),
+        new("DeepSeek", "DeepSeek", "Alternatif hemat dengan API sendiri.", "deepseek-chat", "https://api.deepseek.com/chat/completions", "DEEPSEEK_API_KEY"),
+        new("OpenRouter", "OpenRouter", "Router banyak model, termasuk opsi free.", "deepseek/deepseek-chat-v3.1:free", "https://openrouter.ai/api/v1/chat/completions", "OPENROUTER_API_KEY")
+    ];
+
     private int _autoChats;
     private int _aiReplies;
-    private int _knowledgeCount;
-    private int _holidayCount;
-    private List<VPointCare.Web.Data.Entities.TAiPermintaan> _requests = [];
+    private int _notificationRecipients;
+    private List<TAiPermintaan> _requests = [];
+    private string _search = "";
+    private string _apiKeyDisplay = "";
+    private string _apiKeyInfo = "";
 
     protected override async Task OnInitializedAsync()
     {
-        _settings = await Db.MPengaturanAiSet.AsNoTracking().FirstOrDefaultAsync(x => x.KodePengaturan == "DEFAULT" && !x.NonAktif);
-        _workHour = _settings is null ? "-" : $"{_settings.JamKerjaMulai:hh\\:mm} - {_settings.JamKerjaSelesai:hh\\:mm}";
+        await EnsureDefaultSettingsAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var settings = await Db.MPengaturanAiSet.AsNoTracking().FirstAsync(x => x.KodePengaturan == "DEFAULT" && !x.NonAktif);
+
+        _form.AutoReplyAktif = settings.AutoReplyAktif;
+        _form.AutoReplyDiluarJamKerja = settings.AutoReplyDiluarJamKerja;
+        _form.AutoReplyHariLibur = settings.AutoReplyHariLibur;
+        _form.AutoReplyJamKerjaSapaan = settings.AutoReplyJamKerjaSapaan;
+        _form.AutoReplyJamKerjaBerlanjut = settings.AutoReplyJamKerjaBerlanjut;
+        _form.JamKerjaMulai = settings.JamKerjaMulai.ToString(@"hh\:mm");
+        _form.JamKerjaSelesai = settings.JamKerjaSelesai.ToString(@"hh\:mm");
+        _form.ZonaWaktu = string.IsNullOrWhiteSpace(settings.ZonaWaktu) ? "Asia/Jakarta" : settings.ZonaWaktu;
+        _form.ProviderAi = string.IsNullOrWhiteSpace(settings.ProviderAi) ? "OpenAI" : settings.ProviderAi;
+        _form.ModelAi = settings.ModelAi ?? DefaultModel(_form.ProviderAi);
+        _form.BaseUrl = settings.BaseUrl ?? DefaultBaseUrl(_form.ProviderAi);
+        _form.PromptSistem = settings.PromptSistem;
+        _form.TemplateDiluarJamKerja = settings.TemplateDiluarJamKerja;
+        _form.TemplateHariLibur = settings.TemplateHariLibur;
+        _form.TemplateJamKerjaSapaan = settings.TemplateJamKerjaSapaan;
+        _form.TemplateFallback = settings.TemplateFallback;
+        _form.NotifikasiChatBelumTerbalasAktif = settings.NotifikasiChatBelumTerbalasAktif;
+        _form.MenitTungguNotifikasi = settings.MenitTungguNotifikasi;
+        _form.JedaNotifikasiMenit = settings.JedaNotifikasiMenit;
+        _form.KodePeranPenerimaNotifikasi = settings.KodePeranPenerimaNotifikasi;
+        _form.TemplateNotifikasiChatBelumTerbalas = settings.TemplateNotifikasiChatBelumTerbalas;
+        _form.BatasRiwayatPesan = settings.BatasRiwayatPesan;
+        _form.KirimKeWaha = settings.KirimKeWaha;
+        _form.ModeKirim = string.IsNullOrWhiteSpace(settings.ModeKirim) ? "DraftLokal" : settings.ModeKirim;
+
+        _selectedWorkDays.Clear();
+        foreach (var day in settings.HariKerja.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            _selectedWorkDays.Add(day);
+        }
+
         _autoChats = await Db.TChatSet.CountAsync(x => x.AutoReplyAiAktif);
         _aiReplies = await Db.TChatDSet.CountAsync(x => x.DihasilkanOlehAi);
-        _knowledgeCount = await Db.MPengetahuanSet.CountAsync(x => !x.NonAktif);
-        _holidayCount = await Db.MHariLiburSet.CountAsync(x => !x.NonAktif);
+        _notificationRecipients = await Db.Penggunas.CountAsync(x => !x.NonAktif && x.NomorWhatsappInternal != null && x.NomorWhatsappInternal != "");
         _requests = await Db.TAiPermintaanSet.AsNoTracking().OrderByDescending(x => x.TglBuat).Take(25).ToListAsync();
+
+        RefreshApiKeyInfo();
     }
+
+    private async Task SaveAsync()
+    {
+        if (!TimeSpan.TryParse(_form.JamKerjaMulai, out var start))
+        {
+            Snackbar.Add("Jam kerja mulai harus format HH:mm.", Severity.Warning);
+            return;
+        }
+
+        if (!TimeSpan.TryParse(_form.JamKerjaSelesai, out var end))
+        {
+            Snackbar.Add("Jam kerja selesai harus format HH:mm.", Severity.Warning);
+            return;
+        }
+
+        if (_selectedWorkDays.Count == 0)
+        {
+            Snackbar.Add("Hari kerja minimal dipilih satu hari.", Severity.Warning);
+            return;
+        }
+
+        NormalizeProviderSettings();
+        _form.KirimKeWaha = _form.KirimKeWaha || string.Equals(_form.ModeKirim, "KirimWaha", StringComparison.OrdinalIgnoreCase);
+        _form.ModeKirim = _form.KirimKeWaha ? "KirimWaha" : "DraftLokal";
+
+        var settings = await Db.MPengaturanAiSet.FirstAsync(x => x.KodePengaturan == "DEFAULT" && !x.NonAktif);
+        settings.AutoReplyAktif = _form.AutoReplyAktif;
+        settings.AutoReplyDiluarJamKerja = _form.AutoReplyDiluarJamKerja;
+        settings.AutoReplyHariLibur = _form.AutoReplyHariLibur;
+        settings.AutoReplyJamKerjaSapaan = _form.AutoReplyJamKerjaSapaan;
+        settings.AutoReplyJamKerjaBerlanjut = _form.AutoReplyJamKerjaBerlanjut;
+        settings.JamKerjaMulai = start;
+        settings.JamKerjaSelesai = end;
+        settings.HariKerja = string.Join(',', _selectedWorkDays.OrderBy(x => x));
+        settings.ZonaWaktu = _form.ZonaWaktu.Trim();
+        settings.ProviderAi = _form.ProviderAi.Trim();
+        settings.ModelAi = NullIfWhiteSpace(_form.ModelAi);
+        settings.BaseUrl = NullIfWhiteSpace(_form.BaseUrl);
+        settings.PromptSistem = NullIfWhiteSpace(_form.PromptSistem);
+        settings.TemplateDiluarJamKerja = NullIfWhiteSpace(_form.TemplateDiluarJamKerja);
+        settings.TemplateHariLibur = NullIfWhiteSpace(_form.TemplateHariLibur);
+        settings.TemplateJamKerjaSapaan = NullIfWhiteSpace(_form.TemplateJamKerjaSapaan);
+        settings.TemplateFallback = NullIfWhiteSpace(_form.TemplateFallback);
+        settings.NotifikasiChatBelumTerbalasAktif = _form.NotifikasiChatBelumTerbalasAktif;
+        settings.MenitTungguNotifikasi = Math.Clamp(_form.MenitTungguNotifikasi, 1, 1440);
+        settings.JedaNotifikasiMenit = Math.Clamp(_form.JedaNotifikasiMenit, 1, 1440);
+        settings.KodePeranPenerimaNotifikasi = _form.KodePeranPenerimaNotifikasi.Trim();
+        settings.TemplateNotifikasiChatBelumTerbalas = NullIfWhiteSpace(_form.TemplateNotifikasiChatBelumTerbalas);
+        settings.BatasRiwayatPesan = Math.Clamp(_form.BatasRiwayatPesan, 1, 20);
+        settings.KirimKeWaha = _form.KirimKeWaha;
+        settings.ModeKirim = _form.ModeKirim;
+        settings.TglEdit = DateTime.UtcNow;
+
+        await Db.SaveChangesAsync();
+        await LoadAsync();
+        Snackbar.Add("Pengaturan AI Agent tersimpan.", Severity.Success);
+    }
+
+    private async Task EnsureDefaultSettingsAsync()
+    {
+        if (await Db.MPengaturanAiSet.AnyAsync(x => x.KodePengaturan == "DEFAULT"))
+        {
+            return;
+        }
+
+        Db.MPengaturanAiSet.Add(new MPengaturanAi
+        {
+            Id = Guid.NewGuid(),
+            KodePengaturan = "DEFAULT",
+            NamaPengaturan = "Pengaturan Default AI Agent",
+            AutoReplyAktif = false,
+            AutoReplyDiluarJamKerja = true,
+            AutoReplyHariLibur = true,
+            AutoReplyJamKerjaSapaan = true,
+            AutoReplyJamKerjaBerlanjut = false,
+            JamKerjaMulai = new TimeSpan(8, 0, 0),
+            JamKerjaSelesai = new TimeSpan(17, 0, 0),
+            HariKerja = "1,2,3,4,5",
+            ZonaWaktu = "Asia/Jakarta",
+            ProviderAi = "OpenAI",
+            ModelAi = "gpt-5",
+            BaseUrl = "https://api.openai.com/v1/responses",
+            PromptSistem = "Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan.",
+            TemplateDiluarJamKerja = "Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.",
+            TemplateHariLibur = DefaultHolidayTemplate(),
+            TemplateJamKerjaSapaan = "Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.",
+            TemplateFallback = "Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.",
+            NotifikasiChatBelumTerbalasAktif = true,
+            MenitTungguNotifikasi = 10,
+            JedaNotifikasiMenit = 30,
+            KodePeranPenerimaNotifikasi = "ADMIN,SUPERVISOR_CS,CS",
+            TemplateNotifikasiChatBelumTerbalas = DefaultNotificationTemplate(),
+            BatasRiwayatPesan = 8,
+            KirimKeWaha = false,
+            ModeKirim = "DraftLokal",
+            NonAktif = false,
+            TglBuat = DateTime.UtcNow
+        });
+
+        await Db.SaveChangesAsync();
+    }
+
+    private void ApplyProviderPreset(string provider)
+    {
+        var preset = _providerPresets.First(x => string.Equals(x.Provider, provider, StringComparison.OrdinalIgnoreCase));
+        _form.ProviderAi = preset.Provider;
+        _form.ModelAi = preset.Model;
+        _form.BaseUrl = preset.BaseUrl;
+        RefreshApiKeyInfo();
+    }
+
+    private void OnProviderChanged(string provider)
+    {
+        ApplyProviderPreset(provider);
+    }
+
+    private void NormalizeProviderSettings()
+    {
+        var provider = _form.ProviderAi.ToLowerInvariant();
+        var baseUrl = _form.BaseUrl ?? "";
+        var model = _form.ModelAi ?? "";
+
+        if (provider is "deepseek" or "openrouter")
+        {
+            if (string.IsNullOrWhiteSpace(baseUrl)
+                || baseUrl.Contains("api.openai.com", StringComparison.OrdinalIgnoreCase)
+                || (provider == "openrouter" && baseUrl.Contains("api.deepseek.com", StringComparison.OrdinalIgnoreCase))
+                || (provider == "deepseek" && baseUrl.Contains("openrouter.ai", StringComparison.OrdinalIgnoreCase)))
+            {
+                _form.BaseUrl = DefaultBaseUrl(_form.ProviderAi);
+            }
+
+            if (string.IsNullOrWhiteSpace(model)
+                || model.StartsWith("gpt-", StringComparison.OrdinalIgnoreCase)
+                || (provider == "openrouter" && model.StartsWith("deepseek-", StringComparison.OrdinalIgnoreCase))
+                || (provider == "deepseek" && model.Contains('/')))
+            {
+                _form.ModelAi = DefaultModel(_form.ProviderAi);
+            }
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(baseUrl)
+            || baseUrl.Contains("api.deepseek.com", StringComparison.OrdinalIgnoreCase)
+            || baseUrl.Contains("openrouter.ai", StringComparison.OrdinalIgnoreCase))
+        {
+            _form.BaseUrl = DefaultBaseUrl(_form.ProviderAi);
+        }
+
+        if (string.IsNullOrWhiteSpace(model)
+            || model.StartsWith("deepseek-", StringComparison.OrdinalIgnoreCase)
+            || model.Contains('/'))
+        {
+            _form.ModelAi = DefaultModel(_form.ProviderAi);
+        }
+    }
+
+    private void RefreshApiKeyInfo()
+    {
+        var preset = _providerPresets.FirstOrDefault(x => string.Equals(x.Provider, _form.ProviderAi, StringComparison.OrdinalIgnoreCase))
+            ?? _providerPresets[0];
+        _apiKeyDisplay = "********";
+        _apiKeyInfo = $"API key runtime dibaca dari appsettings/.env: {preset.KeyLabel}.";
+    }
+
+    private bool IsWorkDay(string value) => _selectedWorkDays.Contains(value);
+
+    private void SetWorkDay(string value, bool selected)
+    {
+        if (selected)
+        {
+            _selectedWorkDays.Add(value);
+            return;
+        }
+
+        _selectedWorkDays.Remove(value);
+    }
+
+    private bool FilterRow(TAiPermintaan row)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
+        {
+            return true;
+        }
+
+        return Contains(row.JenisPermintaan)
+            || Contains(row.ProviderAi)
+            || Contains(row.ModelAi)
+            || Contains(row.StatusPermintaan)
+            || Contains(row.TglMulai?.ToString("dd/MM/yyyy HH:mm"));
+    }
+
+    private bool Contains(string? value) => value?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true;
+
+    private string DefaultModel(string provider) => _providerPresets.First(x => string.Equals(x.Provider, provider, StringComparison.OrdinalIgnoreCase)).Model;
+
+    private string DefaultBaseUrl(string provider) => _providerPresets.First(x => string.Equals(x.Provider, provider, StringComparison.OrdinalIgnoreCase)).BaseUrl;
+
+    private static string? NullIfWhiteSpace(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string DefaultNotificationTemplate() => "Halo {nama_user}, ada chat WhatsApp dari {nama_instansi} yang belum dibalas selama {menit_menunggu} menit. Kontak: {nama_kontak} ({nomor_whatsapp}). Pesan terakhir: {pesan_terakhir}. Silakan cek VPoint Care: {url_admin}";
+
+    private static string DefaultHolidayTemplate() => "Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.";
+
+    private sealed class AiSettingsForm
+    {
+        public bool AutoReplyAktif { get; set; }
+        public bool AutoReplyDiluarJamKerja { get; set; }
+        public bool AutoReplyHariLibur { get; set; }
+        public bool AutoReplyJamKerjaSapaan { get; set; }
+        public bool AutoReplyJamKerjaBerlanjut { get; set; }
+        public string JamKerjaMulai { get; set; } = "08:00";
+        public string JamKerjaSelesai { get; set; } = "17:00";
+        public string ZonaWaktu { get; set; } = "Asia/Jakarta";
+        public string ProviderAi { get; set; } = "OpenAI";
+        public string? ModelAi { get; set; }
+        public string? BaseUrl { get; set; }
+        public string? PromptSistem { get; set; }
+        public string? TemplateDiluarJamKerja { get; set; }
+        public string? TemplateHariLibur { get; set; }
+        public string? TemplateJamKerjaSapaan { get; set; }
+        public string? TemplateFallback { get; set; }
+        public bool NotifikasiChatBelumTerbalasAktif { get; set; }
+        public int MenitTungguNotifikasi { get; set; } = 10;
+        public int JedaNotifikasiMenit { get; set; } = 30;
+        public string KodePeranPenerimaNotifikasi { get; set; } = "ADMIN,SUPERVISOR_CS,CS";
+        public string? TemplateNotifikasiChatBelumTerbalas { get; set; }
+        public int BatasRiwayatPesan { get; set; } = 8;
+        public bool KirimKeWaha { get; set; }
+        public string ModeKirim { get; set; } = "DraftLokal";
+    }
+
+    private sealed record WorkDayOption(string Value, string Label);
+
+    private sealed record ProviderPreset(string Provider, string Label, string Summary, string Model, string BaseUrl, string KeyLabel);
 }

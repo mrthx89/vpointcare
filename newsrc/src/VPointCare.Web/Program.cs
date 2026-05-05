@@ -49,6 +49,7 @@ builder.Services.AddDbContext<VPointCareDbContext>(options =>
 
 builder.Services.AddSingleton<ActiveAgentTracker>();
 builder.Services.AddScoped<WacsAuthService>();
+builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<WahaWebhookProcessor>();
 builder.Services.AddScoped<DashboardQueryService>();
 builder.Services.AddHttpClient<VTokenSyncJob>();

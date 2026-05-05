@@ -5,8 +5,10 @@
 @inject IConfiguration Configuration
 @inject ISnackbar Snackbar
 @inject VPointCare.Web.Services.Jobs.HangfireRecurringJobScheduler JobScheduler
+@inject VPointCare.Web.Services.Auth.PermissionService PermissionService
 @using Microsoft.EntityFrameworkCore
 @using VPointCare.Web.Data.Entities
+@using VPointCare.Web.Services.Auth
 
 <PageTitle>Pengaturan Jobs - VPoint Care</PageTitle>
 
@@ -21,48 +23,49 @@
 
     @if (!_canManage)
     {
-        <MudAlert Severity="Severity.Error">Hanya user dengan peran ROOT atau ADMIN yang dapat mengubah pengaturan job.</MudAlert>
+        <MudAlert Severity="Severity.Error">User tidak memiliki hak akses Pengaturan Jobs.</MudAlert>
     }
     else
     {
         <MudPaper Class="section-panel" Elevation="0">
             <MudText Typo="Typo.subtitle1">Recurring Job</MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary">Format jadwal menggunakan cron 5 kolom, contoh: <code>*/5 * * * *</code>.</MudText>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Job</th>
-                        <th>Hangfire ID</th>
-                        <th>Cron</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var row in _rows)
-                    {
-                        <tr>
-                            <td>
-                                <strong>@row.NamaJob</strong>
-                                <div>@row.KodeJob</div>
-                                <div>@row.Keterangan</div>
-                            </td>
-                            <td>
-                                <MudTextField @bind-Value="row.JobIdHangfire" Margin="Margin.Dense" Variant="Variant.Outlined" />
-                            </td>
-                            <td>
-                                <MudTextField @bind-Value="row.CronExpression" Margin="Margin.Dense" Variant="Variant.Outlined" />
-                            </td>
-                            <td>
-                                <MudSwitch T="bool" @bind-Value="row.Aktif" Color="Color.Success">@(row.Aktif ? "Aktif" : "Nonaktif")</MudSwitch>
-                            </td>
-                            <td>
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Save" OnClick="@(() => SaveAsync(row))">Simpan</MudButton>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <MudTable T="JobSettingRow" Items="@_rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterRow">
+                <ToolBarContent>
+                    <MudText Typo="Typo.subtitle1">Data Jadwal Job</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_search" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<JobSettingRow, object>(x => x.NamaJob)">Job</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<JobSettingRow, object>(x => x.JobIdHangfire)">Hangfire ID</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<JobSettingRow, object>(x => x.CronExpression)">Cron</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<JobSettingRow, object>(x => x.Aktif)">Status</MudTableSortLabel></MudTh>
+                    <MudTh>Aksi</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Job">
+                        <MudText Typo="Typo.body2"><strong>@context.NamaJob</strong></MudText>
+                        <MudText Typo="Typo.caption">@context.KodeJob</MudText>
+                        <MudText Typo="Typo.caption">@context.Keterangan</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Hangfire ID">
+                        <MudTextField @bind-Value="context.JobIdHangfire" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                    </MudTd>
+                    <MudTd DataLabel="Cron">
+                        <MudTextField @bind-Value="context.CronExpression" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudSwitch T="bool" @bind-Value="context.Aktif" Color="Color.Success">@(context.Aktif ? "Aktif" : "Nonaktif")</MudSwitch>
+                    </MudTd>
+                    <MudTd DataLabel="Aksi">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Save" OnClick="@(() => SaveAsync(context))">Simpan</MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+                </PagerContent>
+            </MudTable>
         </MudPaper>
     }
 </MudStack>
@@ -70,6 +73,7 @@
 @code {
     private bool _canManage;
     private List<JobSettingRow> _rows = [];
+    private string _search = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,27 +146,25 @@
     private async Task<bool> CanManageAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.IsInRole("ROOT") || user.IsInRole("ADMIN"))
+        return await PermissionService.HasPermissionAsync(authState.User, AppPermissions.MenuPengaturanJobs);
+    }
+
+    private bool FilterRow(JobSettingRow row)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
         {
             return true;
         }
 
-        var roleIdText = user.FindFirst("peran_id")?.Value;
-        if (!Guid.TryParse(roleIdText, out var roleId))
-        {
-            return false;
-        }
-
-        var roleCode = await Db.Perans
-            .AsNoTracking()
-            .Where(x => x.Id == roleId && !x.NonAktif)
-            .Select(x => x.KodePeran)
-            .FirstOrDefaultAsync();
-
-        return string.Equals(roleCode, "ROOT", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(roleCode, "ADMIN", StringComparison.OrdinalIgnoreCase);
+        return Contains(row.KodeJob)
+            || Contains(row.NamaJob)
+            || Contains(row.JobIdHangfire)
+            || Contains(row.CronExpression)
+            || Contains(row.Keterangan)
+            || Contains(row.Aktif ? "Aktif" : "Nonaktif");
     }
+
+    private bool Contains(string? value) => value?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true;
 
     private sealed class JobSettingRow
     {

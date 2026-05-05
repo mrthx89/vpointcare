@@ -11,16 +11,59 @@
         <MudButton Href="/admin/master-customer" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Ringkasan</MudButton>
     </div>
     <MudPaper Class="section-panel" Elevation="0">
-        <table class="data-table"><thead><tr><th>Kode</th><th>Nama</th><th>Kota</th><th>Email</th><th>Sumber</th><th>Nonaktif</th></tr></thead><tbody>
-        @foreach (var row in _rows)
-        {
-            <tr><td>@row.KodeInstansi</td><td>@row.NamaInstansi</td><td>@row.Kota</td><td>@row.Email</td><td>@row.SumberData</td><td>@(row.NonAktif ? "Ya" : "Tidak")</td></tr>
-        }
-        </tbody></table>
+        <MudTable T="VPointCare.Web.Data.Entities.MInstansi" Items="@_rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterRow">
+            <ToolBarContent>
+                <MudText Typo="Typo.subtitle1">Data Instansi</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_search" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<VPointCare.Web.Data.Entities.MInstansi, object>(x => x.KodeInstansi)">Kode</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<VPointCare.Web.Data.Entities.MInstansi, object>(x => x.NamaInstansi)">Nama</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<VPointCare.Web.Data.Entities.MInstansi, object?>(x => x.Kota)">Kota</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<VPointCare.Web.Data.Entities.MInstansi, object?>(x => x.Email)">Email</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<VPointCare.Web.Data.Entities.MInstansi, object?>(x => x.SumberData)">Sumber</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<VPointCare.Web.Data.Entities.MInstansi, object>(x => x.NonAktif)">Nonaktif</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Kode">@context.KodeInstansi</MudTd>
+                <MudTd DataLabel="Nama">@context.NamaInstansi</MudTd>
+                <MudTd DataLabel="Kota">@context.Kota</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Sumber">@context.SumberData</MudTd>
+                <MudTd DataLabel="Nonaktif">@(context.NonAktif ? "Ya" : "Tidak")</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
     </MudPaper>
 </MudStack>
 
 @code {
     private List<VPointCare.Web.Data.Entities.MInstansi> _rows = [];
-    protected override async Task OnInitializedAsync() => _rows = await Db.MInstansiSet.AsNoTracking().OrderBy(x => x.NamaInstansi).Take(100).ToListAsync();
+    private string _search = "";
+
+    protected override async Task OnInitializedAsync() => _rows = await Db.MInstansiSet.AsNoTracking().OrderBy(x => x.NamaInstansi).ToListAsync();
+
+    private bool FilterRow(VPointCare.Web.Data.Entities.MInstansi row)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
+        {
+            return true;
+        }
+
+        return Contains(row.KodeInstansi)
+            || Contains(row.NamaInstansi)
+            || Contains(row.Alamat)
+            || Contains(row.Kota)
+            || Contains(row.Provinsi)
+            || Contains(row.Telepon)
+            || Contains(row.Email)
+            || Contains(row.Website)
+            || Contains(row.SumberData)
+            || Contains(row.NonAktif ? "Ya" : "Tidak");
+    }
+
+    private bool Contains(string? value) => value?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true;
 }

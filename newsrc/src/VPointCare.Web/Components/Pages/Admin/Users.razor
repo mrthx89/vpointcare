@@ -22,12 +22,30 @@
             <MudText Typo="Typo.subtitle1">User Login</MudText>
             <MudButton Href="/admin/users/pengguna" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.PeopleAlt">Pengguna Internal</MudButton>
         </div>
-        <table class="data-table"><thead><tr><th>Nama</th><th>Email</th><th>Status</th><th>Pengguna Internal</th><th>Login Terakhir</th></tr></thead><tbody>
-        @foreach (var row in _rows)
-        {
-            <tr><td>@row.Name</td><td>@row.Email</td><td>@row.Status</td><td>@row.NamaPengguna</td><td>@(row.LoginTerakhir?.ToString("dd/MM/yyyy HH:mm") ?? "-")</td></tr>
-        }
-        </tbody></table>
+        <MudTable T="UserRow" Items="@_rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterRow">
+            <ToolBarContent>
+                <MudText Typo="Typo.subtitle1">Data User Login</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_search" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<UserRow, object>(x => x.Name)">Nama</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<UserRow, object>(x => x.Email)">Email</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<UserRow, object>(x => x.Status)">Status</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<UserRow, object>(x => x.NamaPengguna)">Pengguna Internal</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<UserRow, object?>(x => x.LoginTerakhir)">Login Terakhir</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nama">@context.Name</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Status">@context.Status</MudTd>
+                <MudTd DataLabel="Pengguna Internal">@context.NamaPengguna</MudTd>
+                <MudTd DataLabel="Login Terakhir">@(context.LoginTerakhir?.ToString("dd/MM/yyyy HH:mm") ?? "-")</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
     </MudPaper>
 </MudStack>
 
@@ -36,6 +54,7 @@
     private int _pengguna;
     private int _roles;
     private List<UserRow> _rows = [];
+    private string _search = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,9 +67,24 @@
             from pengguna in penggunaJoin.DefaultIfEmpty()
             orderby user.Name
             select new UserRow(user.Name, user.Email, user.Status, pengguna == null ? "-" : pengguna.NamaPengguna, pengguna == null ? null : pengguna.LoginTerakhirPada))
-            .Take(50)
             .ToListAsync();
     }
+
+    private bool FilterRow(UserRow row)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
+        {
+            return true;
+        }
+
+        return Contains(row.Name)
+            || Contains(row.Email)
+            || Contains(row.Status)
+            || Contains(row.NamaPengguna)
+            || Contains(row.LoginTerakhir?.ToString("dd/MM/yyyy HH:mm"));
+    }
+
+    private bool Contains(string? value) => value?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true;
 
     private sealed record UserRow(string Name, string Email, string Status, string NamaPengguna, DateTime? LoginTerakhir);
 }

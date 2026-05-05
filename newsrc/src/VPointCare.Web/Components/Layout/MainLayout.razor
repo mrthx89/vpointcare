@@ -1,4 +1,9 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@using VPointCare.Web.Services.Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject PermissionService PermissionService
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -16,30 +21,32 @@
 
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="1" Variant="DrawerVariant.Responsive" Width="260px">
         <MudNavMenu Dense="true" Class="pt-3">
-            <MudNavLink Href="/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SpaceDashboard">Dashboard</MudNavLink>
-            <MudNavLink Href="/admin/inbox-whatsapp" Icon="@Icons.Material.Filled.MarkUnreadChatAlt">Inbox WhatsApp</MudNavLink>
-            <MudNavLink Href="/admin/ticketing" Icon="@Icons.Material.Filled.ConfirmationNumber">Ticketing</MudNavLink>
-            <MudNavLink Href="/admin/ai-agent" Icon="@Icons.Material.Filled.SmartToy">AI Agent</MudNavLink>
-            <MudNavLink Href="/admin/ai-agent/knowledge-base" Icon="@Icons.Material.Filled.Book">Knowledge Base AI</MudNavLink>
-            <MudNavLink Href="/admin/master-customer" Icon="@Icons.Material.Filled.Business">Master Customer</MudNavLink>
-            <MudNavLink Href="/admin/master-customer/instansi" Icon="@Icons.Material.Filled.Apartment">Klien / Instansi</MudNavLink>
-            <MudNavLink Href="/admin/master-customer/customers" Icon="@Icons.Material.Filled.Groups">Kontak Customer</MudNavLink>
-            <MudNavLink Href="/admin/master-customer/nomor-whatsapp" Icon="@Icons.Material.Filled.PhoneIphone">Nomor WhatsApp</MudNavLink>
-            <MudNavLink Href="/admin/master-customer/grup-whatsapp" Icon="@Icons.Material.Filled.Forum">Grup WhatsApp</MudNavLink>
-            <MudNavLink Href="/admin/master-customer/anggota-grup" Icon="@Icons.Material.Filled.GroupAdd">Anggota Grup</MudNavLink>
-            <MudNavLink Href="/admin/master-customer/hari-libur" Icon="@Icons.Material.Filled.EventBusy">Hari Libur</MudNavLink>
-            <MudNavLink Href="/admin/log-data" Icon="@Icons.Material.Filled.Article">Log Data</MudNavLink>
-            <MudDivider Class="my-3" />
-            <MudNavLink Href="/admin/pengaturan/jobs" Icon="@Icons.Material.Filled.SettingsSuggest">Pengaturan Jobs</MudNavLink>
-            <MudNavLink Href="/admin/jobs" Icon="@Icons.Material.Filled.WorkHistory">Hangfire Jobs</MudNavLink>
-            <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.ManageAccounts">MUser</MudNavLink>
-            <MudNavLink Href="/admin/users/pengguna" Icon="@Icons.Material.Filled.PeopleAlt">Pengguna Internal</MudNavLink>
+            @foreach (var group in _menuGroups)
+            {
+                <MudNavGroup Title="@group.Title" Icon="@group.Icon" Expanded="true">
+                    @foreach (var item in group.Items)
+                    {
+                        <MudNavLink Href="@item.Href" Match="@item.Match" Icon="@item.Icon">@item.Title</MudNavLink>
+                    }
+                </MudNavGroup>
+            }
         </MudNavMenu>
     </MudDrawer>
 
     <MudMainContent Class="main-content">
         <MudContainer MaxWidth="MaxWidth.False" Class="content-shell">
-            @Body
+            @if (!_accessReady)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+            }
+            else if (!_canAccessCurrentRoute)
+            {
+                <MudAlert Severity="Severity.Error">User tidak memiliki hak akses menu @_deniedMenuTitle.</MudAlert>
+            }
+            else
+            {
+                @Body
+            }
         </MudContainer>
         <footer class="app-footer">VPoint Care ASP.NET 8 Migration</footer>
     </MudMainContent>
@@ -53,9 +60,97 @@
 
 @code {
     private bool _drawerOpen = true;
+    private IReadOnlyList<AppMenuGroup> _menuGroups = [];
+    private HashSet<string> _permissions = new(StringComparer.OrdinalIgnoreCase);
+    private bool _accessReady;
+    private bool _canAccessCurrentRoute = true;
+    private string? _deniedMenuTitle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _permissions = await PermissionService.GetPermissionCodesAsync(authState.User);
+
+        _menuGroups = AppMenuDefinition.Groups
+            .Select(group =>
+            {
+                var visibleItems = group.Items
+                    .Where(item => _permissions.Contains(item.PermissionCode))
+                    .ToArray();
+
+                return new AppMenuGroup(group.Title, group.Icon, visibleItems);
+            })
+            .Where(group => group.Items.Count > 0)
+            .ToArray();
+
+        CheckCurrentRouteAccess();
+        NavigationManager.LocationChanged += HandleLocationChanged;
+        _accessReady = true;
+    }
 
     private void ToggleDrawer()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        CheckCurrentRouteAccess();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void CheckCurrentRouteAccess()
+    {
+        var currentPath = GetCurrentPath();
+        var routeMenu = AppMenuDefinition.Groups
+            .SelectMany(group => group.Items)
+            .Where(item => IsRouteMatch(currentPath, item))
+            .OrderByDescending(item => item.Href.Length)
+            .FirstOrDefault();
+
+        if (routeMenu is null)
+        {
+            _canAccessCurrentRoute = true;
+            _deniedMenuTitle = null;
+            return;
+        }
+
+        _canAccessCurrentRoute = _permissions.Contains(routeMenu.PermissionCode);
+        _deniedMenuTitle = routeMenu.Title;
+    }
+
+    private string GetCurrentPath()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var queryIndex = relativePath.IndexOfAny(['?', '#']);
+        if (queryIndex >= 0)
+        {
+            relativePath = relativePath[..queryIndex];
+        }
+
+        relativePath = relativePath.Trim('/');
+        return string.IsNullOrWhiteSpace(relativePath) ? "/" : $"/{relativePath}";
+    }
+
+    private static bool IsRouteMatch(string currentPath, AppMenuItem item)
+    {
+        var menuPath = item.Href.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(menuPath))
+        {
+            menuPath = "/";
+        }
+
+        if (item.Match == NavLinkMatch.All)
+        {
+            return string.Equals(currentPath, menuPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return string.Equals(currentPath, menuPath, StringComparison.OrdinalIgnoreCase)
+            || currentPath.StartsWith($"{menuPath}/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 }

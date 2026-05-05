@@ -83,6 +83,43 @@ a {
     padding: 18px;
 }
 
+.ai-option-panel {
+    padding: 14px;
+    border: 1px solid var(--wacs-border);
+    border-radius: 8px;
+    background: #f8faf9;
+    min-height: 94px;
+}
+
+.ai-option-panel.warning {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+.provider-preset-button {
+    justify-content: flex-start;
+    text-align: left;
+    min-height: 76px;
+}
+
+.provider-preset-button .mud-button-label {
+    width: 100%;
+}
+
+.provider-preset-button div {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+}
+
+.provider-preset-button span,
+.provider-preset-button small {
+    color: inherit;
+    opacity: 0.8;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
 .section-header-row,
 .button-row {
     display: flex;

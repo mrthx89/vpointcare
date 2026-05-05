@@ -798,12 +798,107 @@ GO
 
 INSERT INTO MPeran (KodePeran, NamaPeran, Keterangan)
 VALUES
-('ROOT', 'Root', 'Akses tertinggi untuk pengaturan sistem'),
 ('ADMIN', 'Admin', 'Akses penuh aplikasi'),
 ('SUPERVISOR_CS', 'Supervisor CS', 'Monitoring dan pengaturan customer service'),
 ('CS', 'Customer Service', 'Menangani chat dan membuat ticket'),
 ('DEVELOPER', 'Developer', 'Menangani ticket teknis'),
 ('VIEWER', 'Viewer', 'Melihat dashboard dan laporan');
+GO
+
+INSERT INTO MHakAkses (KodeHakAkses, NamaHakAkses, Modul, Keterangan)
+VALUES
+('MENU_DASHBOARD', 'Dashboard', 'Utama', 'Akses menu dashboard'),
+('MENU_INBOX_WHATSAPP', 'Inbox WhatsApp', 'Operasional', 'Akses menu inbox WhatsApp'),
+('MENU_TICKETING', 'Ticketing', 'Operasional', 'Akses menu ticketing'),
+('MENU_AI_AGENT', 'AI Agent', 'Asisten AI', 'Akses menu AI Agent'),
+('MENU_KNOWLEDGE_BASE_AI', 'Knowledge Base AI', 'Asisten AI', 'Akses menu knowledge base AI'),
+('MENU_HARI_LIBUR', 'Hari Libur', 'Asisten AI', 'Akses menu hari libur'),
+('MENU_MASTER_CUSTOMER', 'Ringkasan Customer', 'Master Data', 'Akses ringkasan master customer'),
+('MENU_INSTANSI', 'Klien / Instansi', 'Master Data', 'Akses master instansi'),
+('MENU_CUSTOMER', 'Kontak Customer', 'Master Data', 'Akses master customer'),
+('MENU_NOMOR_WHATSAPP', 'Nomor WhatsApp', 'Master Data', 'Akses master nomor WhatsApp'),
+('MENU_GRUP_WHATSAPP', 'Grup WhatsApp', 'Master Data', 'Akses master grup WhatsApp'),
+('MENU_ANGGOTA_GRUP', 'Anggota Grup', 'Master Data', 'Akses master anggota grup'),
+('MENU_LOG_DATA', 'Log Data', 'Monitoring', 'Akses menu log data'),
+('MENU_HANGFIRE_JOBS', 'Hangfire Jobs', 'Monitoring', 'Akses dashboard Hangfire'),
+('MENU_PENGATURAN_JOBS', 'Pengaturan Jobs', 'Pengaturan', 'Akses pengaturan jadwal Hangfire'),
+('MENU_USERS', 'MUser', 'Pengaturan', 'Akses user login'),
+('MENU_PENGGUNA_INTERNAL', 'Pengguna Internal', 'Pengaturan', 'Akses pengguna internal');
+GO
+
+INSERT INTO MPeranHakAkses (IdPeran, IdHakAkses)
+SELECT r.Id, h.Id
+FROM MPeran r
+CROSS JOIN MHakAkses h
+WHERE r.KodePeran = 'ADMIN';
+GO
+
+INSERT INTO MPeranHakAkses (IdPeran, IdHakAkses)
+SELECT r.Id, h.Id
+FROM MPeran r
+CROSS JOIN MHakAkses h
+WHERE r.KodePeran = 'SUPERVISOR_CS'
+    AND h.KodeHakAkses IN (
+        'MENU_DASHBOARD',
+        'MENU_INBOX_WHATSAPP',
+        'MENU_TICKETING',
+        'MENU_AI_AGENT',
+        'MENU_KNOWLEDGE_BASE_AI',
+        'MENU_HARI_LIBUR',
+        'MENU_MASTER_CUSTOMER',
+        'MENU_INSTANSI',
+        'MENU_CUSTOMER',
+        'MENU_NOMOR_WHATSAPP',
+        'MENU_GRUP_WHATSAPP',
+        'MENU_ANGGOTA_GRUP',
+        'MENU_LOG_DATA'
+    );
+GO
+
+INSERT INTO MPeranHakAkses (IdPeran, IdHakAkses)
+SELECT r.Id, h.Id
+FROM MPeran r
+CROSS JOIN MHakAkses h
+WHERE r.KodePeran = 'CS'
+    AND h.KodeHakAkses IN (
+        'MENU_DASHBOARD',
+        'MENU_INBOX_WHATSAPP',
+        'MENU_TICKETING',
+        'MENU_MASTER_CUSTOMER',
+        'MENU_INSTANSI',
+        'MENU_CUSTOMER',
+        'MENU_NOMOR_WHATSAPP',
+        'MENU_GRUP_WHATSAPP',
+        'MENU_ANGGOTA_GRUP'
+    );
+GO
+
+INSERT INTO MPeranHakAkses (IdPeran, IdHakAkses)
+SELECT r.Id, h.Id
+FROM MPeran r
+CROSS JOIN MHakAkses h
+WHERE r.KodePeran = 'DEVELOPER'
+    AND h.KodeHakAkses IN (
+        'MENU_DASHBOARD',
+        'MENU_TICKETING',
+        'MENU_KNOWLEDGE_BASE_AI'
+    );
+GO
+
+INSERT INTO MPeranHakAkses (IdPeran, IdHakAkses)
+SELECT r.Id, h.Id
+FROM MPeran r
+CROSS JOIN MHakAkses h
+WHERE r.KodePeran = 'VIEWER'
+    AND h.KodeHakAkses IN (
+        'MENU_DASHBOARD',
+        'MENU_MASTER_CUSTOMER',
+        'MENU_INSTANSI',
+        'MENU_CUSTOMER',
+        'MENU_NOMOR_WHATSAPP',
+        'MENU_GRUP_WHATSAPP',
+        'MENU_ANGGOTA_GRUP'
+    );
 GO
 
 INSERT INTO MStatusChat (KodeStatusChat, NamaStatusChat, Urutan, Warna)

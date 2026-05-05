@@ -56,12 +56,26 @@
 
         <MudPaper Class="section-panel" Elevation="0">
             <MudText Typo="Typo.subtitle1">Catatan Internal</MudText>
-            <table class="data-table"><thead><tr><th>Catatan</th><th>Dibuat</th><th>Waktu</th></tr></thead><tbody>
-            @foreach (var note in _notes)
-            {
-                <tr><td>@note.Text</td><td>@note.CreatedBy</td><td>@note.TimeText</td></tr>
-            }
-            </tbody></table>
+            <MudTable T="ChatNoteRow" Items="@_notes" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterNote">
+                <ToolBarContent>
+                    <MudText Typo="Typo.subtitle1">Data Catatan Internal</MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_noteSearch" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<ChatNoteRow, object>(x => x.Text)">Catatan</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<ChatNoteRow, object>(x => x.CreatedBy)">Dibuat</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<ChatNoteRow, object>(x => x.TimeText)">Waktu</MudTableSortLabel></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Catatan">@context.Text</MudTd>
+                    <MudTd DataLabel="Dibuat">@context.CreatedBy</MudTd>
+                    <MudTd DataLabel="Waktu">@context.TimeText</MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+                </PagerContent>
+            </MudTable>
         </MudPaper>
     }
 </MudStack>
@@ -71,6 +85,7 @@
     private string? _errorMessage;
     private List<ChatMessageRow> _messages = [];
     private List<ChatNoteRow> _notes = [];
+    private string _noteSearch = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -135,6 +150,20 @@
             select new ChatNoteRow(note.IsiCatatan, p == null ? "Sistem" : p.NamaPengguna, note.TglBuat.ToString("dd/MM/yyyy HH:mm")))
             .ToListAsync();
     }
+
+    private bool FilterNote(ChatNoteRow row)
+    {
+        if (string.IsNullOrWhiteSpace(_noteSearch))
+        {
+            return true;
+        }
+
+        return Contains(row.Text)
+            || Contains(row.CreatedBy)
+            || Contains(row.TimeText);
+    }
+
+    private bool Contains(string? value) => value?.Contains(_noteSearch, StringComparison.OrdinalIgnoreCase) == true;
 
     private sealed record ChatSessionRow(Guid Id, string JenisChat, string NomorWhatsapp, string NamaKontak, string NamaCustomer, string NamaInstansi, string Status, string NamaCs);
     private sealed record ChatMessageRow(bool IsOutgoing, string Sender, string? Text, string? MediaUrl, string? FileName, string TimeText);

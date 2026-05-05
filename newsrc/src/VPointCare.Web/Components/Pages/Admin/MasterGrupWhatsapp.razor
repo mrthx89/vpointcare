@@ -11,17 +11,37 @@
         <MudButton Href="/admin/master-customer" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Ringkasan</MudButton>
     </div>
     <MudPaper Class="section-panel" Elevation="0">
-        <table class="data-table"><thead><tr><th>Kode</th><th>Nama Grup</th><th>Instansi</th><th>Id WAHA</th><th>Nomor Grup</th></tr></thead><tbody>
-        @foreach (var row in _rows)
-        {
-            <tr><td>@row.Kode</td><td>@row.Nama</td><td>@row.Instansi</td><td>@row.IdGrupWaha</td><td>@row.NomorGrup</td></tr>
-        }
-        </tbody></table>
+        <MudTable T="GrupRow" Items="@_rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterRow">
+            <ToolBarContent>
+                <MudText Typo="Typo.subtitle1">Data Grup WhatsApp</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_search" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<GrupRow, object>(x => x.Kode)">Kode</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<GrupRow, object>(x => x.Nama)">Nama Grup</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<GrupRow, object>(x => x.Instansi)">Instansi</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<GrupRow, object?>(x => x.IdGrupWaha)">Id WAHA</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<GrupRow, object?>(x => x.NomorGrup)">Nomor Grup</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Kode">@context.Kode</MudTd>
+                <MudTd DataLabel="Nama Grup">@context.Nama</MudTd>
+                <MudTd DataLabel="Instansi">@context.Instansi</MudTd>
+                <MudTd DataLabel="Id WAHA">@context.IdGrupWaha</MudTd>
+                <MudTd DataLabel="Nomor Grup">@context.NomorGrup</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
     </MudPaper>
 </MudStack>
 
 @code {
     private List<GrupRow> _rows = [];
+    private string _search = "";
+
     protected override async Task OnInitializedAsync()
     {
         _rows = await (from g in Db.MGrupWhatsappSet.AsNoTracking()
@@ -29,7 +49,24 @@
             from i in instansiJoin.DefaultIfEmpty()
             orderby g.NamaGrup
             select new GrupRow(g.KodeGrup, g.NamaGrup, i == null ? "-" : i.NamaInstansi, g.IdGrupWaha, g.NomorGrupWhatsapp))
-            .Take(100).ToListAsync();
+            .ToListAsync();
     }
+
+    private bool FilterRow(GrupRow row)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
+        {
+            return true;
+        }
+
+        return Contains(row.Kode)
+            || Contains(row.Nama)
+            || Contains(row.Instansi)
+            || Contains(row.IdGrupWaha)
+            || Contains(row.NomorGrup);
+    }
+
+    private bool Contains(string? value) => value?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true;
+
     private sealed record GrupRow(string Kode, string Nama, string Instansi, string? IdGrupWaha, string? NomorGrup);
 }
