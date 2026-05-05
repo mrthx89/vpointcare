@@ -10,12 +10,12 @@ public class AiAutoReplyJob(VPointCareDbContext dbContext, AiAutoReplyService ai
     {
         var latestIncoming = dbContext.ChatDetails
             .Where(x => x.ArahPesan == "Masuk" && x.DikirimOlehCustomer && x.IsiPesan != null)
-            .GroupBy(x => x.IdChatM)
+            .GroupBy(x => x.IdChat)
             .Select(group => new { IdChatM = group.Key, TglPesanTerakhirMasuk = group.Max(x => x.TglPesan) });
 
         var latestAiReply = dbContext.ChatDetails
             .Where(x => x.ArahPesan == "Keluar" && x.DihasilkanOlehAi)
-            .GroupBy(x => x.IdChatM)
+            .GroupBy(x => x.IdChat)
             .Select(group => new { IdChatM = group.Key, TglPesanTerakhirAi = group.Max(x => x.TglPesan) });
 
         var chatIds = await (

@@ -1,0 +1,142 @@
+@page "/admin/view-chat-session"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@inject NavigationManager Navigation
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.WebUtilities
+
+<PageTitle>Detail Sesi Chat - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div>
+            <MudText Typo="Typo.h5">Detail Sesi Chat</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@(_session?.NamaKontak ?? _errorMessage ?? "Memuat sesi chat")</MudText>
+        </div>
+        <MudButton Href="/admin/inbox-whatsapp" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Inbox</MudButton>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <MudAlert Severity="Severity.Warning">@_errorMessage</MudAlert>
+    }
+    else if (_session is not null)
+    {
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudPaper Class="section-panel" Elevation="0">
+                    <MudText Typo="Typo.subtitle1">Profil Sesi</MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem Icon="@Icons.Material.Filled.Chat">@_session.JenisChat</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Phone">@_session.NomorWhatsapp</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Business">@_session.NamaInstansi</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Person">@_session.NamaCustomer</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.SupportAgent">@_session.NamaCs</MudListItem>
+                        <MudListItem Icon="@Icons.Material.Filled.Flag">@_session.Status</MudListItem>
+                    </MudList>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" md="8">
+                <MudPaper Class="section-panel chat-session-panel" Elevation="0">
+                    <MudText Typo="Typo.subtitle1">Percakapan</MudText>
+                    @foreach (var message in _messages)
+                    {
+                        <div class="chat-message @(message.IsOutgoing ? "outgoing" : "incoming")">
+                            <div class="chat-message-meta">@message.Sender - @message.TimeText</div>
+                            <div>@(string.IsNullOrWhiteSpace(message.Text) ? "[pesan non-teks]" : message.Text)</div>
+                            @if (!string.IsNullOrWhiteSpace(message.MediaUrl))
+                            {
+                                <a href="@message.MediaUrl" target="_blank">@(!string.IsNullOrWhiteSpace(message.FileName) ? message.FileName : "Media")</a>
+                            }
+                        </div>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Class="section-panel" Elevation="0">
+            <MudText Typo="Typo.subtitle1">Catatan Internal</MudText>
+            <table class="data-table"><thead><tr><th>Catatan</th><th>Dibuat</th><th>Waktu</th></tr></thead><tbody>
+            @foreach (var note in _notes)
+            {
+                <tr><td>@note.Text</td><td>@note.CreatedBy</td><td>@note.TimeText</td></tr>
+            }
+            </tbody></table>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+    private ChatSessionRow? _session;
+    private string? _errorMessage;
+    private List<ChatMessageRow> _messages = [];
+    private List<ChatNoteRow> _notes = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var query = QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
+        if (!query.TryGetValue("id", out var idValue) || !Guid.TryParse(idValue, out var chatId))
+        {
+            _errorMessage = "ID sesi tidak ditemukan.";
+            return;
+        }
+
+        _session = await (
+            from c in Db.ChatMasters.AsNoTracking()
+            join s in Db.MStatusChatSet.AsNoTracking() on c.IdStatusChat equals s.Id into statusJoin
+            from s in statusJoin.DefaultIfEmpty()
+            join n in Db.MNomorWhatsappSet.AsNoTracking() on c.IdNomorWhatsapp equals n.Id into nomorJoin
+            from n in nomorJoin.DefaultIfEmpty()
+            join g in Db.MGrupWhatsappSet.AsNoTracking() on c.IdGrupWhatsapp equals g.Id into grupJoin
+            from g in grupJoin.DefaultIfEmpty()
+            join cu in Db.MCustomerSet.AsNoTracking() on c.IdCustomer equals cu.Id into customerJoin
+            from cu in customerJoin.DefaultIfEmpty()
+            join i in Db.MInstansiSet.AsNoTracking() on c.IdInstansi equals i.Id into instansiJoin
+            from i in instansiJoin.DefaultIfEmpty()
+            join p in Db.Penggunas.AsNoTracking() on c.DiambilOleh equals p.Id into penggunaJoin
+            from p in penggunaJoin.DefaultIfEmpty()
+            where c.Id == chatId
+            select new ChatSessionRow(
+                c.Id,
+                c.JenisChat,
+                c.NomorWhatsapp,
+                (n != null && n.NamaKontak != null ? n.NamaKontak : g != null ? g.NamaGrup : c.NamaKontak ?? c.NomorWhatsapp) ?? c.NomorWhatsapp,
+                cu == null ? "" : cu.NamaCustomer,
+                i == null ? "Belum dipetakan" : i.NamaInstansi,
+                s == null ? "Selesai" : s.NamaStatusChat,
+                p == null ? "Belum ditangani" : p.NamaPengguna))
+            .FirstOrDefaultAsync();
+
+        if (_session is null)
+        {
+            _errorMessage = "Sesi chat tidak ditemukan.";
+            return;
+        }
+
+        _messages = await Db.ChatDetails.AsNoTracking()
+            .Where(x => x.IdChat == chatId)
+            .OrderBy(x => x.TglPesan)
+            .Take(500)
+            .Select(x => new ChatMessageRow(
+                x.ArahPesan == "Keluar",
+                x.PengirimNamaKontak ?? x.PengirimNomorWhatsapp ?? (x.ArahPesan == "Keluar" ? "Customer Service" : "Customer"),
+                x.IsiPesan,
+                x.UrlMedia,
+                x.NamaFileMedia,
+                x.TglPesan.ToString("dd/MM/yyyy HH:mm")))
+            .ToListAsync();
+
+        _notes = await (
+            from note in Db.TChatCatatanInternalSet.AsNoTracking()
+            join p in Db.Penggunas.AsNoTracking() on note.DibuatOleh equals p.Id into penggunaJoin
+            from p in penggunaJoin.DefaultIfEmpty()
+            where note.IdChat == chatId
+            orderby note.TglBuat
+            select new ChatNoteRow(note.IsiCatatan, p == null ? "Sistem" : p.NamaPengguna, note.TglBuat.ToString("dd/MM/yyyy HH:mm")))
+            .ToListAsync();
+    }
+
+    private sealed record ChatSessionRow(Guid Id, string JenisChat, string NomorWhatsapp, string NamaKontak, string NamaCustomer, string NamaInstansi, string Status, string NamaCs);
+    private sealed record ChatMessageRow(bool IsOutgoing, string Sender, string? Text, string? MediaUrl, string? FileName, string TimeText);
+    private sealed record ChatNoteRow(string Text, string CreatedBy, string TimeText);
+}

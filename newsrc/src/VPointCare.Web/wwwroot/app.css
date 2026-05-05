@@ -120,6 +120,36 @@ a {
     color: #24313a;
 }
 
+.chat-session-panel {
+    min-height: 520px;
+}
+
+.chat-message {
+    border: 1px solid var(--wacs-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    max-width: 78%;
+    background: #fff;
+}
+
+.chat-message.outgoing {
+    margin-left: auto;
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+}
+
+.chat-message.incoming {
+    margin-right: auto;
+    background: #f8fafc;
+}
+
+.chat-message-meta {
+    color: var(--wacs-muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
 .inbox-column {
     min-height: 520px;
 }

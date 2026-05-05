@@ -56,7 +56,7 @@
             join p in Db.MPrioritasTicketSet.AsNoTracking() on t.IdPrioritasTicket equals p.Id into priorityJoin
             from p in priorityJoin.DefaultIfEmpty()
             orderby t.TglBuat descending
-            select new TicketRow(t.NomorTicket, t.JudulTicket, s == null ? "-" : s.NamaStatusTicket, p == null ? "-" : p.NamaPrioritasTicket, t.TglBuat))
+            select new TicketRow(t.NomorTicket, t.JudulTicket, s == null ? "-" : s.NamaStatusTicket, p == null ? "-" : p.NamaPrioritas, t.TglBuat))
             .Take(25)
             .ToListAsync();
     }

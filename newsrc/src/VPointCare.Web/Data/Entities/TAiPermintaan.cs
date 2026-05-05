@@ -20,9 +20,9 @@ public class TAiPermintaan
     [StringLength(100)]
     public string? ModelAi { get; set; }
 
-    public Guid? IdChatM { get; set; }
+    public Guid? IdChat { get; set; }
 
-    public Guid? IdTicketM { get; set; }
+    public Guid? IdTicket { get; set; }
 
     public string? PromptRingkas { get; set; }
 
@@ -44,4 +44,9 @@ public class TAiPermintaan
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MAiProvider? AiProvider { get; set; }
+    public virtual TChat? Chat { get; set; }
+    public virtual TTicket? Ticket { get; set; }
+    public virtual IEnumerable<TAiRespon>? AiRespon { get; set; }
 }

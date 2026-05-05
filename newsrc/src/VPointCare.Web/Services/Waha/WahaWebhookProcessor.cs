@@ -61,7 +61,7 @@ public class WahaWebhookProcessor(
                     log.TglEdit = now;
                     await dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
-                    return new WahaWebhookResult(true, log.Id, duplicate.IdChatM, false, true, parsed.ChatType, "Duplicate WAHA message event ignored.");
+                    return new WahaWebhookResult(true, log.Id, duplicate.IdChat, false, true, parsed.ChatType, "Duplicate WAHA message event ignored.");
                 }
             }
 
@@ -69,7 +69,7 @@ public class WahaWebhookProcessor(
             var chatMessage = new TChatD
             {
                 Id = Guid.NewGuid(),
-                IdChatM = chat.Id,
+                IdChat = chat.Id,
                 IdLogWebhookWaha = log.Id,
                 IdPesanWaha = parsed.MessageId,
                 ArahPesan = parsed.FromMe ? "Keluar" : "Masuk",
@@ -150,7 +150,7 @@ public class WahaWebhookProcessor(
         return session;
     }
 
-    private async Task<TChatM> FindOrCreateChatAsync(Guid sessionId, ParsedWahaMessage parsed, DateTime now, CancellationToken cancellationToken)
+    private async Task<TChat> FindOrCreateChatAsync(Guid sessionId, ParsedWahaMessage parsed, DateTime now, CancellationToken cancellationToken)
     {
         var query = dbContext.ChatMasters.Where(x => x.IdSesiWhatsapp == sessionId && x.JenisChat == parsed.ChatType);
         query = parsed.ChatType == "Grup"
@@ -167,7 +167,7 @@ public class WahaWebhookProcessor(
             return chat;
         }
 
-        chat = new TChatM
+        chat = new TChat
         {
             Id = Guid.NewGuid(),
             IdSesiWhatsapp = sessionId,

@@ -132,12 +132,12 @@ public class UnansweredChatNotificationJob(
 
         var latestIncoming = dbContext.ChatDetails
             .Where(x => x.ArahPesan == "Masuk" && x.DikirimOlehCustomer)
-            .GroupBy(x => x.IdChatM)
+            .GroupBy(x => x.IdChat)
             .Select(group => new { IdChatM = group.Key, TglPesanTerakhirMasuk = group.Max(x => x.TglPesan) });
 
         var latestCsReply = dbContext.ChatDetails
             .Where(x => x.ArahPesan == "Keluar" && !x.DihasilkanOlehAi)
-            .GroupBy(x => x.IdChatM)
+            .GroupBy(x => x.IdChat)
             .Select(group => new { IdChatM = group.Key, TglPesanTerakhirCs = group.Max(x => x.TglPesan) });
 
         var rows = await (
@@ -171,7 +171,7 @@ public class UnansweredChatNotificationJob(
             var row = rows[i];
             var lastMessage = await dbContext.ChatDetails
                 .AsNoTracking()
-                .Where(x => x.IdChatM == row.Id && x.ArahPesan == "Masuk" && x.TglPesan == row.TglPesanTerakhirMasuk)
+                .Where(x => x.IdChat == row.Id && x.ArahPesan == "Masuk" && x.TglPesan == row.TglPesanTerakhirMasuk)
                 .Select(x => x.IsiPesan)
                 .FirstOrDefaultAsync(cancellationToken);
 

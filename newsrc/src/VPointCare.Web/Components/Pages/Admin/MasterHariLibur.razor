@@ -1,0 +1,26 @@
+@page "/admin/master-customer/hari-libur"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Hari Libur - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Hari Libur</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Dipakai AI auto reply dan notifikasi internal agar mengikuti hari kerja.</MudText></div>
+        <MudButton Href="/admin/ai-agent" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">AI Agent</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Tanggal</th><th>Nama</th><th>Tahunan</th><th>Status</th><th>Keterangan</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.TanggalLibur.ToString("dd/MM/yyyy")</td><td>@row.NamaHariLibur</td><td>@(row.BerlakuTahunan ? "Ya" : "Tidak")</td><td>@(row.NonAktif ? "Nonaktif" : "Aktif")</td><td>@row.Keterangan</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<VPointCare.Web.Data.Entities.MHariLibur> _rows = [];
+    protected override async Task OnInitializedAsync() => _rows = await Db.MHariLiburSet.AsNoTracking().OrderBy(x => x.TanggalLibur).Take(100).ToListAsync();
+}

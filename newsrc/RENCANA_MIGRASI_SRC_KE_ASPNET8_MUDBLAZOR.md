@@ -25,6 +25,9 @@ Status eksekusi awal per 2026-05-04:
 - Command Laravel `vpoint:import-instansi-vtoken` sudah dikonversi ke `VTokenSyncJob` Hangfire dengan validasi `jsonResult/jsonValue`, log `TLogIntegrasi`, dan upsert `MInstansi`.
 - Command Laravel `vpoint:kirim-notifikasi-chat-belum-terbalas` sudah dikonversi ke `UnansweredChatNotificationJob` Hangfire dengan aturan `MPengaturanAi`, jam kerja, `MHariLibur`, penerima role, template notifikasi, dan pengiriman WAHA.
 - `AiAutoReplyService.php` sudah mulai dikonversi ke `Services/Ai/AiAutoReplyService.cs` dan dipanggil dari webhook WAHA setelah pesan masuk berhasil diproses.
+- Padanan awal `src/app/Filament` sudah dibuat sebagai page ASP.NET/MudBlazor: Dashboard, Inbox WhatsApp, View Chat Session, Ticketing, AI Agent, Knowledge Base AI, Master Customer, Instansi, Customer, Nomor WhatsApp, Grup WhatsApp, Anggota Grup, Hari Libur, Log Data, MUser, Pengguna Internal, Login, dan Register placeholder tertutup.
+- Seeder ASP.NET sudah ditambahkan di `Data/WacsDataSeeder.cs`, meniru `src/database/seeders/DatabaseSeeder.php` dan seed SQL lama: role, status chat, status ticket, prioritas ticket, kategori ticket, pengaturan AI default, serta admin `MUser` + `MPengguna`.
+- Seeder dikontrol dari `appsettings.json` melalui `SeedData:Enabled` dan data admin `SeedData:Admin`.
 - Validasi terakhir: `dotnet build newsrc\VPointCare.sln` berhasil tanpa warning dan error.
 
 ## 1. Prinsip Wajib Migrasi

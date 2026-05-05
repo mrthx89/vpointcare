@@ -35,7 +35,7 @@ public class AiAutoReplyService(
 
         var latestIncoming = await dbContext.ChatDetails
             .AsNoTracking()
-            .Where(x => x.IdChatM == chatId && x.ArahPesan == "Masuk" && x.DikirimOlehCustomer && x.IsiPesan != null)
+            .Where(x => x.IdChat == chatId && x.ArahPesan == "Masuk" && x.DikirimOlehCustomer && x.IsiPesan != null)
             .OrderByDescending(x => x.TglPesan)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -46,7 +46,7 @@ public class AiAutoReplyService(
 
         var alreadyAnswered = await dbContext.ChatDetails
             .AsNoTracking()
-            .AnyAsync(x => x.IdChatM == chatId
+            .AnyAsync(x => x.IdChat == chatId
                 && x.ArahPesan == "Keluar"
                 && x.DihasilkanOlehAi
                 && x.TglPesan >= latestIncoming.TglPesan, cancellationToken);
@@ -77,7 +77,7 @@ public class AiAutoReplyService(
             JenisPermintaan = "Auto Reply WhatsApp",
             ProviderAi = string.IsNullOrWhiteSpace(settings.ProviderAi) ? "OpenAI" : settings.ProviderAi,
             ModelAi = settings.ModelAi ?? configuration[$"{ProviderSection(settings.ProviderAi)}:Model"],
-            IdChatM = chatId,
+            IdChat = chatId,
             PromptRingkas = Limit(prompt, 2000),
             PromptJson = JsonSerializer.Serialize(new { keputusan = decision, prompt }),
             StatusPermintaan = "Diproses",
@@ -163,7 +163,7 @@ public class AiAutoReplyService(
             JenisPermintaan = "Tutup Chat",
             ProviderAi = string.IsNullOrWhiteSpace(settings.ProviderAi) ? "OpenAI" : settings.ProviderAi,
             ModelAi = settings.ModelAi ?? configuration[$"{ProviderSection(settings.ProviderAi)}:Model"],
-            IdChatM = chatId,
+            IdChat = chatId,
             PromptRingkas = Limit(prompt, 2000),
             PromptJson = JsonSerializer.Serialize(new { prompt }),
             StatusPermintaan = "Diproses",
@@ -326,7 +326,7 @@ public class AiAutoReplyService(
         var limit = Math.Max(1, Math.Min(settings.BatasRiwayatPesan, 20));
         var rows = await dbContext.ChatDetails
             .AsNoTracking()
-            .Where(x => x.IdChatM == chat.Id)
+            .Where(x => x.IdChat == chat.Id)
             .OrderByDescending(x => x.TglPesan)
             .Take(limit)
             .OrderBy(x => x.TglPesan)
@@ -501,7 +501,7 @@ public class AiAutoReplyService(
         dbContext.ChatDetails.Add(new TChatD
         {
             Id = Guid.NewGuid(),
-            IdChatM = chat.Id,
+            IdChat = chat.Id,
             IdAiRespon = responseId,
             ArahPesan = "Keluar",
             JenisPesan = "Teks",
@@ -523,7 +523,7 @@ public class AiAutoReplyService(
     {
         var payloadJson = await dbContext.ChatDetails
             .AsNoTracking()
-            .Where(x => x.IdChatM == chatId && x.ArahPesan == "Masuk" && x.PayloadJson != null)
+            .Where(x => x.IdChat == chatId && x.ArahPesan == "Masuk" && x.PayloadJson != null)
             .OrderByDescending(x => x.TglPesan)
             .Select(x => x.PayloadJson)
             .FirstOrDefaultAsync(cancellationToken);

@@ -39,4 +39,6 @@ public class MUser
 
     [Column("updated_at")]
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual IEnumerable<MPengguna>? Pengguna { get; set; }
 }

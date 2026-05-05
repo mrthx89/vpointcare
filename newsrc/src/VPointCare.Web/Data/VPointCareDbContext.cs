@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VPointCare.Web.Data.Entities;
 
 namespace VPointCare.Web.Data;
@@ -30,14 +30,14 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
     public DbSet<TLogError> TLogErrorSet => Set<TLogError>();
     public DbSet<TLogIntegrasi> LogIntegrasis => Set<TLogIntegrasi>();
     public DbSet<TLogWebhookWaha> LogWebhookWahas => Set<TLogWebhookWaha>();
-    public DbSet<TChatM> ChatMasters => Set<TChatM>();
+    public DbSet<TChat> ChatMasters => Set<TChat>();
     public DbSet<TChatD> ChatDetails => Set<TChatD>();
-    public DbSet<TChatPenugasan> TChatPenugasanSet => Set<TChatPenugasan>();
-    public DbSet<TChatCatatanInternal> TChatCatatanInternalSet => Set<TChatCatatanInternal>();
-    public DbSet<TTicketM> TTicketMSet => Set<TTicketM>();
+    public DbSet<TChatDPenugasan> TChatPenugasanSet => Set<TChatDPenugasan>();
+    public DbSet<TChatDCatatanInternal> TChatCatatanInternalSet => Set<TChatDCatatanInternal>();
+    public DbSet<TTicket> TTicketMSet => Set<TTicket>();
     public DbSet<TTicketD> TTicketDSet => Set<TTicketD>();
-    public DbSet<TTicketPenugasan> TTicketPenugasanSet => Set<TTicketPenugasan>();
-    public DbSet<TTicketLampiran> TTicketLampiranSet => Set<TTicketLampiran>();
+    public DbSet<TTicketDPenugasan> TTicketPenugasanSet => Set<TTicketDPenugasan>();
+    public DbSet<TTicketDLampiran> TTicketLampiranSet => Set<TTicketDLampiran>();
     public DbSet<TAiPermintaan> TAiPermintaanSet => Set<TAiPermintaan>();
     public DbSet<TAiRespon> TAiResponSet => Set<TAiRespon>();
 
@@ -55,6 +55,7 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
         });
 
         modelBuilder.Entity<MHakAkses>(entity =>
@@ -70,6 +71,7 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
         });
 
         modelBuilder.Entity<MPeranHakAkses>(entity =>
@@ -83,6 +85,16 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Peran)
+                  .WithMany(e => e.PeranHakAkses)
+                  .HasForeignKey(e => e.IdPeran)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.HakAkses)
+                  .WithMany(e => e.PeranHakAkses)
+                  .HasForeignKey(e => e.IdHakAkses)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MUser>(entity =>
@@ -106,7 +118,7 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
         {
             entity.ToTable("MPengguna");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.UserId).HasColumnName("UserId");
+            entity.Property(e => e.IdUser).HasColumnName("IdUser");
             entity.Property(e => e.IdPeran).HasColumnName("IdPeran");
             entity.Property(e => e.NamaPengguna).HasColumnName("NamaPengguna").HasColumnType("varchar(150)");
             entity.Property(e => e.Email).HasColumnName("Email").HasColumnType("varchar(150)");
@@ -123,6 +135,16 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
             entity.HasIndex(e => e.Email).IsUnique();
+
+            entity.HasOne(e => e.User)
+                  .WithMany(u => u.Pengguna)
+                  .HasForeignKey(e => e.IdUser)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Peran)
+                  .WithMany(e => e.Pengguna)
+                  .HasForeignKey(e => e.IdPeran)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MInstansi>(entity =>
@@ -147,6 +169,7 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
         });
 
         modelBuilder.Entity<MCustomer>(entity =>
@@ -168,6 +191,11 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Instansi)
+                  .WithMany(c => c.Customers)
+                  .HasForeignKey(c => c.IdInstansi)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MNomorWhatsapp>(entity =>
@@ -188,6 +216,15 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Instansi)
+                  .WithMany(c => c.NomorWhatsapps)
+                  .HasForeignKey(c => c.IdInstansi)
+                  .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(e => e.Customer)
+                  .WithMany(c => c.NomorWhatsapps)
+                  .HasForeignKey(c => c.IdCustomer)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MGrupWhatsapp>(entity =>
@@ -207,6 +244,11 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Instansi)
+                  .WithMany(c => c.GrupWhatsapps)
+                  .HasForeignKey(c => c.IdInstansi)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MAnggotaGrupWhatsapp>(entity =>
@@ -222,6 +264,19 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.GrupWhatsapp)
+              .WithMany(c => c.AnggotaGrupWhatsapps)
+              .HasForeignKey(c => c.IdGrupWhatsapp)
+              .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(e => e.NomorWhatsapp)
+              .WithMany(c => c.AnggotaGrupWhatsapps)
+              .HasForeignKey(c => c.IdNomorWhatsapp)
+              .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne(e => e.Customer)
+              .WithMany(c => c.AnggotaGrupWhatsapps)
+              .HasForeignKey(c => c.IdCustomer)
+              .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MProdukCustomer>(entity =>
@@ -240,6 +295,16 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Customer)
+              .WithMany(c => c.ProdukCustomers)
+              .HasForeignKey(c => c.IdCustomer)
+              .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Instansi)
+              .WithMany(c => c.ProdukCustomers)
+              .HasForeignKey(c => c.IdInstansi)
+              .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<MStatusChat>(entity =>
@@ -255,6 +320,7 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
         });
 
         modelBuilder.Entity<MKategoriTicket>(entity =>
@@ -440,6 +506,11 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Pengguna)
+                  .WithMany(u => u.LogAktivitas)
+                  .HasForeignKey(e => e.IdPengguna)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<TLogError>(entity =>
@@ -478,6 +549,11 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.EndpointIntegrasi)
+                .WithMany(e => e.LogIntegrasis)
+                .HasForeignKey(e => e.IdEndpointIntegrasi)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<TLogWebhookWaha>(entity =>
@@ -495,11 +571,16 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.SesiWhatsapp)
+                .WithMany(e => e.LogWebhookWahas)
+                .HasForeignKey(e => e.IdSesiWhatsapp)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<TChatM>(entity =>
+        modelBuilder.Entity<TChat>(entity =>
         {
-            entity.ToTable("TChatM");
+            entity.ToTable("TChat");
             entity.Property(e => e.Id).HasColumnName("Id");
             entity.Property(e => e.IdSesiWhatsapp).HasColumnName("IdSesiWhatsapp");
             entity.Property(e => e.IdStatusChat).HasColumnName("IdStatusChat");
@@ -535,13 +616,43 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.SesiWhatsapp)
+                .WithMany(e => e.Chats)
+                .HasForeignKey(e => e.IdSesiWhatsapp)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.StatusChat)
+                .WithMany(e => e.Chats)
+                .HasForeignKey(e => e.IdStatusChat)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Customer)
+                .WithMany(e => e.Chats)
+                .HasForeignKey(e => e.IdCustomer)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Instansi)
+                .WithMany(e => e.Chats)
+                .HasForeignKey(e => e.IdInstansi)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.NomorWhatsappMaster)
+                .WithMany(e => e.Chats)
+                .HasForeignKey(e => e.IdNomorWhatsapp)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.GrupWhatsapp)
+                .WithMany(e => e.Chats)
+                .HasForeignKey(e => e.IdGrupWhatsapp)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<TChatD>(entity =>
         {
             entity.ToTable("TChatD");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.IdChatM).HasColumnName("IdChatM");
+            entity.Property(e => e.IdChat).HasColumnName("IdChat");
             entity.Property(e => e.IdLogWebhookWaha).HasColumnName("IdLogWebhookWaha");
             entity.Property(e => e.IdPesanWaha).HasColumnName("IdPesanWaha").HasColumnType("varchar(200)");
             entity.Property(e => e.ArahPesan).HasColumnName("ArahPesan").HasColumnType("varchar(20)");
@@ -567,13 +678,28 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
             entity.HasIndex(e => e.IdPesanWaha);
+
+            entity.HasOne(e => e.Chat)
+                .WithMany(u => u.ChatD)
+                .HasForeignKey(e => e.IdChat)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.LogWebhookWaha)
+                .WithMany(e => e.ChatDs)
+                .HasForeignKey(e => e.IdLogWebhookWaha)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.AiRespon)
+                .WithMany(e => e.ChatD)
+                .HasForeignKey(e => e.IdAiRespon)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<TChatPenugasan>(entity =>
+        modelBuilder.Entity<TChatDPenugasan>(entity =>
         {
-            entity.ToTable("TChatPenugasan");
+            entity.ToTable("TChatDPenugasan");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.IdChatM).HasColumnName("IdChatM");
+            entity.Property(e => e.IdChat).HasColumnName("IdChat");
             entity.Property(e => e.DitugaskanDari).HasColumnName("DitugaskanDari");
             entity.Property(e => e.DitugaskanKepada).HasColumnName("DitugaskanKepada");
             entity.Property(e => e.AlasanPenugasan).HasColumnName("AlasanPenugasan").HasColumnType("varchar(500)");
@@ -582,26 +708,36 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Chat)
+                .WithMany(u => u.ChatDPenugasan)
+                .HasForeignKey(e => e.IdChat)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<TChatCatatanInternal>(entity =>
+        modelBuilder.Entity<TChatDCatatanInternal>(entity =>
         {
-            entity.ToTable("TChatCatatanInternal");
+            entity.ToTable("TChatDCatatanInternal");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.IdChatM).HasColumnName("IdChatM");
+            entity.Property(e => e.IdChat).HasColumnName("IdChat");
             entity.Property(e => e.IsiCatatan).HasColumnName("IsiCatatan").HasColumnType("nvarchar(max)");
             entity.Property(e => e.TglBuat).HasColumnName("TglBuat");
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Chat)
+                .WithMany(u => u.ChatDCatatanInternal)
+                .HasForeignKey(e => e.IdChat)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<TTicketM>(entity =>
+        modelBuilder.Entity<TTicket>(entity =>
         {
-            entity.ToTable("TTicketM");
+            entity.ToTable("TTicket");
             entity.Property(e => e.Id).HasColumnName("Id");
             entity.Property(e => e.NomorTicket).HasColumnName("NomorTicket").HasColumnType("varchar(50)");
-            entity.Property(e => e.IdChatM).HasColumnName("IdChatM");
+            entity.Property(e => e.IdChat).HasColumnName("IdChat");
             entity.Property(e => e.IdCustomer).HasColumnName("IdCustomer");
             entity.Property(e => e.IdInstansi).HasColumnName("IdInstansi");
             entity.Property(e => e.IdKategoriTicket).HasColumnName("IdKategoriTicket");
@@ -621,13 +757,48 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Chat)
+                .WithMany(e => e.Tickets)
+                .HasForeignKey(e => e.IdChat)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Customer)
+                .WithMany(e => e.Tickets)
+                .HasForeignKey(e => e.IdCustomer)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Instansi)
+                .WithMany(e => e.Tickets)
+                .HasForeignKey(e => e.IdInstansi)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.KategoriTicket)
+                .WithMany(e => e.Tickets)
+                .HasForeignKey(e => e.IdKategoriTicket)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.PrioritasTicket)
+                .WithMany(e => e.Tickets)
+                .HasForeignKey(e => e.IdPrioritasTicket)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.StatusTicket)
+                .WithMany(e => e.Tickets)
+                .HasForeignKey(e => e.IdStatusTicket)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.DibuatDariPesan)
+                .WithMany(e => e.TicketsDibuatDariPesan)
+                .HasForeignKey(e => e.DibuatDariPesanId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<TTicketD>(entity =>
         {
             entity.ToTable("TTicketD");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.IdTicketM).HasColumnName("IdTicketM");
+            entity.Property(e => e.IdTicket).HasColumnName("IdTicket");
             entity.Property(e => e.JenisAktivitas).HasColumnName("JenisAktivitas").HasColumnType("varchar(100)");
             entity.Property(e => e.IsiAktivitas).HasColumnName("IsiAktivitas").HasColumnType("nvarchar(max)");
             entity.Property(e => e.StatusSebelum).HasColumnName("StatusSebelum").HasColumnType("varchar(100)");
@@ -638,13 +809,18 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Ticket)
+                .WithMany(e => e.TicketD)
+                .HasForeignKey(e => e.IdTicket)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<TTicketPenugasan>(entity =>
+        modelBuilder.Entity<TTicketDPenugasan>(entity =>
         {
-            entity.ToTable("TTicketPenugasan");
+            entity.ToTable("TTicketDPenugasan");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.IdTicketM).HasColumnName("IdTicketM");
+            entity.Property(e => e.IdTicket).HasColumnName("IdTicket");
             entity.Property(e => e.DitugaskanDari).HasColumnName("DitugaskanDari");
             entity.Property(e => e.DitugaskanKepada).HasColumnName("DitugaskanKepada");
             entity.Property(e => e.AlasanPenugasan).HasColumnName("AlasanPenugasan").HasColumnType("varchar(500)");
@@ -653,13 +829,18 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Ticket)
+                .WithMany(e => e.TicketDPenugasan)
+                .HasForeignKey(e => e.IdTicket)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
-        modelBuilder.Entity<TTicketLampiran>(entity =>
+        modelBuilder.Entity<TTicketDLampiran>(entity =>
         {
-            entity.ToTable("TTicketLampiran");
+            entity.ToTable("TTicketDLampiran");
             entity.Property(e => e.Id).HasColumnName("Id");
-            entity.Property(e => e.IdTicketM).HasColumnName("IdTicketM");
+            entity.Property(e => e.IdTicket).HasColumnName("IdTicket");
             entity.Property(e => e.NamaFile).HasColumnName("NamaFile").HasColumnType("varchar(255)");
             entity.Property(e => e.PathFile).HasColumnName("PathFile").HasColumnType("varchar(1000)");
             entity.Property(e => e.TipeFile).HasColumnName("TipeFile").HasColumnType("varchar(100)");
@@ -668,6 +849,11 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.Ticket)
+                .WithMany(e => e.TicketDLampiran)
+                .HasForeignKey(e => e.IdTicket)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<TAiPermintaan>(entity =>
@@ -678,8 +864,8 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.JenisPermintaan).HasColumnName("JenisPermintaan").HasColumnType("varchar(100)");
             entity.Property(e => e.ProviderAi).HasColumnName("ProviderAi").HasColumnType("varchar(50)");
             entity.Property(e => e.ModelAi).HasColumnName("ModelAi").HasColumnType("varchar(100)");
-            entity.Property(e => e.IdChatM).HasColumnName("IdChatM");
-            entity.Property(e => e.IdTicketM).HasColumnName("IdTicketM");
+            entity.Property(e => e.IdChat).HasColumnName("IdChat");
+            entity.Property(e => e.IdTicket).HasColumnName("IdTicket");
             entity.Property(e => e.PromptRingkas).HasColumnName("PromptRingkas").HasColumnType("nvarchar(max)");
             entity.Property(e => e.PromptJson).HasColumnName("PromptJson").HasColumnType("nvarchar(max)");
             entity.Property(e => e.StatusPermintaan).HasColumnName("StatusPermintaan").HasColumnType("varchar(50)");
@@ -690,6 +876,21 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.AiProvider)
+                .WithMany(e => e.AiPermintaan)
+                .HasForeignKey(e => e.IdAiProvider)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Chat)
+                .WithMany(e => e.AiPermintaan)
+                .HasForeignKey(e => e.IdChat)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Ticket)
+                .WithMany(e => e.AiPermintaan)
+                .HasForeignKey(e => e.IdTicket)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<TAiRespon>(entity =>
@@ -702,13 +903,18 @@ public class VPointCareDbContext(DbContextOptions<VPointCareDbContext> options) 
             entity.Property(e => e.ResponJson).HasColumnName("ResponJson").HasColumnType("nvarchar(max)");
             entity.Property(e => e.TokenInput).HasColumnName("TokenInput");
             entity.Property(e => e.TokenOutput).HasColumnName("TokenOutput");
-            entity.Property(e => e.BiayaEstimasi).HasColumnName("BiayaEstimasi").HasColumnType("decimal(18");
+            entity.Property(e => e.BiayaEstimasi).HasColumnName("BiayaEstimasi").HasColumnType("decimal(18,2)");
             entity.Property(e => e.DisetujuiOleh).HasColumnName("DisetujuiOleh");
             entity.Property(e => e.TglDisetujui).HasColumnName("TglDisetujui");
             entity.Property(e => e.TglBuat).HasColumnName("TglBuat");
             entity.Property(e => e.DibuatOleh).HasColumnName("DibuatOleh");
             entity.Property(e => e.TglEdit).HasColumnName("TglEdit");
             entity.Property(e => e.DieditOleh).HasColumnName("DieditOleh");
+
+            entity.HasOne(e => e.AiPermintaan)
+                .WithMany(e => e.AiRespon)
+                .HasForeignKey(e => e.IdAiPermintaan)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

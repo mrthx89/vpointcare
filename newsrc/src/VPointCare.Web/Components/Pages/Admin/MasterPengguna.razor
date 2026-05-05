@@ -1,0 +1,35 @@
+@page "/admin/users/pengguna"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Pengguna Internal - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Pengguna Internal</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Padanan resource Filament `PenggunaResource` untuk tabel `MPengguna`.</MudText></div>
+        <MudButton Href="/admin/users" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">MUser</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>WA Internal</th><th>Jabatan</th><th>Status</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.Nama</td><td>@row.Email</td><td>@row.Peran</td><td>@row.Wa</td><td>@row.Jabatan</td><td>@(row.NonAktif ? "Nonaktif" : "Aktif")</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<Row> _rows = [];
+    protected override async Task OnInitializedAsync()
+    {
+        _rows = await (from p in Db.Penggunas.AsNoTracking()
+            join r in Db.Perans.AsNoTracking() on p.IdPeran equals r.Id into roleJoin
+            from r in roleJoin.DefaultIfEmpty()
+            orderby p.NamaPengguna
+            select new Row(p.NamaPengguna, p.Email, r == null ? "-" : r.NamaPeran, p.NomorWhatsappInternal, p.Jabatan, p.NonAktif))
+            .Take(100).ToListAsync();
+    }
+    private sealed record Row(string Nama, string Email, string Peran, string? Wa, string? Jabatan, bool NonAktif);
+}

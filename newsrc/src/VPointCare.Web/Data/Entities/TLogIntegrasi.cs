@@ -41,4 +41,6 @@ public class TLogIntegrasi
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MEndpointIntegrasi? EndpointIntegrasi { get; set; }
 }

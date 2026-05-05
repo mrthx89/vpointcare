@@ -32,4 +32,6 @@ public class MEndpointIntegrasi
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual IEnumerable<TLogIntegrasi>? LogIntegrasis { get; set; }
 }

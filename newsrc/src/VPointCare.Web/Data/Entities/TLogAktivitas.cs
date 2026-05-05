@@ -39,4 +39,6 @@ public class TLogAktivitas
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MPengguna? Pengguna { get; set; }
 }

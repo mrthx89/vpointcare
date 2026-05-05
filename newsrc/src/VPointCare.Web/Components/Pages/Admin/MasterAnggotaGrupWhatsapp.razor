@@ -1,0 +1,37 @@
+@page "/admin/master-customer/anggota-grup"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Anggota Grup - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Anggota Grup</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Padanan resource Filament `AnggotaGrupWhatsappResource`.</MudText></div>
+        <MudButton Href="/admin/master-customer" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">Ringkasan</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <table class="data-table"><thead><tr><th>Grup</th><th>Nomor</th><th>Customer</th><th>Peran</th><th>Status</th></tr></thead><tbody>
+        @foreach (var row in _rows)
+        {
+            <tr><td>@row.Grup</td><td>@row.Nomor</td><td>@row.Customer</td><td>@row.Peran</td><td>@(row.NonAktif ? "Nonaktif" : "Aktif")</td></tr>
+        }
+        </tbody></table>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<Row> _rows = [];
+    protected override async Task OnInitializedAsync()
+    {
+        _rows = await (from a in Db.MAnggotaGrupWhatsappSet.AsNoTracking()
+            join g in Db.MGrupWhatsappSet.AsNoTracking() on a.IdGrupWhatsapp equals g.Id
+            join n in Db.MNomorWhatsappSet.AsNoTracking() on a.IdNomorWhatsapp equals n.Id
+            join c in Db.MCustomerSet.AsNoTracking() on a.IdCustomer equals c.Id into customerJoin
+            from c in customerJoin.DefaultIfEmpty()
+            orderby g.NamaGrup, n.NamaKontak
+            select new Row(g.NamaGrup, n.NomorWhatsapp, c == null ? "-" : c.NamaCustomer, a.PeranAnggota ?? "-", a.NonAktif))
+            .Take(100).ToListAsync();
+    }
+    private sealed record Row(string Grup, string Nomor, string Customer, string Peran, bool NonAktif);
+}

@@ -9,7 +9,7 @@ public class MPengguna
     [Key]
     public Guid Id { get; set; }
 
-    public long? UserId { get; set; }
+    public long? IdUser { get; set; }
 
     public Guid IdPeran { get; set; }
 
@@ -47,4 +47,8 @@ public class MPengguna
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MUser? User { get; set; }
+    public virtual MPeran? Peran { get; set; }
+    public virtual IEnumerable<TLogAktivitas>? LogAktivitas { get; set; }
 }

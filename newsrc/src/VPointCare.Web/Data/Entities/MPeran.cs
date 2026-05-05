@@ -27,4 +27,7 @@ public class MPeran
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual IEnumerable<MPeranHakAkses>? PeranHakAkses { get; set; }
+    public virtual IEnumerable<MPengguna>? Pengguna { get; set; }
 }

@@ -18,7 +18,10 @@
     </MudGrid>
 
     <MudPaper Class="section-panel" Elevation="0">
-        <MudText Typo="Typo.subtitle1">User Login</MudText>
+        <div class="section-header-row">
+            <MudText Typo="Typo.subtitle1">User Login</MudText>
+            <MudButton Href="/admin/users/pengguna" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.PeopleAlt">Pengguna Internal</MudButton>
+        </div>
         <table class="data-table"><thead><tr><th>Nama</th><th>Email</th><th>Status</th><th>Pengguna Internal</th><th>Login Terakhir</th></tr></thead><tbody>
         @foreach (var row in _rows)
         {

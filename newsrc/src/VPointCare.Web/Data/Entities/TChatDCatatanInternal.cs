@@ -3,17 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VPointCare.Web.Data.Entities;
 
-[Table("MPeranHakAkses")]
-public class MPeranHakAkses
+[Table("TChatDCatatanInternal")]
+public class TChatDCatatanInternal
 {
     [Key]
     public Guid Id { get; set; }
 
-    public Guid IdPeran { get; set; }
+    public Guid IdChat { get; set; }
 
-    public Guid IdHakAkses { get; set; }
-
-    public bool NonAktif { get; set; }
+    public string IsiCatatan { get; set; } = "";
 
     public DateTime TglBuat { get; set; }
 
@@ -23,6 +21,5 @@ public class MPeranHakAkses
 
     public Guid? DieditOleh { get; set; }
 
-    public virtual MPeran? Peran { get; set; }
-    public virtual MHakAkses? HakAkses { get; set; }
+    public virtual TChat? Chat { get; set; }
 }

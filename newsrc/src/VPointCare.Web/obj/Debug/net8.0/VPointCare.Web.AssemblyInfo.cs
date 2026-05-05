@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VPointCare.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+40d3064fba6911fa4be21225c6357afdc2b75f40")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+723049cd7dfae0b768c2bbc5e8dfc2341b1effda")]
 [assembly: System.Reflection.AssemblyProductAttribute("VPointCare.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VPointCare.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

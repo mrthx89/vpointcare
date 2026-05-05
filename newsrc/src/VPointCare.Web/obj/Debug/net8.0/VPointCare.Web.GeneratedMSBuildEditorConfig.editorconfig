@@ -1,7 +1,4 @@
 is_global = true
-build_property.MudDebugAnalyzer = 
-build_property.MudAllowedAttributePattern = 
-build_property.MudAllowedAttributeList = 
 build_property.TargetFramework = net8.0
 build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v8.0
@@ -57,6 +54,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxMb2dEYXRhLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/MasterAnggotaGrupWhatsapp.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJBbmdnb3RhR3J1cFdoYXRzYXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/MasterCustomer.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJDdXN0b21lci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -69,12 +70,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJHcnVwV2hhdHNhcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/MasterHariLibur.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJIYXJpTGlidXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/MasterInstansi.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJJbnN0YW5zaS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/MasterNomorWhatsapp.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJOb21vcldoYXRzYXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/MasterPengguna.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxNYXN0ZXJQZW5nZ3VuYS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/Ticketing.razor]
@@ -85,8 +94,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxVc2Vycy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Admin/ViewChatSession.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pblxWaWV3Q2hhdFNlc3Npb24ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Auth/Login.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBdXRoXExvZ2luLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Auth/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBdXRoXFJlZ2lzdGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/GIT VPOINT/2026-WACS/newsrc/src/VPointCare.Web/Components/Pages/Error.razor]

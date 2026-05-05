@@ -31,4 +31,7 @@ public class TLogWebhookWaha
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MSesiWhatsapp? SesiWhatsapp { get; set; }
+    public virtual IEnumerable<TChatD>? ChatDs { get; set; }
 }

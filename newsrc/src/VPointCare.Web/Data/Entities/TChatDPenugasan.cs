@@ -3,22 +3,22 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VPointCare.Web.Data.Entities;
 
-[Table("MKategoriTicket")]
-public class MKategoriTicket
+[Table("TChatDPenugasan")]
+public class TChatDPenugasan
 {
     [Key]
     public Guid Id { get; set; }
 
-    [StringLength(50)]
-    public string KodeKategori { get; set; } = "";
+    public Guid IdChat { get; set; }
 
-    [StringLength(150)]
-    public string NamaKategori { get; set; } = "";
+    public Guid? DitugaskanDari { get; set; }
+
+    public Guid DitugaskanKepada { get; set; }
 
     [StringLength(500)]
-    public string? Keterangan { get; set; }
+    public string? AlasanPenugasan { get; set; }
 
-    public bool NonAktif { get; set; }
+    public DateTime TglPenugasan { get; set; }
 
     public DateTime TglBuat { get; set; }
 
@@ -28,5 +28,5 @@ public class MKategoriTicket
 
     public Guid? DieditOleh { get; set; }
 
-    public virtual IEnumerable<TTicket>? Tickets { get; set; }
+    public virtual TChat? Chat { get; set; }
 }

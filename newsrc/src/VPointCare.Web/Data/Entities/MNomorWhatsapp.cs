@@ -41,4 +41,9 @@ public class MNomorWhatsapp
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MInstansi? Instansi { get; set; }
+    public virtual MCustomer? Customer { get; set; }
+    public virtual IEnumerable<MAnggotaGrupWhatsapp>? AnggotaGrupWhatsapps { get; set; }
+    public virtual IEnumerable<TChat>? Chats { get; set; }
 }

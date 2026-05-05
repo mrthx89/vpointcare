@@ -46,4 +46,11 @@ public class MCustomer
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MInstansi? Instansi { get; set; }
+    public virtual IEnumerable<MNomorWhatsapp>? NomorWhatsapps { get; set; }
+    public virtual IEnumerable<MAnggotaGrupWhatsapp>? AnggotaGrupWhatsapps { get; set; }
+    public virtual IEnumerable<MProdukCustomer>? ProdukCustomers { get; set; }
+    public virtual IEnumerable<TChat>? Chats { get; set; }
+    public virtual IEnumerable<TTicket>? Tickets { get; set; }
 }

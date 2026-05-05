@@ -35,4 +35,7 @@ public class MProdukCustomer
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MCustomer? Customer { get; set; }
+    public virtual MInstansi? Instansi { get; set; }
 }

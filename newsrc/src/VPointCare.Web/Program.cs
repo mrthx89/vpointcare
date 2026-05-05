@@ -55,6 +55,7 @@ builder.Services.AddHttpClient<WahaSenderService>();
 builder.Services.AddHttpClient<AiAutoReplyService>();
 builder.Services.AddScoped<UnansweredChatNotificationJob>();
 builder.Services.AddScoped<AiAutoReplyJob>();
+builder.Services.AddScoped<WacsDataSeeder>();
 
 var hangfireConnection = builder.Configuration.GetConnectionString("Hangfire");
 var hangfireEnabled = !string.IsNullOrWhiteSpace(hangfireConnection);
@@ -75,6 +76,17 @@ if (hangfireEnabled)
 }
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<VPointCareDbContext>();
+    dbContext.Database.Migrate();
+    if (app.Configuration.GetValue("SeedData:Enabled", true))
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<WacsDataSeeder>();
+        await seeder.SeedAsync();
+    }
+}
 
 if (!app.Environment.IsDevelopment())
 {

@@ -31,4 +31,6 @@ public class MPrioritasTicket
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual IEnumerable<TTicket>? Tickets { get; set; }
 }

@@ -3,28 +3,24 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VPointCare.Web.Data.Entities;
 
-[Table("TTicketD")]
-public class TTicketD
+[Table("TTicketDLampiran")]
+public class TTicketDLampiran
 {
     [Key]
     public Guid Id { get; set; }
 
     public Guid IdTicket { get; set; }
 
-    [StringLength(100)]
-    public string JenisAktivitas { get; set; } = "";
+    [StringLength(255)]
+    public string NamaFile { get; set; } = "";
 
-    public string? IsiAktivitas { get; set; }
-
-    [StringLength(100)]
-    public string? StatusSebelum { get; set; }
+    [StringLength(1000)]
+    public string PathFile { get; set; } = "";
 
     [StringLength(100)]
-    public string? StatusSesudah { get; set; }
+    public string? TipeFile { get; set; }
 
-    public Guid? DitujukanKepada { get; set; }
-
-    public DateTime TglAktivitas { get; set; }
+    public long? UkuranFile { get; set; }
 
     public DateTime TglBuat { get; set; }
 

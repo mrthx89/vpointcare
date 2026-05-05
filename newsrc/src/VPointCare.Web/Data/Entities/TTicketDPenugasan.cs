@@ -3,28 +3,22 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VPointCare.Web.Data.Entities;
 
-[Table("TTicketD")]
-public class TTicketD
+[Table("TTicketDPenugasan")]
+public class TTicketDPenugasan
 {
     [Key]
     public Guid Id { get; set; }
 
     public Guid IdTicket { get; set; }
 
-    [StringLength(100)]
-    public string JenisAktivitas { get; set; } = "";
+    public Guid? DitugaskanDari { get; set; }
 
-    public string? IsiAktivitas { get; set; }
+    public Guid DitugaskanKepada { get; set; }
 
-    [StringLength(100)]
-    public string? StatusSebelum { get; set; }
+    [StringLength(500)]
+    public string? AlasanPenugasan { get; set; }
 
-    [StringLength(100)]
-    public string? StatusSesudah { get; set; }
-
-    public Guid? DitujukanKepada { get; set; }
-
-    public DateTime TglAktivitas { get; set; }
+    public DateTime TglPenugasan { get; set; }
 
     public DateTime TglBuat { get; set; }
 

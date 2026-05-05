@@ -35,4 +35,7 @@ public class TAiRespon
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual TAiPermintaan? AiPermintaan { get; set; }
+    public virtual IEnumerable<TChatD>? ChatD { get; set; }
 }

@@ -33,4 +33,6 @@ public class MAiProvider
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual IEnumerable<TAiPermintaan>? AiPermintaan { get; set; }
 }

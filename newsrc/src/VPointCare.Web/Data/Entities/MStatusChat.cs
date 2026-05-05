@@ -29,4 +29,6 @@ public class MStatusChat
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual IEnumerable<TChat>? Chats { get; set; }
 }

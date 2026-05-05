@@ -27,4 +27,8 @@ public class MAnggotaGrupWhatsapp
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual MGrupWhatsapp? GrupWhatsapp { get; set; }
+    public virtual MCustomer? Customer { get; set; }
+    public virtual MNomorWhatsapp? NomorWhatsapp { get; set; }
 }

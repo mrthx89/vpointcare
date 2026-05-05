@@ -9,7 +9,7 @@ public class TChatD
     [Key]
     public Guid Id { get; set; }
 
-    public Guid IdChatM { get; set; }
+    public Guid IdChat { get; set; }
 
     public Guid? IdLogWebhookWaha { get; set; }
 
@@ -67,4 +67,9 @@ public class TChatD
     public DateTime? TglEdit { get; set; }
 
     public Guid? DieditOleh { get; set; }
+
+    public virtual TChat? Chat { get; set; }
+    public virtual TLogWebhookWaha? LogWebhookWaha { get; set; }
+    public virtual TAiRespon? AiRespon { get; set; }
+    public virtual IEnumerable<TTicket>? TicketsDibuatDariPesan { get; set; }
 }
