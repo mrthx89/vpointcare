@@ -3,11 +3,11 @@
         <section class="vc-stats-grid">
             @php
                 $cards = [
-                    ['label' => 'Klien', 'value' => $stats['instansi'] ?? 0, 'tone' => 'vc-tone-blue'],
-                    ['label' => 'Kontak', 'value' => $stats['kontak'] ?? 0, 'tone' => 'vc-tone-emerald'],
-                    ['label' => 'Nomor WA', 'value' => $stats['nomor'] ?? 0, 'tone' => 'vc-tone-amber'],
-                    ['label' => 'Grup WA', 'value' => $stats['grup'] ?? 0, 'tone' => 'vc-tone-cyan'],
-                    ['label' => 'Anggota Grup', 'value' => $stats['anggota'] ?? 0, 'tone' => 'vc-tone-rose'],
+                    ['label' => __('ui.pages.master_customer.clients'), 'value' => $stats['instansi'] ?? 0, 'tone' => 'vc-tone-blue'],
+                    ['label' => __('ui.pages.master_customer.contacts'), 'value' => $stats['kontak'] ?? 0, 'tone' => 'vc-tone-emerald'],
+                    ['label' => __('ui.pages.master_customer.wa_numbers'), 'value' => $stats['nomor'] ?? 0, 'tone' => 'vc-tone-amber'],
+                    ['label' => __('ui.pages.master_customer.wa_groups'), 'value' => $stats['grup'] ?? 0, 'tone' => 'vc-tone-cyan'],
+                    ['label' => __('ui.pages.master_customer.group_members'), 'value' => $stats['anggota'] ?? 0, 'tone' => 'vc-tone-rose'],
                 ];
             @endphp
 
@@ -27,15 +27,15 @@
         <section class="vc-card">
             <div class="vc-section-head">
                 <div>
-                    <h2 class="vc-title">Alur Master Customer</h2>
+                    <h2 class="vc-title">{{ __('ui.pages.master_customer.flow_title') }}</h2>
                     <p class="vc-copy">
-                        Mapping dibuat bertingkat agar chat pribadi dan chat grup bisa langsung dikenali asal kliennya.
+                        {{ __('ui.pages.master_customer.flow_desc') }}
                     </p>
                 </div>
             </div>
 
             <div class="vc-flow-grid">
-                @foreach ([['step' => '01', 'title' => 'Klien', 'body' => 'Daftarkan PT, instansi, atau perusahaan customer.'], ['step' => '02', 'title' => 'Kontak', 'body' => 'Masukkan PIC atau user di bawah klien tersebut.'], ['step' => '03', 'title' => 'Nomor WA', 'body' => 'Hubungkan nomor WhatsApp pribadi ke kontak customer.'], ['step' => '04', 'title' => 'Grup WA', 'body' => 'Mapping grup WAHA dan anggota grup ke klien.']] as $item)
+                @foreach ([['step' => '01', 'title' => __('ui.pages.master_customer.flow_client_title'), 'body' => __('ui.pages.master_customer.flow_client_body')], ['step' => '02', 'title' => __('ui.pages.master_customer.flow_contact_title'), 'body' => __('ui.pages.master_customer.flow_contact_body')], ['step' => '03', 'title' => __('ui.pages.master_customer.flow_number_title'), 'body' => __('ui.pages.master_customer.flow_number_body')], ['step' => '04', 'title' => __('ui.pages.master_customer.flow_group_title'), 'body' => __('ui.pages.master_customer.flow_group_body')]] as $item)
                     <div class="vc-flow-card">
                         <div class="vc-step">{{ $item['step'] }}</div>
                         <div class="vc-flow-title">{{ $item['title'] }}</div>
@@ -49,10 +49,9 @@
             <div class="vc-card">
                 <div class="vc-section-head">
                     <div>
-                        <h2 class="vc-title">Kelola Data Master</h2>
+                        <h2 class="vc-title">{{ __('ui.pages.master_customer.manage_master') }}</h2>
                         <p class="vc-copy">
-                            Setiap menu memakai tabel Filament dengan search, sort, filter, footer, dan pagination
-                            server-side.
+                            {{ __('ui.pages.master_customer.manage_master_desc') }}
                         </p>
                     </div>
                 </div>
@@ -65,7 +64,7 @@
                                     <div class="vc-link-title">{{ $link['title'] }}</div>
                                     <p class="vc-link-description">{{ $link['description'] }}</p>
                                 </div>
-                                <span class="vc-link-badge">Buka</span>
+                                <span class="vc-link-badge">{{ __('ui.common.open') }}</span>
                             </div>
                         </a>
                     @endforeach
@@ -73,12 +72,12 @@
             </div>
 
             <div class="vc-card">
-                <h2 class="vc-title">Mapping Nomor Terbaru</h2>
+                <h2 class="vc-title">{{ __('ui.pages.master_customer.latest_mapping') }}</h2>
                 <div class="vc-recent-list">
                     @forelse ($recentMappings as $row)
                         <div class="vc-recent-item">
                             <div class="vc-recent-client">
-                                {{ $row['NamaInstansi'] ?? 'Tanpa klien' }}
+                                {{ $row['NamaInstansi'] ?? __('ui.pages.master_customer.no_client') }}
                             </div>
                             <div class="vc-recent-contact">
                                 {{ $row['NamaKontak'] ?: $row['NamaCustomer'] ?? '-' }}
@@ -89,7 +88,7 @@
                         </div>
                     @empty
                         <div class="vc-empty-state">
-                            Belum ada nomor WhatsApp yang dimapping.
+                            {{ __('ui.pages.master_customer.no_mapping') }}
                         </div>
                     @endforelse
                 </div>

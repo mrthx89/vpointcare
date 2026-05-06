@@ -2,10 +2,10 @@
     <div class="space-y-6">
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @foreach ([
-                ['Baru', '12', 'text-blue-600'],
-                ['Diteruskan Developer', '8', 'text-amber-600'],
-                ['Dalam Pengerjaan', '15', 'text-indigo-600'],
-                ['Overdue SLA', '3', 'text-red-600'],
+                [__('ui.pages.ticketing.new'), '12', 'text-blue-600'],
+                [__('ui.pages.ticketing.forwarded_dev'), '8', 'text-amber-600'],
+                [__('ui.pages.ticketing.in_progress'), '15', 'text-indigo-600'],
+                [__('ui.pages.ticketing.overdue_sla'), '3', 'text-red-600'],
             ] as $stat)
                 <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ $stat[0] }}</div>
@@ -18,27 +18,27 @@
             <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                     <div>
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Antrian Ticket</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Ticket dari chat customer sampai developer queue</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ticketing.queue_title') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ticketing.queue_desc') }}</div>
                     </div>
-                    <button class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Ticket Baru</button>
+                    <button class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">{{ __('ui.pages.ticketing.new_ticket') }}</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                         <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-950 dark:text-gray-400">
                             <tr>
-                                <th class="px-4 py-3">Nomor</th>
-                                <th class="px-4 py-3">Customer</th>
-                                <th class="px-4 py-3">Masalah</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">PIC</th>
+                                <th class="px-4 py-3">{{ __('ui.pages.ticketing.number') }}</th>
+                                <th class="px-4 py-3">{{ __('ui.common.customer') }}</th>
+                                <th class="px-4 py-3">{{ __('ui.pages.ticketing.problem') }}</th>
+                                <th class="px-4 py-3">{{ __('ui.common.status') }}</th>
+                                <th class="px-4 py-3">{{ __('ui.pages.ticketing.pic') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                             @foreach ([
-                                ['TCK-20260426-001', 'PT Maju Sistem', 'Session expired setelah update', 'Diteruskan Developer', 'Andi Dev'],
-                                ['TCK-20260426-002', 'RS Sentosa', 'Reset password massal', 'Dianalisa CS', 'Rina CS'],
-                                ['TCK-20260425-014', 'CV Sinar Data', 'Selisih laporan stok', 'Dalam Pengerjaan', 'Budi Dev'],
+                                ['TCK-20260426-001', 'PT Maju Sistem', __('ui.pages.ticketing.sample_issue_1'), __('ui.pages.ticketing.forwarded_dev'), 'Andi Dev'],
+                                ['TCK-20260426-002', 'RS Sentosa', __('ui.pages.ticketing.sample_issue_2'), __('ui.pages.ticketing.analysis_cs'), 'Rina CS'],
+                                ['TCK-20260425-014', 'CV Sinar Data', __('ui.pages.ticketing.sample_issue_3'), __('ui.pages.ticketing.in_progress'), 'Budi Dev'],
                             ] as $ticket)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/60">
                                     <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-950 dark:text-white">{{ $ticket[0] }}</td>
@@ -54,13 +54,13 @@
             </section>
 
             <aside class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-base font-semibold text-gray-950 dark:text-white">Timeline Ticket</div>
+                <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ticketing.timeline') }}</div>
                 <div class="mt-4 space-y-4">
                     @foreach ([
-                        ['09:20', 'Ticket dibuat dari chat WhatsApp'],
-                        ['09:26', 'AI membuat ringkasan dan prioritas'],
-                        ['09:32', 'Supervisor meneruskan ke developer'],
-                        ['09:45', 'Developer mulai investigasi'],
+                        ['09:20', __('ui.pages.ticketing.timeline_created')],
+                        ['09:26', __('ui.pages.ticketing.timeline_ai_summary')],
+                        ['09:32', __('ui.pages.ticketing.timeline_supervisor')],
+                        ['09:45', __('ui.pages.ticketing.timeline_developer')],
                     ] as $item)
                         <div class="flex gap-3">
                             <div class="mt-1 h-2 w-2 rounded-full bg-blue-600"></div>

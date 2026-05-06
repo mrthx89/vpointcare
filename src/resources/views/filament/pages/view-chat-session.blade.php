@@ -46,13 +46,13 @@
             {{-- Meta kanan --}}
             <div class="flex flex-wrap items-center gap-3 text-sm">
                 <span class="text-emerald-600 dark:text-emerald-400">
-                    &#x1F9D1; Ditangani: <strong>{{ $session['NamaCS'] }}</strong>
+                    &#x1F9D1; {{ __('ui.pages.view_chat.handled_by') }}: <strong>{{ $session['NamaCS'] }}</strong>
                 </span>
                 <span class="text-gray-400 dark:text-gray-500">
                     &#x1F552; {{ $session['TglTerakhir'] }}
                 </span>
                 <span class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                    Mode Hanya Lihat
+                    {{ __('ui.pages.view_chat.read_only') }}
                 </span>
             </div>
 
@@ -69,8 +69,8 @@
             {{-- Header --}}
             <div class="flex items-center border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                    &#x1F4AC; Riwayat Percakapan
-                    <span class="ml-1 font-normal text-gray-400">({{ \App\Support\LocaleFormatter::number(count($messages)) }} pesan)</span>
+                    &#x1F4AC; {{ __('ui.pages.view_chat.conversation_history') }}
+                    <span class="ml-1 font-normal text-gray-400">({{ \App\Support\LocaleFormatter::number(count($messages)) }} {{ __('ui.common.messages') }})</span>
                 </span>
             </div>
 
@@ -92,7 +92,7 @@
 
                         {{-- Label pengirim & waktu --}}
                         <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
-                            {{ $isOut ? $session['NamaCS'] : ($msg['PengirimNamaKontak'] ?: 'Customer') }}
+                            {{ $isOut ? $session['NamaCS'] : ($msg['PengirimNamaKontak'] ?: __('ui.common.customer')) }}
                             &middot;
                             {{ $msg['TglFormatted'] }}
                             @if ($msg['StatusKirim'])
@@ -124,7 +124,7 @@
                                     </a>
                                 @else
                                     <div class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
-                                        {{ $mediaLabel }} — URL media belum tersedia.
+                                        {{ __('ui.pages.view_chat.media_unavailable', ['file' => $mediaLabel]) }}
                                     </div>
                                 @endif
                             </div>
@@ -134,11 +134,11 @@
                         @if ($msg['IsiPesan'])
                             <p class="mt-2 whitespace-pre-line">{{ $msg['IsiPesan'] }}</p>
                         @elseif (!$hasMedia)
-                            <p class="mt-1 whitespace-pre-line text-xs opacity-60">[pesan non-teks]</p>
+                            <p class="mt-1 whitespace-pre-line text-xs opacity-60">{{ __('ui.pages.view_chat.non_text_message') }}</p>
                         @endif
                     </div>
                 @empty
-                    <div class="p-6 text-center text-sm text-gray-500">Tidak ada pesan dalam sesi ini.</div>
+                    <div class="p-6 text-center text-sm text-gray-500">{{ __('ui.pages.view_chat.no_messages') }}</div>
                 @endforelse
             </div>
         </div>
@@ -148,7 +148,7 @@
 
             {{-- Header --}}
             <div class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">&#9998; Catatan Internal</span>
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">&#9998; {{ __('ui.pages.view_chat.internal_notes') }}</span>
                 @if (count($internalNotes) > 0)
                     <span class="ml-auto rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-bold text-white">
                         {{ \App\Support\LocaleFormatter::number(count($internalNotes)) }}
@@ -166,7 +166,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="py-8 text-center text-sm text-gray-400">Tidak ada catatan internal.</p>
+                    <p class="py-8 text-center text-sm text-gray-400">{{ __('ui.pages.view_chat.no_internal_notes') }}</p>
                 @endforelse
             </div>
         </div>

@@ -90,7 +90,7 @@
             class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                 <span>🔔</span>
-                <span>Izinkan notifikasi suara untuk peringatan pesan WhatsApp masuk.</span>
+                <span>{{ __('ui.pages.inbox.sound_permission') }}</span>
             </div>
             <button
                 type="button"
@@ -107,10 +107,10 @@
             <div class="min-w-0">
                 <div class="flex items-center gap-2 font-semibold">
                     <span class="h-2.5 w-2.5 rounded-full" :class="reverbDotClass()"></span>
-                    <span x-text="reverbStatus.message || 'Status Reverb berubah.'"></span>
+                    <span x-text="reverbStatus.message || @js(__('ui.pages.inbox.reverb_default_changed'))"></span>
                 </div>
                 <div class="mt-1 break-all text-xs opacity-80">
-                    <span x-text="reverbStatus.reason || 'Inbox tetap refresh lewat polling 60 detik sampai koneksi Reverb pulih.'"></span>
+                    <span x-text="reverbStatus.reason || @js(__('ui.pages.inbox.reverb_default_reason'))"></span>
                     <template x-if="reverbStatus.wsUrl">
                         <span> &middot; <span x-text="reverbStatus.wsUrl"></span></span>
                     </template>
@@ -118,28 +118,28 @@
             </div>
             <a href="{{ route('filament.admin.pages.log-data') }}"
                 class="rounded-md border border-current px-3 py-1.5 text-xs font-semibold hover:bg-white/40 dark:hover:bg-white/10">
-                Buka Log Data
+                {{ __('ui.pages.inbox.open_log_data') }}
             </a>
         </div>
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Tim Aktif (Online)</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.active_team') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $activeAgents }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Total chat</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.total_chat') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Belum dibaca</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unread') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-amber-600">{{ $stats['belum_dibaca'] ?? 0 }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Chat grup</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.group_chat') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-blue-600">{{ $stats['grup'] ?? 0 }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Belum dipetakan</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unmapped') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-red-600">{{ $stats['unknown'] ?? 0 }}</div>
             </div>
         </div>
@@ -154,18 +154,18 @@
                     <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                         <div class="flex items-center justify-between gap-2">
                             <div>
-                                <div class="text-sm font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
+                                <div class="text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.inbox.chat_list') }}</div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span x-show="wsOnline" class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                     <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full" :class="reverbDotClass()"></span>
-                                    <span class="text-xs text-gray-400" x-text="wsOnline ? 'Real-time aktif' : `${reverbStatus.state || 'offline'} · Polling 60s`"></span>
+                                    <span class="text-xs text-gray-400" x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} · ${@js(__('ui.pages.inbox.polling'))}`"></span>
                                 </div>
                             </div>
-                            <button @click="toggleSound()" type="button" title="Toggle notifikasi suara"
+                            <button @click="toggleSound()" type="button" title="{{ __('ui.pages.inbox.sound_toggle') }}"
                                 class="shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors"
                                 :class="soundOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
                                 <span x-text="soundOn ? '🔔' : '🔕'"></span>
-                                <span x-text="soundOn ? 'Suara On' : 'Suara Off'"></span>
+                                <span x-text="soundOn ? @js(__('ui.pages.inbox.sound_on')) : @js(__('ui.pages.inbox.sound_off'))"></span>
                             </button>
                         </div>
                         <div class="mt-3 space-y-3">
@@ -244,8 +244,8 @@
                         @empty
                             <div class="p-8 text-center">
                                 <div class="text-3xl mb-2">💬</div>
-                                <div class="text-sm font-medium text-gray-600 dark:text-gray-400">Belum ada chat</div>
-                                <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">Kirim POST ke endpoint webhook WAHA</div>
+                                <div class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('ui.pages.inbox.no_chat') }}</div>
+                                <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ __('ui.pages.inbox.send_waha_webhook') }}</div>
                             </div>
                         @endforelse
                     </div>
@@ -299,14 +299,14 @@
                                     <x-filament::button color="danger" size="sm" 
                                         x-on:click="
                                             Swal.fire({
-                                                title: 'Tutup Percakapan?',
-                                                text: 'Pesan penutup otomatis dari AI akan dikirim ke customer.',
+                                                title: '{{ __('ui.pages.inbox.close_chat_confirm_title') }}',
+                                                text: '{{ __('ui.pages.inbox.close_chat_confirm_text') }}',
                                                 icon: 'warning',
                                                 showCancelButton: true,
                                                 confirmButtonColor: '#dc2626',
                                                 cancelButtonColor: '#6b7280',
-                                                confirmButtonText: 'Ya, Tutup',
-                                                cancelButtonText: 'Batal'
+                                                confirmButtonText: '{{ __('ui.pages.inbox.close_chat_confirm_button') }}',
+                                                cancelButtonText: '{{ __('ui.common.cancel') }}'
                                             }).then((result) => {
                                                 if (result.isConfirmed) {
                                                     $wire.tutupPercakapan();
@@ -314,7 +314,7 @@
                                             })
                                         "
                                         icon="heroicon-o-x-circle">
-                                        Tutup
+                                        {{ __('ui.pages.inbox.close_chat_confirm_button') }}
                                     </x-filament::button>
                                 @endif
                             </div>
@@ -393,7 +393,7 @@
                                     @if ($message['IsiPesan'])
                                         <p class="mt-2 whitespace-pre-line">{{ $message['IsiPesan'] }}</p>
                                     @elseif (!$hasMedia)
-                                        <p class="mt-1 whitespace-pre-line">[pesan non-teks]</p>
+                                        <p class="mt-1 whitespace-pre-line">{{ __('ui.pages.view_chat.non_text_message') }}</p>
                                     @endif
                                     @if ($message['PesanError'])
                                         <div
@@ -415,7 +415,7 @@
                                     @endif
                                 </div>
                             @empty
-                                <div class="p-6 text-center text-sm text-gray-500">Belum ada pesan di chat ini.</div>
+                                <div class="p-6 text-center text-sm text-gray-500">{{ __('ui.pages.inbox.no_messages') }}</div>
                             @endforelse
                         </div>
 
@@ -452,7 +452,7 @@
                                 class="hidden">
                             <textarea wire:model="replyText"
                                 class="min-h-24 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                                placeholder="Tulis balasan WhatsApp. Paste gambar/video dengan Ctrl+V."></textarea>
+                                placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
                             @error('replyText')
                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                             @enderror
@@ -470,7 +470,7 @@
                                         Lampiran: {{ $attachment->getClientOriginalName() }}
                                     </div>
                                     <button type="button" wire:click="removeAttachment"
-                                        class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">Hapus</button>
+                                        class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">{{ __('ui.common.delete') }}</button>
                                 </div>
                             @endif
                             <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
@@ -479,7 +479,7 @@
                                     File</button>
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <button type="button" wire:click="simpanBalasanLokal"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Simpan
+                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.common.save') }}
                                         Draft</button>
                                     <button
                                         class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70"
@@ -499,53 +499,53 @@
                     <div
                         class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                         <div class="flex items-center justify-between gap-3">
-                            <div class="text-base font-semibold text-gray-950 dark:text-white">Profil Mapping</div>
+                            <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.inbox.profile_mapping') }}</div>
                             @if ($selectedChat && $this->canManageInbox())
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <button type="button" wire:click="refreshProfilWaha"
-                                        class="rounded-md border border-blue-300 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">Ambil Profil</button>
+                                        class="rounded-md border border-blue-300 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">{{ __('ui.pages.inbox.fetch_profile') }}</button>
                                     <button type="button" wire:click="refreshMappingChat"
-                                        class="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Refresh</button>
+                                        class="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.common.refresh') }}</button>
                                 </div>
                             @endif
                         </div>
                         @if ($selectedChat)
                             <dl class="mt-4 space-y-3 text-sm">
                                 <div>
-                                    <dt class="text-gray-500">Klien</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.client') }}</dt>
                                     <dd class="font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['NamaInstansi'] }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-500">Jenis Chat</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.chat_type') }}</dt>
                                     <dd class="font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['JenisChat'] }}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-500">Kontak</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.contact') }}</dt>
                                     <dd class="font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['NamaKontak'] }}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-500">Nomor WhatsApp</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.wa_number') }}</dt>
                                     <dd class="break-all font-mono text-sm font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['NomorWhatsapp'] ?: '-' }}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-500">Grup</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.group') }}</dt>
                                     <dd class="font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['NamaGrupWhatsapp'] ?: '-' }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-500">ID WAHA</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.waha_id') }}</dt>
                                     <dd class="break-all font-medium text-gray-900 dark:text-white">
                                         {{ $selectedChat['IdWaha'] ?: '-' }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-gray-500">ID terdeteksi</dt>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.detected_id') }}</dt>
                                     <dd class="space-y-1 font-mono text-xs text-gray-700 dark:text-gray-200">
                                         @forelse (array_slice($selectedChat['MappingIdentifiers'] ?? [], 0, 6) as $identifier)
                                             <div class="break-all rounded-md bg-gray-100 px-2 py-1 dark:bg-gray-950">
@@ -563,33 +563,33 @@
                                     :badge="count($internalNotes) > 0 ? count($internalNotes) : null"
                                     badge-color="warning"
                                 >
-                                    Catatan Internal
+                                    {{ __('ui.pages.view_chat.internal_notes') }}
                                 </x-filament::button>
                                 @endif
 
                                 <x-filament::button color="gray" size="sm" variant="outline" class="w-full"
                                     x-on:click="$dispatch('open-modal', { id: 'history-chat-modal' })">
-                                    History Chat Sebelumnya
+                                    {{ __('ui.pages.inbox.previous_history') }}
                                 </x-filament::button>
                             </div>
                         @else
-                            <div class="mt-3 text-sm text-gray-500">Belum ada chat dipilih.</div>
+                            <div class="mt-3 text-sm text-gray-500">{{ __('ui.pages.inbox.no_chat_selected') }}</div>
                         @endif
                     </div>
                     <div
                         class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Kontrol AI Chat</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.inbox.ai_control') }}</div>
                         @if ($selectedChat)
                             <div class="mt-4 space-y-3 text-sm">
                                 <div
                                     class="rounded-md {{ $selectedChat['AutoReplyAiAktif'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' }} px-3 py-2 font-medium">
-                                    {{ $selectedChat['AutoReplyAiAktif'] ? 'AI akan terus menjawab sesi ini.' : 'AI hanya mengikuti setting global.' }}
+                                    {{ $selectedChat['AutoReplyAiAktif'] ? __('ui.pages.inbox.ai_reply_session_on') : __('ui.pages.inbox.ai_reply_global_only') }}
                                 </div>
                                 <div class="grid gap-2 text-gray-600 dark:text-gray-300">
-                                    <div>Sapaan AI: <span
-                                            class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['AiSudahMenyapa'] ? 'Sudah' : 'Belum' }}</span>
+                                    <div>{{ __('ui.pages.inbox.ai_greeting') }}: <span
+                                            class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['AiSudahMenyapa'] ? __('ui.pages.inbox.already') : __('ui.pages.inbox.not_yet') }}</span>
                                     </div>
-                                    <div>Terakhir AI: <span
+                                    <div>{{ __('ui.pages.inbox.last_ai') }}: <span
                                             class="font-medium text-gray-950 dark:text-white">{{ \App\Support\LocaleFormatter::dateTime($selectedChat['TglAutoReplyAiTerakhir'] ?? null) }}</span>
                                     </div>
                                 </div>
@@ -597,7 +597,7 @@
                                 <div class="flex flex-wrap gap-2">
                                     <button type="button" wire:click="toggleAutoReplyAi"
                                         class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                                        {{ $selectedChat['AutoReplyAiAktif'] ? 'Matikan Auto Reply' : 'Aktifkan Auto Reply' }}
+                                        {{ $selectedChat['AutoReplyAiAktif'] ? __('ui.pages.inbox.disable_auto_reply') : __('ui.pages.inbox.enable_auto_reply') }}
                                     </button>
                                     <button type="button" wire:click="resetSapaanAi"
                                         class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Reset
@@ -606,13 +606,13 @@
                                 @endif
                             </div>
                         @else
-                            <div class="mt-3 text-sm text-gray-500">Pilih chat untuk mengatur AI per sesi.</div>
+                            <div class="mt-3 text-sm text-gray-500">{{ __('ui.pages.inbox.select_chat_ai') }}</div>
                         @endif
                     </div>
                     <div
                         class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Webhook WAHA</div>
-                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">Endpoint lokal:</p>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.inbox.waha_webhook') }}</div>
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ __('ui.pages.inbox.local_endpoint') }}</p>
                         <code
                             class="mt-2 block rounded-md bg-gray-100 p-3 text-xs text-gray-700 dark:bg-gray-950 dark:text-gray-300">POST
                             /webhooks/waha/{token}</code>
@@ -627,11 +627,11 @@
     {{-- History Chat Modal --}}
     <x-filament::modal id="history-chat-modal" width="2xl">
         <x-slot name="heading">
-            History Chat
+            {{ __('ui.pages.inbox.history_chat') }}
         </x-slot>
         <div class="space-y-4" wire:init="loadHistoryChats">
             @if (empty($historyChats))
-                <div class="text-sm text-gray-500 text-center py-8">Memuat data history atau tidak ada history chat sebelumnya.</div>
+                <div class="text-sm text-gray-500 text-center py-8">{{ __('ui.pages.inbox.history_loading_empty') }}</div>
             @else
                 <div class="divide-y divide-gray-200 dark:divide-gray-800">
                     @foreach ($historyChats as $history)
@@ -655,8 +655,8 @@
 
     @if ($this->canManageInbox())
     <x-filament::modal id="internal-notes-modal" width="xl">
-        <x-slot name="heading">Catatan Internal</x-slot>
-        <x-slot name="description">Catatan ini hanya untuk tim internal dan tidak akan dikirim ke WhatsApp.</x-slot>
+        <x-slot name="heading">{{ __('ui.pages.view_chat.internal_notes') }}</x-slot>
+        <x-slot name="description">{{ __('ui.pages.inbox.internal_notes_desc') }}</x-slot>
         
         <div class="space-y-4">
             <div class="max-h-96 overflow-y-auto space-y-3 pr-2">
@@ -669,15 +669,15 @@
                         <div class="text-yellow-900 dark:text-yellow-300 whitespace-pre-wrap">{{ $note['IsiCatatan'] }}</div>
                     </div>
                 @empty
-                    <div class="text-sm text-gray-500 text-center py-4">Belum ada catatan internal.</div>
+                    <div class="text-sm text-gray-500 text-center py-4">{{ __('ui.pages.inbox.no_internal_notes') }}</div>
                 @endforelse
             </div>
             
             <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
-                <textarea wire:model="newInternalNote" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" placeholder="Tulis catatan internal baru di sini..."></textarea>
+                <textarea wire:model="newInternalNote" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm" placeholder="{{ __('ui.pages.inbox.new_internal_note_placeholder') }}"></textarea>
                 <div class="mt-3 flex justify-end">
                     <x-filament::button color="warning" wire:click="saveInternalNote" wire:loading.attr="disabled">
-                        Simpan Catatan
+                        {{ __('ui.pages.inbox.save_note') }}
                     </x-filament::button>
                 </div>
             </div>

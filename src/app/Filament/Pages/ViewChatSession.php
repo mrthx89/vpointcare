@@ -30,7 +30,7 @@ class ViewChatSession extends Page
         $this->sessionId = request()->query('id', '');
 
         if (!$this->sessionId) {
-            $this->errorMessage = 'ID sesi tidak ditemukan.';
+            $this->errorMessage = __('ui.pages.view_chat.session_id_missing');
             return;
         }
 
@@ -62,7 +62,7 @@ class ViewChatSession extends Page
             ->first();
 
         if (!$row) {
-            $this->errorMessage = 'Sesi chat tidak ditemukan.';
+            $this->errorMessage = __('ui.pages.view_chat.session_not_found');
             return;
         }
 
@@ -72,10 +72,10 @@ class ViewChatSession extends Page
             'NomorWhatsapp' => $row->NomorWhatsapp,
             'NamaKontak' => $row->NamaKontak,
             'NamaCustomer' => $row->NamaCustomer,
-            'NamaInstansi' => $row->NamaInstansi ?: 'Belum dipetakan',
-            'Status' => $row->NamaStatusChat ?: 'Selesai',
+            'NamaInstansi' => $row->NamaInstansi ?: __('ui.common.not_mapped'),
+            'Status' => $row->NamaStatusChat ?: __('ui.common.completed'),
             'TglTerakhir' => LocaleFormatter::dateTime($row->TglChatTerakhir),
-            'NamaCS' => $row->NamaCS ?: 'Belum ditangani',
+            'NamaCS' => $row->NamaCS ?: __('ui.common.not_handled'),
         ];
 
         // Load messages
@@ -121,11 +121,11 @@ class ViewChatSession extends Page
             ->orderBy('TglBuat')
             ->get()
             ->map(function (object $r) use ($hasPengguna) {
-                $namaPembuat = 'Sistem';
+                $namaPembuat = __('ui.common.system');
                 if ($r->DibuatOleh && $hasPengguna) {
                     $namaPembuat = DB::table('Pengguna')
                         ->where('Id', $r->DibuatOleh)
-                        ->value('NamaPengguna') ?? 'Sistem';
+                        ->value('NamaPengguna') ?? __('ui.common.system');
                 }
                 return [
                     'IsiCatatan' => $r->IsiCatatan,

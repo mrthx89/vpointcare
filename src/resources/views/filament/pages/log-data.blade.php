@@ -55,8 +55,8 @@
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Status Logging Reverb</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Status real-time dari browser ini untuk koneksi Echo/Reverb.</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.log_data.reverb_title') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.reverb_desc') }}</div>
                     </div>
                     <span class="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-semibold ring-1" :class="badgeClass(status.state)">
                         <span class="h-2 w-2 rounded-full" :class="dotClass(status.state)"></span>
@@ -72,19 +72,19 @@
                     </div>
                     <dl class="grid gap-3 text-sm sm:grid-cols-2">
                         <div>
-                            <dt class="text-gray-500 dark:text-gray-400">Endpoint WebSocket</dt>
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.websocket_endpoint') }}</dt>
                             <dd class="break-all font-mono text-xs text-gray-900 dark:text-gray-100" x-text="status.wsUrl || '-'"></dd>
                         </div>
                         <div>
-                            <dt class="text-gray-500 dark:text-gray-400">Terakhir Update</dt>
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.last_update') }}</dt>
                             <dd class="font-medium text-gray-900 dark:text-gray-100" x-text="formatDate(status.updatedAt)"></dd>
                         </div>
                         <div>
-                            <dt class="text-gray-500 dark:text-gray-400">Host</dt>
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.host') }}</dt>
                             <dd class="font-medium text-gray-900 dark:text-gray-100" x-text="status.host || '-'"></dd>
                         </div>
                         <div>
-                            <dt class="text-gray-500 dark:text-gray-400">Port / Mode</dt>
+                            <dt class="text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.port_mode') }}</dt>
                             <dd class="font-medium text-gray-900 dark:text-gray-100">
                                 <span x-text="status.port || '-'"></span>
                                 <span>&middot;</span>
@@ -95,7 +95,7 @@
                 </div>
                 <div class="rounded-md border border-gray-200 dark:border-gray-800">
                     <div class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                        Riwayat Status Client
+                        {{ __('ui.pages.log_data.client_history') }}
                     </div>
                     <div class="max-h-64 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
                         <template x-for="item in logs.slice(0, 12)" :key="`${item.at}-${item.state}-${item.reason || ''}`">
@@ -111,7 +111,7 @@
                             </div>
                         </template>
                         <div x-show="logs.length === 0" class="px-3 py-8 text-center text-sm text-gray-500">
-                            Belum ada status Reverb dari browser ini.
+                            {{ __('ui.pages.log_data.no_reverb_status') }}
                         </div>
                     </div>
                 </div>
@@ -160,12 +160,12 @@
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Status Jobs / Queue Worker</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Ringkasan teknis dari tabel jobs, failed_jobs, dan job_batches.</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.log_data.jobs_title') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.jobs_desc') }}</div>
                     </div>
                     <span class="inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-semibold ring-1 {{ $jobTone['badge'] }}">
                         <span class="h-2 w-2 rounded-full {{ $jobTone['dot'] }}"></span>
-                        {{ $jobStatus['label'] ?? 'Queue status tidak tersedia' }}
+                        {{ $jobStatus['label'] ?? __('ui.pages.log_data.queue_status_missing') }}
                     </span>
                 </div>
             </div>
@@ -176,55 +176,55 @@
                         <div>
                             <div class="text-sm font-semibold text-gray-950 dark:text-white">{{ $jobStatus['description'] ?? '-' }}</div>
                             <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                                Driver: <span class="font-mono">{{ $jobStatus['driver'] ?? '-' }}</span>
-                                &middot; Connection: <span class="font-mono">{{ $jobStatus['connection'] ?? '-' }}</span>
-                                &middot; Default queue: <span class="font-mono">{{ $jobStatus['defaultQueue'] ?? '-' }}</span>
-                                &middot; Retry after: {{ \App\Support\LocaleFormatter::number($jobStatus['retryAfter'] ?? 0) }} detik
+                                {{ __('ui.pages.log_data.driver') }}: <span class="font-mono">{{ $jobStatus['driver'] ?? '-' }}</span>
+                                &middot; {{ __('ui.pages.log_data.connection') }}: <span class="font-mono">{{ $jobStatus['connection'] ?? '-' }}</span>
+                                &middot; {{ __('ui.pages.log_data.default_queue') }}: <span class="font-mono">{{ $jobStatus['defaultQueue'] ?? '-' }}</span>
+                                &middot; {{ __('ui.pages.log_data.retry_after') }}: {{ \App\Support\LocaleFormatter::number($jobStatus['retryAfter'] ?? 0) }} {{ __('ui.pages.log_data.seconds') }}
                             </div>
                         </div>
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            Update {{ $jobStatus['updatedAt'] ?? '-' }}
+                            {{ __('ui.pages.log_data.update') }} {{ $jobStatus['updatedAt'] ?? '-' }}
                         </div>
                     </div>
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
-                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Total Jobs</div>
+                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.total_jobs') }}</div>
                         <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ \App\Support\LocaleFormatter::number($jobStatus['total'] ?? 0) }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Pending {{ \App\Support\LocaleFormatter::number($jobStatus['pending'] ?? 0) }} &middot; Delayed {{ \App\Support\LocaleFormatter::number($jobStatus['delayed'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.pending') }} {{ \App\Support\LocaleFormatter::number($jobStatus['pending'] ?? 0) }} &middot; {{ __('ui.pages.log_data.delayed') }} {{ \App\Support\LocaleFormatter::number($jobStatus['delayed'] ?? 0) }}</div>
                     </div>
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
-                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Sedang Diproses</div>
+                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.processing') }}</div>
                         <div class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-300">{{ \App\Support\LocaleFormatter::number($jobStatus['reserved'] ?? 0) }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Stale reserved {{ \App\Support\LocaleFormatter::number($jobStatus['staleReserved'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.stale_reserved') }} {{ \App\Support\LocaleFormatter::number($jobStatus['staleReserved'] ?? 0) }}</div>
                     </div>
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
-                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Failed Jobs</div>
+                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.failed_jobs') }}</div>
                         <div class="mt-1 text-2xl font-semibold {{ ($jobStatus['failed'] ?? 0) > 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300' }}">{{ \App\Support\LocaleFormatter::number($jobStatus['failed'] ?? 0) }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Failed batch jobs {{ \App\Support\LocaleFormatter::number($jobStatus['failedBatchJobs'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.failed_batch_jobs') }} {{ \App\Support\LocaleFormatter::number($jobStatus['failedBatchJobs'] ?? 0) }}</div>
                     </div>
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
-                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Batch Aktif</div>
+                        <div class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.active_batches') }}</div>
                         <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ \App\Support\LocaleFormatter::number($jobStatus['activeBatches'] ?? 0) }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Pending batch jobs {{ \App\Support\LocaleFormatter::number($jobStatus['pendingBatchJobs'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.pending_batch_jobs') }} {{ \App\Support\LocaleFormatter::number($jobStatus['pendingBatchJobs'] ?? 0) }}</div>
                     </div>
                 </div>
 
                 <div class="grid gap-4 xl:grid-cols-2">
                     <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
                         <div class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            Queue Breakdown
+                            {{ __('ui.pages.log_data.queue_breakdown') }}
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                                 <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-950 dark:text-gray-400">
                                     <tr>
-                                        <th class="px-3 py-2">Queue</th>
-                                        <th class="px-3 py-2">Total</th>
-                                        <th class="px-3 py-2">Pending</th>
-                                        <th class="px-3 py-2">Reserved</th>
-                                        <th class="px-3 py-2">Delayed</th>
+                                        <th class="px-3 py-2">{{ __('ui.pages.log_data.queue') }}</th>
+                                        <th class="px-3 py-2">{{ __('ui.pages.log_data.total') }}</th>
+                                        <th class="px-3 py-2">{{ __('ui.pages.log_data.pending') }}</th>
+                                        <th class="px-3 py-2">{{ __('ui.pages.log_data.reserved') }}</th>
+                                        <th class="px-3 py-2">{{ __('ui.pages.log_data.delayed') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -238,7 +238,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="px-3 py-6 text-center text-sm text-gray-500">Tidak ada job di antrian.</td>
+                                            <td colspan="5" class="px-3 py-6 text-center text-sm text-gray-500">{{ __('ui.pages.log_data.no_queue_jobs') }}</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -263,7 +263,7 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="px-3 py-6 text-center text-sm text-gray-500">Tidak ada pending/delayed/reserved job.</div>
+                                <div class="px-3 py-6 text-center text-sm text-gray-500">{{ __('ui.pages.log_data.no_pending_jobs') }}</div>
                             @endforelse
                         </div>
                     </div>
@@ -286,7 +286,7 @@
                                         <div class="mt-1 rounded bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-300">{{ $job['exception'] }}</div>
                                     </div>
                                 @empty
-                                    <div class="px-3 py-6 text-center text-sm text-gray-500">Tidak ada failed job.</div>
+                                    <div class="px-3 py-6 text-center text-sm text-gray-500">{{ __('ui.pages.log_data.no_failed_jobs') }}</div>
                                 @endforelse
                             </div>
                         </div>
@@ -307,7 +307,7 @@
                                         </div>
                                     </div>
                                 @empty
-                                    <div class="px-3 py-6 text-center text-sm text-gray-500">Tidak ada batch job.</div>
+                                    <div class="px-3 py-6 text-center text-sm text-gray-500">{{ __('ui.pages.log_data.no_batch_jobs') }}</div>
                                 @endforelse
                             </div>
                         </div>
@@ -318,19 +318,19 @@
 
         <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                <div class="text-base font-semibold text-gray-950 dark:text-white">Log Kirim WAHA / Integrasi API</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">Diambil dari TLogIntegrasi, termasuk HTTP status, request, response, dan pesan error.</div>
+                <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.log_data.integration_title') }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.integration_desc') }}</div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-950 dark:text-gray-400">
                         <tr>
-                            <th class="px-4 py-3">Waktu</th>
-                            <th class="px-4 py-3">Kode</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3">Endpoint</th>
-                            <th class="px-4 py-3">Request</th>
-                            <th class="px-4 py-3">Response / Error</th>
+                            <th class="px-4 py-3">{{ __('ui.common.time') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.code') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.status') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.endpoint') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.request') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.pages.log_data.response_error') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -361,7 +361,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-sm text-gray-500">Belum ada log integrasi.</td>
+                                <td colspan="6" class="px-4 py-8 text-center text-sm text-gray-500">{{ __('ui.pages.log_data.no_integration_logs') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -371,17 +371,17 @@
 
         <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                <div class="text-base font-semibold text-gray-950 dark:text-white">Log Webhook WAHA Masuk</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">Diambil dari TLogWebhookWaha untuk memastikan pesan dari WAHA diproses atau gagal.</div>
+                <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.log_data.webhook_title') }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.log_data.webhook_desc') }}</div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-gray-950 dark:text-gray-400">
                         <tr>
-                            <th class="px-4 py-3">Waktu</th>
-                            <th class="px-4 py-3">Event</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3">Error</th>
+                            <th class="px-4 py-3">{{ __('ui.common.time') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.event') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.status') }}</th>
+                            <th class="px-4 py-3">{{ __('ui.common.error') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -393,14 +393,14 @@
                                 <td class="px-4 py-3 font-medium text-gray-950 dark:text-white">{{ $log['JenisEvent'] }}</td>
                                 <td class="px-4 py-3">
                                     <span class="rounded-md px-2 py-1 text-xs font-semibold {{ $log['SudahDiproses'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' }}">
-                                        {{ $log['SudahDiproses'] ? 'Diproses' : 'Belum diproses' }}
+                                        {{ $log['SudahDiproses'] ? __('ui.pages.log_data.processed') : __('ui.pages.log_data.not_processed') }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ $log['PesanError'] ?: '-' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">Belum ada log webhook WAHA.</td>
+                                <td colspan="4" class="px-4 py-8 text-center text-sm text-gray-500">{{ __('ui.pages.log_data.no_webhook_logs') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

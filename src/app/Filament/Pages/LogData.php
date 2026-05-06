@@ -130,8 +130,8 @@ class LogData extends Page
             'pendingBatchJobs' => 0,
             'failedBatchJobs' => 0,
             'status' => 'healthy',
-            'label' => 'Queue kosong',
-            'description' => 'Tidak ada backlog job database saat ini.',
+            'label' => __('ui.pages.log_data.queue_empty'),
+            'description' => __('ui.pages.log_data.queue_empty_desc'),
             'oldestWaitingAt' => null,
             'updatedAt' => LocaleFormatter::dateTime(now()),
         ];
@@ -142,8 +142,8 @@ class LogData extends Page
 
         if (! Schema::hasTable('jobs')) {
             $this->jobStatus['status'] = 'missing';
-            $this->jobStatus['label'] = 'Tabel jobs tidak ditemukan';
-            $this->jobStatus['description'] = 'Migration queue belum tersedia di database ini.';
+            $this->jobStatus['label'] = __('ui.pages.log_data.jobs_table_missing');
+            $this->jobStatus['description'] = __('ui.pages.log_data.jobs_table_missing_desc');
 
             return;
         }
@@ -210,40 +210,40 @@ class LogData extends Page
     {
         if (($this->jobStatus['failed'] ?? 0) > 0 || ($this->jobStatus['failedBatchJobs'] ?? 0) > 0) {
             $this->jobStatus['status'] = 'danger';
-            $this->jobStatus['label'] = 'Ada job gagal';
-            $this->jobStatus['description'] = 'Periksa failed_jobs dan retry/fix penyebab exception sebelum backlog bertambah.';
+            $this->jobStatus['label'] = __('ui.pages.log_data.job_failed');
+            $this->jobStatus['description'] = __('ui.pages.log_data.job_failed_desc');
 
             return;
         }
 
         if (($this->jobStatus['staleReserved'] ?? 0) > 0) {
             $this->jobStatus['status'] = 'danger';
-            $this->jobStatus['label'] = 'Ada job reserved terlalu lama';
-            $this->jobStatus['description'] = 'Kemungkinan queue worker berhenti saat sedang memproses job.';
+            $this->jobStatus['label'] = __('ui.pages.log_data.job_stale');
+            $this->jobStatus['description'] = __('ui.pages.log_data.job_stale_desc');
 
             return;
         }
 
         if (($this->jobStatus['pending'] ?? 0) > 0) {
             $this->jobStatus['status'] = 'warning';
-            $this->jobStatus['label'] = 'Ada job menunggu worker';
-            $this->jobStatus['description'] = 'Queue worker perlu berjalan agar job pending diproses.';
+            $this->jobStatus['label'] = __('ui.pages.log_data.job_waiting_worker');
+            $this->jobStatus['description'] = __('ui.pages.log_data.job_waiting_worker_desc');
 
             return;
         }
 
         if (($this->jobStatus['reserved'] ?? 0) > 0 || ($this->jobStatus['activeBatches'] ?? 0) > 0) {
             $this->jobStatus['status'] = 'info';
-            $this->jobStatus['label'] = 'Queue sedang memproses';
-            $this->jobStatus['description'] = 'Ada job/batch aktif yang sedang atau baru saja diproses.';
+            $this->jobStatus['label'] = __('ui.pages.log_data.queue_processing');
+            $this->jobStatus['description'] = __('ui.pages.log_data.queue_processing_desc');
 
             return;
         }
 
         if (($this->jobStatus['delayed'] ?? 0) > 0) {
             $this->jobStatus['status'] = 'info';
-            $this->jobStatus['label'] = 'Ada delayed job';
-            $this->jobStatus['description'] = 'Job dijadwalkan untuk diproses setelah waktunya tersedia.';
+            $this->jobStatus['label'] = __('ui.pages.log_data.delayed_job');
+            $this->jobStatus['description'] = __('ui.pages.log_data.delayed_job_desc');
         }
     }
 

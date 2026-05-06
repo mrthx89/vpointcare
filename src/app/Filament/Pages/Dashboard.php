@@ -344,7 +344,7 @@ class Dashboard extends BaseDashboard
             ->limit(10)
             ->get()
             ->map(fn (object $row): array => [
-                'name' => $row->NamaPengguna ?: 'CS tidak diketahui',
+                'name' => $row->NamaPengguna ?: __('ui.pages.dashboard.unknown_cs'),
                 'email' => $row->Email ?: '-',
                 'replies' => (int) $row->JumlahBalasan,
                 'chats' => (int) $row->JumlahChat,
@@ -408,17 +408,21 @@ class Dashboard extends BaseDashboard
      */
     private function topClients(Carbon $start, Carbon $end): array
     {
+        $unmappedLabel = __('ui.common.not_mapped');
+
         return DB::table('TChatD as d')
             ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->where('d.ArahPesan', 'Masuk')
             ->whereBetween('d.TglPesan', [$start, $end])
             ->select(
-                DB::raw("COALESCE(i.NamaInstansi, 'Belum dipetakan') as NamaInstansi"),
+                DB::raw("COALESCE(i.NamaInstansi, ?) as NamaInstansi"),
                 DB::raw('COUNT(*) as JumlahPesan'),
                 DB::raw('COUNT(DISTINCT d.IdChat) as JumlahChat')
             )
-            ->groupBy(DB::raw("COALESCE(i.NamaInstansi, 'Belum dipetakan')"))
+            ->addBinding($unmappedLabel, 'select')
+            ->groupBy(DB::raw('COALESCE(i.NamaInstansi, ?)'))
+            ->addBinding($unmappedLabel, 'groupBy')
             ->orderByDesc('JumlahPesan')
             ->limit(8)
             ->get()
@@ -438,7 +442,7 @@ class Dashboard extends BaseDashboard
         if ($incomingChats === 0) {
             return [
                 'score' => null,
-                'label' => 'Belum ada data',
+                'label' => __('ui.pages.dashboard.no_data_label'),
                 'response_rate' => 0,
                 'delivery_rate' => 0,
                 'speed_score' => 0,
@@ -463,10 +467,10 @@ class Dashboard extends BaseDashboard
         return [
             'score' => $score,
             'label' => match (true) {
-                $score >= 85 => 'Sangat baik',
-                $score >= 70 => 'Baik',
-                $score >= 55 => 'Perlu perhatian',
-                default => 'Kritis',
+                $score >= 85 => __('ui.pages.dashboard.excellent'),
+                $score >= 70 => __('ui.pages.dashboard.good'),
+                $score >= 55 => __('ui.pages.dashboard.needs_attention'),
+                default => __('ui.pages.dashboard.critical'),
             },
             'response_rate' => $responseRate,
             'delivery_rate' => $deliveryRate,

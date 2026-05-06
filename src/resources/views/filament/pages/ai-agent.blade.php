@@ -2,22 +2,22 @@
     <form wire:submit.prevent="simpanPengaturan" class="space-y-6">
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Auto reply aktif</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_auto_reply') }}</div>
                 <div
                     class="mt-2 text-2xl font-semibold {{ $pengaturan['AutoReplyAktif'] ? 'text-emerald-600' : 'text-gray-400' }}">
-                    {{ $pengaturan['AutoReplyAktif'] ? 'Aktif' : 'Nonaktif' }}
+                    {{ $pengaturan['AutoReplyAktif'] ? __('ui.common.active') : __('ui.common.inactive') }}
                 </div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Sesi auto reply</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_sessions') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-blue-600">{{ $stats['chat_auto'] ?? 0 }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Balasan AI</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_replies') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-amber-600">{{ $stats['balasan_ai'] ?? 0 }}</div>
             </div>
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Penerima notif</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_recipients') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $stats['penerima_notifikasi'] ?? 0 }}</div>
             </div>
         </div>
@@ -26,59 +26,48 @@
             <section class="space-y-4">
                 <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Mode Auto Reply</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Atur kapan AI boleh menjawab chat
-                            WhatsApp.</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.auto_reply_mode') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.auto_reply_desc') }}</div>
                     </div>
                     <div class="grid gap-4 p-4 md:grid-cols-2">
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.AutoReplyAktif"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Aktifkan AI
-                                    Agent</span>
-                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Jika mati, webhook
-                                    hanya menyimpan chat tanpa balasan AI.</span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.enable_ai') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.enable_ai_desc') }}</span>
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.AutoReplyDiluarJamKerja"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Balas di luar
-                                    jam kerja</span>
-                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">AI mengirim kalimat
-                                    halus saat kantor tutup.</span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.reply_after_hours') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.reply_after_hours_desc') }}</span>
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.AutoReplyHariLibur"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Balas saat hari
-                                    libur</span>
-                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Tanggal libur diambil
-                                    dari master Hari Libur.</span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.reply_holiday') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.reply_holiday_desc') }}</span>
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.AutoReplyJamKerjaSapaan"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Sapaan awal jam
-                                    kerja</span>
-                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">AI menyapa satu kali,
-                                    lalu CS melanjutkan.</span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.working_hours_greeting') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.working_hours_greeting_desc') }}</span>
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.AutoReplyJamKerjaBerlanjut"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Berlanjut untuk
-                                    semua sesi</span>
-                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">AI terus menjawab saat
-                                    jam kerja. Lebih aman memakai kontrol per sesi di Inbox.</span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.continue_all_sessions') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.continue_all_sessions_desc') }}</span>
                             </span>
                         </label>
                     </div>
@@ -86,13 +75,12 @@
 
                 <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Jam Kerja</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Di luar jadwal ini AI memakai mode luar
-                            jam kerja.</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.working_hours') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.working_hours_desc') }}</div>
                     </div>
                     <div class="grid gap-4 p-4 md:grid-cols-3">
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Mulai</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.start') }}</label>
                             <input type="time" wire:model="pengaturan.JamKerjaMulai"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                             @error('pengaturan.JamKerjaMulai')
@@ -100,7 +88,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Selesai</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.end') }}</label>
                             <input type="time" wire:model="pengaturan.JamKerjaSelesai"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                             @error('pengaturan.JamKerjaSelesai')
@@ -108,7 +96,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Zona waktu</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.timezone') }}</label>
                             <input type="text" wire:model="pengaturan.ZonaWaktu"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                             @error('pengaturan.ZonaWaktu')
@@ -117,9 +105,10 @@
                         </div>
                     </div>
                     <div class="border-t border-gray-200 p-4 dark:border-gray-800">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-200">Hari kerja</div>
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.working_days') }}</div>
                         <div class="mt-3 grid gap-2 sm:grid-cols-4 lg:grid-cols-7">
-                            @foreach ([1 => 'Sen', 2 => 'Sel', 3 => 'Rab', 4 => 'Kam', 5 => 'Jum', 6 => 'Sab', 7 => 'Min'] as $value => $label)
+                            @foreach ([1, 2, 3, 4, 5, 6, 7] as $value)
+                                @php($label = __('ui.pages.ai_agent.days.' . ($value - 1)))
                                 <label
                                     class="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-800">
                                     <input type="checkbox" wire:model="pengaturan.HariKerja" value="{{ $value }}"
@@ -136,40 +125,34 @@
 
                 <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">Kalimat dan Prompt</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">Semua balasan dibuat singkat dan sopan
-                            dengan konteks chat terakhir.</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.phrases_prompts') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.phrases_prompts_desc') }}</div>
                     </div>
                     <div class="grid gap-4 p-4">
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Prompt sistem</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.system_prompt') }}</label>
                             <textarea wire:model="pengaturan.PromptSistem"
                                 class="mt-2 min-h-28 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
                         </div>
                         <div class="grid gap-4 lg:grid-cols-4">
                             <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template luar jam
-                                    kerja</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.after_hours_template') }}</label>
                                 <textarea wire:model="pengaturan.TemplateDiluarJamKerja"
                                     class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
                             </div>
                             <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template hari
-                                    libur</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.holiday_template') }}</label>
                                 <textarea wire:model="pengaturan.TemplateHariLibur"
                                     class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
-                                <div class="mt-1 text-xs text-gray-500">Placeholder: {nama_hari_libur}, {tanggal_libur},
-                                    {tanggal_masuk_kerja}</div>
+                                <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.holiday_placeholders') }}</div>
                             </div>
                             <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template sapaan jam
-                                    kerja</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.working_greeting_template') }}</label>
                                 <textarea wire:model="pengaturan.TemplateJamKerjaSapaan"
                                     class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
                             </div>
                             <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template
-                                    berlanjut</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.fallback_template') }}</label>
                                 <textarea wire:model="pengaturan.TemplateFallback"
                                     class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
                             </div>
@@ -182,7 +165,7 @@
             <aside class="space-y-4">
                 <div
                     class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">Provider AI</div>
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.provider_ai') }}</div>
                     <div class="mt-4 space-y-4">
                         <div class="grid gap-2">
                             @foreach ($providerPresets as $provider => $preset)
@@ -199,7 +182,7 @@
                             @endforeach
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Provider</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.provider') }}</label>
                             <select wire:model="pengaturan.ProviderAi"
                                 wire:change="applyProviderPreset($event.target.value)"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
@@ -209,32 +192,30 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Model</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.model') }}</label>
                             <input type="text" wire:model="pengaturan.ModelAi"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
-                            <div class="mt-1 text-xs text-gray-500">Preset:
+                            <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.preset') }}:
                                 {{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['model'] ?? '-' }}</div>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Endpoint</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.common.endpoint') }}</label>
                             <input type="url" wire:model="pengaturan.BaseUrl"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                             <div class="mt-1 break-all text-xs text-gray-500">
                                 {{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['base_url'] ?? '' }}</div>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">API key provider
-                                terpilih</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.api_key_selected') }}</label>
                             <input type="password" wire:model="apiKeyBaru" autocomplete="new-password"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                                placeholder="{{ $apiKeyTerisi ? 'API key sudah tersimpan' : 'Masukkan API key' }}">
+                                placeholder="{{ $apiKeyTerisi ? __('ui.pages.ai_agent.api_key_saved') : __('ui.pages.ai_agent.api_key_enter') }}">
                             <div class="mt-2 text-xs {{ $apiKeyTerisi ? 'text-emerald-600' : 'text-amber-600' }}">
                                 {{ $apiKeyInfo }}
                             </div>
                             @if ($apiKeyTerisi)
                                 <button type="button" wire:click="hapusApiKey"
-                                    class="mt-3 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">Hapus
-                                    API key provider ini</button>
+                                    class="mt-3 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('ui.pages.ai_agent.delete_api_key') }}</button>
                             @endif
                         </div>
                     </div>
@@ -242,30 +223,27 @@
 
                 <div
                     class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">Pengiriman</div>
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.delivery') }}</div>
                     <div class="mt-4 space-y-4">
                         <label
                             class="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
                             <input type="checkbox" wire:model="pengaturan.KirimKeWaha"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-amber-900 dark:text-amber-200">Kirim
-                                    langsung ke WAHA</span>
-                                <span class="mt-1 block text-sm text-amber-700 dark:text-amber-300">Jika nonaktif,
-                                    balasan AI disimpan sebagai draft lokal di chat.</span>
+                                <span class="block text-sm font-semibold text-amber-900 dark:text-amber-200">{{ __('ui.pages.ai_agent.send_direct_waha') }}</span>
+                                <span class="mt-1 block text-sm text-amber-700 dark:text-amber-300">{{ __('ui.pages.ai_agent.send_direct_waha_desc') }}</span>
                             </span>
                         </label>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Mode kirim</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.delivery_mode') }}</label>
                             <select wire:model="pengaturan.ModeKirim"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
-                                <option value="DraftLokal">Draft lokal</option>
-                                <option value="KirimWaha">Kirim WAHA</option>
+                                <option value="DraftLokal">{{ __('ui.pages.ai_agent.draft_local') }}</option>
+                                <option value="KirimWaha">{{ __('ui.pages.ai_agent.send_waha') }}</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Batas riwayat
-                                pesan</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.history_limit') }}</label>
                             <input type="number" min="1" max="20"
                                 wire:model="pengaturan.BatasRiwayatPesan"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
@@ -275,60 +253,50 @@
 
                 <div
                     class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">Notifikasi CS</div>
-                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">Job mengirim WhatsApp ke user internal
-                        hanya saat jam kerja aktif dan bukan hari libur.</div>
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.cs_notification') }}</div>
+                    <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.cs_notification_desc') }}</div>
                     <div class="mt-4 space-y-4">
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
                             <input type="checkbox" wire:model="pengaturan.NotifikasiChatBelumTerbalasAktif"
                                 class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
                             <span>
-                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">Aktifkan
-                                    notifikasi chat belum terbalas</span>
-                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">Nomor user diambil
-                                    dari data pengguna aktif.</span>
+                                <span class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.enable_unanswered_notification') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.enable_unanswered_notification_desc') }}</span>
                             </span>
                         </label>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Kirim setelah
-                                    menit</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.send_after_minutes') }}</label>
                                 <input type="number" min="1" max="1440"
                                     wire:model="pengaturan.MenitTungguNotifikasi"
                                     class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                             </div>
                             <div>
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Jeda pengingat
-                                    ulang</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.reminder_interval') }}</label>
                                 <input type="number" min="1" max="1440"
                                     wire:model="pengaturan.JedaNotifikasiMenit"
                                     class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
                             </div>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Role penerima</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.recipient_roles') }}</label>
                             <input type="text" wire:model="pengaturan.KodePeranPenerimaNotifikasi"
                                 class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
                                 placeholder="ADMIN,SUPERVISOR_CS,CS">
-                            <div class="mt-1 text-xs text-gray-500">Pisahkan kode role dengan koma. User harus memiliki
-                                Nomor WhatsApp Internal.</div>
+                            <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.recipient_roles_help') }}</div>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Template
-                                notifikasi</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.notification_template') }}</label>
                             <textarea wire:model="pengaturan.TemplateNotifikasiChatBelumTerbalas"
                                 class="mt-2 min-h-32 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
-                            <div class="mt-1 text-xs text-gray-500">Placeholder: {nama_user}, {nama_instansi},
-                                {jenis_chat}, {nama_kontak}, {nomor_whatsapp}, {pesan_terakhir}, {menit_menunggu},
-                                {url_admin}</div>
+                            <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.notification_placeholders') }}</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex justify-end">
                     <button type="submit"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">Simpan
-                        Pengaturan</button>
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">{{ __('ui.pages.ai_agent.save_settings') }}</button>
                 </div>
             </aside>
         </div>

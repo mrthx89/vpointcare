@@ -121,7 +121,7 @@ class AiAgent extends Page
         $this->loadPengaturan();
 
         Notification::make()
-            ->title('Pengaturan AI Agent tersimpan.')
+            ->title(__('ui.pages.ai_agent.settings_saved'))
             ->success()
             ->send();
     }
@@ -142,7 +142,7 @@ class AiAgent extends Page
         $this->loadPengaturan();
 
         Notification::make()
-            ->title('API key AI dihapus dari database.')
+            ->title(__('ui.pages.ai_agent.api_key_deleted'))
             ->success()
             ->send();
     }
@@ -202,18 +202,18 @@ class AiAgent extends Page
         $this->apiKeyTerisi = $hasDbKey || $hasEnvKey;
 
         if ($hasDbKey) {
-            $this->apiKeyInfo = 'API key tersimpan di database dan akan dipakai untuk provider terpilih.';
+            $this->apiKeyInfo = __('ui.pages.ai_agent.api_key_db_info');
 
             return;
         }
 
         if ($hasEnvKey) {
-            $this->apiKeyInfo = 'API key provider ini tersedia dari .env.';
+            $this->apiKeyInfo = __('ui.pages.ai_agent.api_key_env_info');
 
             return;
         }
 
-        $this->apiKeyInfo = 'API key provider ini belum diisi. AI akan memakai template fallback.';
+        $this->apiKeyInfo = __('ui.pages.ai_agent.api_key_missing_info');
     }
 
     private function providerEnvApiKey(string $provider): ?string

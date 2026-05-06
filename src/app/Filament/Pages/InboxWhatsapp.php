@@ -161,9 +161,9 @@ class InboxWhatsapp extends Page implements HasForms
             ->get()
             ->map(function ($row) {
                 // Fetch creator name if table Pengguna exists
-                $creatorName = 'Sistem';
+                $creatorName = __('ui.common.system');
                 if ($row->DibuatOleh && Schema::hasTable('Pengguna')) {
-                    $creatorName = DB::table('Pengguna')->where('Id', $row->DibuatOleh)->value('NamaPengguna') ?? 'Sistem';
+                    $creatorName = DB::table('Pengguna')->where('Id', $row->DibuatOleh)->value('NamaPengguna') ?? __('ui.common.system');
                 }
 
                 return [
@@ -196,7 +196,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInternalNotes();
 
         Notification::make()
-            ->title('Catatan internal berhasil disimpan.')
+            ->title(__('ui.pages.inbox.note_saved'))
             ->success()
             ->send();
     }
@@ -372,7 +372,7 @@ class InboxWhatsapp extends Page implements HasForms
         return [
             'Id' => $row->Id,
             'JenisChat' => $row->JenisChat,
-            'NamaInstansi' => $displayInstansi ?: 'Belum dipetakan',
+            'NamaInstansi' => $displayInstansi ?: __('ui.common.not_mapped'),
             'NamaCustomer' => $row->NamaCustomer,
             'NamaKontak' => $contactName ?: '-',
             'NamaGrupWhatsapp' => $groupName,
@@ -452,7 +452,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->map(fn ($r) => [
                 'Id' => $r->Id,
                 'TglChatTerakhir' => $r->TglChatTerakhir,
-                'NamaStatusChat' => $r->NamaStatusChat ?: 'Selesai',
+                'NamaStatusChat' => $r->NamaStatusChat ?: __('ui.common.completed'),
                 'JumlahPesanBelumDibaca' => (int) $r->JumlahPesanBelumDibaca,
             ])
             ->all();
@@ -573,8 +573,8 @@ class InboxWhatsapp extends Page implements HasForms
 
         if (! $statusDitutupId) {
             Notification::make()
-                ->title('Status DITUTUP belum tersedia.')
-                ->body('Tambahkan status chat dengan kode DITUTUP terlebih dahulu.')
+                ->title(__('ui.pages.inbox.closed_status_missing'))
+                ->body(__('ui.pages.inbox.closed_status_missing_desc'))
                 ->danger()
                 ->send();
 
@@ -599,7 +599,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title('Percakapan telah ditutup.')
+            ->title(__('ui.pages.inbox.conversation_closed'))
             ->success()
             ->send();
     }
@@ -620,7 +620,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title('Status sapaan AI direset.')
+            ->title(__('ui.pages.inbox.ai_greeting_reset'))
             ->success()
             ->send();
     }
@@ -645,8 +645,8 @@ class InboxWhatsapp extends Page implements HasForms
             $ids = $this->mappingIdentifiers($chat);
 
             Notification::make()
-                ->title('Mapping belum ditemukan.')
-                ->body('ID terdeteksi: '.(implode(', ', array_slice($ids, 0, 8)) ?: '-').'. Pastikan salah satu ID ini sama dengan master.')
+                ->title(__('ui.pages.inbox.mapping_not_found'))
+                ->body(__('ui.pages.inbox.detected_id_hint', ['ids' => implode(', ', array_slice($ids, 0, 8)) ?: '-']))
                 ->warning()
                 ->send();
 
@@ -666,7 +666,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title('Mapping chat berhasil diperbarui.')
+            ->title(__('ui.pages.inbox.mapping_updated'))
             ->success()
             ->send();
     }
@@ -681,7 +681,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
             Notification::make()
-                ->title('Kolom profil WAHA belum tersedia.')
+                ->title(__('ui.pages.inbox.waha_profile_column_missing'))
                 ->warning()
                 ->send();
 
@@ -692,8 +692,8 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title($updated ? 'Profil WAHA diperbarui.' : 'Profil WAHA belum tersedia.')
-            ->body($updated ? null : 'WAHA bisa mengembalikan kosong jika foto disembunyikan oleh privasi kontak atau mapping LID belum tersedia.')
+            ->title($updated ? __('ui.pages.inbox.waha_profile_updated') : __('ui.pages.inbox.waha_profile_unavailable'))
+            ->body($updated ? null : __('ui.pages.inbox.waha_profile_privacy_hint'))
             ->{$updated ? 'success' : 'warning'}()
             ->send();
     }
@@ -735,8 +735,8 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title('Balasan tersimpan sebagai draft lokal.')
-            ->body('Pengiriman ke WAHA akan disambungkan pada tahap berikutnya.')
+            ->title(__('ui.pages.inbox.draft_saved'))
+            ->body(__('ui.pages.inbox.waha_delivery_later'))
             ->success()
             ->send();
     }
@@ -763,7 +763,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         if ($reply === '' && ! $this->attachment) {
             Notification::make()
-                ->title('Isi pesan atau lampirkan file dulu.')
+                ->title(__('ui.pages.inbox.reply_required'))
                 ->warning()
                 ->send();
 
@@ -779,7 +779,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         if (! $chat) {
             Notification::make()
-                ->title('Chat tidak ditemukan.')
+                ->title(__('ui.pages.inbox.chat_not_found'))
                 ->danger()
                 ->send();
 
@@ -813,7 +813,7 @@ class InboxWhatsapp extends Page implements HasForms
             'TglPesan' => now(),
             'TglDikirim' => $success ? now() : null,
             'StatusKirim' => $success ? 'Terkirim WAHA' : 'Gagal WAHA',
-            'PesanError' => $success ? null : ($sent['response']['error'] ?? 'WAHA gagal mengirim pesan.'),
+            'PesanError' => $success ? null : ($sent['response']['error'] ?? __('ui.pages.inbox.waha_send_failed')),
             'DibalasOleh' => $this->currentPenggunaId(),
             'TglBuat' => now(),
         ], $sent['message']));
@@ -830,7 +830,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title($success ? 'Balasan terkirim ke WAHA.' : 'Balasan gagal dikirim ke WAHA.')
+            ->title($success ? __('ui.pages.inbox.reply_sent') : __('ui.pages.inbox.reply_failed'))
             ->body($success ? null : ($sent['response']['error'] ?? null))
             ->{$success ? 'success' : 'danger'}()
             ->send();
