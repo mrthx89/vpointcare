@@ -31,7 +31,31 @@ Artisan::command('serve:vpoint', function () {
     return $process->getExitCode() ?? 0;
 })->purpose('Serve VPoint Care using APP_SERVE_HOST and APP_SERVE_PORT from .env');
 
-Schedule::command('vpoint:kirim-notifikasi-chat-belum-terbalas')
-    ->everyFiveMinutes()
-    ->withoutOverlapping()
-    ->runInBackground();
+use Illuminate\Support\Facades\Schema;
+use App\Models\JobSchedule;
+
+try {
+    if (Schema::hasTable('job_schedules')) {
+        $schedules = JobSchedule::where('is_active', true)->get();
+        foreach ($schedules as $job) {
+            $method = $job->cron_expression ?? 'everyMinute';
+            // Fallback for standard cron expression
+            if (str_contains($method, '*')) {
+                Schedule::command($job->command)
+                    ->cron($method)
+                    ->withoutOverlapping()
+                    ->runInBackground();
+            } else {
+                Schedule::command($job->command)
+                    ->{$method}()
+                    ->withoutOverlapping()
+                    ->runInBackground();
+            }
+        }
+    }
+} catch (\Exception $e) {
+    // Ignore database errors during setup/migration
+}
+
+// Keep the default command as fallback if not managed via DB yet, or it can be managed purely via DB now.
+// If you want default jobs managed entirely in the DB, run a seeder or add them via Filament.
