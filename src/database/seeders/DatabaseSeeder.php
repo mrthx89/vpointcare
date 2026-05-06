@@ -62,16 +62,33 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        foreach (AccessPermissions::definitions() as $code => $permission) {
-            DB::table('MHakAkses')->updateOrInsert([
-                'KodeHakAkses' => $code,
-            ], [
+        $localizedPermissions = AccessPermissions::localizedDefinitions();
+        $hasLocalizedColumns = Schema::hasColumn('MHakAkses', 'NamaHakAksesId');
+
+        foreach (AccessPermissions::definitions('id') as $code => $permission) {
+            $localizedPermission = $localizedPermissions[$code] ?? null;
+            $permissionData = [
                 'NamaHakAkses' => $permission['label'],
                 'Modul' => $permission['module'],
                 'Keterangan' => $permission['description'],
                 'NonAktif' => false,
                 'TglEdit' => now(),
-            ]);
+            ];
+
+            if ($hasLocalizedColumns) {
+                $permissionData += [
+                    'NamaHakAksesId' => $localizedPermission['label_id'] ?? $permission['label'],
+                    'NamaHakAksesEn' => $localizedPermission['label_en'] ?? $permission['label'],
+                    'ModulId' => $localizedPermission['module_id'] ?? $permission['module'],
+                    'ModulEn' => $localizedPermission['module_en'] ?? $permission['module'],
+                    'KeteranganId' => $localizedPermission['description_id'] ?? $permission['description'],
+                    'KeteranganEn' => $localizedPermission['description_en'] ?? $permission['description'],
+                ];
+            }
+
+            DB::table('MHakAkses')->updateOrInsert([
+                'KodeHakAkses' => $code,
+            ], $permissionData);
         }
 
         $roles = DB::table('MPeran')

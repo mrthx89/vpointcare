@@ -43,98 +43,164 @@ class AccessPermissions
     /**
      * @return array<string, array{label: string, module: string, description: string}>
      */
-    public static function definitions(): array
+    public static function definitions(?string $locale = null): array
+    {
+        return self::mapDefinitions($locale ?: app()->getLocale());
+    }
+
+    /**
+     * @return array<string, array{label_id: string, label_en: string, module_id: string, module_en: string, description_id: string, description_en: string}>
+     */
+    public static function localizedDefinitions(): array
+    {
+        $localized = [];
+
+        foreach (self::definitionKeys() as $code => $keys) {
+            $localized[$code] = [
+                'label_id' => self::translate($keys['label'], 'id'),
+                'label_en' => self::translate($keys['label'], 'en'),
+                'module_id' => self::translate($keys['module'], 'id'),
+                'module_en' => self::translate($keys['module'], 'en'),
+                'description_id' => self::translate($keys['description'], 'id'),
+                'description_en' => self::translate($keys['description'], 'en'),
+            ];
+        }
+
+        return $localized;
+    }
+
+    /**
+     * @return array{label: string, module: string, description: string}
+     */
+    public static function localizedColumnNames(?string $locale = null): array
+    {
+        $suffix = LocaleManager::normalize($locale ?: app()->getLocale()) === 'en' ? 'En' : 'Id';
+
+        return [
+            'label' => "NamaHakAkses{$suffix}",
+            'module' => "Modul{$suffix}",
+            'description' => "Keterangan{$suffix}",
+        ];
+    }
+
+    /**
+     * @return array<string, array{label: string, module: string, description: string}>
+     */
+    private static function mapDefinitions(string $locale): array
+    {
+        $definitions = [];
+
+        foreach (self::definitionKeys() as $code => $keys) {
+            $definitions[$code] = [
+                'label' => self::translate($keys['label'], $locale),
+                'module' => self::translate($keys['module'], $locale),
+                'description' => self::translate($keys['description'], $locale),
+            ];
+        }
+
+        return $definitions;
+    }
+
+    private static function translate(string $key, string $locale): string
+    {
+        return __($key, [], $locale);
+    }
+
+    /**
+     * @return array<string, array{label: string, module: string, description: string}>
+     */
+    private static function definitionKeys(): array
     {
         return [
             self::DASHBOARD_VIEW => [
-                'label' => __('ui.permissions.dashboard_view'),
-                'module' => __('ui.permissions.dashboard_module'),
-                'description' => __('ui.permissions.dashboard_view_desc'),
+                'label' => 'ui.permissions.dashboard_view',
+                'module' => 'ui.permissions.dashboard_module',
+                'description' => 'ui.permissions.dashboard_view_desc',
             ],
             self::INBOX_VIEW => [
-                'label' => __('ui.permissions.inbox_view'),
-                'module' => __('ui.permissions.inbox_module'),
-                'description' => __('ui.permissions.inbox_view_desc'),
+                'label' => 'ui.permissions.inbox_view',
+                'module' => 'ui.permissions.inbox_module',
+                'description' => 'ui.permissions.inbox_view_desc',
             ],
             self::INBOX_REPLY => [
-                'label' => __('ui.permissions.inbox_reply'),
-                'module' => __('ui.permissions.inbox_module'),
-                'description' => __('ui.permissions.inbox_reply_desc'),
+                'label' => 'ui.permissions.inbox_reply',
+                'module' => 'ui.permissions.inbox_module',
+                'description' => 'ui.permissions.inbox_reply_desc',
             ],
             self::INBOX_MANAGE => [
-                'label' => __('ui.permissions.inbox_manage'),
-                'module' => __('ui.permissions.inbox_module'),
-                'description' => __('ui.permissions.inbox_manage_desc'),
+                'label' => 'ui.permissions.inbox_manage',
+                'module' => 'ui.permissions.inbox_module',
+                'description' => 'ui.permissions.inbox_manage_desc',
             ],
             self::TICKET_VIEW => [
-                'label' => __('ui.permissions.ticket_view'),
-                'module' => __('ui.permissions.ticket_module'),
-                'description' => __('ui.permissions.ticket_view_desc'),
+                'label' => 'ui.permissions.ticket_view',
+                'module' => 'ui.permissions.ticket_module',
+                'description' => 'ui.permissions.ticket_view_desc',
             ],
             self::TICKET_MANAGE => [
-                'label' => __('ui.permissions.ticket_manage'),
-                'module' => __('ui.permissions.ticket_module'),
-                'description' => __('ui.permissions.ticket_manage_desc'),
+                'label' => 'ui.permissions.ticket_manage',
+                'module' => 'ui.permissions.ticket_module',
+                'description' => 'ui.permissions.ticket_manage_desc',
             ],
             self::AI_AGENT_VIEW => [
-                'label' => __('ui.permissions.ai_agent_view'),
-                'module' => __('ui.permissions.ai_agent_module'),
-                'description' => __('ui.permissions.ai_agent_view_desc'),
+                'label' => 'ui.permissions.ai_agent_view',
+                'module' => 'ui.permissions.ai_agent_module',
+                'description' => 'ui.permissions.ai_agent_view_desc',
             ],
             self::AI_AGENT_MANAGE => [
-                'label' => __('ui.permissions.ai_agent_manage'),
-                'module' => __('ui.permissions.ai_agent_module'),
-                'description' => __('ui.permissions.ai_agent_manage_desc'),
+                'label' => 'ui.permissions.ai_agent_manage',
+                'module' => 'ui.permissions.ai_agent_module',
+                'description' => 'ui.permissions.ai_agent_manage_desc',
             ],
             self::LOG_DATA_VIEW => [
-                'label' => __('ui.permissions.log_data_view'),
-                'module' => __('ui.permissions.monitoring_module'),
-                'description' => __('ui.permissions.log_data_view_desc'),
+                'label' => 'ui.permissions.log_data_view',
+                'module' => 'ui.permissions.monitoring_module',
+                'description' => 'ui.permissions.log_data_view_desc',
             ],
             self::MASTER_CUSTOMER_VIEW => [
-                'label' => __('ui.permissions.master_customer_view'),
-                'module' => __('ui.permissions.master_customer_module'),
-                'description' => __('ui.permissions.master_customer_view_desc'),
+                'label' => 'ui.permissions.master_customer_view',
+                'module' => 'ui.permissions.master_customer_module',
+                'description' => 'ui.permissions.master_customer_view_desc',
             ],
             self::MASTER_CUSTOMER_MANAGE => [
-                'label' => __('ui.permissions.master_customer_manage'),
-                'module' => __('ui.permissions.master_customer_module'),
-                'description' => __('ui.permissions.master_customer_manage_desc'),
+                'label' => 'ui.permissions.master_customer_manage',
+                'module' => 'ui.permissions.master_customer_module',
+                'description' => 'ui.permissions.master_customer_manage_desc',
             ],
             self::KNOWLEDGE_VIEW => [
-                'label' => __('ui.permissions.knowledge_view'),
-                'module' => __('ui.permissions.knowledge_module'),
-                'description' => __('ui.permissions.knowledge_view_desc'),
+                'label' => 'ui.permissions.knowledge_view',
+                'module' => 'ui.permissions.knowledge_module',
+                'description' => 'ui.permissions.knowledge_view_desc',
             ],
             self::KNOWLEDGE_MANAGE => [
-                'label' => __('ui.permissions.knowledge_manage'),
-                'module' => __('ui.permissions.knowledge_module'),
-                'description' => __('ui.permissions.knowledge_manage_desc'),
+                'label' => 'ui.permissions.knowledge_manage',
+                'module' => 'ui.permissions.knowledge_module',
+                'description' => 'ui.permissions.knowledge_manage_desc',
             ],
             self::HOLIDAY_VIEW => [
-                'label' => __('ui.permissions.holiday_view'),
-                'module' => __('ui.permissions.holiday_module'),
-                'description' => __('ui.permissions.holiday_view_desc'),
+                'label' => 'ui.permissions.holiday_view',
+                'module' => 'ui.permissions.holiday_module',
+                'description' => 'ui.permissions.holiday_view_desc',
             ],
             self::HOLIDAY_MANAGE => [
-                'label' => __('ui.permissions.holiday_manage'),
-                'module' => __('ui.permissions.holiday_module'),
-                'description' => __('ui.permissions.holiday_manage_desc'),
+                'label' => 'ui.permissions.holiday_manage',
+                'module' => 'ui.permissions.holiday_module',
+                'description' => 'ui.permissions.holiday_manage_desc',
             ],
             self::USER_VIEW => [
-                'label' => __('ui.permissions.user_view'),
-                'module' => __('ui.permissions.user_module'),
-                'description' => __('ui.permissions.user_view_desc'),
+                'label' => 'ui.permissions.user_view',
+                'module' => 'ui.permissions.user_module',
+                'description' => 'ui.permissions.user_view_desc',
             ],
             self::USER_MANAGE => [
-                'label' => __('ui.permissions.user_manage'),
-                'module' => __('ui.permissions.user_module'),
-                'description' => __('ui.permissions.user_manage_desc'),
+                'label' => 'ui.permissions.user_manage',
+                'module' => 'ui.permissions.user_module',
+                'description' => 'ui.permissions.user_manage_desc',
             ],
             self::CHAT_HISTORY_VIEW => [
-                'label' => __('ui.permissions.chat_history_view'),
-                'module' => __('ui.permissions.chat_history_module'),
-                'description' => __('ui.permissions.chat_history_view_desc'),
+                'label' => 'ui.permissions.chat_history_view',
+                'module' => 'ui.permissions.chat_history_module',
+                'description' => 'ui.permissions.chat_history_view_desc',
             ],
         ];
     }
