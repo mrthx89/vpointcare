@@ -160,7 +160,11 @@ class PenggunaResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                TernaryFilter::make('NonAktif')->label('Status nonaktif'),
+                TernaryFilter::make('NonAktif')
+                    ->label('Status')
+                    ->placeholder('Semua')
+                    ->trueLabel('Nonaktif')
+                    ->falseLabel('Aktif'),
             ])
             ->defaultSort('NamaPengguna')
             ->striped()

@@ -135,7 +135,10 @@ class CustomerResource extends Resource
                     ->searchable()
                     ->preload(),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status nonaktif'),
+                    ->label('Status')
+                    ->placeholder('Semua')
+                    ->trueLabel('Nonaktif')
+                    ->falseLabel('Aktif'),
             ])
             ->defaultSort('NamaCustomer')
             ->striped()

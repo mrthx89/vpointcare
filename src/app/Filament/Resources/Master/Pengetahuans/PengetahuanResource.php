@@ -134,7 +134,10 @@ class PengetahuanResource extends Resource
             ])
             ->filters([
                 TernaryFilter::make('NonAktif')
-                    ->label('Status nonaktif'),
+                    ->label('Status')
+                    ->placeholder('Semua')
+                    ->trueLabel('Nonaktif')
+                    ->falseLabel('Aktif'),
             ])
             ->defaultSort('JudulPengetahuan')
             ->striped()

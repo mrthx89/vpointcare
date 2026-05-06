@@ -118,9 +118,15 @@ class HariLiburResource extends Resource
             ])
             ->filters([
                 TernaryFilter::make('BerlakuTahunan')
-                    ->label('Berulang tahunan'),
+                    ->label('Jenis libur')
+                    ->placeholder('Semua')
+                    ->trueLabel('Tahunan')
+                    ->falseLabel('Sekali saja'),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status nonaktif'),
+                    ->label('Status')
+                    ->placeholder('Semua')
+                    ->trueLabel('Nonaktif')
+                    ->falseLabel('Aktif'),
             ])
             ->defaultSort('TanggalLibur', 'desc')
             ->striped()
