@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
-                fn(): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">'
+                fn(): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">' . view('components.seo-meta')->render()
             )
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
