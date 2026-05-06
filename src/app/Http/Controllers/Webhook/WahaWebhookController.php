@@ -20,7 +20,7 @@ class WahaWebhookController extends Controller
         if ($expectedToken && ! hash_equals($expectedToken, (string) $token)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Invalid webhook token.',
+                'message' => __('ui.controllers.webhook.invalid_token'),
             ], 403);
         }
 
@@ -29,7 +29,7 @@ class WahaWebhookController extends Controller
         if ($hmacKey && ! $this->validHmacSignature($request, (string) $hmacKey)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Invalid webhook HMAC signature.',
+                'message' => __('ui.controllers.webhook.invalid_hmac'),
             ], 403);
         }
 
@@ -50,7 +50,7 @@ class WahaWebhookController extends Controller
 
                 $result['auto_reply'] = [
                     'ok' => false,
-                    'message' => 'AI auto reply gagal, webhook tetap diterima.',
+                    'message' => __('ui.controllers.webhook.ai_failed'),
                 ];
             }
         }

@@ -36,10 +36,10 @@ class AdminPanelProvider extends PanelProvider
             ->login(Login::class)
             ->registration(Register::class)
             ->brandName('VPoint Care')
-            ->brandLogo(fn () => new HtmlString(
+            ->brandLogo(fn() => new HtmlString(
                 '<div class="vpoint-brand"><img src="' . asset('images/logo_primary.svg') . '" alt="VPoint Care"><span>VPoint Care</span></div>'
             ))
-            ->darkModeBrandLogo(fn () => new HtmlString(
+            ->darkModeBrandLogo(fn() => new HtmlString(
                 '<div class="vpoint-brand vpoint-brand-dark"><img src="' . asset('images/logo_secondary.svg') . '" alt="VPoint Care"><span>VPoint Care</span></div>'
             ))
             ->brandLogoHeight('2.25rem')
@@ -51,11 +51,11 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
-                fn (): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">'
+                fn(): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">'
             )
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
-                fn (): string => <<<'HTML'
+                fn(): string => <<<'HTML'
 <style>
     .wacs-locale-switcher { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; padding-inline: .5rem; }
     .wacs-locale-switcher-center { justify-content: center; padding-inline: 0; }
@@ -75,7 +75,7 @@ HTML
             )
             ->renderHook(
                 PanelsRenderHook::BODY_START,
-                fn (): string => <<<HTML
+                fn(): string => <<<HTML
 <script>
     document.documentElement.lang = "{$this->currentLocale()}"
     document.documentElement.setAttribute('translate', 'no')
@@ -87,23 +87,23 @@ HTML
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,
-                fn (): string => '<div style="padding: 1rem 1.5rem; text-align: center; font-size: 0.8125rem; color: rgb(100 116 139);">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
+                fn(): string => '<div style="padding: 1rem 1.5rem; text-align: center; font-size: 0.8125rem; color: rgb(100 116 139);">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
-                fn (): string => view('components.locale-switcher', ['compact' => true])->render()
+                fn(): string => view('components.locale-switcher', ['compact' => true])->render()
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
-                fn (): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
+                fn(): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE,
-                fn (): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
+                fn(): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
             )
             ->renderHook(
                 PanelsRenderHook::SCRIPTS_AFTER,
-                fn (): HtmlString => new HtmlString(
+                fn(): HtmlString => new HtmlString(
                     '<script type="module" src="' . Vite::asset('resources/js/app.js') . '"></script>'
                 )
             )

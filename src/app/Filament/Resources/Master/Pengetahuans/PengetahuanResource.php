@@ -28,15 +28,27 @@ class PengetahuanResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Knowledge Base AI';
-
-    protected static ?string $modelLabel = 'Knowledge Base AI';
-
-    protected static ?string $pluralModelLabel = 'Knowledge Base AI';
-
     protected static ?int $navigationSort = 46;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.models.pengetahuan.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.pengetahuan.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.pengetahuan.plural');
+    }
 
     public static function canViewAny(): bool
     {
@@ -63,13 +75,13 @@ class PengetahuanResource extends Resource
         return $schema
             ->components([
                 TextInput::make('KodePengetahuan')
-                    ->label('Kode')
+                    ->label(__('ui.common.code'))
                     ->maxLength(50)
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->dehydrateStateUsing(fn (?string $state): ?string => $state ? Str::upper(Str::slug($state, '_')) : null),
                 TextInput::make('JudulPengetahuan')
-                    ->label('Judul')
+                    ->label(__('ui.models.pengetahuan.title'))
                     ->maxLength(200)
                     ->required()
                     ->live(onBlur: true)
@@ -81,17 +93,17 @@ class PengetahuanResource extends Resource
                         $set('KodePengetahuan', Str::upper(Str::slug(Str::limit($state, 45, ''), '_')));
                     }),
                 TextInput::make('Tag')
-                    ->label('Tag / kata kunci')
+                    ->label('Tag')
                     ->maxLength(500)
                     ->placeholder('login,password,error,reset'),
                 Textarea::make('IsiPengetahuan')
-                    ->label('Isi pengetahuan / SOP')
+                    ->label(__('ui.models.pengetahuan.content'))
                     ->rows(10)
                     ->required()
                     ->columnSpanFull()
-                    ->helperText('AI boleh mengimprovisasi gaya bahasa, tetapi isi faktualnya akan mengacu ke data ini.'),
+                    ->helperText(__('ui.models.pengetahuan.content_help')),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -100,11 +112,11 @@ class PengetahuanResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('KodePengetahuan')
-                    ->label('Kode')
+                    ->label(__('ui.common.code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('JudulPengetahuan')
-                    ->label('Judul')
+                    ->label(__('ui.models.pengetahuan.title'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
@@ -114,12 +126,12 @@ class PengetahuanResource extends Resource
                     ->wrap()
                     ->toggleable(),
                 TextColumn::make('IsiPengetahuan')
-                    ->label('Isi')
+                    ->label(__('ui.models.pengetahuan.content'))
                     ->limit(120)
                     ->searchable()
                     ->wrap(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif')
+                    ->label(__('ui.common.inactive'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')

@@ -16,13 +16,22 @@ class MasterCustomer extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-squares-2x2';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Ringkasan Customer';
-
     protected static ?int $navigationSort = 40;
 
-    protected static ?string $title = 'Master Customer';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.pages.master_customer.flow_title');
+    }
 
     protected string $view = 'filament.pages.master-customer';
 
@@ -52,28 +61,28 @@ class MasterCustomer extends Page
 
         $this->masterLinks = [
             [
-                'title' => 'Klien / Instansi',
-                'description' => 'Data perusahaan, instansi, dan identitas utama customer.',
+                'title' => __('ui.models.instansi.label'),
+                'description' => __('ui.pages.master_customer.flow_client_body'),
                 'url' => InstansiResource::getUrl('index'),
             ],
             [
-                'title' => 'Kontak Customer',
-                'description' => 'Daftar orang/PIC yang berada di bawah tiap klien.',
+                'title' => __('ui.models.customer.label'),
+                'description' => __('ui.pages.master_customer.flow_contact_body'),
                 'url' => CustomerResource::getUrl('index'),
             ],
             [
-                'title' => 'Nomor WhatsApp',
-                'description' => 'Nomor pribadi customer yang dipakai untuk identifikasi chat.',
+                'title' => __('ui.models.nomor_whatsapp.label'),
+                'description' => __('ui.pages.master_customer.flow_number_body'),
                 'url' => NomorWhatsappResource::getUrl('index'),
             ],
             [
-                'title' => 'Grup WhatsApp',
-                'description' => 'Mapping grup WAHA ke klien agar chat grup langsung dikenali.',
+                'title' => __('ui.models.grup_whatsapp.label'),
+                'description' => __('ui.pages.master_customer.flow_group_body'),
                 'url' => GrupWhatsappResource::getUrl('index'),
             ],
             [
-                'title' => 'Anggota Grup',
-                'description' => 'Relasi nomor WhatsApp customer sebagai anggota grup klien.',
+                'title' => __('ui.models.anggota_grup.label'),
+                'description' => __('ui.pages.master_customer.group_members'),
                 'url' => AnggotaGrupWhatsappResource::getUrl('index'),
             ],
         ];

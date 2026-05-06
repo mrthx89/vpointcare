@@ -28,15 +28,27 @@ class CustomerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Kontak Customer';
-
-    protected static ?string $modelLabel = 'Kontak Customer';
-
-    protected static ?string $pluralModelLabel = 'Kontak Customer';
-
     protected static ?int $navigationSort = 42;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.models.customer.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.customer.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.customer.plural');
+    }
 
     public static function canViewAny(): bool
     {
@@ -63,26 +75,27 @@ class CustomerResource extends Resource
         return $schema
             ->components([
                 Select::make('IdInstansi')
-                    ->label('Klien / Instansi')
+                    ->label(__('ui.models.customer.client'))
                     ->relationship('instansi', 'NamaInstansi')
                     ->searchable()
                     ->preload()
                     ->required(),
                 TextInput::make('KodeCustomer')
-                    ->label('Kode Kontak')
+                    ->label(__('ui.models.customer.code'))
                     ->maxLength(50)
                     ->required(),
                 TextInput::make('NamaCustomer')
-                    ->label('Nama Kontak')
+                    ->label(__('ui.models.customer.name'))
                     ->maxLength(200)
                     ->required(),
-                TextInput::make('Jabatan')->maxLength(100),
+                TextInput::make('Jabatan')->label(__('ui.models.customer.job'))->maxLength(100),
                 TextInput::make('Email')->email()->maxLength(150),
                 TextInput::make('Telepon')->tel()->maxLength(50),
                 Textarea::make('Catatan')
+                    ->label(__('ui.models.customer.notes'))
                     ->rows(3)
                     ->columnSpanFull(),
-                Toggle::make('NonAktif')->label('Nonaktif'),
+                Toggle::make('NonAktif')->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -91,19 +104,20 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('KodeCustomer')
-                    ->label('Kode')
+                    ->label(__('ui.models.customer.code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.customer.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('NamaCustomer')
-                    ->label('Kontak')
+                    ->label(__('ui.models.customer.name'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('Jabatan')
+                    ->label(__('ui.models.customer.job'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('Email')
@@ -111,11 +125,11 @@ class CustomerResource extends Resource
                 TextColumn::make('Telepon')
                     ->searchable(),
                 TextColumn::make('nomor_whatsapp_count')
-                    ->label('Nomor')
+                    ->label(__('ui.models.customer.number'))
                     ->counts('nomorWhatsapp')
                     ->sortable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif')
+                    ->label(__('ui.common.inactive'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')

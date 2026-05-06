@@ -27,15 +27,27 @@ class NomorWhatsappResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDevicePhoneMobile;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Nomor WhatsApp';
-
-    protected static ?string $modelLabel = 'Nomor WhatsApp';
-
-    protected static ?string $pluralModelLabel = 'Nomor WhatsApp';
-
     protected static ?int $navigationSort = 43;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.models.nomor_whatsapp.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.nomor_whatsapp.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.nomor_whatsapp.plural');
+    }
 
     public static function canViewAny(): bool
     {
@@ -62,32 +74,32 @@ class NomorWhatsappResource extends Resource
         return $schema
             ->components([
                 Select::make('IdCustomer')
-                    ->label('Kontak')
+                    ->label(__('ui.models.nomor_whatsapp.contact'))
                     ->relationship('customer', 'NamaCustomer')
                     ->searchable()
                     ->preload()
                     ->required(),
                 TextInput::make('NomorWhatsapp')
-                    ->label('Nomor WhatsApp')
-                    ->helperText('Gunakan format angka, contoh 6281234567890.')
+                    ->label(__('ui.models.nomor_whatsapp.whatsapp_number'))
+                    ->helperText(__('ui.models.nomor_whatsapp.whatsapp_number_help'))
                     ->maxLength(30)
                     ->required(),
                 TextInput::make('IdWaha')
-                    ->label('ID WAHA / JID')
-                    ->helperText('Isi jika WAHA mengirim ID internal seperti 137799747518482 atau JID @lid/@c.us.')
+                    ->label(__('ui.models.nomor_whatsapp.waha_id'))
+                    ->helperText(__('ui.models.nomor_whatsapp.waha_id_help'))
                     ->maxLength(200),
                 TextInput::make('NamaKontak')
-                    ->label('Nama di WhatsApp')
+                    ->label(__('ui.models.nomor_whatsapp.contact_name'))
                     ->maxLength(150),
                 TextInput::make('JabatanKontak')
-                    ->label('Jabatan')
+                    ->label(__('ui.models.customer.job'))
                     ->maxLength(100),
                 Toggle::make('NomorUtama')
                     ->label('Nomor utama'),
                 Toggle::make('Terverifikasi')
                     ->label('Terverifikasi'),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -96,27 +108,27 @@ class NomorWhatsappResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.customer.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.NamaCustomer')
-                    ->label('Kontak')
+                    ->label(__('ui.models.nomor_whatsapp.contact'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('NomorWhatsapp')
-                    ->label('Nomor WA')
+                    ->label(__('ui.models.nomor_whatsapp.whatsapp_number'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('IdWaha')
-                    ->label('ID WAHA')
+                    ->label(__('ui.models.nomor_whatsapp.waha_id'))
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('NamaKontak')
-                    ->label('Nama WA')
+                    ->label(__('ui.models.nomor_whatsapp.contact_name'))
                     ->searchable(),
                 TextColumn::make('JabatanKontak')
-                    ->label('Jabatan')
+                    ->label(__('ui.models.customer.job'))
                     ->searchable(),
                 ToggleColumn::make('NomorUtama')
                     ->label('Utama')
@@ -125,7 +137,7 @@ class NomorWhatsappResource extends Resource
                     ->label('Verified')
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif')
+                    ->label(__('ui.common.inactive'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')

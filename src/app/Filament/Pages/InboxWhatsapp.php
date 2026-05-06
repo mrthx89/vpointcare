@@ -32,13 +32,22 @@ class InboxWhatsapp extends Page implements HasForms
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Operasional';
-
-    protected static ?string $navigationLabel = 'Inbox WhatsApp';
-
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $title = 'Inbox WhatsApp';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.operasional');
+    }
+
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Inbox WhatsApp';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Inbox WhatsApp';
+    }
 
     protected string $view = 'filament.pages.inbox-whatsapp';
 
@@ -127,14 +136,14 @@ class InboxWhatsapp extends Page implements HasForms
             ->components([
                 TextInput::make('filterText')
                     ->hiddenLabel()
-                    ->placeholder('Filter nama, nomor WA, atau ID WAHA')
+                    ->placeholder(__('ui.pages.inbox.filter_placeholder'))
                     ->live(debounce: 300),
                 Radio::make('filterType')
                     ->hiddenLabel()
                     ->options([
-                        'pribadi' => 'Pribadi',
-                        'grup' => 'Grup',
-                        'keduanya' => 'Keduanya',
+                        'pribadi' => __('ui.pages.inbox.filter_private'),
+                        'grup' => __('ui.pages.inbox.filter_group'),
+                        'keduanya' => __('ui.pages.inbox.filter_both'),
                     ])
                     ->inline()
                     ->live(),
@@ -380,7 +389,7 @@ class InboxWhatsapp extends Page implements HasForms
             'NomorWhatsappRaw' => $row->NomorWhatsapp,
             'IdWaha' => $detectedWahaId,
             'FotoProfilUrl' => $row->UrlFotoProfil ?? null,
-            'Status' => $row->NamaStatusChat ?: 'Menunggu CS',
+            'Status' => $row->NamaStatusChat ?: __('ui.pages.inbox.waiting_cs'),
             'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
             'TglChatTerakhir' => $row->TglChatTerakhir,
             'PesanTerakhir' => $lastMessage,
@@ -556,7 +565,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInbox();
 
         Notification::make()
-            ->title($active ? 'Auto reply AI sesi ini aktif.' : 'Auto reply AI sesi ini dimatikan.')
+            ->title($active ? __('ui.pages.inbox.ai_reply_active') : __('ui.pages.inbox.ai_reply_inactive'))
             ->success()
             ->send();
     }

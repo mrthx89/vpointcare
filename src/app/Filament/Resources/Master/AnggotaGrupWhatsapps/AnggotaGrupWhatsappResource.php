@@ -27,15 +27,27 @@ class AnggotaGrupWhatsappResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Anggota Grup';
-
-    protected static ?string $modelLabel = 'Anggota Grup';
-
-    protected static ?string $pluralModelLabel = 'Anggota Grup';
-
     protected static ?int $navigationSort = 45;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.models.anggota_grup.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.anggota_grup.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.anggota_grup.plural');
+    }
 
     public static function canViewAny(): bool
     {
@@ -62,22 +74,22 @@ class AnggotaGrupWhatsappResource extends Resource
         return $schema
             ->components([
                 Select::make('IdGrupWhatsapp')
-                    ->label('Grup WhatsApp')
+                    ->label(__('ui.models.anggota_grup.group'))
                     ->relationship('grupWhatsapp', 'NamaGrup')
                     ->searchable()
                     ->preload()
                     ->required(),
                 Select::make('IdNomorWhatsapp')
-                    ->label('Nomor WhatsApp')
+                    ->label(__('ui.models.anggota_grup.contact'))
                     ->relationship('nomorWhatsapp', 'NomorWhatsapp')
                     ->searchable(['NomorWhatsapp', 'NamaKontak'])
                     ->preload()
                     ->required(),
                 TextInput::make('PeranAnggota')
-                    ->label('Peran Anggota')
+                    ->label(__('ui.models.pengguna.role'))
                     ->maxLength(100),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -86,31 +98,31 @@ class AnggotaGrupWhatsappResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('grupWhatsapp.instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.grup_whatsapp.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('grupWhatsapp.NamaGrup')
-                    ->label('Grup')
+                    ->label(__('ui.models.anggota_grup.group'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('nomorWhatsapp.NamaKontak')
-                    ->label('Nama WA')
+                    ->label(__('ui.models.nomor_whatsapp.contact_name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('nomorWhatsapp.NomorWhatsapp')
-                    ->label('Nomor WA')
+                    ->label(__('ui.models.nomor_whatsapp.whatsapp_number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.NamaCustomer')
-                    ->label('Kontak Customer')
+                    ->label(__('ui.models.customer.label'))
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('PeranAnggota')
-                    ->label('Peran')
+                    ->label(__('ui.models.pengguna.role'))
                     ->searchable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif')
+                    ->label(__('ui.common.inactive'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')

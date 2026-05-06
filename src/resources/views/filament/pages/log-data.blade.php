@@ -248,7 +248,7 @@
 
                     <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
                         <div class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            Jobs Terdekat
+                            {{ __('ui.pages.log_data.upcoming_jobs') }}
                         </div>
                         <div class="max-h-80 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
                             @forelse ($pendingJobs as $job)
@@ -273,7 +273,7 @@
                     <div class="grid gap-4 xl:grid-cols-2">
                         <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
                             <div class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                Failed Jobs Terakhir
+                                {{ __('ui.pages.log_data.last_failed_jobs') }}
                             </div>
                             <div class="max-h-80 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
                                 @forelse ($failedJobs as $job)
@@ -293,7 +293,7 @@
 
                         <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
                             <div class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                Batch Jobs Terakhir
+                                {{ __('ui.pages.log_data.last_batch_jobs') }}
                             </div>
                             <div class="max-h-80 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-800">
                                 @forelse ($jobBatches as $batch)
@@ -342,7 +342,7 @@
                                 <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-950 dark:text-white">{{ $log['KodeIntegrasi'] }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <span class="rounded-md px-2 py-1 text-xs font-semibold {{ $log['Berhasil'] ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300' }}">
-                                        {{ $log['Berhasil'] ? 'Berhasil' : 'Gagal' }}
+                                        {{ $log['Berhasil'] ? __('ui.pages.log_data.success') : __('ui.pages.log_data.failed') }}
                                         @if ($log['StatusHttp'])
                                             &middot; HTTP {{ $log['StatusHttp'] }}
                                         @endif

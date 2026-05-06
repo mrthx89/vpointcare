@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Auth::provider('pengguna', fn ($app, array $config): PenggunaUserProvider => new PenggunaUserProvider($app['hash'], $config['model']));
+        Auth::provider('pengguna', fn($app, array $config): PenggunaUserProvider => new PenggunaUserProvider($app['hash'], $config['model']));
 
         Carbon::setLocale(config('app.locale'));
         Number::useLocale(LocaleManager::regional(config('app.locale')));

@@ -15,13 +15,22 @@ class LogData extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Monitoring';
-
-    protected static ?string $navigationLabel = 'Log Data';
-
     protected static ?int $navigationSort = 50;
 
-    protected static ?string $title = 'Log Data';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.monitoring');
+    }
+
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Log Data';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Log Data';
+    }
 
     protected string $view = 'filament.pages.log-data';
 

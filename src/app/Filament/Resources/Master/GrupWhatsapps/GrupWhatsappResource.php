@@ -28,15 +28,27 @@ class GrupWhatsappResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Grup WhatsApp';
-
-    protected static ?string $modelLabel = 'Grup WhatsApp';
-
-    protected static ?string $pluralModelLabel = 'Grup WhatsApp';
-
     protected static ?int $navigationSort = 44;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.models.grup_whatsapp.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.grup_whatsapp.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.grup_whatsapp.plural');
+    }
 
     public static function canViewAny(): bool
     {
@@ -63,30 +75,31 @@ class GrupWhatsappResource extends Resource
         return $schema
             ->components([
                 Select::make('IdInstansi')
-                    ->label('Klien / Instansi')
+                    ->label(__('ui.models.grup_whatsapp.client'))
                     ->relationship('instansi', 'NamaInstansi')
                     ->searchable()
                     ->preload()
                     ->required(),
                 TextInput::make('KodeGrup')
-                    ->label('Kode Grup')
+                    ->label(__('ui.models.customer.code'))
                     ->maxLength(50)
                     ->required(),
                 TextInput::make('NamaGrup')
-                    ->label('Nama Grup')
+                    ->label(__('ui.models.grup_whatsapp.group_name'))
                     ->maxLength(200)
                     ->required(),
                 TextInput::make('IdGrupWaha')
-                    ->label('ID Grup WAHA')
+                    ->label(__('ui.models.grup_whatsapp.waha_group_id'))
                     ->maxLength(200),
                 TextInput::make('NomorGrupWhatsapp')
-                    ->label('Nomor Grup WhatsApp')
+                    ->label(__('ui.models.grup_whatsapp.group_number'))
                     ->maxLength(50),
                 Textarea::make('Deskripsi')
+                    ->label(__('ui.models.customer.notes'))
                     ->rows(3)
                     ->columnSpanFull(),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -95,33 +108,34 @@ class GrupWhatsappResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.grup_whatsapp.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('KodeGrup')
-                    ->label('Kode')
+                    ->label(__('ui.models.customer.code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('NamaGrup')
-                    ->label('Nama Grup')
+                    ->label(__('ui.models.grup_whatsapp.group_name'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('IdGrupWaha')
-                    ->label('ID Grup WAHA')
+                    ->label(__('ui.models.grup_whatsapp.waha_group_id'))
                     ->searchable(),
                 TextColumn::make('NomorGrupWhatsapp')
-                    ->label('Nomor Grup')
+                    ->label(__('ui.models.grup_whatsapp.group_number'))
                     ->searchable(),
                 TextColumn::make('Deskripsi')
+                    ->label(__('ui.models.customer.notes'))
                     ->limit(50)
                     ->toggleable(),
                 TextColumn::make('anggota_count')
-                    ->label('Anggota')
+                    ->label(__('ui.models.grup_whatsapp.member_count'))
                     ->counts('anggota')
                     ->sortable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif')
+                    ->label(__('ui.common.inactive'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')

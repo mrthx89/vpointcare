@@ -20,9 +20,15 @@ class Dashboard extends BaseDashboard
 
     protected static bool $isDiscovered = false;
 
-    protected static ?string $title = 'Dasbor';
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return __('ui.pages.dashboard.navigation_label');
+    }
 
-    protected static ?string $navigationLabel = 'Dasbor';
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.pages.dashboard.navigation_label');
+    }
 
     protected string $view = 'filament.pages.dashboard';
 
@@ -74,7 +80,7 @@ class Dashboard extends BaseDashboard
                 Section::make('')
                     ->schema([
                         DateRangePicker::make('date_range')
-                            ->label('Periode')
+                            ->label(__('ui.pages.dashboard.period_filter'))
                             ->format(LocaleFormatter::dateInputFormat())
                             ->rangeSeparator(' to ')
                             ->showDropdowns()

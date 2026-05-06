@@ -31,7 +31,7 @@ class ImportVTokenCustomersToInstansi implements ShouldQueue
         $url = $this->url ?: (string) config('services.vtoken.open_customers_url');
 
         if (trim($url) === '') {
-            throw new \RuntimeException('URL import customer VToken belum dikonfigurasi.');
+            throw new \RuntimeException(__('ui.jobs.import_vtoken.url_not_configured'));
         }
 
         $logId = $this->createIntegrationLog($url);
@@ -45,13 +45,13 @@ class ImportVTokenCustomersToInstansi implements ShouldQueue
             $this->updateIntegrationLog($logId, $response);
 
             if (! $response->successful()) {
-                throw new \RuntimeException("Gagal mengambil data customer VToken. HTTP {$response->status()}");
+                throw new \RuntimeException(__('ui.jobs.import_vtoken.fetch_failed', ['status' => $response->status()]));
             }
 
             $payload = $response->json();
 
             if (! is_array($payload) || ($payload['jsonResult'] ?? false) !== true || ! is_array($payload['jsonValue'] ?? null)) {
-                throw new \RuntimeException('Format response customer VToken tidak sesuai.');
+                throw new \RuntimeException(__('ui.jobs.import_vtoken.invalid_format'));
             }
 
             $result = $this->importRows($payload['jsonValue']);

@@ -53,7 +53,7 @@ class WahaMediaController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return $this->errorResponse('Media WAHA belum bisa diambil dari server Laravel: '.$exception->getMessage());
+            return $this->errorResponse(__('ui.controllers.waha_media.proxy_failed').$exception->getMessage());
         }
 
         if (! $response->successful()) {
@@ -64,7 +64,7 @@ class WahaMediaController extends Controller
                 'body' => Str::limit($response->body(), 500),
             ]);
 
-            return $this->errorResponse('Media WAHA gagal diambil. HTTP '.$response->status().'.');
+            return $this->errorResponse(__('ui.controllers.waha_media.proxy_unsuccessful').$response->status().'.');
         }
 
         $mimeType = (string) ($row->TipeMime ?: $response->header('Content-Type', 'application/octet-stream'));
@@ -80,7 +80,7 @@ class WahaMediaController extends Controller
         }
 
         if ($body === '') {
-            return $this->errorResponse('Media WAHA berhasil dihubungi, tapi response file kosong.');
+            return $this->errorResponse(__('ui.controllers.waha_media.proxy_empty'));
         }
 
         return response($body, 200, [

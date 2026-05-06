@@ -96,7 +96,7 @@
                 type="button"
                 x-on:click="allowAudio()"
                 class="rounded-md border border-gray-400 bg-white px-4 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 transition dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                ✓ Izinkan Suara
+                {{ __('ui.pages.inbox.allow_sound') }}
             </button>
         </div>
         <div
@@ -385,7 +385,7 @@
                                             @else
                                                 <div
                                                     class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
-                                                    {{ $message['MediaLabel'] }} diterima, URL media belum tersedia.
+                                                    {{ $message['MediaLabel'] }} {{ __('ui.pages.inbox.media_received_unavailable') }}
                                                 </div>
                                             @endif
                                         </div>
@@ -461,13 +461,13 @@
                             @enderror
                             <div wire:loading wire:target="attachment"
                                 class="mt-2 text-xs font-medium text-blue-600 dark:text-blue-300">
-                                Mengunggah lampiran...
+                                {{ __('ui.pages.inbox.uploading_attachment') }}
                             </div>
                             @if ($attachment)
                                 <div
                                     class="mt-2 flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
                                     <div class="min-w-0 truncate">
-                                        Lampiran: {{ $attachment->getClientOriginalName() }}
+                                        {{ __('ui.pages.inbox.attachment') }}: {{ $attachment->getClientOriginalName() }}
                                     </div>
                                     <button type="button" wire:click="removeAttachment"
                                         class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">{{ __('ui.common.delete') }}</button>
@@ -475,23 +475,20 @@
                             @endif
                             <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
                                 <button type="button" @click="$refs.attachmentInput.click()"
-                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Lampirkan
-                                    File</button>
+                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.pages.inbox.attach_file') }}</button>
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <button type="button" wire:click="simpanBalasanLokal"
                                         class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.common.save') }}
                                         Draft</button>
                                     <button
                                         class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70"
-                                        wire:loading.attr="disabled" wire:target="attachment,kirimBalasanWaha">Kirim
-                                        ke WhatsApp</button>
+                                        wire:loading.attr="disabled" wire:target="attachment,kirimBalasanWaha">{{ __('ui.pages.inbox.send_to_whatsapp') }}</button>
                                 </div>
                             </div>
                         </form>
                         @endif
                     @else
-                        <div class="flex flex-1 items-center justify-center p-6 text-sm text-gray-500">Pilih chat untuk
-                            melihat percakapan.</div>
+                        <div class="flex flex-1 items-center justify-center p-6 text-sm text-gray-500">{{ __('ui.pages.inbox.select_chat_to_view') }}</div>
                     @endif
                 </section>
 
@@ -600,8 +597,7 @@
                                         {{ $selectedChat['AutoReplyAiAktif'] ? __('ui.pages.inbox.disable_auto_reply') : __('ui.pages.inbox.enable_auto_reply') }}
                                     </button>
                                     <button type="button" wire:click="resetSapaanAi"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Reset
-                                        Sapaan</button>
+                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.pages.inbox.reset_greeting') }}</button>
                                 </div>
                                 @endif
                             </div>
@@ -616,9 +612,7 @@
                         <code
                             class="mt-2 block rounded-md bg-gray-100 p-3 text-xs text-gray-700 dark:bg-gray-950 dark:text-gray-300">POST
                             /webhooks/waha/{token}</code>
-                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">Jika token dikosongkan di .env,
-                            endpoint
-                            menerima request tanpa token.</p>
+                        <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">{{ __('ui.pages.inbox.webhook_token_info') }}</p>
                     </div>
                 </aside>
         </div>{{-- end grid 3-kolom --}}
@@ -644,7 +638,7 @@
                                target="_blank"
                                class="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition">
                                 <x-heroicon-s-arrow-top-right-on-square class="w-3.5 h-3.5" />
-                                Buka Sesi
+                                {{ __('ui.pages.inbox.open_session') }}
                             </a>
                         </div>
                     @endforeach

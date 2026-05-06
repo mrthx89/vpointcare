@@ -27,15 +27,27 @@ class HariLiburResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
-
-    protected static ?string $navigationLabel = 'Hari Libur';
-
-    protected static ?string $modelLabel = 'Hari Libur';
-
-    protected static ?string $pluralModelLabel = 'Hari Libur';
-
     protected static ?int $navigationSort = 45;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.master_data');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.models.holiday.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.holiday.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.holiday.plural');
+    }
 
     public static function canViewAny(): bool
     {
@@ -62,22 +74,23 @@ class HariLiburResource extends Resource
         return $schema
             ->components([
                 DatePicker::make('TanggalLibur')
-                    ->label('Tanggal libur')
+                    ->label(__('ui.models.holiday.date'))
                     ->native(false)
                     ->required(),
                 TextInput::make('NamaHariLibur')
-                    ->label('Nama hari libur')
+                    ->label(__('ui.models.holiday.name'))
                     ->maxLength(200)
                     ->required(),
                 Toggle::make('BerlakuTahunan')
-                    ->label('Berulang setiap tahun')
-                    ->helperText('Aktifkan untuk libur tetap seperti tanggal ulang tahun perusahaan.'),
+                    ->label(__('ui.models.holiday.repeat_yearly'))
+                    ->helperText(__('ui.models.holiday.repeat_yearly_help')),
                 Textarea::make('Keterangan')
+                    ->label(__('ui.models.holiday.notes'))
                     ->rows(3)
                     ->maxLength(1000)
                     ->columnSpanFull(),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -86,24 +99,25 @@ class HariLiburResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('TanggalLibur')
-                    ->label('Tanggal')
+                    ->label(__('ui.models.holiday.date'))
                     ->date(\App\Support\LocaleFormatter::tableDateFormat())
                     ->sortable(),
                 TextColumn::make('NamaHariLibur')
-                    ->label('Nama hari libur')
+                    ->label(__('ui.models.holiday.name'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('Keterangan')
+                    ->label(__('ui.models.holiday.notes'))
                     ->limit(100)
                     ->searchable()
                     ->wrap()
                     ->toggleable(),
                 ToggleColumn::make('BerlakuTahunan')
-                    ->label('Tahunan')
+                    ->label(__('ui.models.holiday.repeat_yearly'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::HOLIDAY_MANAGE)),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif')
+                    ->label(__('ui.common.inactive'))
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::HOLIDAY_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')

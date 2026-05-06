@@ -14,6 +14,11 @@ class ViewChatSession extends Page
     protected string $view = 'filament.pages.view-chat-session';
     protected static bool $shouldRegisterNavigation = false;
 
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return __('ui.pages.view_chat.title');
+    }
+
     public static function canAccess(): bool
     {
         return FilamentAccess::can(AccessPermissions::CHAT_HISTORY_VIEW);

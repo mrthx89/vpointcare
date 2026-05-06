@@ -15,13 +15,22 @@ class AiAgent extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-sparkles';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Asisten';
-
-    protected static ?string $navigationLabel = 'AI Agent';
-
     protected static ?int $navigationSort = 30;
 
-    protected static ?string $title = 'AI Agent';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('ui.navigation.assistant');
+    }
+
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return __('ui.pages.ai_agent.title');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('ui.pages.ai_agent.navigation_label');
+    }
 
     protected string $view = 'filament.pages.ai-agent';
 

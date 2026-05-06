@@ -24,11 +24,11 @@ class ChatBelumTerbalasNotifier
             ->where('NonAktif', false)
             ->first();
 
-        if (! $settings || ! (bool) ($settings->NotifikasiChatBelumTerbalasAktif ?? false)) {
+        if (!$settings || !(bool) ($settings->NotifikasiChatBelumTerbalasAktif ?? false)) {
             return $this->emptyResult();
         }
 
-        if (! $this->insideWorkingSchedule($settings)) {
+        if (!$this->insideWorkingSchedule($settings)) {
             return $this->emptyResult([
                 'dilewati_jadwal' => 1,
             ]);
@@ -97,7 +97,7 @@ class ChatBelumTerbalasNotifier
         $now = Carbon::now($timezone);
         $workdays = array_map('intval', explode(',', (string) $settings->HariKerja));
 
-        if (! in_array($now->dayOfWeekIso, $workdays, true)) {
+        if (!in_array($now->dayOfWeekIso, $workdays, true)) {
             return false;
         }
 
@@ -113,7 +113,7 @@ class ChatBelumTerbalasNotifier
 
     private function isHoliday(Carbon $date): bool
     {
-        if (! Schema::hasTable('MHariLibur')) {
+        if (!Schema::hasTable('MHariLibur')) {
             return false;
         }
 
@@ -135,7 +135,7 @@ class ChatBelumTerbalasNotifier
     private function recipients(string $roleCodes)
     {
         $codes = array_values(array_filter(array_map(
-            fn (string $value): string => trim($value),
+            fn(string $value): string => trim($value),
             explode(',', $roleCodes)
         )));
 
@@ -144,7 +144,7 @@ class ChatBelumTerbalasNotifier
             ->where('p.NonAktif', false)
             ->whereNotNull('p.NomorWhatsappInternal')
             ->where('p.NomorWhatsappInternal', '<>', '')
-            ->when($codes !== [], fn ($query) => $query->whereIn('r.KodePeran', $codes))
+            ->when($codes !== [], fn($query) => $query->whereIn('r.KodePeran', $codes))
             ->select('p.Id', 'p.NamaPengguna', 'p.NomorWhatsappInternal', 'r.KodePeran')
             ->get();
     }
@@ -167,8 +167,8 @@ class ChatBelumTerbalasNotifier
             ->groupBy('IdChat');
 
         return DB::table('TChat as c')
-            ->joinSub($latestIncoming, 'masuk', fn ($join) => $join->on('masuk.IdChat', '=', 'c.Id'))
-            ->leftJoinSub($latestCsReply, 'cs', fn ($join) => $join->on('cs.IdChat', '=', 'c.Id'))
+            ->joinSub($latestIncoming, 'masuk', fn($join) => $join->on('masuk.IdChat', '=', 'c.Id'))
+            ->leftJoinSub($latestCsReply, 'cs', fn($join) => $join->on('cs.IdChat', '=', 'c.Id'))
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
             ->where(function ($query): void {
