@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Master\Pengguna;
 use App\Support\AccessPermissions;
 use App\Support\NavigationHelper;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
 
         $this->seedRoles();
         $this->seedPermissions();
+        $this->seedJobSchedules();
 
         NavigationHelper::flush();
 
@@ -33,22 +35,16 @@ class DatabaseSeeder extends Seeder
             throw new RuntimeException(__('ui.seeders.admin_role_not_found'));
         }
 
-        $email = 'mrthx.89@gmail.com';
-        $exists = DB::table('MPengguna')
-            ->where('Email', $email)
-            ->exists();
-
-        if (! $exists) {
-            DB::table('MPengguna')->insert([
-                'IdPeran' => $peranAdmin->Id,
-                'NamaPengguna' => 'Admin VPoint Care',
-                'Email' => $email,
-                'Password' => Hash::make('Ell1t3s3rv'),
-                'NonAktif' => false,
-                'EmailTerverifikasiPada' => now(),
-                'TglEdit' => now(),
-            ]);
-        }
+        Pengguna::firstOrCreate([
+            'Email' => 'mrthx.89@gmail.com',
+        ], [
+            'IdPeran' => $peranAdmin->Id,
+            'NamaPengguna' => 'Admin VPoint Care',
+            'Password' => Hash::make('Ell1t3s3rv'),
+            'NonAktif' => false,
+            'EmailTerverifikasiPada' => now(),
+            'TglEdit' => now(),
+        ]);
     }
 
     private function seedRoles(): void
@@ -154,6 +150,37 @@ class DatabaseSeeder extends Seeder
                     'TglEdit' => now(),
                 ]);
             }
+        }
+    }
+
+    private function seedJobSchedules(): void
+    {
+        if (! Schema::hasTable('job_schedules')) {
+            return;
+        }
+
+        $jobs = [
+            [
+                'name' => 'Notifikasi Chat Belum Terbalas',
+                'command' => 'vpoint:kirim-notifikasi-chat-belum-terbalas',
+                'cron_expression' => 'everyMinute',
+                'is_active' => true,
+                'description' => 'Kirim notifikasi internal untuk chat customer yang belum terbalas.',
+            ],
+            [
+                'name' => 'Import Instansi VToken',
+                'command' => 'vpoint:import-instansi-vtoken',
+                'cron_expression' => 'everyFiveMinutes',
+                'is_active' => false,
+                'description' => 'Sinkronisasi customer VToken ke MInstansi (mode queue).',
+            ],
+        ];
+
+        foreach ($jobs as $job) {
+            \App\Models\JobSchedule::firstOrCreate(
+                ['command' => $job['command']],
+                $job,
+            );
         }
     }
 
