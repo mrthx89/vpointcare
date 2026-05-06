@@ -81,44 +81,44 @@ class HakAksesResource extends Resource
                     ->label(__('ui.common.code'))
                     ->disabled()
                     ->dehydrated(false),
+                Toggle::make('NonAktif')
+                    ->label(__('ui.common.inactive')),
                 TextInput::make('NamaHakAksesId')
                     ->label(__('ui.models.hak_akses.name_id'))
                     ->maxLength(150)
                     ->required()
                     ->live(debounce: 300)
-                    ->helperText(fn (?string $state): string => self::characterCounter($state, 150)),
+                    ->helperText(fn(?string $state): string => self::characterCounter($state, 150)),
                 TextInput::make('NamaHakAksesEn')
                     ->label(__('ui.models.hak_akses.name_en'))
                     ->maxLength(150)
                     ->required()
                     ->live(debounce: 300)
-                    ->helperText(fn (?string $state): string => self::characterCounter($state, 150)),
+                    ->helperText(fn(?string $state): string => self::characterCounter($state, 150)),
                 TextInput::make('ModulId')
                     ->label(__('ui.models.hak_akses.module_id'))
                     ->maxLength(100)
                     ->required()
                     ->live(debounce: 300)
-                    ->helperText(fn (?string $state): string => self::characterCounter($state, 100)),
+                    ->helperText(fn(?string $state): string => self::characterCounter($state, 100)),
                 TextInput::make('ModulEn')
                     ->label(__('ui.models.hak_akses.module_en'))
                     ->maxLength(100)
                     ->required()
                     ->live(debounce: 300)
-                    ->helperText(fn (?string $state): string => self::characterCounter($state, 100)),
+                    ->helperText(fn(?string $state): string => self::characterCounter($state, 100)),
                 Textarea::make('KeteranganId')
                     ->label(__('ui.models.hak_akses.description_id'))
                     ->rows(3)
                     ->maxLength(255)
                     ->live(debounce: 300)
-                    ->helperText(fn (?string $state): string => self::characterCounter($state, 255)),
+                    ->helperText(fn(?string $state): string => self::characterCounter($state, 255)),
                 Textarea::make('KeteranganEn')
                     ->label(__('ui.models.hak_akses.description_en'))
                     ->rows(3)
                     ->maxLength(255)
                     ->live(debounce: 300)
-                    ->helperText(fn (?string $state): string => self::characterCounter($state, 255)),
-                Toggle::make('NonAktif')
-                    ->label(__('ui.common.inactive')),
+                    ->helperText(fn(?string $state): string => self::characterCounter($state, 255))
             ]);
     }
 
@@ -166,9 +166,9 @@ class HakAksesResource extends Resource
                 TextColumn::make('StatusAktif')
                     ->label(__('ui.common.status'))
                     ->badge()
-                    ->getStateUsing(fn (HakAkses $record): string => $record->NonAktif ? 'inactive' : 'active')
-                    ->formatStateUsing(fn (string $state): string => __("ui.common.{$state}"))
-                    ->color(fn (string $state): string => $state === 'inactive' ? 'danger' : 'success'),
+                    ->getStateUsing(fn(HakAkses $record): string => $record->NonAktif ? 'inactive' : 'active')
+                    ->formatStateUsing(fn(string $state): string => __("ui.common.{$state}"))
+                    ->color(fn(string $state): string => $state === 'inactive' ? 'danger' : 'success'),
                 TextColumn::make('TglEdit')
                     ->label(__('ui.common.edited_at'))
                     ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
@@ -188,8 +188,8 @@ class HakAksesResource extends Resource
             ->defaultPaginationPageOption(10)
             ->recordActions([
                 EditAction::make()
-                    ->modalHeading(fn (HakAkses $record): string => __('ui.models.hak_akses.edit_heading', ['code' => $record->KodeHakAkses]))
-                    ->visible(fn (): bool => self::canManageAccessSettings()),
+                    ->modalHeading(fn(HakAkses $record): string => __('ui.models.hak_akses.edit_heading', ['code' => $record->KodeHakAkses]))
+                    ->visible(fn(): bool => self::canManageAccessSettings()),
             ]);
     }
 
@@ -197,7 +197,7 @@ class HakAksesResource extends Resource
     {
         $user = auth()->user();
 
-        if (! $user instanceof Pengguna) {
+        if (!$user instanceof Pengguna) {
             return false;
         }
 
