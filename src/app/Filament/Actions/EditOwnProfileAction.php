@@ -20,7 +20,7 @@ class EditOwnProfileAction
     public static function make(): Action
     {
         return Action::make('profile')
-            ->label('Rubah Profile')
+            ->label(fn (): string => self::currentUserName())
             ->icon('heroicon-o-user-circle')
             ->sort(-1)
             ->modalHeading('Rubah Profile')
@@ -86,6 +86,17 @@ class EditOwnProfileAction
                     ->columns(1),
             ])
             ->action(fn (array $data) => self::save($data));
+    }
+
+    private static function currentUserName(): string
+    {
+        $user = Filament::auth()->user();
+
+        if (! $user instanceof Pengguna) {
+            return 'Ubah Profile';
+        }
+
+        return filled($user->NamaPengguna) ? (string) $user->NamaPengguna : 'Edit Profile';
     }
 
     /**

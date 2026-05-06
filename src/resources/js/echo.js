@@ -24,7 +24,54 @@ const reverbStatusMessages = {
     disconnected: "Reverb client terputus.",
     unavailable: "Reverb server offline / tidak ditemukan.",
     failed: "Reverb client gagal tersambung.",
+    initialized: "Reverb client disiapkan.",
 };
+
+const reverbStatusLogKey = "wacs_reverb_status_logs";
+const maxReverbStatusLogs = 60;
+
+const readReverbStatusLogs = () => {
+    try {
+        const logs = JSON.parse(localStorage.getItem(reverbStatusLogKey) || "[]");
+
+        return Array.isArray(logs) ? logs : [];
+    } catch (error) {
+        return [];
+    }
+};
+
+const writeReverbStatusLog = (payload) => {
+    const logs = readReverbStatusLogs();
+    const nextLogs = [
+        {
+            at: new Date().toISOString(),
+            ...payload,
+        },
+        ...logs,
+    ].slice(0, maxReverbStatusLogs);
+
+    try {
+        localStorage.setItem(reverbStatusLogKey, JSON.stringify(nextLogs));
+    } catch (error) {
+        // LocalStorage can be unavailable in strict browser modes. Console log
+        // status still works, so the UI can continue from in-memory state.
+    }
+
+    window.wahaReverbStatusLogs = nextLogs;
+};
+
+window.wahaGetReverbStatus = () =>
+    window.wahaReverbStatus ?? {
+        state: "initialized",
+        message: reverbStatusMessages.initialized,
+        wsUrl: reverbUrl,
+        host: reverbHost,
+        port: reverbPort,
+        secure: isSecure,
+        updatedAt: new Date().toISOString(),
+    };
+
+window.wahaGetReverbStatusLogs = readReverbStatusLogs;
 
 const normalizeReverbError = (error) => {
     const code = error?.data?.code ?? error?.code;
@@ -49,14 +96,22 @@ const logReverbStatus = (state, context = {}) => {
     const message = reverbStatusMessages[state] ?? `Reverb status: ${state}`;
     const payload = {
         state,
+        message,
         wsUrl: reverbUrl,
         host: reverbHost,
         port: reverbPort,
         secure: isSecure,
+        updatedAt: new Date().toISOString(),
         ...context,
     };
 
     window.wahaReverbStatus = payload;
+    window.dispatchEvent(
+        new CustomEvent("wacs-reverb-status-changed", {
+            detail: payload,
+        }),
+    );
+    writeReverbStatusLog(payload);
 
     if (state === "connected") {
         console.info("[Reverb]", message, payload);
@@ -197,6 +252,17 @@ window.Echo.connector.pusher.connection.bind("state_change", (states) => {
 });
 window.Echo.connector.pusher.connection.bind("error", (error) => {
     const reason = normalizeReverbError(error);
+    const payload = {
+        state: window.Echo.connector.pusher.connection.state,
+        message: "Reverb client menerima error koneksi.",
+        reason,
+        wsUrl: reverbUrl,
+        host: reverbHost,
+        port: reverbPort,
+        secure: isSecure,
+        updatedAt: new Date().toISOString(),
+        errorCode: error?.data?.code ?? error?.code ?? null,
+    };
 
     console.error("[Reverb] Error koneksi Reverb.", {
         state: window.Echo.connector.pusher.connection.state,
@@ -205,12 +271,13 @@ window.Echo.connector.pusher.connection.bind("error", (error) => {
         error,
     });
 
-    window.wahaReverbStatus = {
-        state: window.Echo.connector.pusher.connection.state,
-        reason,
-        wsUrl: reverbUrl,
-        error,
-    };
+    window.wahaReverbStatus = payload;
+    window.dispatchEvent(
+        new CustomEvent("wacs-reverb-status-changed", {
+            detail: payload,
+        }),
+    );
+    writeReverbStatusLog(payload);
 });
 
 // Presence channel untuk tracking Agent/CS aktif secara unik berdasarkan ID

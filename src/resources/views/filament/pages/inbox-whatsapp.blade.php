@@ -4,9 +4,31 @@
         x-data="{
             soundOn: localStorage.getItem('wacs_sound') !== 'false',
             wsOnline: false,
+            reverbStatus: window.wahaGetReverbStatus ? window.wahaGetReverbStatus() : {
+                state: 'unknown',
+                message: 'Reverb client belum terdeteksi.',
+                reason: 'Asset Echo belum aktif atau halaman belum selesai memuat.',
+                updatedAt: new Date().toISOString(),
+            },
             toggleSound() {
                 this.soundOn = !this.soundOn;
                 localStorage.setItem('wacs_sound', String(this.soundOn));
+            },
+            updateReverbStatus(status) {
+                this.reverbStatus = status;
+                this.wsOnline = status.state === 'connected';
+            },
+            reverbBadgeClass() {
+                if (this.reverbStatus.state === 'connected') return 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300';
+                if (this.reverbStatus.state === 'connecting' || this.reverbStatus.state === 'initialized') return 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300';
+                if (this.reverbStatus.state === 'disconnected') return 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300';
+                return 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300';
+            },
+            reverbDotClass() {
+                if (this.reverbStatus.state === 'connected') return 'bg-emerald-500';
+                if (this.reverbStatus.state === 'connecting' || this.reverbStatus.state === 'initialized') return 'bg-blue-500';
+                if (this.reverbStatus.state === 'disconnected') return 'bg-amber-500';
+                return 'bg-red-500';
             },
             playSound() {
                 if (!this.soundOn) return;
@@ -27,10 +49,17 @@
                 } catch(e) {}
             }
         }"
-        x-init="wsOnline = Boolean(window.wahaWsOnline)"
+        x-init="
+            wsOnline = Boolean(window.wahaWsOnline);
+            if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
+            setTimeout(() => {
+                if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
+            }, 300);
+        "
         @waha-new-message.window="playSound()"
         @waha-ws-connected.window="wsOnline = true"
         @waha-ws-disconnected.window="wsOnline = false"
+        @wacs-reverb-status-changed.window="updateReverbStatus($event.detail)"
         class="flex flex-col gap-4 overflow-hidden"
         style="height: calc(100dvh - 8rem);"
         wire:poll.60s="loadInbox">
@@ -70,6 +99,28 @@
                 ✓ Izinkan Suara
             </button>
         </div>
+        <div
+            x-show="reverbStatus.state !== 'connected'"
+            x-cloak
+            class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-lg border px-4 py-3 text-sm"
+            :class="reverbBadgeClass()">
+            <div class="min-w-0">
+                <div class="flex items-center gap-2 font-semibold">
+                    <span class="h-2.5 w-2.5 rounded-full" :class="reverbDotClass()"></span>
+                    <span x-text="reverbStatus.message || 'Status Reverb berubah.'"></span>
+                </div>
+                <div class="mt-1 break-all text-xs opacity-80">
+                    <span x-text="reverbStatus.reason || 'Inbox tetap refresh lewat polling 60 detik sampai koneksi Reverb pulih.'"></span>
+                    <template x-if="reverbStatus.wsUrl">
+                        <span> &middot; <span x-text="reverbStatus.wsUrl"></span></span>
+                    </template>
+                </div>
+            </div>
+            <a href="{{ route('filament.admin.pages.log-data') }}"
+                class="rounded-md border border-current px-3 py-1.5 text-xs font-semibold hover:bg-white/40 dark:hover:bg-white/10">
+                Buka Log Data
+            </a>
+        </div>
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Tim Aktif (Online)</div>
@@ -106,8 +157,8 @@
                                 <div class="text-sm font-semibold text-gray-950 dark:text-white">Daftar Chat</div>
                                 <div class="flex items-center gap-1.5 mt-0.5">
                                     <span x-show="wsOnline" class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full bg-gray-400"></span>
-                                    <span class="text-xs text-gray-400" x-text="wsOnline ? 'Real-time aktif' : 'Polling 60s'"></span>
+                                    <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full" :class="reverbDotClass()"></span>
+                                    <span class="text-xs text-gray-400" x-text="wsOnline ? 'Real-time aktif' : `${reverbStatus.state || 'offline'} · Polling 60s`"></span>
                                 </div>
                             </div>
                             <button @click="toggleSound()" type="button" title="Toggle notifikasi suara"

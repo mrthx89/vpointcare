@@ -5,7 +5,9 @@ namespace App\Filament\Pages;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
 use Filament\Pages\Page;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class LogData extends Page
@@ -33,6 +35,21 @@ class LogData extends Page
     /** @var array<int, array<string, mixed>> */
     public array $webhookLogs = [];
 
+    /** @var array<string, mixed> */
+    public array $jobStatus = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $queueRows = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $pendingJobs = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $failedJobs = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $jobBatches = [];
+
     public function mount(): void
     {
         $this->loadLogs();
@@ -40,6 +57,8 @@ class LogData extends Page
 
     public function loadLogs(): void
     {
+        $this->loadJobStatus();
+
         $this->integrationLogs = DB::table('TLogIntegrasi')
             ->select(
                 'Id',
@@ -88,6 +107,236 @@ class LogData extends Page
             ->all();
     }
 
+    private function loadJobStatus(): void
+    {
+        $connection = (string) config('queue.default');
+        $retryAfter = (int) config("queue.connections.{$connection}.retry_after", 90);
+        $now = now()->timestamp;
+        $staleReservedBefore = $now - $retryAfter;
+
+        $this->jobStatus = [
+            'connection' => $connection,
+            'driver' => (string) config("queue.connections.{$connection}.driver", $connection),
+            'defaultQueue' => (string) config("queue.connections.{$connection}.queue", 'default'),
+            'retryAfter' => $retryAfter,
+            'total' => 0,
+            'pending' => 0,
+            'reserved' => 0,
+            'delayed' => 0,
+            'staleReserved' => 0,
+            'failed' => 0,
+            'activeBatches' => 0,
+            'pendingBatchJobs' => 0,
+            'failedBatchJobs' => 0,
+            'status' => 'healthy',
+            'label' => 'Queue kosong',
+            'description' => 'Tidak ada backlog job database saat ini.',
+            'oldestWaitingAt' => null,
+            'updatedAt' => now()->format('d M Y H:i:s'),
+        ];
+        $this->queueRows = [];
+        $this->pendingJobs = [];
+        $this->failedJobs = [];
+        $this->jobBatches = [];
+
+        if (! Schema::hasTable('jobs')) {
+            $this->jobStatus['status'] = 'missing';
+            $this->jobStatus['label'] = 'Tabel jobs tidak ditemukan';
+            $this->jobStatus['description'] = 'Migration queue belum tersedia di database ini.';
+
+            return;
+        }
+
+        $summary = DB::table('jobs')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NULL AND available_at <= ? THEN 1 ELSE 0 END) as pending', [$now])
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NOT NULL THEN 1 ELSE 0 END) as reserved')
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NULL AND available_at > ? THEN 1 ELSE 0 END) as delayed', [$now])
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NOT NULL AND reserved_at < ? THEN 1 ELSE 0 END) as stale_reserved', [$staleReservedBefore])
+            ->selectRaw('MIN(CASE WHEN reserved_at IS NULL THEN created_at ELSE NULL END) as oldest_waiting_at')
+            ->first();
+
+        $failedCount = Schema::hasTable('failed_jobs') ? (int) DB::table('failed_jobs')->count() : 0;
+        $batchSummary = $this->batchSummary();
+
+        $this->jobStatus = array_merge($this->jobStatus, [
+            'total' => (int) ($summary->total ?? 0),
+            'pending' => (int) ($summary->pending ?? 0),
+            'reserved' => (int) ($summary->reserved ?? 0),
+            'delayed' => (int) ($summary->delayed ?? 0),
+            'staleReserved' => (int) ($summary->stale_reserved ?? 0),
+            'failed' => $failedCount,
+            'activeBatches' => $batchSummary['activeBatches'],
+            'pendingBatchJobs' => $batchSummary['pendingBatchJobs'],
+            'failedBatchJobs' => $batchSummary['failedBatchJobs'],
+            'oldestWaitingAt' => $this->formatUnixTimestamp($summary->oldest_waiting_at ?? null),
+        ]);
+
+        $this->applyJobHealthLabel();
+        $this->loadQueueRows($now);
+        $this->loadPendingJobs($now);
+        $this->loadFailedJobs();
+        $this->loadJobBatches();
+    }
+
+    /**
+     * @return array{activeBatches: int, pendingBatchJobs: int, failedBatchJobs: int}
+     */
+    private function batchSummary(): array
+    {
+        if (! Schema::hasTable('job_batches')) {
+            return [
+                'activeBatches' => 0,
+                'pendingBatchJobs' => 0,
+                'failedBatchJobs' => 0,
+            ];
+        }
+
+        $summary = DB::table('job_batches')
+            ->selectRaw('SUM(CASE WHEN finished_at IS NULL AND cancelled_at IS NULL THEN 1 ELSE 0 END) as active_batches')
+            ->selectRaw('SUM(pending_jobs) as pending_batch_jobs')
+            ->selectRaw('SUM(failed_jobs) as failed_batch_jobs')
+            ->first();
+
+        return [
+            'activeBatches' => (int) ($summary->active_batches ?? 0),
+            'pendingBatchJobs' => (int) ($summary->pending_batch_jobs ?? 0),
+            'failedBatchJobs' => (int) ($summary->failed_batch_jobs ?? 0),
+        ];
+    }
+
+    private function applyJobHealthLabel(): void
+    {
+        if (($this->jobStatus['failed'] ?? 0) > 0 || ($this->jobStatus['failedBatchJobs'] ?? 0) > 0) {
+            $this->jobStatus['status'] = 'danger';
+            $this->jobStatus['label'] = 'Ada job gagal';
+            $this->jobStatus['description'] = 'Periksa failed_jobs dan retry/fix penyebab exception sebelum backlog bertambah.';
+
+            return;
+        }
+
+        if (($this->jobStatus['staleReserved'] ?? 0) > 0) {
+            $this->jobStatus['status'] = 'danger';
+            $this->jobStatus['label'] = 'Ada job reserved terlalu lama';
+            $this->jobStatus['description'] = 'Kemungkinan queue worker berhenti saat sedang memproses job.';
+
+            return;
+        }
+
+        if (($this->jobStatus['pending'] ?? 0) > 0) {
+            $this->jobStatus['status'] = 'warning';
+            $this->jobStatus['label'] = 'Ada job menunggu worker';
+            $this->jobStatus['description'] = 'Queue worker perlu berjalan agar job pending diproses.';
+
+            return;
+        }
+
+        if (($this->jobStatus['reserved'] ?? 0) > 0 || ($this->jobStatus['activeBatches'] ?? 0) > 0) {
+            $this->jobStatus['status'] = 'info';
+            $this->jobStatus['label'] = 'Queue sedang memproses';
+            $this->jobStatus['description'] = 'Ada job/batch aktif yang sedang atau baru saja diproses.';
+
+            return;
+        }
+
+        if (($this->jobStatus['delayed'] ?? 0) > 0) {
+            $this->jobStatus['status'] = 'info';
+            $this->jobStatus['label'] = 'Ada delayed job';
+            $this->jobStatus['description'] = 'Job dijadwalkan untuk diproses setelah waktunya tersedia.';
+        }
+    }
+
+    private function loadQueueRows(int $now): void
+    {
+        $this->queueRows = DB::table('jobs')
+            ->select('queue')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NULL AND available_at <= ? THEN 1 ELSE 0 END) as pending', [$now])
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NOT NULL THEN 1 ELSE 0 END) as reserved')
+            ->selectRaw('SUM(CASE WHEN reserved_at IS NULL AND available_at > ? THEN 1 ELSE 0 END) as delayed', [$now])
+            ->selectRaw('MIN(created_at) as oldest_created_at')
+            ->groupBy('queue')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get()
+            ->map(fn (object $row): array => [
+                'queue' => (string) $row->queue,
+                'total' => (int) $row->total,
+                'pending' => (int) $row->pending,
+                'reserved' => (int) $row->reserved,
+                'delayed' => (int) $row->delayed,
+                'oldestCreatedAt' => $this->formatUnixTimestamp($row->oldest_created_at),
+            ])
+            ->all();
+    }
+
+    private function loadPendingJobs(int $now): void
+    {
+        $this->pendingJobs = DB::table('jobs')
+            ->select('id', 'queue', 'payload', 'attempts', 'reserved_at', 'available_at', 'created_at')
+            ->orderBy('created_at')
+            ->limit(10)
+            ->get()
+            ->map(fn (object $row): array => [
+                'id' => (int) $row->id,
+                'queue' => (string) $row->queue,
+                'name' => $this->jobNameFromPayload($row->payload),
+                'attempts' => (int) $row->attempts,
+                'state' => $row->reserved_at ? 'reserved' : (((int) $row->available_at > $now) ? 'delayed' : 'pending'),
+                'createdAt' => $this->formatUnixTimestamp($row->created_at),
+                'availableAt' => $this->formatUnixTimestamp($row->available_at),
+                'reservedAt' => $this->formatUnixTimestamp($row->reserved_at),
+            ])
+            ->all();
+    }
+
+    private function loadFailedJobs(): void
+    {
+        if (! Schema::hasTable('failed_jobs')) {
+            return;
+        }
+
+        $this->failedJobs = DB::table('failed_jobs')
+            ->select('id', 'uuid', 'connection', 'queue', 'payload', 'exception', 'failed_at')
+            ->orderByDesc('failed_at')
+            ->limit(8)
+            ->get()
+            ->map(fn (object $row): array => [
+                'id' => (int) $row->id,
+                'uuid' => (string) $row->uuid,
+                'connection' => (string) $row->connection,
+                'queue' => (string) $row->queue,
+                'name' => $this->jobNameFromPayload($row->payload),
+                'exception' => $this->shortText($this->firstExceptionLine((string) $row->exception), 240),
+                'failedAt' => $row->failed_at,
+            ])
+            ->all();
+    }
+
+    private function loadJobBatches(): void
+    {
+        if (! Schema::hasTable('job_batches')) {
+            return;
+        }
+
+        $this->jobBatches = DB::table('job_batches')
+            ->select('id', 'name', 'total_jobs', 'pending_jobs', 'failed_jobs', 'cancelled_at', 'created_at', 'finished_at')
+            ->orderByDesc('created_at')
+            ->limit(6)
+            ->get()
+            ->map(fn (object $row): array => [
+                'id' => (string) $row->id,
+                'name' => (string) $row->name,
+                'totalJobs' => (int) $row->total_jobs,
+                'pendingJobs' => (int) $row->pending_jobs,
+                'failedJobs' => (int) $row->failed_jobs,
+                'status' => $row->cancelled_at ? 'cancelled' : ($row->finished_at ? 'finished' : 'running'),
+                'createdAt' => $this->formatUnixTimestamp($row->created_at),
+                'finishedAt' => $this->formatUnixTimestamp($row->finished_at),
+            ])
+            ->all();
+    }
+
     private function shortText(?string $value, int $limit = 500): ?string
     {
         if ($value === null || $value === '') {
@@ -95,5 +344,45 @@ class LogData extends Page
         }
 
         return Str::limit($value, $limit);
+    }
+
+    private function jobNameFromPayload(?string $payload): string
+    {
+        if (! $payload) {
+            return '-';
+        }
+
+        $decoded = json_decode($payload, true);
+
+        if (! is_array($decoded)) {
+            return '-';
+        }
+
+        $name = $decoded['displayName']
+            ?? $decoded['data']['commandName']
+            ?? $decoded['job']
+            ?? null;
+
+        if (! $name) {
+            return '-';
+        }
+
+        return Str::afterLast((string) $name, '\\');
+    }
+
+    private function firstExceptionLine(string $exception): string
+    {
+        $line = trim(Str::before($exception, "\n"));
+
+        return $line !== '' ? $line : $exception;
+    }
+
+    private function formatUnixTimestamp(mixed $timestamp): ?string
+    {
+        if (! $timestamp) {
+            return null;
+        }
+
+        return Carbon::createFromTimestamp((int) $timestamp)->format('d M Y H:i:s');
     }
 }

@@ -55,12 +55,12 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 
     protected function name(): Attribute
     {
-        return Attribute::get(fn (): ?string => $this->NamaPengguna);
+        return Attribute::get(fn ($value, array $attributes): ?string => $attributes['NamaPengguna'] ?? null);
     }
 
     protected function email(): Attribute
     {
-        return Attribute::get(fn (): ?string => $this->Email);
+        return Attribute::get(fn ($value, array $attributes): ?string => $attributes['Email'] ?? null);
     }
 
     public function getAuthPasswordName(): string
@@ -75,18 +75,24 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 
     public function getEmailForPasswordReset(): string
     {
-        return (string) $this->Email;
+        return (string) $this->getRawOriginal('Email');
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return ! (bool) $this->NonAktif;
+        return ! (bool) $this->getRawOriginal('NonAktif');
     }
 
     public function roleCode(): ?string
     {
+        $roleId = $this->getRawOriginal('IdPeran');
+
+        if (! $roleId) {
+            return null;
+        }
+
         $roleCode = DB::table('MPeran')
-            ->where('Id', $this->IdPeran)
+            ->where('Id', $roleId)
             ->where('NonAktif', false)
             ->value('KodePeran');
 
@@ -98,14 +104,16 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
      */
     public function permissionCodes(): array
     {
-        if (! $this->IdPeran) {
+        $roleId = $this->getRawOriginal('IdPeran');
+
+        if (! $roleId) {
             return [];
         }
 
         return DB::table('MPeranHakAkses as pr')
             ->join('MPeran as r', 'r.Id', '=', 'pr.IdPeran')
             ->join('MHakAkses as h', 'h.Id', '=', 'pr.IdHakAkses')
-            ->where('pr.IdPeran', $this->IdPeran)
+            ->where('pr.IdPeran', $roleId)
             ->where('r.NonAktif', false)
             ->where('pr.NonAktif', false)
             ->where('h.NonAktif', false)
@@ -131,8 +139,10 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 
     public function getFilamentAvatarUrl(): ?string
     {
-        return $this->FotoProfilPath
-            ? route('public-storage.show', ['path' => ltrim((string) $this->FotoProfilPath, '/')])
+        $path = $this->getRawOriginal('FotoProfilPath');
+
+        return $path
+            ? route('public-storage.show', ['path' => ltrim((string) $path, '/')])
             : null;
     }
 }
