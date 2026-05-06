@@ -40,6 +40,10 @@ class AccessPermissions
 
     public const CHAT_HISTORY_VIEW = 'chat_history.view';
 
+    public const HAK_AKSES_VIEW = 'hak_akses.view';
+
+    public const HAK_AKSES_MANAGE = 'hak_akses.manage';
+
     /**
      * @return array<string, array{label: string, module: string, description: string}>
      */
@@ -202,6 +206,16 @@ class AccessPermissions
                 'module' => 'ui.permissions.chat_history_module',
                 'description' => 'ui.permissions.chat_history_view_desc',
             ],
+            self::HAK_AKSES_VIEW => [
+                'label' => 'ui.permissions.hak_akses_view',
+                'module' => 'ui.permissions.settings_module',
+                'description' => 'ui.permissions.hak_akses_view_desc',
+            ],
+            self::HAK_AKSES_MANAGE => [
+                'label' => 'ui.permissions.hak_akses_manage',
+                'module' => 'ui.permissions.settings_module',
+                'description' => 'ui.permissions.hak_akses_manage_desc',
+            ],
         ];
     }
 
@@ -237,6 +251,8 @@ class AccessPermissions
                 self::HOLIDAY_VIEW,
                 self::HOLIDAY_MANAGE,
                 self::CHAT_HISTORY_VIEW,
+                self::HAK_AKSES_VIEW,
+                self::HAK_AKSES_MANAGE,
             ],
             'CS' => [
                 self::DASHBOARD_VIEW,
