@@ -7,6 +7,7 @@ use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaSender;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\FilamentBreadcrumbs;
 use App\Support\NavigationHelper;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
@@ -54,6 +55,11 @@ class InboxWhatsapp extends Page implements HasForms
     public static function getNavigationLabel(): string
     {
         return NavigationHelper::labelFor(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
     }
 
     protected string $view = 'filament.pages.inbox-whatsapp';

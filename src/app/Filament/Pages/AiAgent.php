@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\FilamentBreadcrumbs;
 use App\Support\NavigationHelper;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -37,6 +38,11 @@ class AiAgent extends Page
     public static function getNavigationLabel(): string
     {
         return NavigationHelper::labelFor(AccessPermissions::AI_AGENT_VIEW, __('ui.pages.ai_agent.navigation_label'));
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::AI_AGENT_VIEW, __('ui.pages.ai_agent.navigation_label'));
     }
 
     protected string $view = 'filament.pages.ai-agent';

@@ -31,6 +31,17 @@ class NavigationHelper
         return $fallback;
     }
 
+    public static function groupLabelForMenu(string $menuCode, ?string $fallback = null): ?string
+    {
+        $row = self::menu($menuCode);
+
+        if (array_key_exists('group_label', $row) && $row['group_label'] !== null) {
+            return $row['group_label'];
+        }
+
+        return $fallback;
+    }
+
     public static function sortFor(string $menuCode, ?int $fallback = null): ?int
     {
         $row = self::menu($menuCode);

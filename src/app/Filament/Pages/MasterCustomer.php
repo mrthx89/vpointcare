@@ -9,6 +9,7 @@ use App\Filament\Resources\Master\Instansis\InstansiResource;
 use App\Filament\Resources\Master\NomorWhatsapps\NomorWhatsappResource;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\FilamentBreadcrumbs;
 use App\Support\NavigationHelper;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,11 @@ class MasterCustomer extends Page
     public static function getNavigationLabel(): string
     {
         return NavigationHelper::labelFor(AccessPermissions::MASTER_CUSTOMER_VIEW, __('ui.pages.master_customer.flow_title'));
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::MASTER_CUSTOMER_VIEW, __('ui.pages.master_customer.flow_title'));
     }
 
     protected string $view = 'filament.pages.master-customer';

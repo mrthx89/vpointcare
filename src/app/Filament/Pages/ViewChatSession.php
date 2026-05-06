@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
+use App\Support\FilamentBreadcrumbs;
 use App\Support\FilamentAccess;
 use App\Support\LocaleFormatter;
 use Filament\Pages\Page;
@@ -22,6 +23,11 @@ class ViewChatSession extends Page
     public static function canAccess(): bool
     {
         return FilamentAccess::can(AccessPermissions::CHAT_HISTORY_VIEW);
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::CHAT_HISTORY_VIEW, __('ui.pages.view_chat.title'));
     }
 
     public string $sessionId = '';

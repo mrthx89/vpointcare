@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\FilamentBreadcrumbs;
 use App\Support\LocaleFormatter;
 use App\Support\NavigationHelper;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -39,6 +40,11 @@ class Dashboard extends BaseDashboard
     public static function getNavigationSort(): ?int
     {
         return NavigationHelper::sortFor(AccessPermissions::DASHBOARD_VIEW, 1);
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::DASHBOARD_VIEW, __('ui.pages.dashboard.navigation_label'));
     }
 
     protected string $view = 'filament.pages.dashboard';

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\FilamentBreadcrumbs;
 use App\Support\LocaleFormatter;
 use App\Support\NavigationHelper;
 use Filament\Pages\Page;
@@ -37,6 +38,11 @@ class LogData extends Page
     public static function getNavigationLabel(): string
     {
         return NavigationHelper::labelFor(AccessPermissions::LOG_DATA_VIEW, 'Log Data');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::LOG_DATA_VIEW, 'Log Data');
     }
 
     protected string $view = 'filament.pages.log-data';
