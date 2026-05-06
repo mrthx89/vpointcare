@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\User;
+use App\Models\Master\Pengguna;
 
 class FilamentAccess
 {
@@ -10,7 +10,7 @@ class FilamentAccess
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasPermissionCode($permission);
+        return $user instanceof Pengguna && $user->hasPermissionCode($permission);
     }
 
     /**
@@ -20,7 +20,7 @@ class FilamentAccess
     {
         $user = auth()->user();
 
-        return $user instanceof User && $user->hasAnyPermissionCode($permissions);
+        return $user instanceof Pengguna && $user->hasAnyPermissionCode($permissions);
     }
 
     public static function canViewMasterCustomer(): bool

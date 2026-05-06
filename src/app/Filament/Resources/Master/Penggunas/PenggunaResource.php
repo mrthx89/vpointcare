@@ -7,6 +7,7 @@ use App\Models\Master\Pengguna;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -29,19 +30,17 @@ class PenggunaResource extends Resource
 {
     protected static ?string $model = Pengguna::class;
 
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
 
-    protected static ?string $navigationLabel = 'Pengguna Internal';
+    protected static ?string $navigationLabel = 'User Login';
 
-    protected static ?string $modelLabel = 'Pengguna Internal';
+    protected static ?string $modelLabel = 'User Login';
 
-    protected static ?string $pluralModelLabel = 'Pengguna Internal';
+    protected static ?string $pluralModelLabel = 'User Login';
 
-    protected static ?int $navigationSort = 48;
+    protected static ?int $navigationSort = 10;
 
     public static function canViewAny(): bool
     {
@@ -74,6 +73,7 @@ class PenggunaResource extends Resource
                 TextInput::make('Email')
                     ->email()
                     ->maxLength(150)
+                    ->unique(table: 'MPengguna', column: 'Email', ignoreRecord: true)
                     ->required(),
                 Select::make('IdPeran')
                     ->label('Peran')
@@ -82,6 +82,7 @@ class PenggunaResource extends Resource
                         ->orderBy('NamaPeran')
                         ->pluck('NamaPeran', 'Id')
                         ->all())
+                    ->default(fn (): ?string => static::defaultRoleId())
                     ->searchable()
                     ->required(),
                 TextInput::make('NomorWhatsappInternal')
@@ -133,12 +134,22 @@ class PenggunaResource extends Resource
                 TextColumn::make('Email')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('NamaPeran')
+                    ->label('Peran')
+                    ->badge()
+                    ->getStateUsing(fn (Pengguna $record): ?string => static::roleName($record->IdPeran)),
                 TextColumn::make('NomorWhatsappInternal')
                     ->label('Nomor WA Internal')
                     ->searchable()
                     ->placeholder('Belum diisi'),
                 TextColumn::make('Jabatan')
                     ->toggleable(),
+                TextColumn::make('StatusAktif')
+                    ->label('Status')
+                    ->badge()
+                    ->getStateUsing(fn (Pengguna $record): string => $record->NonAktif ? Pengguna::STATUS_INACTIVE : Pengguna::STATUS_ACTIVE)
+                    ->formatStateUsing(fn (string $state): string => Pengguna::STATUSES[$state] ?? $state)
+                    ->color(fn (string $state): string => $state === Pengguna::STATUS_ACTIVE ? 'success' : 'danger'),
                 ToggleColumn::make('NonAktif')
                     ->label('Nonaktif')
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::USER_MANAGE)),
@@ -156,9 +167,46 @@ class PenggunaResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
+                Action::make('activate')
+                    ->label('Aktifkan')
+                    ->icon(Heroicon::CheckCircle)
+                    ->color('success')
+                    ->visible(fn (Pengguna $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && $record->NonAktif)
+                    ->action(function (Pengguna $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
+                        $record->update(['NonAktif' => false]);
+                    }),
+                Action::make('deactivate')
+                    ->label('Nonaktifkan')
+                    ->icon(Heroicon::NoSymbol)
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (Pengguna $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && ! $record->NonAktif && $record->getKey() !== auth()->id())
+                    ->action(function (Pengguna $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
+                        $record->update(['NonAktif' => true]);
+                    }),
                 EditAction::make()
                     ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE)),
             ]);
+    }
+
+    public static function defaultRoleId(): ?string
+    {
+        return DB::table('MPeran')->where('KodePeran', 'CS')->value('Id')
+            ?? DB::table('MPeran')->where('KodePeran', 'ADMIN')->value('Id')
+            ?? DB::table('MPeran')->orderBy('NamaPeran')->value('Id');
+    }
+
+    public static function roleName(?string $roleId): ?string
+    {
+        if (! $roleId) {
+            return null;
+        }
+
+        return DB::table('MPeran')->where('Id', $roleId)->value('NamaPeran');
     }
 
     public static function getPages(): array

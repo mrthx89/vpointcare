@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Master\Pengguna;
 use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaSender;
 use App\Support\AccessPermissions;
@@ -1272,7 +1273,15 @@ class InboxWhatsapp extends Page implements HasForms
             return $this->cachedPenggunaId ?: null;
         }
 
-        $email = auth()->user()?->email;
+        $user = auth()->user();
+
+        if ($user instanceof Pengguna) {
+            $this->cachedPenggunaId = (string) $user->getKey();
+
+            return $this->cachedPenggunaId ?: null;
+        }
+
+        $email = $user?->email;
 
         if (! $email) {
             $this->cachedPenggunaId = '';

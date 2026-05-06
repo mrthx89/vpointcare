@@ -63,7 +63,6 @@ GO
 
 CREATE TABLE MPengguna (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengguna_Id DEFAULT NEWSEQUENTIALID(),
-    UserId bigint NULL,
     IdPeran uniqueidentifier NOT NULL,
     NamaPengguna varchar(150) NOT NULL,
     Email varchar(150) NOT NULL,
@@ -80,7 +79,6 @@ CREATE TABLE MPengguna (
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_MPengguna PRIMARY KEY (Id),
-    CONSTRAINT FK_MPengguna_users FOREIGN KEY (UserId) REFERENCES users(id),
     CONSTRAINT FK_MPengguna_MPeran FOREIGN KEY (IdPeran) REFERENCES MPeran(Id),
     CONSTRAINT UQ_MPengguna_Email UNIQUE (Email)
 );
@@ -725,7 +723,6 @@ ADD CONSTRAINT FK_TChatD_TAiRespon FOREIGN KEY (IdAiRespon) REFERENCES TAiRespon
 GO
 
 CREATE INDEX IX_MCustomer_NamaCustomer ON MCustomer (NamaCustomer);
-CREATE UNIQUE INDEX UX_MPengguna_UserId ON MPengguna (UserId) WHERE UserId IS NOT NULL;
 CREATE INDEX IX_MInstansi_NamaInstansi ON MInstansi (NamaInstansi);
 CREATE INDEX IX_MNomorWhatsapp_NomorWhatsapp ON MNomorWhatsapp (NomorWhatsapp);
 CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi);

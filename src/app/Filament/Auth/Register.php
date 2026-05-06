@@ -3,8 +3,7 @@
 namespace App\Filament\Auth;
 
 use App\Http\Responses\Auth\PendingRegistrationResponse;
-use App\Models\User;
-use App\Services\Auth\UserPenggunaSyncService;
+use App\Models\Master\Pengguna;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Actions\Action;
 use Filament\Auth\Events\Registered;
@@ -13,6 +12,8 @@ use Filament\Auth\Pages\Register as BaseRegister;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class Register extends BaseRegister
 {
@@ -52,8 +53,6 @@ class Register extends BaseRegister
 
         event(new Registered($user));
 
-        app(UserPenggunaSyncService::class)->syncFromUser($user);
-
         Notification::make()
             ->title('Registrasi berhasil')
             ->body('Akun Anda menunggu approval admin sebelum bisa login.')
@@ -70,11 +69,22 @@ class Register extends BaseRegister
     protected function mutateFormDataBeforeRegister(array $data): array
     {
         $data = parent::mutateFormDataBeforeRegister($data);
-        $data['status'] = User::STATUS_PENDING;
-        $data['approved_at'] = null;
-        $data['blocked_at'] = null;
 
         return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    protected function handleRegistration(array $data): Model
+    {
+        return Pengguna::query()->create([
+            'NamaPengguna' => (string) ($data['name'] ?? $data['email']),
+            'Email' => (string) $data['email'],
+            'Password' => Hash::make((string) $data['password']),
+            'IdPeran' => $this->defaultRoleId(),
+            'NonAktif' => true,
+        ]);
     }
 
     public function getTitle(): string | Htmlable
@@ -91,5 +101,12 @@ class Register extends BaseRegister
     {
         return parent::getRegisterFormAction()
             ->label('Daftar');
+    }
+
+    private function defaultRoleId(): ?string
+    {
+        return DB::table('MPeran')->where('KodePeran', 'CS')->value('Id')
+            ?? DB::table('MPeran')->where('KodePeran', 'ADMIN')->value('Id')
+            ?? DB::table('MPeran')->orderBy('NamaPeran')->value('Id');
     }
 }

@@ -2,8 +2,7 @@
 
 namespace App\Filament\Actions;
 
-use App\Models\User;
-use App\Services\Auth\UserPenggunaSyncService;
+use App\Models\Master\Pengguna;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
@@ -14,7 +13,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rules\Password;
 
 class EditOwnProfileAction
@@ -97,17 +95,15 @@ class EditOwnProfileAction
     {
         $user = Filament::auth()->user();
 
-        if (! $user instanceof User) {
+        if (! $user instanceof Pengguna) {
             return [];
         }
 
-        $profile = self::profileForUser($user);
-
         return [
-            'name' => $user->name,
-            'Alamat' => $profile?->Alamat,
-            'NomorWhatsappInternal' => $profile?->NomorWhatsappInternal,
-            'FotoProfilPath' => $profile?->FotoProfilPath,
+            'name' => $user->NamaPengguna,
+            'Alamat' => $user->Alamat,
+            'NomorWhatsappInternal' => $user->NomorWhatsappInternal,
+            'FotoProfilPath' => $user->FotoProfilPath,
         ];
     }
 
@@ -118,50 +114,26 @@ class EditOwnProfileAction
     {
         $user = Filament::auth()->user();
 
-        abort_unless($user instanceof User, 403);
+        abort_unless($user instanceof Pengguna, 403);
 
         DB::transaction(function () use ($user, $data): void {
             $userData = [
-                'name' => (string) $data['name'],
-            ];
-
-            if (filled($data['password'] ?? null)) {
-                $userData['password'] = Hash::make((string) $data['password']);
-            }
-
-            $user->forceFill($userData)->save();
-
-            app(UserPenggunaSyncService::class)->syncFromUser($user->refresh(), [
                 'NamaPengguna' => (string) $data['name'],
                 'Alamat' => $data['Alamat'] ?? null,
                 'NomorWhatsappInternal' => $data['NomorWhatsappInternal'] ?? null,
                 'FotoProfilPath' => $data['FotoProfilPath'] ?? null,
-            ]);
+            ];
+
+            if (filled($data['password'] ?? null)) {
+                $userData['Password'] = Hash::make((string) $data['password']);
+            }
+
+            $user->forceFill($userData)->save();
         });
 
         Notification::make()
             ->title('Profile berhasil diperbarui.')
             ->success()
             ->send();
-    }
-
-    private static function profileForUser(User $user): ?object
-    {
-        if (! Schema::hasTable('MPengguna') || ! Schema::hasColumn('MPengguna', 'UserId')) {
-            return null;
-        }
-
-        return DB::table('MPengguna')
-            ->select([
-                'NomorWhatsappInternal',
-                Schema::hasColumn('MPengguna', 'Alamat') ? 'Alamat' : DB::raw('NULL as Alamat'),
-                Schema::hasColumn('MPengguna', 'FotoProfilPath') ? 'FotoProfilPath' : DB::raw('NULL as FotoProfilPath'),
-            ])
-            ->where(function ($query) use ($user): void {
-                $query
-                    ->where('UserId', $user->getKey())
-                    ->orWhere('Email', $user->email);
-            })
-            ->first();
     }
 }

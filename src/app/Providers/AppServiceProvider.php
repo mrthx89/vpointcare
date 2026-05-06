@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Auth\PenggunaUserProvider;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 
@@ -21,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Auth::provider('pengguna', fn ($app, array $config): PenggunaUserProvider => new PenggunaUserProvider($app['hash'], $config['model']));
+
         Carbon::setLocale(config('app.locale'));
 
         $appUrl = (string) config('app.url');

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Auth;
 
-use App\Models\User;
+use App\Models\Master\Pengguna;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
@@ -41,7 +41,7 @@ class Login extends BaseLogin
             $this->throwFailureValidationException();
         }
 
-        if ($user instanceof User && $user->status !== User::STATUS_APPROVED) {
+        if ($user instanceof Pengguna && $user->NonAktif) {
             $this->userUndertakingMultiFactorAuthentication = null;
             $this->fireFailedEvent($authGuard, $user, $credentials);
 
@@ -92,19 +92,29 @@ class Login extends BaseLogin
 
         session()->regenerate();
 
+        if ($user instanceof Pengguna) {
+            $user->forceFill(['LoginTerakhirPada' => now()])->save();
+        }
+
         return app(LoginResponse::class);
     }
 
-    protected function throwAccountStatusValidationException(User $user): never
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function getCredentialsFromFormData(array $data): array
     {
-        $message = match ($user->status) {
-            User::STATUS_PENDING => 'Akun Anda belum di-approve admin.',
-            User::STATUS_BLOCKED => 'Akun Anda sedang diblokir.',
-            default => 'Akun Anda belum aktif.',
-        };
+        return [
+            'Email' => $data['email'] ?? null,
+            'password' => $data['password'] ?? null,
+        ];
+    }
 
+    protected function throwAccountStatusValidationException(Pengguna $user): never
+    {
         throw ValidationException::withMessages([
-            'data.email' => $message,
+            'data.email' => 'Akun Anda belum aktif atau sedang dinonaktifkan.',
         ]);
     }
 }
