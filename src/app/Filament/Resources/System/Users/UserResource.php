@@ -5,6 +5,8 @@ namespace App\Filament\Resources\System\Users;
 use App\Filament\Resources\System\Users\Pages\ManageUsers;
 use App\Models\User;
 use App\Services\Auth\UserPenggunaSyncService;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -38,6 +40,26 @@ class UserResource extends Resource
     protected static ?string $pluralModelLabel = 'User Login';
 
     protected static ?int $navigationSort = 10;
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::USER_VIEW);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::USER_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::USER_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::USER_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -162,8 +184,10 @@ class UserResource extends Resource
                     ->label('Approve')
                     ->icon(Heroicon::CheckCircle)
                     ->color('success')
-                    ->visible(fn (User $record): bool => $record->status !== User::STATUS_APPROVED)
+                    ->visible(fn (User $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && $record->status !== User::STATUS_APPROVED)
                     ->action(function (User $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
                         $record->update([
                             'status' => User::STATUS_APPROVED,
                             'approved_at' => now(),
@@ -177,8 +201,10 @@ class UserResource extends Resource
                     ->icon(Heroicon::NoSymbol)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (User $record): bool => $record->status !== User::STATUS_BLOCKED && $record->getKey() !== auth()->id())
+                    ->visible(fn (User $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && $record->status !== User::STATUS_BLOCKED && $record->getKey() !== auth()->id())
                     ->action(function (User $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
                         $record->update([
                             'status' => User::STATUS_BLOCKED,
                             'blocked_at' => now(),
@@ -191,8 +217,10 @@ class UserResource extends Resource
                     ->icon(Heroicon::Clock)
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->visible(fn (User $record): bool => $record->status !== User::STATUS_PENDING && $record->getKey() !== auth()->id())
+                    ->visible(fn (User $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && $record->status !== User::STATUS_PENDING && $record->getKey() !== auth()->id())
                     ->action(function (User $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
                         $record->update([
                             'status' => User::STATUS_PENDING,
                             'approved_at' => null,
@@ -202,8 +230,11 @@ class UserResource extends Resource
                         app(UserPenggunaSyncService::class)->syncFromUser($record->refresh());
                     }),
                 EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE))
                     ->mutateRecordDataUsing(fn (array $data, User $record): array => array_merge($data, static::profileFormData($record)))
                     ->using(function (array $data, User $record): User {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
                         [$userData, $profileData] = static::splitFormData($data);
 
                         $record->update(static::normalizeUserData($userData, $record));

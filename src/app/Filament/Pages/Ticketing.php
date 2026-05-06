@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Pages\Page;
 
 class Ticketing extends Page
@@ -17,4 +19,9 @@ class Ticketing extends Page
     protected static ?string $title = 'Ticketing';
 
     protected string $view = 'filament.pages.ticketing';
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::TICKET_VIEW);
+    }
 }

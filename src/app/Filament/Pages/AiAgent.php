@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Crypt;
@@ -22,6 +24,11 @@ class AiAgent extends Page
     protected static ?string $title = 'AI Agent';
 
     protected string $view = 'filament.pages.ai-agent';
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::AI_AGENT_VIEW);
+    }
 
     /** @var array<string, mixed> */
     public array $pengaturan = [];
@@ -47,6 +54,8 @@ class AiAgent extends Page
 
     public function applyProviderPreset(string $provider): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::AI_AGENT_MANAGE), 403);
+
         if (! array_key_exists($provider, $this->providerPresets)) {
             return;
         }
@@ -62,6 +71,8 @@ class AiAgent extends Page
 
     public function simpanPengaturan(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::AI_AGENT_MANAGE), 403);
+
         $validated = $this->validate([
             'pengaturan.AutoReplyAktif' => ['boolean'],
             'pengaturan.AutoReplyDiluarJamKerja' => ['boolean'],
@@ -117,6 +128,8 @@ class AiAgent extends Page
 
     public function hapusApiKey(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::AI_AGENT_MANAGE), 403);
+
         $provider = (string) ($this->pengaturan['ProviderAi'] ?? 'OpenAI');
 
         DB::table('MPengaturanAi')

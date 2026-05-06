@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Master\AnggotaGrupWhatsapps;
 
 use App\Filament\Resources\Master\AnggotaGrupWhatsapps\Pages\ManageAnggotaGrupWhatsapps;
 use App\Models\Master\AnggotaGrupWhatsapp;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -34,6 +36,26 @@ class AnggotaGrupWhatsappResource extends Resource
     protected static ?string $pluralModelLabel = 'Anggota Grup';
 
     protected static ?int $navigationSort = 45;
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -88,7 +110,8 @@ class AnggotaGrupWhatsappResource extends Resource
                     ->label('Peran')
                     ->searchable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label('Nonaktif')
+                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
                     ->dateTime()
@@ -114,7 +137,8 @@ class AnggotaGrupWhatsappResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
             ]);
     }
 

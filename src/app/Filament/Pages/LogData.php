@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +21,11 @@ class LogData extends Page
     protected static ?string $title = 'Log Data';
 
     protected string $view = 'filament.pages.log-data';
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::LOG_DATA_VIEW);
+    }
 
     /** @var array<int, array<string, mixed>> */
     public array $integrationLogs = [];

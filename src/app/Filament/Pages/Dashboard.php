@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Section;
@@ -22,6 +24,11 @@ class Dashboard extends BaseDashboard
     protected static ?string $navigationLabel = 'Dasbor';
 
     protected string $view = 'filament.pages.dashboard';
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::DASHBOARD_VIEW);
+    }
 
     public ?string $startDate = null;
 

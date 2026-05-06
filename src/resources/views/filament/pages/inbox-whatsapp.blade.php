@@ -27,6 +27,7 @@
                 } catch(e) {}
             }
         }"
+        x-init="wsOnline = Boolean(window.wahaWsOnline)"
         @waha-new-message.window="playSound()"
         @waha-ws-connected.window="wsOnline = true"
         @waha-ws-disconnected.window="wsOnline = false"
@@ -243,7 +244,7 @@
                                     class="inline-flex rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                                     {{ $selectedChat['Status'] }}</div>
                                     
-                                @if (!str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
+                                @if ($this->canManageInbox() && !str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
                                     <x-filament::button color="danger" size="sm" 
                                         x-on:click="
                                             Swal.fire({
@@ -368,6 +369,7 @@
                         </div>
 
                         {{-- Form Balasan: Selalu Tampil di Bawah (Sticky) --}}
+                        @if ($this->canReplyInbox())
                         <form wire:submit.prevent="kirimBalasanWaha" x-data="{
                             handlePaste(event) {
                                 const items = event.clipboardData?.items || [];
@@ -435,6 +437,7 @@
                                 </div>
                             </div>
                         </form>
+                        @endif
                     @else
                         <div class="flex flex-1 items-center justify-center p-6 text-sm text-gray-500">Pilih chat untuk
                             melihat percakapan.</div>
@@ -446,7 +449,7 @@
                         class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                         <div class="flex items-center justify-between gap-3">
                             <div class="text-base font-semibold text-gray-950 dark:text-white">Profil Mapping</div>
-                            @if ($selectedChat)
+                            @if ($selectedChat && $this->canManageInbox())
                                 <div class="flex flex-wrap justify-end gap-2">
                                     <button type="button" wire:click="refreshProfilWaha"
                                         class="rounded-md border border-blue-300 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">Ambil Profil</button>
@@ -503,6 +506,7 @@
                                 </div>
                             </dl>
                             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                                @if ($this->canManageInbox())
                                 <x-filament::button color="warning" size="sm" variant="outline" class="w-full"
                                     x-on:click="$dispatch('open-modal', { id: 'internal-notes-modal' })"
                                     :badge="count($internalNotes) > 0 ? count($internalNotes) : null"
@@ -510,6 +514,7 @@
                                 >
                                     Catatan Internal
                                 </x-filament::button>
+                                @endif
 
                                 <x-filament::button color="gray" size="sm" variant="outline" class="w-full"
                                     x-on:click="$dispatch('open-modal', { id: 'history-chat-modal' })">
@@ -537,6 +542,7 @@
                                             class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['TglAutoReplyAiTerakhir'] ? \Illuminate\Support\Carbon::parse($selectedChat['TglAutoReplyAiTerakhir'])->format('d M Y H:i') : '-' }}</span>
                                     </div>
                                 </div>
+                                @if ($this->canManageInbox())
                                 <div class="flex flex-wrap gap-2">
                                     <button type="button" wire:click="toggleAutoReplyAi"
                                         class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
@@ -546,6 +552,7 @@
                                         class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">Reset
                                         Sapaan</button>
                                 </div>
+                                @endif
                             </div>
                         @else
                             <div class="mt-3 text-sm text-gray-500">Pilih chat untuk mengatur AI per sesi.</div>
@@ -595,6 +602,7 @@
         </div>
     </x-filament::modal>
 
+    @if ($this->canManageInbox())
     <x-filament::modal id="internal-notes-modal" width="xl">
         <x-slot name="heading">Catatan Internal</x-slot>
         <x-slot name="description">Catatan ini hanya untuk tim internal dan tidak akan dikirim ke WhatsApp.</x-slot>
@@ -624,8 +632,5 @@
             </div>
         </div>
     </x-filament::modal>
-
-    @push('scripts')
-        @vite('resources/js/app.js')
-    @endpush
+    @endif
 </x-filament-panels::page>

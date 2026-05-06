@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Master\Instansis\Pages;
 
 use App\Filament\Resources\Master\Instansis\InstansiResource;
 use App\Jobs\ImportVTokenCustomersToInstansi;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
@@ -21,10 +23,13 @@ class ManageInstansis extends ManageRecords
                 ->label('Syncron Data')
                 ->icon(Heroicon::OutlinedArrowPath)
                 ->color('gray')
+                ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE))
                 ->requiresConfirmation()
                 ->modalHeading('Syncron Data Instansi')
                 ->modalDescription('Data customer VToken akan diambil dan disinkronkan ke MInstansi berdasarkan kode.')
                 ->action(function (): void {
+                    abort_unless(FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE), 403);
+
                     if (blank(config('services.vtoken.open_customers_url'))) {
                         Notification::make()
                             ->title('URL sinkron belum diatur')
@@ -43,7 +48,8 @@ class ManageInstansis extends ManageRecords
                         ->success()
                         ->send();
                 }),
-            CreateAction::make(),
+            CreateAction::make()
+                ->visible(fn (): bool => InstansiResource::canCreate()),
         ];
     }
 }

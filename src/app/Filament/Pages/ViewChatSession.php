@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -11,6 +13,11 @@ class ViewChatSession extends Page
 {
     protected string $view = 'filament.pages.view-chat-session';
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::CHAT_HISTORY_VIEW);
+    }
 
     public string $sessionId = '';
     public ?array $session = null;

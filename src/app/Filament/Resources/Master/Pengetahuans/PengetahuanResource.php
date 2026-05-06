@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Master\Pengetahuans;
 
 use App\Filament\Resources\Master\Pengetahuans\Pages\ManagePengetahuans;
 use App\Models\Master\Pengetahuan;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
@@ -35,6 +37,26 @@ class PengetahuanResource extends Resource
     protected static ?string $pluralModelLabel = 'Knowledge Base AI';
 
     protected static ?int $navigationSort = 46;
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::KNOWLEDGE_VIEW);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -97,7 +119,8 @@ class PengetahuanResource extends Resource
                     ->searchable()
                     ->wrap(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label('Nonaktif')
+                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
                     ->dateTime()
@@ -118,7 +141,8 @@ class PengetahuanResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE)),
             ]);
     }
 

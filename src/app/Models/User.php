@@ -54,6 +54,78 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->status === self::STATUS_APPROVED;
     }
 
+    public function roleCode(): ?string
+    {
+        if (
+            ! Schema::hasTable('MPengguna')
+            || ! Schema::hasTable('MPeran')
+            || ! Schema::hasColumn('MPengguna', 'UserId')
+        ) {
+            return null;
+        }
+
+        $roleCode = DB::table('MPengguna as p')
+            ->join('MPeran as r', 'r.Id', '=', 'p.IdPeran')
+            ->where(function ($query): void {
+                $query
+                    ->where('p.UserId', $this->getKey())
+                    ->orWhere('p.Email', $this->email);
+            })
+            ->where('p.NonAktif', false)
+            ->where('r.NonAktif', false)
+            ->value('r.KodePeran');
+
+        return $roleCode ? (string) $roleCode : null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function permissionCodes(): array
+    {
+        if (
+            ! Schema::hasTable('MPengguna')
+            || ! Schema::hasTable('MPeran')
+            || ! Schema::hasTable('MPeranHakAkses')
+            || ! Schema::hasTable('MHakAkses')
+            || ! Schema::hasColumn('MPengguna', 'UserId')
+        ) {
+            return [];
+        }
+
+        return DB::table('MPengguna as p')
+            ->join('MPeran as r', 'r.Id', '=', 'p.IdPeran')
+            ->join('MPeranHakAkses as pr', 'pr.IdPeran', '=', 'r.Id')
+            ->join('MHakAkses as h', 'h.Id', '=', 'pr.IdHakAkses')
+            ->where(function ($query): void {
+                $query
+                    ->where('p.UserId', $this->getKey())
+                    ->orWhere('p.Email', $this->email);
+            })
+            ->where('p.NonAktif', false)
+            ->where('r.NonAktif', false)
+            ->where('pr.NonAktif', false)
+            ->where('h.NonAktif', false)
+            ->distinct()
+            ->pluck('h.KodeHakAkses')
+            ->map(fn ($code): string => (string) $code)
+            ->values()
+            ->all();
+    }
+
+    public function hasPermissionCode(string $permission): bool
+    {
+        return in_array($permission, $this->permissionCodes(), true);
+    }
+
+    /**
+     * @param  array<int, string>  $permissions
+     */
+    public function hasAnyPermissionCode(array $permissions): bool
+    {
+        return count(array_intersect($permissions, $this->permissionCodes())) > 0;
+    }
+
     public function getFilamentAvatarUrl(): ?string
     {
         if (

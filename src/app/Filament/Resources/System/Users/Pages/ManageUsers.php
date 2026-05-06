@@ -15,7 +15,10 @@ class ManageUsers extends ManageRecords
     {
         return [
             CreateAction::make()
+                ->visible(fn (): bool => UserResource::canCreate())
                 ->using(function (array $data): User {
+                    abort_unless(UserResource::canCreate(), 403);
+
                     [$userData, $profileData] = UserResource::splitFormData($data);
 
                     $record = User::query()->create(UserResource::normalizeUserData($userData));

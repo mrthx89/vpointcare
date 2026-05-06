@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Master\Instansis;
 
 use App\Filament\Resources\Master\Instansis\Pages\ManageInstansis;
 use App\Models\Master\Instansi;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
@@ -34,6 +36,26 @@ class InstansiResource extends Resource
     protected static ?string $pluralModelLabel = 'Klien / Instansi';
 
     protected static ?int $navigationSort = 41;
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -82,7 +104,8 @@ class InstansiResource extends Resource
                 TextColumn::make('Email')
                     ->searchable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label('Nonaktif')
+                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
                     ->dateTime()
@@ -103,7 +126,8 @@ class InstansiResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
             ]);
     }
 

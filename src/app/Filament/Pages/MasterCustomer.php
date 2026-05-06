@@ -7,6 +7,8 @@ use App\Filament\Resources\Master\Customers\CustomerResource;
 use App\Filament\Resources\Master\GrupWhatsapps\GrupWhatsappResource;
 use App\Filament\Resources\Master\Instansis\InstansiResource;
 use App\Filament\Resources\Master\NomorWhatsapps\NomorWhatsappResource;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 
@@ -23,6 +25,11 @@ class MasterCustomer extends Page
     protected static ?string $title = 'Master Customer';
 
     protected string $view = 'filament.pages.master-customer';
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+    }
 
     /** @var array<string, int> */
     public array $stats = [];

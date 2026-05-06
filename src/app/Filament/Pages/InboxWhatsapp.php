@@ -4,6 +4,8 @@ namespace App\Filament\Pages;
 
 use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaSender;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -38,6 +40,21 @@ class InboxWhatsapp extends Page implements HasForms
     protected static ?string $title = 'Inbox WhatsApp';
 
     protected string $view = 'filament.pages.inbox-whatsapp';
+
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::INBOX_VIEW);
+    }
+
+    public function canReplyInbox(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::INBOX_REPLY);
+    }
+
+    public function canManageInbox(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::INBOX_MANAGE);
+    }
 
     /** @var array<string, int> */
     public array $stats = [];
@@ -160,6 +177,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function saveInternalNote(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId || trim($this->newInternalNote) === '') {
             return;
         }
@@ -519,6 +538,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function toggleAutoReplyAi(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId || ! $this->selectedChat) {
             return;
         }
@@ -541,6 +562,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function tutupPercakapan(AiAutoReplyService $aiService): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId || ! $this->selectedChat) {
             return;
         }
@@ -582,6 +605,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function resetSapaanAi(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId) {
             return;
         }
@@ -601,6 +626,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function refreshMappingChat(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId) {
             return;
         }
@@ -645,6 +672,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function refreshProfilWaha(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId) {
             return;
         }
@@ -670,6 +699,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function simpanBalasanLokal(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
         $this->validate([
             'replyText' => ['required', 'string', 'max:4000'],
         ]);
@@ -716,6 +747,8 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function kirimBalasanWaha(WahaSender $wahaSender): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
         $this->validate([
             'replyText' => ['nullable', 'string', 'max:4000'],
             'attachment' => ['nullable', 'file', 'max:51200'],
