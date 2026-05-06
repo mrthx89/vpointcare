@@ -2,24 +2,26 @@
 
 Panduan ini dikhususkan untuk mendeploy VPoint Care pada OS Linux **Ubuntu 20.04** yang sudah berjalan Nginx (di mana Nginx juga menjalankan aplikasi lain di port yang berbeda). Konfigurasi ini murni via Terminal (tanpa Web Panel).
 
-> **Stack Utama:** Ubuntu · Nginx · PHP 8.5-FPM · SQL Server (Remote) · Supervisor (Queue & Reverb)
+> **Stack Utama:** Ubuntu · Nginx · PHP 8.3-FPM · SQL Server (Remote) · Supervisor (Queue & Reverb)
 
 ---
 
-## TAHAP 1 — Persiapan PHP 8.5
+## TAHAP 1 — Persiapan PHP 8.3
 
-Karena kita menggunakan Laravel versi modern, kita butuh PHP 8.5.
+Karena kita menggunakan Laravel versi modern, kita butuh PHP 8.3.
 
 ```bash
 # Tambahkan repository PHP Ondrej (jika belum ada)
+sudo apt install software-properties-common -y
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
 
-# Install PHP 8.5 beserta ekstensi dasar
-sudo apt install php8.5-fpm php8.5-cli php8.5-common php8.5-curl php8.5-zip php8.5-mbstring php8.5-xml php8.5-bcmath php8.5-gd php8.5-dev php-pear unixodbc-dev -y
+
+# Install PHP 8.3 beserta ekstensi dasar
+sudo apt install php8.3-fpm php8.3-cli php8.3-common php8.3-curl php8.3-zip php8.3-mbstring php8.3-xml php8.3-bcmath php8.3-gd php8.3-dev php-pear unixodbc-dev -y
 ```
 
-> **Perhatian:** Paket `php8.5-dev`, `php-pear`, dan `unixodbc-dev` sangat krusial untuk kompilasi driver SQL Server di langkah berikutnya. Tanpa ini, instalasi `sqlsrv` akan gagal.
+> **Perhatian:** Paket `php8.3-dev`, `php-pear`, dan `unixodbc-dev` sangat krusial untuk kompilasi driver SQL Server di langkah berikutnya. Tanpa ini, instalasi `sqlsrv` akan gagal.
 
 ---
 
@@ -46,7 +48,7 @@ echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 2.3 Compile Ekstensi PHP SQLSRV (PHP 8.5)
+### 2.3 Compile Ekstensi PHP SQLSRV (PHP 8.3)
 
 ```bash
 # Install ekstensi via PECL
@@ -54,13 +56,13 @@ sudo pecl install sqlsrv
 sudo pecl install pdo_sqlsrv
 
 # Daftarkan ekstensi ke PHP CLI (Terminal) dan PHP-FPM (Web)
-printf "; priority=20\nextension=sqlsrv.so\n" | sudo tee /etc/php/8.5/mods-available/sqlsrv.ini
-printf "; priority=20\nextension=pdo_sqlsrv.so\n" | sudo tee /etc/php/8.5/mods-available/pdo_sqlsrv.ini
+printf "; priority=20\nextension=sqlsrv.so\n" | sudo tee /etc/php/8.3/mods-available/sqlsrv.ini
+printf "; priority=20\nextension=pdo_sqlsrv.so\n" | sudo tee /etc/php/8.3/mods-available/pdo_sqlsrv.ini
 
-sudo phpenmod -v 8.5 sqlsrv pdo_sqlsrv
+sudo phpenmod -v 8.3 sqlsrv pdo_sqlsrv
 
 # Restart layanan PHP-FPM agar ekstensi terbaca
-sudo systemctl restart php8.5-fpm
+sudo systemctl restart php8.3-fpm
 ```
 
 ---
@@ -200,7 +202,7 @@ server {
 
     # 3. Lemparan PHP ke PHP-FPM
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.5-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
@@ -243,7 +245,7 @@ Isi dengan:
 ```ini
 [program:vpoint-queue]
 process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php8.5 /var/www/vpointcare/artisan queue:work --tries=3 --timeout=120 --sleep=3
+command=/usr/bin/php8.3 /var/www/vpointcare/artisan queue:work --tries=3 --timeout=120 --sleep=3
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -263,7 +265,7 @@ Isi dengan:
 ```ini
 [program:vpoint-reverb]
 process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php8.5 /var/www/vpointcare/artisan reverb:start --host=127.0.0.1 --port=7060
+command=/usr/bin/php8.3 /var/www/vpointcare/artisan reverb:start --host=127.0.0.1 --port=7060
 autostart=true
 autorestart=true
 stopasgroup=true
