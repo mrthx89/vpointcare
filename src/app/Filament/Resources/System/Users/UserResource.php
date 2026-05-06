@@ -13,6 +13,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -23,6 +24,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema as DatabaseSchema;
 use UnitEnum;
 
 class UserResource extends Resource
@@ -89,6 +91,9 @@ class UserResource extends Resource
                     ->tel()
                     ->maxLength(30)
                     ->helperText('Dipakai untuk notifikasi chat belum terbalas ke tim CS. Gunakan format angka, contoh 62812xxxx.'),
+                Textarea::make('Alamat')
+                    ->rows(3)
+                    ->maxLength(500),
                 TextInput::make('Jabatan')
                     ->maxLength(100),
                 FileUpload::make('FotoProfilPath')
@@ -250,7 +255,7 @@ class UserResource extends Resource
      */
     public static function splitFormData(array $data): array
     {
-        $profileKeys = ['IdPeran', 'NomorWhatsappInternal', 'Jabatan', 'FotoProfilPath'];
+        $profileKeys = ['IdPeran', 'NomorWhatsappInternal', 'Alamat', 'Jabatan', 'FotoProfilPath'];
 
         return [
             Arr::except($data, $profileKeys),
@@ -297,6 +302,7 @@ class UserResource extends Resource
         return [
             'IdPeran' => $profile?->IdPeran ?? static::defaultRoleId(),
             'NomorWhatsappInternal' => $profile?->NomorWhatsappInternal,
+            'Alamat' => $profile?->Alamat,
             'Jabatan' => $profile?->Jabatan,
             'FotoProfilPath' => $profile?->FotoProfilPath,
         ];
@@ -306,7 +312,14 @@ class UserResource extends Resource
     {
         return DB::table('MPengguna as p')
             ->leftJoin('MPeran as r', 'r.Id', '=', 'p.IdPeran')
-            ->select('p.IdPeran', 'p.NomorWhatsappInternal', 'p.Jabatan', 'p.FotoProfilPath', 'r.NamaPeran')
+            ->select([
+                'p.IdPeran',
+                'p.NomorWhatsappInternal',
+                DatabaseSchema::hasColumn('MPengguna', 'Alamat') ? 'p.Alamat' : DB::raw('NULL as Alamat'),
+                'p.Jabatan',
+                'p.FotoProfilPath',
+                'r.NamaPeran',
+            ])
             ->where(function ($query) use ($user): void {
                 $query
                     ->where('p.UserId', $user->getKey())

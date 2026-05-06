@@ -11,6 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -88,6 +89,9 @@ class PenggunaResource extends Resource
                     ->tel()
                     ->maxLength(30)
                     ->helperText('Wajib diisi agar user menerima notifikasi chat belum terbalas. Gunakan format angka, contoh 62812xxxx.'),
+                Textarea::make('Alamat')
+                    ->rows(3)
+                    ->maxLength(500),
                 FileUpload::make('FotoProfilPath')
                     ->label('Foto Profil')
                     ->disk('public')

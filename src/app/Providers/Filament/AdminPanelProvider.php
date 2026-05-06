@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Actions\EditOwnProfileAction;
 use App\Filament\Auth\Login;
 use App\Filament\Auth\Register;
 use App\Filament\Pages\Dashboard;
@@ -88,6 +89,9 @@ HTML
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
+            ])
+            ->userMenuItems([
+                EditOwnProfileAction::make(),
             ])
             ->middleware([
                 EncryptCookies::class,

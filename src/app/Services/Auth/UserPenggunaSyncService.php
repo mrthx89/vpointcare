@@ -43,6 +43,10 @@ class UserPenggunaSyncService
             $data['Jabatan'] = $overrides['Jabatan'];
         }
 
+        if (array_key_exists('Alamat', $overrides) && Schema::hasColumn('MPengguna', 'Alamat')) {
+            $data['Alamat'] = $overrides['Alamat'];
+        }
+
         if (array_key_exists('FotoProfilPath', $overrides) && Schema::hasColumn('MPengguna', 'FotoProfilPath')) {
             $data['FotoProfilPath'] = $overrides['FotoProfilPath'];
         }
