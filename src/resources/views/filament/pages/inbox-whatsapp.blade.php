@@ -60,8 +60,7 @@
         @waha-ws-connected.window="wsOnline = true"
         @waha-ws-disconnected.window="wsOnline = false"
         @wacs-reverb-status-changed.window="updateReverbStatus($event.detail)"
-        class="flex flex-col gap-4 overflow-hidden"
-        style="height: calc(100dvh - 8rem);"
+        class="wacs-inbox-shell flex flex-col gap-4"
         wire:poll.60s="loadInbox">
 
 
@@ -144,12 +143,11 @@
             </div>
         </div>
 
-        {{-- Grid chat 3-kolom: langsung jadi flex-child agar height terwarisi --}}
-        <div class="flex-1 min-h-0"
-            style="display: grid; gap: 1rem; overflow-x: auto; overflow-y: hidden; min-width: 1120px; grid-template-columns: 340px minmax(420px, 1fr) 340px;">
+        {{-- Grid chat: mobile satu kolom, desktop tiga kolom --}}
+        <div class="wacs-inbox-layout flex-1 min-h-0">
                 {{-- KOLOM KIRI: Daftar Chat --}}
                 <section
-                    class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="wacs-inbox-chat-list flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     {{-- Header Daftar Chat --}}
                     <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                         <div class="flex items-center justify-between gap-2">
@@ -253,7 +251,7 @@
 
                 {{-- KOLOM TENGAH: Ruang Percakapan --}}
                 <section
-                    class="flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="wacs-inbox-conversation flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     @if ($selectedChat)
                         {{-- Header Chat: Tidak Ikut Scroll --}}
                         <div
@@ -333,7 +331,7 @@
                                 scrollToBottom();
                                 $wire.$hook('morph', () => { scrollToBottom(); });
                             "
-                            class="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 dark:bg-gray-950/60">
+                            class="wacs-inbox-messages min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 dark:bg-gray-950/60">
                             @forelse ($messages as $message)
                                 @php($isOut = $message['ArahPesan'] === 'Keluar')
                                 @php($hasMedia = $message['MediaCategory'] !== 'text')
@@ -446,7 +444,7 @@
                             }
                         }"
                             @paste="handlePaste($event)"
-                            class="shrink-0 border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                            class="wacs-inbox-reply-form shrink-0 border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                             <input x-ref="attachmentInput" type="file" wire:model="attachment"
                                 accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
                                 class="hidden">
@@ -492,7 +490,7 @@
                     @endif
                 </section>
 
-                <aside class="min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
+                <aside class="wacs-inbox-aside min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
                     <div
                         class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                         <div class="flex items-center justify-between gap-3">

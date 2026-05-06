@@ -436,6 +436,41 @@ a.fi-breadcrumbs-item-label:hover {
     color: #94a3b8;
 }
 
+.wacs-inbox-shell {
+    min-width: 0;
+    overflow: visible;
+}
+
+.wacs-inbox-layout {
+    display: grid;
+    min-width: 0;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+}
+
+.wacs-inbox-chat-list,
+.wacs-inbox-conversation,
+.wacs-inbox-aside {
+    min-width: 0;
+}
+
+.wacs-inbox-chat-list {
+    height: 72dvh;
+}
+
+.wacs-inbox-conversation {
+    height: 78dvh;
+}
+
+.wacs-inbox-messages {
+    overflow-wrap: anywhere;
+}
+
+.wacs-inbox-reply-form textarea {
+    max-height: 34dvh;
+}
+
 @media (min-width: 640px) {
     .vc-stats-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -451,6 +486,25 @@ a.fi-breadcrumbs-item-label:hover {
 @media (min-width: 1024px) {
     .vc-master-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wacs-inbox-shell {
+        height: calc(100dvh - 8rem);
+        overflow: hidden;
+    }
+
+    .wacs-inbox-layout {
+        grid-template-columns: minmax(280px, 340px) minmax(360px, 1fr) minmax(280px, 340px);
+        overflow: hidden;
+    }
+
+    .wacs-inbox-chat-list,
+    .wacs-inbox-conversation {
+        height: auto;
+    }
+
+    .wacs-inbox-aside {
+        overflow-y: auto;
     }
 }
 
