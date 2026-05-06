@@ -182,7 +182,7 @@ class AiAgent extends Page
         $this->refreshApiKeyState($row);
 
         $this->stats = [
-            'chat_auto' => (int) DB::table('TChatM')->where('AutoReplyAiAktif', true)->count(),
+            'chat_auto' => (int) DB::table('TChat')->where('AutoReplyAiAktif', true)->count(),
             'balasan_ai' => (int) DB::table('TChatD')->where('DihasilkanOlehAi', true)->count(),
             'permintaan_hari_ini' => (int) DB::table('TAiPermintaan')->whereDate('TglBuat', now()->toDateString())->count(),
             'hari_libur_aktif' => Schema::hasTable('MHariLibur') ? (int) DB::table('MHariLibur')->where('NonAktif', false)->count() : 0,

@@ -47,17 +47,17 @@ BEGIN
     );
 END
 
-IF COL_LENGTH('TChatM', 'AutoReplyAiAktif') IS NULL
-    ALTER TABLE TChatM ADD AutoReplyAiAktif bit NOT NULL CONSTRAINT DF_TChatM_AutoReplyAiAktif DEFAULT 0;
+IF COL_LENGTH('TChat', 'AutoReplyAiAktif') IS NULL
+    ALTER TABLE TChat ADD AutoReplyAiAktif bit NOT NULL CONSTRAINT DF_TChat_AutoReplyAiAktif DEFAULT 0;
 
-IF COL_LENGTH('TChatM', 'AiSudahMenyapa') IS NULL
-    ALTER TABLE TChatM ADD AiSudahMenyapa bit NOT NULL CONSTRAINT DF_TChatM_AiSudahMenyapa DEFAULT 0;
+IF COL_LENGTH('TChat', 'AiSudahMenyapa') IS NULL
+    ALTER TABLE TChat ADD AiSudahMenyapa bit NOT NULL CONSTRAINT DF_TChat_AiSudahMenyapa DEFAULT 0;
 
-IF COL_LENGTH('TChatM', 'ModeAutoReplyAi') IS NULL
-    ALTER TABLE TChatM ADD ModeAutoReplyAi varchar(50) NOT NULL CONSTRAINT DF_TChatM_ModeAutoReplyAi DEFAULT 'Default';
+IF COL_LENGTH('TChat', 'ModeAutoReplyAi') IS NULL
+    ALTER TABLE TChat ADD ModeAutoReplyAi varchar(50) NOT NULL CONSTRAINT DF_TChat_ModeAutoReplyAi DEFAULT 'Default';
 
-IF COL_LENGTH('TChatM', 'TglAutoReplyAiTerakhir') IS NULL
-    ALTER TABLE TChatM ADD TglAutoReplyAiTerakhir datetime2 NULL;
+IF COL_LENGTH('TChat', 'TglAutoReplyAiTerakhir') IS NULL
+    ALTER TABLE TChat ADD TglAutoReplyAiTerakhir datetime2 NULL;
 
 IF COL_LENGTH('TChatD', 'DihasilkanOlehAi') IS NULL
     ALTER TABLE TChatD ADD DihasilkanOlehAi bit NOT NULL CONSTRAINT DF_TChatD_DihasilkanOlehAi DEFAULT 0;
@@ -149,28 +149,28 @@ BEGIN
     ALTER TABLE TChatD DROP COLUMN DihasilkanOlehAi;
 END
 
-IF COL_LENGTH('TChatM', 'TglAutoReplyAiTerakhir') IS NOT NULL
-    ALTER TABLE TChatM DROP COLUMN TglAutoReplyAiTerakhir;
+IF COL_LENGTH('TChat', 'TglAutoReplyAiTerakhir') IS NOT NULL
+    ALTER TABLE TChat DROP COLUMN TglAutoReplyAiTerakhir;
 
-IF COL_LENGTH('TChatM', 'ModeAutoReplyAi') IS NOT NULL
+IF COL_LENGTH('TChat', 'ModeAutoReplyAi') IS NOT NULL
 BEGIN
-    IF OBJECT_ID(N'DF_TChatM_ModeAutoReplyAi', 'D') IS NOT NULL
-        ALTER TABLE TChatM DROP CONSTRAINT DF_TChatM_ModeAutoReplyAi;
-    ALTER TABLE TChatM DROP COLUMN ModeAutoReplyAi;
+    IF OBJECT_ID(N'DF_TChat_ModeAutoReplyAi', 'D') IS NOT NULL
+        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_ModeAutoReplyAi;
+    ALTER TABLE TChat DROP COLUMN ModeAutoReplyAi;
 END
 
-IF COL_LENGTH('TChatM', 'AiSudahMenyapa') IS NOT NULL
+IF COL_LENGTH('TChat', 'AiSudahMenyapa') IS NOT NULL
 BEGIN
-    IF OBJECT_ID(N'DF_TChatM_AiSudahMenyapa', 'D') IS NOT NULL
-        ALTER TABLE TChatM DROP CONSTRAINT DF_TChatM_AiSudahMenyapa;
-    ALTER TABLE TChatM DROP COLUMN AiSudahMenyapa;
+    IF OBJECT_ID(N'DF_TChat_AiSudahMenyapa', 'D') IS NOT NULL
+        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_AiSudahMenyapa;
+    ALTER TABLE TChat DROP COLUMN AiSudahMenyapa;
 END
 
-IF COL_LENGTH('TChatM', 'AutoReplyAiAktif') IS NOT NULL
+IF COL_LENGTH('TChat', 'AutoReplyAiAktif') IS NOT NULL
 BEGIN
-    IF OBJECT_ID(N'DF_TChatM_AutoReplyAiAktif', 'D') IS NOT NULL
-        ALTER TABLE TChatM DROP CONSTRAINT DF_TChatM_AutoReplyAiAktif;
-    ALTER TABLE TChatM DROP COLUMN AutoReplyAiAktif;
+    IF OBJECT_ID(N'DF_TChat_AutoReplyAiAktif', 'D') IS NOT NULL
+        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_AutoReplyAiAktif;
+    ALTER TABLE TChat DROP COLUMN AutoReplyAiAktif;
 END
 
 IF OBJECT_ID(N'MPengaturanAi', 'U') IS NOT NULL

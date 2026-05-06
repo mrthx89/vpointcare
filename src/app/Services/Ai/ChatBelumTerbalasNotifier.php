@@ -60,7 +60,7 @@ class ChatBelumTerbalasNotifier
                 $result['ok'] ? $sent++ : $failed++;
             }
 
-            DB::table('TChatM')->where('Id', $chat->Id)->update([
+            DB::table('TChat')->where('Id', $chat->Id)->update([
                 'TglNotifikasiBelumTerbalasTerakhir' => now(),
                 'JumlahNotifikasiBelumTerbalas' => DB::raw('JumlahNotifikasiBelumTerbalas + 1'),
                 'TglEdit' => now(),
@@ -152,23 +152,23 @@ class ChatBelumTerbalasNotifier
     private function unansweredChats(int $waitMinutes, int $cooldownMinutes)
     {
         $latestIncoming = DB::table('TChatD')
-            ->select('IdChatM', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
+            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
             ->where('ArahPesan', 'Masuk')
             ->where('DikirimOlehCustomer', true)
-            ->groupBy('IdChatM');
+            ->groupBy('IdChat');
 
         $latestCsReply = DB::table('TChatD')
-            ->select('IdChatM', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
+            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
             ->where('ArahPesan', 'Keluar')
             ->where(function ($query): void {
                 $query->whereNull('DihasilkanOlehAi')
                     ->orWhere('DihasilkanOlehAi', false);
             })
-            ->groupBy('IdChatM');
+            ->groupBy('IdChat');
 
-        return DB::table('TChatM as c')
-            ->joinSub($latestIncoming, 'masuk', fn ($join) => $join->on('masuk.IdChatM', '=', 'c.Id'))
-            ->leftJoinSub($latestCsReply, 'cs', fn ($join) => $join->on('cs.IdChatM', '=', 'c.Id'))
+        return DB::table('TChat as c')
+            ->joinSub($latestIncoming, 'masuk', fn ($join) => $join->on('masuk.IdChat', '=', 'c.Id'))
+            ->leftJoinSub($latestCsReply, 'cs', fn ($join) => $join->on('cs.IdChat', '=', 'c.Id'))
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
             ->where(function ($query): void {
@@ -195,7 +195,7 @@ class ChatBelumTerbalasNotifier
             ->get()
             ->map(function (object $chat): object {
                 $chat->PesanTerakhir = (string) DB::table('TChatD')
-                    ->where('IdChatM', $chat->Id)
+                    ->where('IdChat', $chat->Id)
                     ->where('ArahPesan', 'Masuk')
                     ->where('TglPesan', $chat->TglPesanTerakhirMasuk)
                     ->value('IsiPesan');

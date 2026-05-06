@@ -30,7 +30,7 @@ class AiAutoReplyService
             return null;
         }
 
-        $chat = DB::table('TChatM as c')
+        $chat = DB::table('TChat as c')
             ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
@@ -44,7 +44,7 @@ class AiAutoReplyService
         }
 
         $latestIncoming = DB::table('TChatD')
-            ->where('IdChatM', $chatId)
+            ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Masuk')
             ->where('DikirimOlehCustomer', true)
             ->whereNotNull('IsiPesan')
@@ -56,7 +56,7 @@ class AiAutoReplyService
         }
 
         $alreadyAnswered = DB::table('TChatD')
-            ->where('IdChatM', $chatId)
+            ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Keluar')
             ->where('DihasilkanOlehAi', true)
             ->where('TglPesan', '>=', $latestIncoming->TglPesan)
@@ -93,7 +93,7 @@ class AiAutoReplyService
             'JenisPermintaan' => 'Auto Reply WhatsApp',
             'ProviderAi' => $settings->ProviderAi ?: 'OpenAI',
             'ModelAi' => $settings->ModelAi ?: config('services.openai.model'),
-            'IdChatM' => $chatId,
+            'IdChat' => $chatId,
             'PromptRingkas' => Str::limit($prompt, 2000, ''),
             'PromptJson' => json_encode([
                 'keputusan' => $decision,
@@ -143,7 +143,7 @@ class AiAutoReplyService
 
         $delivery = $this->storeReply($settings, $chat, $reply, $responseId, $decision['mode']);
 
-        DB::table('TChatM')->where('Id', $chatId)->update([
+        DB::table('TChat')->where('Id', $chatId)->update([
             'AiSudahMenyapa' => $decision['mode'] === 'Sapaan Jam Kerja' ? true : (bool) $chat->AiSudahMenyapa,
             'TglAutoReplyAiTerakhir' => now(),
             'TglDibalasTerakhir' => now(),
@@ -176,7 +176,7 @@ class AiAutoReplyService
             return;
         }
 
-        $chat = DB::table('TChatM as c')
+        $chat = DB::table('TChat as c')
             ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
@@ -198,7 +198,7 @@ class AiAutoReplyService
             'JenisPermintaan' => 'Tutup Chat',
             'ProviderAi' => $settings->ProviderAi ?: 'OpenAI',
             'ModelAi' => $settings->ModelAi ?: config('services.openai.model'),
-            'IdChatM' => $chatId,
+            'IdChat' => $chatId,
             'PromptRingkas' => Str::limit($prompt, 2000, ''),
             'PromptJson' => json_encode(['prompt' => $prompt], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'StatusPermintaan' => 'Diproses',
@@ -424,7 +424,7 @@ class AiAutoReplyService
     {
         $limit = max(1, min((int) $settings->BatasRiwayatPesan, 20));
         $chatMessages = DB::table('TChatD')
-            ->where('IdChatM', $chat->Id)
+            ->where('IdChat', $chat->Id)
             ->orderByDesc('TglPesan')
             ->limit($limit)
             ->get()
@@ -738,7 +738,7 @@ class AiAutoReplyService
 
         DB::table('TChatD')->insert([
             'Id' => (string) Str::orderedUuid(),
-            'IdChatM' => $chat->Id,
+            'IdChat' => $chat->Id,
             'IdAiRespon' => $responseId,
             'ArahPesan' => 'Keluar',
             'JenisPesan' => 'Teks',
@@ -793,7 +793,7 @@ class AiAutoReplyService
     private function latestIncomingWahaChatId(string $chatId): ?string
     {
         $payloadJson = DB::table('TChatD')
-            ->where('IdChatM', $chatId)
+            ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Masuk')
             ->whereNotNull('PayloadJson')
             ->orderByDesc('TglPesan')

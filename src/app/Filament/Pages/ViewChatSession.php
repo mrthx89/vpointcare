@@ -39,7 +39,7 @@ class ViewChatSession extends Page
 
     private function loadSession(): void
     {
-        $row = DB::table('TChatM as c')
+        $row = DB::table('TChat as c')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
             ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
             ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
@@ -83,7 +83,7 @@ class ViewChatSession extends Page
         $hasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
 
         $this->messages = DB::table('TChatD')
-            ->where('IdChatM', $this->sessionId)
+            ->where('IdChat', $this->sessionId)
             ->orderBy('TglPesan')
             ->limit(500)
             ->select(
@@ -116,8 +116,8 @@ class ViewChatSession extends Page
 
         // Load internal notes - ikuti logika di InboxWhatsapp.php
         $hasPengguna = Schema::hasTable('Pengguna');
-        $this->internalNotes = DB::table('TChatCatatanInternal')
-            ->where('IdChatM', $this->sessionId)
+        $this->internalNotes = DB::table('TChatDCatatanInternal')
+            ->where('IdChat', $this->sessionId)
             ->orderBy('TglBuat')
             ->get()
             ->map(function (object $r) use ($hasPengguna) {

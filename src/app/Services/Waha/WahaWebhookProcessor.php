@@ -67,7 +67,7 @@ class WahaWebhookProcessor
                     return [
                         'ok' => true,
                         'duplicate' => true,
-                        'chat_id' => $duplicate->IdChatM,
+                        'chat_id' => $duplicate->IdChat,
                         'webhook_id' => $webhookId,
                         'jenis_chat' => $parsed['jenis_chat'],
                         'message' => 'Duplicate WAHA message event ignored.',
@@ -79,7 +79,7 @@ class WahaWebhookProcessor
 
                 $chatMessage = [
                     'Id' => (string) Str::orderedUuid(),
-                    'IdChatM' => $chatId,
+                    'IdChat' => $chatId,
                     'IdLogWebhookWaha' => $webhookId,
                     'IdPesanWaha' => $parsed['id_pesan'],
                     'ArahPesan' => $parsed['from_me'] ? 'Keluar' : 'Masuk',
@@ -105,7 +105,7 @@ class WahaWebhookProcessor
 
                 DB::table('TChatD')->insert($chatMessage);
 
-                DB::table('TChatM')->where('Id', $chatId)->update([
+                DB::table('TChat')->where('Id', $chatId)->update([
                     'TglChatTerakhir' => $parsed['tgl_pesan'],
                     'JumlahPesanBelumDibaca' => DB::raw($parsed['from_me'] ? 'JumlahPesanBelumDibaca' : 'JumlahPesanBelumDibaca + 1'),
                     'TglEdit' => now(),
@@ -157,7 +157,7 @@ class WahaWebhookProcessor
 
         return DB::table('TChatD')
             ->where('IdPesanWaha', $messageId)
-            ->select('Id', 'IdChatM')
+            ->select('Id', 'IdChat')
             ->first();
     }
 
@@ -512,7 +512,7 @@ class WahaWebhookProcessor
      */
     private function findOrCreateChat(string $sessionId, array $parsed, array $mapping): string
     {
-        $query = DB::table('TChatM')->where('IdSesiWhatsapp', $sessionId)->where('JenisChat', $parsed['jenis_chat']);
+        $query = DB::table('TChat')->where('IdSesiWhatsapp', $sessionId)->where('JenisChat', $parsed['jenis_chat']);
 
         if ($parsed['jenis_chat'] === 'Grup' && $mapping['IdGrupWhatsapp']) {
             $query->where('IdGrupWhatsapp', $mapping['IdGrupWhatsapp']);
@@ -520,7 +520,7 @@ class WahaWebhookProcessor
             $query->where(function ($query) use ($parsed): void {
                 $query->where('NomorWhatsapp', $parsed['pengirim_nomor'] ?: '-');
 
-                if (Schema::hasColumn('TChatM', 'IdWahaTerdeteksi') && ($parsed['pengirim_jid'] ?? null)) {
+                if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi') && ($parsed['pengirim_jid'] ?? null)) {
                     $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_jid']);
                 }
             });
@@ -540,11 +540,11 @@ class WahaWebhookProcessor
                 'TglEdit' => now(),
             ];
 
-            if (Schema::hasColumn('TChatM', 'IdWahaTerdeteksi')) {
+            if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
                 $update['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
             }
 
-            if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
+            if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
                 $update['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
             }
 
@@ -552,7 +552,7 @@ class WahaWebhookProcessor
                 $update['NomorWhatsapp'] = $parsed['pengirim_nomor'];
             }
 
-            DB::table('TChatM')->where('Id', $chat->Id)->update($update);
+            DB::table('TChat')->where('Id', $chat->Id)->update($update);
 
             return $chat->Id;
         }
@@ -576,15 +576,15 @@ class WahaWebhookProcessor
             'TglBuat' => now(),
         ];
 
-        if (Schema::hasColumn('TChatM', 'IdWahaTerdeteksi')) {
+        if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
             $chat['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
         }
 
-        if (Schema::hasColumn('TChatM', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
+        if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
             $chat['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
         }
 
-        DB::table('TChatM')->insert($chat);
+        DB::table('TChat')->insert($chat);
 
         return $id;
     }

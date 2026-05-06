@@ -154,8 +154,8 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        $this->internalNotes = DB::table('TChatCatatanInternal')
-            ->where('IdChatM', $this->selectedChatId)
+        $this->internalNotes = DB::table('TChatDCatatanInternal')
+            ->where('IdChat', $this->selectedChatId)
             ->orderBy('TglBuat', 'asc')
             ->get()
             ->map(function ($row) {
@@ -183,9 +183,9 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        DB::table('TChatCatatanInternal')->insert([
+        DB::table('TChatDCatatanInternal')->insert([
             'Id' => (string) Str::orderedUuid(),
-            'IdChatM' => $this->selectedChatId,
+            'IdChat' => $this->selectedChatId,
             'IsiCatatan' => trim($this->newInternalNote),
             'DibuatOleh' => $this->currentPenggunaId(),
             'TglBuat' => now(),
@@ -205,10 +205,10 @@ class InboxWhatsapp extends Page implements HasForms
         $this->refreshActiveAgents();
 
         $this->stats = [
-            'baru' => (int) DB::table('TChatM')->count(),
-            'belum_dibaca' => (int) DB::table('TChatM')->sum('JumlahPesanBelumDibaca'),
-            'grup' => (int) DB::table('TChatM')->where('JenisChat', 'Grup')->count(),
-            'unknown' => (int) DB::table('TChatM as c')
+            'baru' => (int) DB::table('TChat')->count(),
+            'belum_dibaca' => (int) DB::table('TChat')->sum('JumlahPesanBelumDibaca'),
+            'grup' => (int) DB::table('TChat')->where('JenisChat', 'Grup')->count(),
+            'unknown' => (int) DB::table('TChat as c')
                 ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
                 ->whereNull('c.IdInstansi')
                 ->whereNull('g.IdInstansi')
@@ -219,10 +219,10 @@ class InboxWhatsapp extends Page implements HasForms
         $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
         $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
 
-        $hasDiambilOleh = Schema::hasColumn('TChatM', 'DiambilOleh');
-        $hasWahaProfileColumns = Schema::hasColumn('TChatM', 'UrlFotoProfil');
+        $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
+        $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
 
-        $query = DB::table('TChatM as c')
+        $query = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
             ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
@@ -311,7 +311,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         $this->chatRows = $rows->map(function (object $row) use ($chatDetailHasFileName, $chatDetailHasMimeType): array {
             $lastMessage = DB::table('TChatD')
-                ->where('IdChatM', $row->Id)
+                ->where('IdChat', $row->Id)
                 ->orderByDesc('TglPesan')
                 ->select(
                     'IsiPesan',
@@ -407,7 +407,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        $rawChat = DB::table('TChatM')->where('Id', $this->selectedChatId)->first();
+        $rawChat = DB::table('TChat')->where('Id', $this->selectedChatId)->first();
         if (! $rawChat) {
             $this->historyChats = [];
 
@@ -428,7 +428,7 @@ class InboxWhatsapp extends Page implements HasForms
             $conditions[] = ['c.NomorWhatsapp', '=', $rawChat->NomorWhatsapp];
         }
 
-        $query = DB::table('TChatM as c')
+        $query = DB::table('TChat as c')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
             ->where('c.Id', '!=', $this->selectedChatId);
 
@@ -471,7 +471,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         $this->messages = DB::table('TChatD as d')
             ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
-            ->where('d.IdChatM', $chatId)
+            ->where('d.IdChat', $chatId)
             ->orderBy('d.TglPesan')
             ->limit(200)
             ->select(
@@ -521,12 +521,12 @@ class InboxWhatsapp extends Page implements HasForms
         $this->loadInternalNotes();
 
         // Auto-claim chat jika belum ada yang menangani
-        if (Schema::hasColumn('TChatM', 'DiambilOleh')) {
-            $current = DB::table('TChatM')->where('Id', $chatId)->value('DiambilOleh');
+        if (Schema::hasColumn('TChat', 'DiambilOleh')) {
+            $current = DB::table('TChat')->where('Id', $chatId)->value('DiambilOleh');
             if (! $current) {
                 $myId = $this->currentPenggunaId();
                 if ($myId) {
-                    DB::table('TChatM')->where('Id', $chatId)->update([
+                    DB::table('TChat')->where('Id', $chatId)->update([
                         'DiambilOleh' => $myId,
                         'TglDiambil' => now(),
                         'TglEdit' => now(),
@@ -546,7 +546,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         $active = ! (bool) ($this->selectedChat['AutoReplyAiAktif'] ?? false);
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'AutoReplyAiAktif' => $active,
             'ModeAutoReplyAi' => $active ? 'ChatAktif' : 'Default',
             'TglEdit' => now(),
@@ -586,12 +586,12 @@ class InboxWhatsapp extends Page implements HasForms
             'TglEdit' => now(),
         ];
 
-        if (Schema::hasColumn('TChatM', 'DitutupOleh')) {
+        if (Schema::hasColumn('TChat', 'DitutupOleh')) {
             $updateData['DitutupOleh'] = $this->currentPenggunaId();
             $updateData['TglDitutup'] = now();
         }
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update($updateData);
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update($updateData);
 
         $aiService->sendClosingMessage($this->selectedChatId);
 
@@ -611,7 +611,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'AiSudahMenyapa' => false,
             'TglEdit' => now(),
         ]);
@@ -632,7 +632,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        $chat = DB::table('TChatM')->where('Id', $this->selectedChatId)->first();
+        $chat = DB::table('TChat')->where('Id', $this->selectedChatId)->first();
 
         if (! $chat) {
             return;
@@ -652,7 +652,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'IdCustomer' => $mapping['IdCustomer'],
             'IdInstansi' => $mapping['IdInstansi'],
             'IdNomorWhatsapp' => $mapping['IdNomorWhatsapp'],
@@ -678,7 +678,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        if (! Schema::hasColumn('TChatM', 'UrlFotoProfil')) {
+        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
             Notification::make()
                 ->title('Kolom profil WAHA belum tersedia.')
                 ->warning()
@@ -711,7 +711,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         DB::table('TChatD')->insert([
             'Id' => (string) Str::orderedUuid(),
-            'IdChatM' => $this->selectedChatId,
+            'IdChat' => $this->selectedChatId,
             'ArahPesan' => 'Keluar',
             'JenisPesan' => 'Teks',
             'IsiPesan' => $this->replyText,
@@ -723,7 +723,7 @@ class InboxWhatsapp extends Page implements HasForms
             'TglBuat' => now(),
         ]);
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'TglDibalasTerakhir' => now(),
             'TglChatTerakhir' => now(),
             'JumlahPesanBelumDibaca' => 0,
@@ -769,7 +769,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        $chat = DB::table('TChatM as c')
+        $chat = DB::table('TChat as c')
             ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
             ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
             ->where('c.Id', $this->selectedChatId)
@@ -806,7 +806,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         DB::table('TChatD')->insert(array_merge([
             'Id' => (string) Str::orderedUuid(),
-            'IdChatM' => $this->selectedChatId,
+            'IdChat' => $this->selectedChatId,
             'ArahPesan' => 'Keluar',
             'DikirimOlehCustomer' => false,
             'TglPesan' => now(),
@@ -817,7 +817,7 @@ class InboxWhatsapp extends Page implements HasForms
             'TglBuat' => now(),
         ], $sent['message']));
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'TglDibalasTerakhir' => now(),
             'TglChatTerakhir' => now(),
             'JumlahPesanBelumDibaca' => 0,
@@ -979,10 +979,10 @@ class InboxWhatsapp extends Page implements HasForms
     private function loadChatHeader(string $chatId): ?array
     {
         $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
-        $hasWahaProfileColumns = Schema::hasColumn('TChatM', 'UrlFotoProfil');
-        $hasDiambilOleh = Schema::hasColumn('TChatM', 'DiambilOleh');
+        $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
+        $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
 
-        $row = DB::table('TChatM as c')
+        $row = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
             ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
@@ -1020,11 +1020,11 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function refreshWahaProfileIfNeeded(string $chatId): void
     {
-        if (! Schema::hasColumn('TChatM', 'UrlFotoProfil')) {
+        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
             return;
         }
 
-        $chat = DB::table('TChatM')
+        $chat = DB::table('TChat')
             ->where('Id', $chatId)
             ->select('Id', 'JenisChat', 'NomorWhatsapp', 'IdWahaTerdeteksi', 'NomorWhatsappTerdeteksi', 'TglFotoProfilDiambil')
             ->first();
@@ -1062,11 +1062,11 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function refreshWahaProfile(string $chatId, bool $forceRefresh): bool
     {
-        if (! Schema::hasColumn('TChatM', 'UrlFotoProfil')) {
+        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
             return false;
         }
 
-        $chat = DB::table('TChatM as c')
+        $chat = DB::table('TChat as c')
             ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
             ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
             ->where('c.Id', $chatId)
@@ -1098,7 +1098,7 @@ class InboxWhatsapp extends Page implements HasForms
         ];
 
         if (! $contactId) {
-            DB::table('TChatM')->where('Id', $chatId)->update($update);
+            DB::table('TChat')->where('Id', $chatId)->update($update);
 
             return false;
         }
@@ -1129,7 +1129,7 @@ class InboxWhatsapp extends Page implements HasForms
             $update['UrlFotoProfil'] = $picture['url'] ?? null;
         }
 
-        DB::table('TChatM')->where('Id', $chatId)->update($update);
+        DB::table('TChat')->where('Id', $chatId)->update($update);
 
         return (bool) (($picture['url'] ?? null) || $detectedPhone);
     }
@@ -1137,7 +1137,7 @@ class InboxWhatsapp extends Page implements HasForms
     private function updateIncomingSenderNumber(string $chatId, string $phone): void
     {
         DB::table('TChatD')
-            ->where('IdChatM', $chatId)
+            ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Masuk')
             ->update([
                 'PengirimNomorWhatsapp' => $phone,
@@ -1568,7 +1568,7 @@ class InboxWhatsapp extends Page implements HasForms
     private function latestIncomingPayload(string $chatId): ?array
     {
         $payloadJson = DB::table('TChatD')
-            ->where('IdChatM', $chatId)
+            ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Masuk')
             ->whereNotNull('PayloadJson')
             ->orderByDesc('TglPesan')

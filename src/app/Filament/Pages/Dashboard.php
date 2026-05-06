@@ -107,7 +107,7 @@ class Dashboard extends BaseDashboard
 
         $messageRows = DB::table('TChatD')
             ->whereBetween('TglPesan', [$start, $end])
-            ->select('IdChatM', 'ArahPesan', 'DihasilkanOlehAi', 'StatusKirim', 'TglPesan')
+            ->select('IdChat', 'ArahPesan', 'DihasilkanOlehAi', 'StatusKirim', 'TglPesan')
             ->orderBy('TglPesan')
             ->get();
 
@@ -116,19 +116,19 @@ class Dashboard extends BaseDashboard
         $aiRows = $outgoingRows->where('DihasilkanOlehAi', true);
         $csRows = $outgoingRows->where('DihasilkanOlehAi', false);
 
-        $incomingChats = $incomingRows->pluck('IdChatM')->unique()->count();
+        $incomingChats = $incomingRows->pluck('IdChat')->unique()->count();
         $unansweredChats = $this->unansweredChats($start, $end);
         $failedWaha = $outgoingRows->where('StatusKirim', 'Gagal WAHA')->count();
         $sentWaha = $outgoingRows->where('StatusKirim', 'Terkirim WAHA')->count();
         $deliveryTotal = $sentWaha + $failedWaha;
         $avgResponseMinutes = $this->averageResponseMinutes($messageRows);
         $mappedChats = $this->mappedChats($start, $end);
-        $periodChats = DB::table('TChatM')
+        $periodChats = DB::table('TChat')
             ->whereBetween('TglChatTerakhir', [$start, $end])
             ->count();
 
         $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
-        $activeChats = DB::table('TChatM')
+        $activeChats = DB::table('TChat')
             ->whereNotNull('DiambilOleh')
             ->where(function ($query) use ($statusDitutupId): void {
                 if ($statusDitutupId) {
@@ -138,7 +138,7 @@ class Dashboard extends BaseDashboard
             })
             ->count();
 
-        $closedChats = DB::table('TChatM')
+        $closedChats = DB::table('TChat')
             ->whereNotNull('DiambilOleh')
             ->where('IdStatusChat', $statusDitutupId)
             ->whereBetween('TglChatTerakhir', [$start, $end])
@@ -150,10 +150,10 @@ class Dashboard extends BaseDashboard
             'outgoing_cs' => $csRows->count(),
             'outgoing_ai' => $aiRows->count(),
             'unanswered_chats' => $unansweredChats,
-            'unread_messages' => (int) DB::table('TChatM')->sum('JumlahPesanBelumDibaca'),
+            'unread_messages' => (int) DB::table('TChat')->sum('JumlahPesanBelumDibaca'),
             'failed_waha' => $failedWaha,
             'sent_waha' => $sentWaha,
-            'tickets_created' => (int) DB::table('TTicketM')->whereBetween('TglBuat', [$start, $end])->count(),
+            'tickets_created' => (int) DB::table('TTicket')->whereBetween('TglBuat', [$start, $end])->count(),
             'avg_response_minutes' => $avgResponseMinutes,
             'period_chats' => $periodChats,
             'mapped_chats' => $mappedChats,
@@ -253,23 +253,23 @@ class Dashboard extends BaseDashboard
     private function unansweredChats(Carbon $start, Carbon $end): int
     {
         $latestIncoming = DB::table('TChatD')
-            ->select('IdChatM', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
+            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
             ->where('ArahPesan', 'Masuk')
             ->whereBetween('TglPesan', [$start, $end])
-            ->groupBy('IdChatM');
+            ->groupBy('IdChat');
 
         $latestCsReply = DB::table('TChatD')
-            ->select('IdChatM', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
+            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
             ->where('ArahPesan', 'Keluar')
             ->where(function ($query): void {
                 $query->whereNull('DihasilkanOlehAi')
                     ->orWhere('DihasilkanOlehAi', false);
             })
-            ->groupBy('IdChatM');
+            ->groupBy('IdChat');
 
-        return (int) DB::table('TChatM as c')
-            ->joinSub($latestIncoming, 'masuk', 'masuk.IdChatM', '=', 'c.Id')
-            ->leftJoinSub($latestCsReply, 'cs', 'cs.IdChatM', '=', 'c.Id')
+        return (int) DB::table('TChat as c')
+            ->joinSub($latestIncoming, 'masuk', 'masuk.IdChat', '=', 'c.Id')
+            ->leftJoinSub($latestCsReply, 'cs', 'cs.IdChat', '=', 'c.Id')
             ->where(function ($query): void {
                 $query->whereNull('cs.TglPesanTerakhirCs')
                     ->orWhereColumn('cs.TglPesanTerakhirCs', '<', 'masuk.TglPesanTerakhirMasuk');
@@ -279,7 +279,7 @@ class Dashboard extends BaseDashboard
 
     private function mappedChats(Carbon $start, Carbon $end): int
     {
-        return (int) DB::table('TChatM')
+        return (int) DB::table('TChat')
             ->whereBetween('TglChatTerakhir', [$start, $end])
             ->whereNotNull('IdInstansi')
             ->count();
@@ -289,7 +289,7 @@ class Dashboard extends BaseDashboard
     {
         $durations = [];
 
-        foreach ($messageRows->groupBy('IdChatM') as $rows) {
+        foreach ($messageRows->groupBy('IdChat') as $rows) {
             $orderedRows = $rows->sortBy('TglPesan')->values();
 
             foreach ($orderedRows as $index => $row) {
@@ -332,7 +332,7 @@ class Dashboard extends BaseDashboard
                 'p.NamaPengguna',
                 'p.Email',
                 DB::raw('COUNT(*) as JumlahBalasan'),
-                DB::raw('COUNT(DISTINCT d.IdChatM) as JumlahChat'),
+                DB::raw('COUNT(DISTINCT d.IdChat) as JumlahChat'),
                 DB::raw("SUM(CASE WHEN d.StatusKirim = 'Terkirim WAHA' THEN 1 ELSE 0 END) as Terkirim"),
                 DB::raw("SUM(CASE WHEN d.StatusKirim = 'Gagal WAHA' THEN 1 ELSE 0 END) as Gagal")
             )
@@ -360,7 +360,7 @@ class Dashboard extends BaseDashboard
                 'name' => 'AI Agent',
                 'email' => 'auto-reply',
                 'replies' => $aiReplies->count(),
-                'chats' => $aiReplies->pluck('IdChatM')->unique()->count(),
+                'chats' => $aiReplies->pluck('IdChat')->unique()->count(),
                 'sent' => $aiReplies->where('StatusKirim', 'Terkirim WAHA')->count(),
                 'failed' => $aiReplies->where('StatusKirim', 'Gagal WAHA')->count(),
                 'type' => 'AI',
@@ -406,14 +406,14 @@ class Dashboard extends BaseDashboard
     private function topClients(Carbon $start, Carbon $end): array
     {
         return DB::table('TChatD as d')
-            ->join('TChatM as c', 'c.Id', '=', 'd.IdChatM')
+            ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->where('d.ArahPesan', 'Masuk')
             ->whereBetween('d.TglPesan', [$start, $end])
             ->select(
                 DB::raw("COALESCE(i.NamaInstansi, 'Belum dipetakan') as NamaInstansi"),
                 DB::raw('COUNT(*) as JumlahPesan'),
-                DB::raw('COUNT(DISTINCT d.IdChatM) as JumlahChat')
+                DB::raw('COUNT(DISTINCT d.IdChat) as JumlahChat')
             )
             ->groupBy(DB::raw("COALESCE(i.NamaInstansi, 'Belum dipetakan')"))
             ->orderByDesc('JumlahPesan')
