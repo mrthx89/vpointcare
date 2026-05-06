@@ -9,7 +9,9 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 {
@@ -49,6 +51,14 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
     protected static function booted(): void
     {
         static::saving(function (self $pengguna): void {
+            $currentUserId = Auth::id();
+
+            if ($currentUserId !== null && $pengguna->isDirty('NonAktif') && (bool) $pengguna->NonAktif && (string) $pengguna->getKey() === (string) $currentUserId) {
+                throw ValidationException::withMessages([
+                    'NonAktif' => __('ui.models.pengguna.self_deactivate_denied'),
+                ]);
+            }
+
             $pengguna->TglEdit = now();
         });
     }

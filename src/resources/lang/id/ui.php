@@ -176,6 +176,7 @@ return [
             'activate' => 'Aktifkan',
             'deactivate' => 'Nonaktifkan',
             'deactivate_confirm' => 'Yakin ingin menonaktifkan pengguna ini?',
+            'self_deactivate_denied' => 'User yang sedang login tidak dapat menonaktifkan dirinya sendiri.',
         ],
     ],
     'language' => [

@@ -414,26 +414,22 @@ class Dashboard extends BaseDashboard
      */
     private function topClients(Carbon $start, Carbon $end): array
     {
-        $unmappedLabel = __('ui.common.not_mapped');
-
         return DB::table('TChatD as d')
             ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->where('d.ArahPesan', 'Masuk')
             ->whereBetween('d.TglPesan', [$start, $end])
             ->select(
-                DB::raw("COALESCE(i.NamaInstansi, ?) as NamaInstansi"),
+                'i.NamaInstansi',
                 DB::raw('COUNT(*) as JumlahPesan'),
                 DB::raw('COUNT(DISTINCT d.IdChat) as JumlahChat')
             )
-            ->addBinding($unmappedLabel, 'select')
-            ->groupBy(DB::raw('COALESCE(i.NamaInstansi, ?)'))
-            ->addBinding($unmappedLabel, 'groupBy')
+            ->groupBy('i.NamaInstansi')
             ->orderByDesc('JumlahPesan')
             ->limit(8)
             ->get()
             ->map(fn (object $row): array => [
-                'name' => (string) $row->NamaInstansi,
+                'name' => $row->NamaInstansi ?: __('ui.common.not_mapped'),
                 'messages' => (int) $row->JumlahPesan,
                 'chats' => (int) $row->JumlahChat,
             ])

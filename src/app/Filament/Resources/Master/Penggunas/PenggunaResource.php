@@ -19,7 +19,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
@@ -165,9 +164,6 @@ class PenggunaResource extends Resource
                     ->getStateUsing(fn (Pengguna $record): string => $record->NonAktif ? Pengguna::STATUS_INACTIVE : Pengguna::STATUS_ACTIVE)
                     ->formatStateUsing(fn (string $state): string => Pengguna::STATUSES[$state] ?? $state)
                     ->color(fn (string $state): string => $state === Pengguna::STATUS_ACTIVE ? 'success' : 'danger'),
-                ToggleColumn::make('NonAktif')
-                    ->label(__('ui.common.inactive'))
-                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::USER_MANAGE)),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
                     ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())

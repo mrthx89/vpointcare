@@ -176,6 +176,7 @@ return [
             'activate' => 'Activate',
             'deactivate' => 'Deactivate',
             'deactivate_confirm' => 'Are you sure you want to deactivate this user?',
+            'self_deactivate_denied' => 'The signed-in user cannot deactivate their own account.',
         ],
     ],
     'language' => [
