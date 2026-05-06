@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\Instansis\Pages\ManageInstansis;
 use App\Models\Master\Instansi;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
@@ -25,18 +26,24 @@ class InstansiResource extends Resource
 {
     protected static ?string $model = Instansi::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
-
-    protected static ?int $navigationSort = 41;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_INSTANSI, Heroicon::OutlinedBuildingOffice2);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_INSTANSI, __('ui.navigation.master_data'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_INSTANSI, 20);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.instansi.label');
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_INSTANSI, __('ui.models.instansi.label'));
     }
 
     public static function getModelLabel(): string
@@ -51,7 +58,8 @@ class InstansiResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_INSTANSI);
     }
 
     public static function canCreate(): bool

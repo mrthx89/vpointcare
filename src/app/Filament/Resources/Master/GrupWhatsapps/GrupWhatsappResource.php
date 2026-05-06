@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\GrupWhatsapps\Pages\ManageGrupWhatsapps;
 use App\Models\Master\GrupWhatsapp;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -26,18 +27,24 @@ class GrupWhatsappResource extends Resource
 {
     protected static ?string $model = GrupWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
-
-    protected static ?int $navigationSort = 44;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, Heroicon::OutlinedChatBubbleLeftRight);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, __('ui.navigation.master_data'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, 50);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.grup_whatsapp.label');
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, __('ui.models.grup_whatsapp.label'));
     }
 
     public static function getModelLabel(): string
@@ -52,7 +59,8 @@ class GrupWhatsappResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP);
     }
 
     public static function canCreate(): bool

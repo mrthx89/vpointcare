@@ -46,6 +46,16 @@ class AccessPermissions
 
     public const JOB_SCHEDULE_VIEW = 'job_schedule.view';
 
+    public const MENU_MASTER_INSTANSI = 'menu.master.instansi';
+
+    public const MENU_MASTER_CUSTOMER = 'menu.master.customer';
+
+    public const MENU_MASTER_NOMOR_WHATSAPP = 'menu.master.nomor_whatsapp';
+
+    public const MENU_MASTER_GRUP_WHATSAPP = 'menu.master.grup_whatsapp';
+
+    public const MENU_MASTER_ANGGOTA_GRUP = 'menu.master.anggota_grup';
+
     /**
      * @return array<string, array{label: string, module: string, description: string}>
      */
@@ -86,6 +96,135 @@ class AccessPermissions
             'label' => "NamaHakAkses{$suffix}",
             'module' => "Modul{$suffix}",
             'description' => "Keterangan{$suffix}",
+        ];
+    }
+
+    /**
+     * @return array<string, array{label_id: string, label_en: string, description_id: string, description_en: string, sort: int, icon: string}>
+     */
+    public static function sidebarGroups(): array
+    {
+        return [
+            'operasional' => [
+                'label_id' => self::translate('ui.navigation.operasional', 'id'),
+                'label_en' => self::translate('ui.navigation.operasional', 'en'),
+                'description_id' => 'Group menu untuk operasional customer service.',
+                'description_en' => 'Menu group for customer service operations.',
+                'sort' => 10,
+                'icon' => 'heroicon-o-chat-bubble-left-right',
+            ],
+            'assistant' => [
+                'label_id' => self::translate('ui.navigation.assistant', 'id'),
+                'label_en' => self::translate('ui.navigation.assistant', 'en'),
+                'description_id' => 'Group menu untuk pengaturan dan knowledge AI Agent.',
+                'description_en' => 'Menu group for AI Agent settings and knowledge.',
+                'sort' => 20,
+                'icon' => 'heroicon-o-sparkles',
+            ],
+            'master_data' => [
+                'label_id' => self::translate('ui.navigation.master_data', 'id'),
+                'label_en' => self::translate('ui.navigation.master_data', 'en'),
+                'description_id' => 'Group menu untuk data master customer dan WhatsApp.',
+                'description_en' => 'Menu group for customer and WhatsApp master data.',
+                'sort' => 30,
+                'icon' => 'heroicon-o-circle-stack',
+            ],
+            'monitoring' => [
+                'label_id' => self::translate('ui.navigation.monitoring', 'id'),
+                'label_en' => self::translate('ui.navigation.monitoring', 'en'),
+                'description_id' => 'Group menu untuk monitoring log dan proses sistem.',
+                'description_en' => 'Menu group for monitoring logs and system processes.',
+                'sort' => 40,
+                'icon' => 'heroicon-o-clipboard-document-list',
+            ],
+            'settings' => [
+                'label_id' => self::translate('ui.navigation.settings', 'id'),
+                'label_en' => self::translate('ui.navigation.settings', 'en'),
+                'description_id' => 'Group menu untuk pengaturan aplikasi dan akses user.',
+                'description_en' => 'Menu group for application settings and user access.',
+                'sort' => 50,
+                'icon' => 'heroicon-o-cog-6-tooth',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{group: string|null, sort: int, icon: string|null, label_id: string, label_en: string, description_id: string|null, description_en: string|null}>
+     */
+    public static function sidebarMenus(): array
+    {
+        $definitions = self::localizedDefinitions();
+
+        return [
+            self::DASHBOARD_VIEW => self::sidebarPermissionMenu($definitions, self::DASHBOARD_VIEW, null, 1, 'heroicon-o-home'),
+            self::INBOX_VIEW => self::sidebarPermissionMenu($definitions, self::INBOX_VIEW, 'operasional', 10, 'heroicon-o-chat-bubble-left-right'),
+            self::TICKET_VIEW => self::sidebarPermissionMenu($definitions, self::TICKET_VIEW, 'operasional', 20, 'heroicon-o-ticket'),
+            self::AI_AGENT_VIEW => self::sidebarPermissionMenu($definitions, self::AI_AGENT_VIEW, 'assistant', 10, 'heroicon-o-sparkles'),
+            self::KNOWLEDGE_VIEW => self::sidebarPermissionMenu($definitions, self::KNOWLEDGE_VIEW, 'assistant', 20, 'heroicon-o-book-open'),
+            self::MASTER_CUSTOMER_VIEW => self::sidebarPermissionMenu($definitions, self::MASTER_CUSTOMER_VIEW, 'master_data', 10, 'heroicon-o-squares-2x2'),
+            self::MENU_MASTER_INSTANSI => self::sidebarMenu('master_data', 20, 'heroicon-o-building-office-2', 'ui.models.instansi.label', 'ui.models.instansi.plural'),
+            self::MENU_MASTER_CUSTOMER => self::sidebarMenu('master_data', 30, 'heroicon-o-user-group', 'ui.models.customer.label', 'ui.models.customer.plural'),
+            self::MENU_MASTER_NOMOR_WHATSAPP => self::sidebarMenu('master_data', 40, 'heroicon-o-device-phone-mobile', 'ui.models.nomor_whatsapp.label', 'ui.models.nomor_whatsapp.plural'),
+            self::MENU_MASTER_GRUP_WHATSAPP => self::sidebarMenu('master_data', 50, 'heroicon-o-chat-bubble-left-right', 'ui.models.grup_whatsapp.label', 'ui.models.grup_whatsapp.plural'),
+            self::MENU_MASTER_ANGGOTA_GRUP => self::sidebarMenu('master_data', 60, 'heroicon-o-users', 'ui.models.anggota_grup.label', 'ui.models.anggota_grup.plural'),
+            self::HOLIDAY_VIEW => self::sidebarPermissionMenu($definitions, self::HOLIDAY_VIEW, 'master_data', 70, 'heroicon-o-calendar-days'),
+            self::LOG_DATA_VIEW => self::sidebarPermissionMenu($definitions, self::LOG_DATA_VIEW, 'monitoring', 10, 'heroicon-o-clipboard-document-list'),
+            self::HAK_AKSES_VIEW => self::sidebarPermissionMenu($definitions, self::HAK_AKSES_VIEW, 'settings', 10, 'heroicon-o-shield-check'),
+            self::USER_VIEW => self::sidebarPermissionMenu($definitions, self::USER_VIEW, 'settings', 20, 'heroicon-o-user-group'),
+            self::JOB_SCHEDULE_VIEW => self::sidebarPermissionMenu($definitions, self::JOB_SCHEDULE_VIEW, 'settings', 30, 'heroicon-o-clock'),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function permissionSidebarGroups(): array
+    {
+        return [
+            self::INBOX_REPLY => 'operasional',
+            self::INBOX_MANAGE => 'operasional',
+            self::TICKET_MANAGE => 'operasional',
+            self::AI_AGENT_MANAGE => 'assistant',
+            self::MASTER_CUSTOMER_MANAGE => 'master_data',
+            self::KNOWLEDGE_MANAGE => 'assistant',
+            self::HOLIDAY_MANAGE => 'master_data',
+            self::USER_MANAGE => 'settings',
+            self::HAK_AKSES_MANAGE => 'settings',
+        ];
+    }
+
+    /**
+     * @param  array<string, array{label_id: string, label_en: string, module_id: string, module_en: string, description_id: string, description_en: string}>  $definitions
+     * @return array{group: string|null, sort: int, icon: string|null, label_id: string, label_en: string, description_id: string|null, description_en: string|null}
+     */
+    private static function sidebarPermissionMenu(array $definitions, string $code, ?string $group, int $sort, ?string $icon): array
+    {
+        $definition = $definitions[$code];
+
+        return [
+            'group' => $group,
+            'sort' => $sort,
+            'icon' => $icon,
+            'label_id' => $definition['label_id'],
+            'label_en' => $definition['label_en'],
+            'description_id' => $definition['description_id'],
+            'description_en' => $definition['description_en'],
+        ];
+    }
+
+    /**
+     * @return array{group: string|null, sort: int, icon: string|null, label_id: string, label_en: string, description_id: string|null, description_en: string|null}
+     */
+    private static function sidebarMenu(?string $group, int $sort, ?string $icon, string $labelKey, string $descriptionKey): array
+    {
+        return [
+            'group' => $group,
+            'sort' => $sort,
+            'icon' => $icon,
+            'label_id' => self::translate($labelKey, 'id'),
+            'label_en' => self::translate($labelKey, 'en'),
+            'description_id' => self::translate($descriptionKey, 'id'),
+            'description_en' => self::translate($descriptionKey, 'en'),
         ];
     }
 

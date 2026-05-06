@@ -7,6 +7,7 @@ use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaSender;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -30,13 +31,19 @@ class InboxWhatsapp extends Page implements HasForms
     use InteractsWithForms;
     use WithFileUploads;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
-
-    protected static ?int $navigationSort = 10;
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::INBOX_VIEW, 'heroicon-o-chat-bubble-left-right');
+    }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('ui.navigation.operasional');
+        return NavigationHelper::groupFor(AccessPermissions::INBOX_VIEW, __('ui.navigation.operasional'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::INBOX_VIEW, 10);
     }
 
     public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
@@ -46,14 +53,15 @@ class InboxWhatsapp extends Page implements HasForms
 
     public static function getNavigationLabel(): string
     {
-        return 'Inbox WhatsApp';
+        return NavigationHelper::labelFor(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
     }
 
     protected string $view = 'filament.pages.inbox-whatsapp';
 
     public static function canAccess(): bool
     {
-        return FilamentAccess::can(AccessPermissions::INBOX_VIEW);
+        return FilamentAccess::can(AccessPermissions::INBOX_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::INBOX_VIEW);
     }
 
     public function canReplyInbox(): bool

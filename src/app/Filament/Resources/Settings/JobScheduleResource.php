@@ -5,6 +5,8 @@ namespace App\Filament\Resources\Settings;
 use App\Filament\Resources\Settings\JobScheduleResource\Pages;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
+use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -15,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class JobScheduleResource extends Resource
 {
@@ -25,19 +28,24 @@ class JobScheduleResource extends Resource
         return \App\Models\JobSchedule::class;
     }
 
-    public static function getNavigationIcon(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return 'heroicon-o-clock';
+        return NavigationHelper::iconFor(AccessPermissions::JOB_SCHEDULE_VIEW, 'heroicon-o-clock');
     }
     
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): string | UnitEnum | null
     {
-        return __('ui.navigation.settings');
+        return NavigationHelper::groupFor(AccessPermissions::JOB_SCHEDULE_VIEW, __('ui.navigation.settings'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::JOB_SCHEDULE_VIEW, 30);
     }
     
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.job_schedule.label');
+        return NavigationHelper::labelFor(AccessPermissions::JOB_SCHEDULE_VIEW, __('ui.models.job_schedule.label'));
     }
 
     public static function getModelLabel(): string
@@ -52,7 +60,8 @@ class JobScheduleResource extends Resource
     
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::JOB_SCHEDULE_VIEW);
+        return FilamentAccess::can(AccessPermissions::JOB_SCHEDULE_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::JOB_SCHEDULE_VIEW);
     }
 
     public static function canCreate(): bool

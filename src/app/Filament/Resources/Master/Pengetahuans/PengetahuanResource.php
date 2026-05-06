@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\Pengetahuans\Pages\ManagePengetahuans;
 use App\Models\Master\Pengetahuan;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
@@ -26,18 +27,24 @@ class PengetahuanResource extends Resource
 {
     protected static ?string $model = Pengetahuan::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
-
-    protected static ?int $navigationSort = 46;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::iconFor(AccessPermissions::KNOWLEDGE_VIEW, Heroicon::OutlinedBookOpen);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::KNOWLEDGE_VIEW, __('ui.navigation.assistant'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::KNOWLEDGE_VIEW, 20);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.pengetahuan.label');
+        return NavigationHelper::labelFor(AccessPermissions::KNOWLEDGE_VIEW, __('ui.models.pengetahuan.label'));
     }
 
     public static function getModelLabel(): string
@@ -52,7 +59,8 @@ class PengetahuanResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::KNOWLEDGE_VIEW);
+        return FilamentAccess::can(AccessPermissions::KNOWLEDGE_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::KNOWLEDGE_VIEW);
     }
 
     public static function canCreate(): bool

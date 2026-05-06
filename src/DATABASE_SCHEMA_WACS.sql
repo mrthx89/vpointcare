@@ -31,7 +31,8 @@ GO
 
 CREATE TABLE MHakAkses (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MHakAkses_Id DEFAULT NEWSEQUENTIALID(),
-    KodeHakAkses varchar(100) NOT NULL,
+    IdHakAkses uniqueidentifier NULL,
+    KodeHakAkses varchar(100) NULL,
     NamaHakAkses varchar(150) NOT NULL,
     NamaHakAksesId varchar(150) NULL,
     NamaHakAksesEn varchar(150) NULL,
@@ -41,14 +42,21 @@ CREATE TABLE MHakAkses (
     Keterangan varchar(255) NULL,
     KeteranganId varchar(255) NULL,
     KeteranganEn varchar(255) NULL,
+    SortOrder int NULL,
+    IconString varchar(100) NULL,
     NonAktif bit NOT NULL CONSTRAINT DF_MHakAkses_NonAktif DEFAULT 0,
     TglBuat datetime2 NOT NULL CONSTRAINT DF_MHakAkses_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_MHakAkses PRIMARY KEY (Id),
-    CONSTRAINT UQ_MHakAkses_KodeHakAkses UNIQUE (KodeHakAkses)
+    CONSTRAINT FK_MHakAkses_IdHakAkses FOREIGN KEY (IdHakAkses) REFERENCES MHakAkses(Id)
 );
+GO
+
+CREATE UNIQUE INDEX UX_MHakAkses_KodeHakAkses_NotNull
+    ON MHakAkses (KodeHakAkses)
+    WHERE KodeHakAkses IS NOT NULL;
 GO
 
 CREATE TABLE MPeranHakAkses (

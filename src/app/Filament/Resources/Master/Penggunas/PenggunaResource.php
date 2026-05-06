@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\Penggunas\Pages\ManagePenggunas;
 use App\Models\Master\Pengguna;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -29,18 +30,24 @@ class PenggunaResource extends Resource
 {
     protected static ?string $model = Pengguna::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
-
-    protected static ?int $navigationSort = 10;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.settings');
+        return NavigationHelper::iconFor(AccessPermissions::USER_VIEW, Heroicon::OutlinedUserGroup);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::USER_VIEW, __('ui.navigation.settings'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::USER_VIEW, 20);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.pengguna.label');
+        return NavigationHelper::labelFor(AccessPermissions::USER_VIEW, __('ui.models.pengguna.label'));
     }
 
     public static function getModelLabel(): string
@@ -55,7 +62,8 @@ class PenggunaResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::USER_VIEW);
+        return FilamentAccess::can(AccessPermissions::USER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::USER_VIEW);
     }
 
     public static function canCreate(): bool

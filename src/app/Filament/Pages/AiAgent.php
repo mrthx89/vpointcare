@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Crypt;
@@ -13,13 +14,19 @@ use Illuminate\Support\Str;
 
 class AiAgent extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-sparkles';
-
-    protected static ?int $navigationSort = 30;
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::AI_AGENT_VIEW, 'heroicon-o-sparkles');
+    }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('ui.navigation.assistant');
+        return NavigationHelper::groupFor(AccessPermissions::AI_AGENT_VIEW, __('ui.navigation.assistant'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::AI_AGENT_VIEW, 10);
     }
 
     public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
@@ -29,14 +36,15 @@ class AiAgent extends Page
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.pages.ai_agent.navigation_label');
+        return NavigationHelper::labelFor(AccessPermissions::AI_AGENT_VIEW, __('ui.pages.ai_agent.navigation_label'));
     }
 
     protected string $view = 'filament.pages.ai-agent';
 
     public static function canAccess(): bool
     {
-        return FilamentAccess::can(AccessPermissions::AI_AGENT_VIEW);
+        return FilamentAccess::can(AccessPermissions::AI_AGENT_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::AI_AGENT_VIEW);
     }
 
     /** @var array<string, mixed> */

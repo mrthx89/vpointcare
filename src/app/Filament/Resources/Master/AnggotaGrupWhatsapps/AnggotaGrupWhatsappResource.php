@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\AnggotaGrupWhatsapps\Pages\ManageAnggotaGrupWh
 use App\Models\Master\AnggotaGrupWhatsapp;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -25,18 +26,24 @@ class AnggotaGrupWhatsappResource extends Resource
 {
     protected static ?string $model = AnggotaGrupWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
-
-    protected static ?int $navigationSort = 45;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, Heroicon::OutlinedUsers);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, __('ui.navigation.master_data'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, 60);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.anggota_grup.label');
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, __('ui.models.anggota_grup.label'));
     }
 
     public static function getModelLabel(): string
@@ -51,7 +58,8 @@ class AnggotaGrupWhatsappResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP);
     }
 
     public static function canCreate(): bool

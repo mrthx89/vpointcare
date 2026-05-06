@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\NomorWhatsapps\Pages\ManageNomorWhatsapps;
 use App\Models\Master\NomorWhatsapp;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -25,18 +26,24 @@ class NomorWhatsappResource extends Resource
 {
     protected static ?string $model = NomorWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDevicePhoneMobile;
-
-    protected static ?int $navigationSort = 43;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_NOMOR_WHATSAPP, Heroicon::OutlinedDevicePhoneMobile);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_NOMOR_WHATSAPP, __('ui.navigation.master_data'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_NOMOR_WHATSAPP, 40);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.nomor_whatsapp.label');
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_NOMOR_WHATSAPP, __('ui.models.nomor_whatsapp.label'));
     }
 
     public static function getModelLabel(): string
@@ -51,7 +58,8 @@ class NomorWhatsappResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_NOMOR_WHATSAPP);
     }
 
     public static function canCreate(): bool

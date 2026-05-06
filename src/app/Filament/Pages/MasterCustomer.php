@@ -9,18 +9,25 @@ use App\Filament\Resources\Master\Instansis\InstansiResource;
 use App\Filament\Resources\Master\NomorWhatsapps\NomorWhatsappResource;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 
 class MasterCustomer extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-squares-2x2';
-
-    protected static ?int $navigationSort = 40;
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::MASTER_CUSTOMER_VIEW, 'heroicon-o-squares-2x2');
+    }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::groupFor(AccessPermissions::MASTER_CUSTOMER_VIEW, __('ui.navigation.master_data'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MASTER_CUSTOMER_VIEW, 10);
     }
 
     public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
@@ -30,14 +37,15 @@ class MasterCustomer extends Page
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.pages.master_customer.flow_title');
+        return NavigationHelper::labelFor(AccessPermissions::MASTER_CUSTOMER_VIEW, __('ui.pages.master_customer.flow_title'));
     }
 
     protected string $view = 'filament.pages.master-customer';
 
     public static function canAccess(): bool
     {
-        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW);
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MASTER_CUSTOMER_VIEW);
     }
 
     /** @var array<string, int> */

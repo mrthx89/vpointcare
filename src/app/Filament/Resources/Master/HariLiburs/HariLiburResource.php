@@ -6,6 +6,7 @@ use App\Filament\Resources\Master\HariLiburs\Pages\ManageHariLiburs;
 use App\Models\Master\HariLibur;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -25,18 +26,24 @@ class HariLiburResource extends Resource
 {
     protected static ?string $model = HariLibur::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
-
-    protected static ?int $navigationSort = 45;
-
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
     {
-        return __('ui.navigation.master_data');
+        return NavigationHelper::iconFor(AccessPermissions::HOLIDAY_VIEW, Heroicon::OutlinedCalendarDays);
+    }
+
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::HOLIDAY_VIEW, __('ui.navigation.master_data'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::HOLIDAY_VIEW, 70);
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.models.holiday.label');
+        return NavigationHelper::labelFor(AccessPermissions::HOLIDAY_VIEW, __('ui.models.holiday.label'));
     }
 
     public static function getModelLabel(): string
@@ -51,7 +58,8 @@ class HariLiburResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::HOLIDAY_VIEW);
+        return FilamentAccess::can(AccessPermissions::HOLIDAY_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::HOLIDAY_VIEW);
     }
 
     public static function canCreate(): bool

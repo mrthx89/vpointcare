@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
 use App\Support\LocaleFormatter;
+use App\Support\NavigationHelper;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Section;
@@ -27,14 +28,25 @@ class Dashboard extends BaseDashboard
 
     public static function getNavigationLabel(): string
     {
-        return __('ui.pages.dashboard.navigation_label');
+        return NavigationHelper::labelFor(AccessPermissions::DASHBOARD_VIEW, __('ui.pages.dashboard.navigation_label'));
+    }
+
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::DASHBOARD_VIEW, 'heroicon-o-home');
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::DASHBOARD_VIEW, 1);
     }
 
     protected string $view = 'filament.pages.dashboard';
 
     public static function canAccess(): bool
     {
-        return FilamentAccess::can(AccessPermissions::DASHBOARD_VIEW);
+        return FilamentAccess::can(AccessPermissions::DASHBOARD_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::DASHBOARD_VIEW);
     }
 
     public ?string $startDate = null;

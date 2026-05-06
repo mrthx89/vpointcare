@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
 use App\Support\LocaleFormatter;
+use App\Support\NavigationHelper;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,13 +14,19 @@ use Illuminate\Support\Str;
 
 class LogData extends Page
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
-
-    protected static ?int $navigationSort = 50;
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::LOG_DATA_VIEW, 'heroicon-o-clipboard-document-list');
+    }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('ui.navigation.monitoring');
+        return NavigationHelper::groupFor(AccessPermissions::LOG_DATA_VIEW, __('ui.navigation.monitoring'));
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::LOG_DATA_VIEW, 10);
     }
 
     public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
@@ -29,14 +36,15 @@ class LogData extends Page
 
     public static function getNavigationLabel(): string
     {
-        return 'Log Data';
+        return NavigationHelper::labelFor(AccessPermissions::LOG_DATA_VIEW, 'Log Data');
     }
 
     protected string $view = 'filament.pages.log-data';
 
     public static function canAccess(): bool
     {
-        return FilamentAccess::can(AccessPermissions::LOG_DATA_VIEW);
+        return FilamentAccess::can(AccessPermissions::LOG_DATA_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::LOG_DATA_VIEW);
     }
 
     /** @var array<int, array<string, mixed>> */
