@@ -54,8 +54,8 @@ class Register extends BaseRegister
         event(new Registered($user));
 
         Notification::make()
-            ->title('Registrasi berhasil')
-            ->body('Akun Anda menunggu approval admin sebelum bisa login.')
+            ->title(__('ui.auth.register_success_title'))
+            ->body(__('ui.auth.register_success_body'))
             ->success()
             ->send();
 
@@ -89,18 +89,18 @@ class Register extends BaseRegister
 
     public function getTitle(): string | Htmlable
     {
-        return 'Daftar Akun';
+        return __('ui.auth.register_title');
     }
 
     public function getHeading(): string | Htmlable | null
     {
-        return 'Daftar Akun VPoint Care';
+        return __('ui.auth.register_heading');
     }
 
     public function getRegisterFormAction(): Action
     {
         return parent::getRegisterFormAction()
-            ->label('Daftar');
+            ->label(__('ui.auth.register_action'));
     }
 
     private function defaultRoleId(): ?string

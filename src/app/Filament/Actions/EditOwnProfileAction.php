@@ -23,16 +23,16 @@ class EditOwnProfileAction
             ->label(fn (): string => self::currentUserName())
             ->icon('heroicon-o-user-circle')
             ->sort(-1)
-            ->modalHeading('Rubah Profile')
-            ->modalDescription('Perbarui data profil yang dipakai pada VPoint Care.')
+            ->modalHeading(__('ui.profile.heading'))
+            ->modalDescription(__('ui.profile.description'))
             ->modalWidth('2xl')
-            ->modalSubmitActionLabel('Simpan')
+            ->modalSubmitActionLabel(__('ui.profile.submit'))
             ->fillForm(fn (): array => self::formData())
             ->form([
-                Section::make('Data Profile')
+                Section::make(__('ui.profile.data_section'))
                     ->schema([
                         FileUpload::make('FotoProfilPath')
-                            ->label('Foto Profile')
+                            ->label(__('ui.profile.photo'))
                             ->disk('public')
                             ->directory('pengguna-profil')
                             ->visibility('public')
@@ -41,24 +41,24 @@ class EditOwnProfileAction
                             ->imageEditor()
                             ->maxSize(2048),
                         TextInput::make('name')
-                            ->label('Nama')
+                            ->label(__('ui.profile.name'))
                             ->required()
                             ->maxLength(255),
                         Textarea::make('Alamat')
-                            ->label('Alamat')
+                            ->label(__('ui.profile.address'))
                             ->rows(3)
                             ->maxLength(500),
                         TextInput::make('NomorWhatsappInternal')
-                            ->label('Nomor WhatsApp')
+                            ->label(__('ui.profile.whatsapp'))
                             ->tel()
                             ->maxLength(30)
-                            ->helperText('Gunakan format angka, contoh 62812xxxx.'),
+                            ->helperText(__('ui.profile.whatsapp_hint')),
                     ])
                     ->columns(1),
-                Section::make('Ubah Password')
+                Section::make(__('ui.profile.password_section'))
                     ->schema([
                         TextInput::make('password')
-                            ->label('Password Baru')
+                            ->label(__('ui.profile.new_password'))
                             ->password()
                             ->revealable()
                             ->rule(Password::default())
@@ -66,7 +66,7 @@ class EditOwnProfileAction
                             ->dehydrated(fn (?string $state): bool => filled($state))
                             ->autocomplete('new-password'),
                         TextInput::make('passwordConfirmation')
-                            ->label('Konfirmasi Password Baru')
+                            ->label(__('ui.profile.confirm_password'))
                             ->password()
                             ->revealable()
                             ->required(fn (Get $get): bool => filled($get('password')))
@@ -74,7 +74,7 @@ class EditOwnProfileAction
                             ->dehydrated(false)
                             ->autocomplete('new-password'),
                         TextInput::make('currentPassword')
-                            ->label('Password Saat Ini')
+                            ->label(__('ui.profile.current_password'))
                             ->password()
                             ->revealable()
                             ->currentPassword(guard: 'web')
@@ -93,10 +93,10 @@ class EditOwnProfileAction
         $user = Filament::auth()->user();
 
         if (! $user instanceof Pengguna) {
-            return 'Ubah Profile';
+            return __('ui.profile.fallback_label');
         }
 
-        return filled($user->NamaPengguna) ? (string) $user->NamaPengguna : 'Edit Profile';
+        return filled($user->NamaPengguna) ? (string) $user->NamaPengguna : __('ui.profile.fallback_label');
     }
 
     /**
@@ -143,7 +143,7 @@ class EditOwnProfileAction
         });
 
         Notification::make()
-            ->title('Profile berhasil diperbarui.')
+            ->title(__('ui.profile.saved'))
             ->success()
             ->send();
     }

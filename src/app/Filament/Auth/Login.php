@@ -10,6 +10,7 @@ use Filament\Facades\Filament;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Validation\ValidationException;
 
 class Login extends BaseLogin
@@ -114,7 +115,17 @@ class Login extends BaseLogin
     protected function throwAccountStatusValidationException(Pengguna $user): never
     {
         throw ValidationException::withMessages([
-            'data.email' => 'Akun Anda belum aktif atau sedang dinonaktifkan.',
+            'data.email' => __('ui.auth.inactive_account'),
         ]);
+    }
+
+    public function getTitle(): string | Htmlable
+    {
+        return __('ui.auth.login_title');
+    }
+
+    public function getHeading(): string | Htmlable | null
+    {
+        return __('ui.auth.login_heading');
     }
 }

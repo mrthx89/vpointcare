@@ -53,9 +53,30 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">'
             )
             ->renderHook(
-                PanelsRenderHook::BODY_START,
+                PanelsRenderHook::STYLES_AFTER,
                 fn (): string => <<<'HTML'
+<style>
+    .wacs-locale-switcher { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; padding-inline: .5rem; }
+    .wacs-locale-switcher-center { justify-content: center; padding-inline: 0; }
+    .wacs-locale-label { font-size: .75rem; font-weight: 600; color: rgb(100 116 139); }
+    .wacs-locale-options { display: inline-flex; align-items: center; gap: .125rem; border: 1px solid rgb(203 213 225); border-radius: .5rem; padding: .125rem; background: rgb(248 250 252); }
+    .wacs-locale-option { min-width: 2.125rem; border-radius: .375rem; padding: .3125rem .5rem; text-align: center; font-size: .75rem; line-height: 1rem; font-weight: 700; color: rgb(71 85 105); text-decoration: none; transition: background-color .15s ease, color .15s ease, box-shadow .15s ease; }
+    .wacs-locale-option:hover { background: white; color: rgb(15 23 42); }
+    .wacs-locale-option.is-active { background: rgb(37 99 235); color: white; box-shadow: 0 1px 2px rgb(15 23 42 / .14); }
+    .wacs-locale-switcher-compact .wacs-locale-options { background: transparent; }
+    .dark .wacs-locale-label { color: rgb(148 163 184); }
+    .dark .wacs-locale-options { border-color: rgb(51 65 85); background: rgb(15 23 42); }
+    .dark .wacs-locale-option { color: rgb(203 213 225); }
+    .dark .wacs-locale-option:hover { background: rgb(30 41 59); color: white; }
+    .dark .wacs-locale-option.is-active { background: rgb(59 130 246); color: white; }
+</style>
+HTML
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => <<<HTML
 <script>
+    document.documentElement.lang = "{$this->currentLocale()}"
     document.documentElement.setAttribute('translate', 'no')
     document.documentElement.classList.add('notranslate')
     document.body.setAttribute('translate', 'no')
@@ -66,6 +87,18 @@ HTML
             ->renderHook(
                 PanelsRenderHook::FOOTER,
                 fn (): string => '<div style="padding: 1rem 1.5rem; text-align: center; font-size: 0.8125rem; color: rgb(100 116 139);">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('components.locale-switcher', ['compact' => true])->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn (): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE,
+                fn (): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
             )
             ->renderHook(
                 PanelsRenderHook::SCRIPTS_AFTER,
@@ -107,5 +140,10 @@ HTML
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    private function currentLocale(): string
+    {
+        return app()->getLocale();
     }
 }

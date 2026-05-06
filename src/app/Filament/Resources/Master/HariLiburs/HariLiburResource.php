@@ -118,15 +118,15 @@ class HariLiburResource extends Resource
             ])
             ->filters([
                 TernaryFilter::make('BerlakuTahunan')
-                    ->label('Jenis libur')
-                    ->placeholder('Semua')
-                    ->trueLabel('Tahunan')
-                    ->falseLabel('Sekali saja'),
+                    ->label(__('ui.filters.holiday_type'))
+                    ->placeholder(__('ui.filters.all'))
+                    ->trueLabel(__('ui.filters.annual'))
+                    ->falseLabel(__('ui.filters.once')),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status')
-                    ->placeholder('Semua')
-                    ->trueLabel('Nonaktif')
-                    ->falseLabel('Aktif'),
+                    ->label(__('ui.filters.status'))
+                    ->placeholder(__('ui.filters.all'))
+                    ->trueLabel(__('ui.filters.inactive'))
+                    ->falseLabel(__('ui.filters.active')),
             ])
             ->defaultSort('TanggalLibur', 'desc')
             ->striped()

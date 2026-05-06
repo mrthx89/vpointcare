@@ -130,10 +130,10 @@ class AnggotaGrupWhatsappResource extends Resource
                     ->searchable()
                     ->preload(),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status')
-                    ->placeholder('Semua')
-                    ->trueLabel('Nonaktif')
-                    ->falseLabel('Aktif'),
+                    ->label(__('ui.filters.status'))
+                    ->placeholder(__('ui.filters.all'))
+                    ->trueLabel(__('ui.filters.inactive'))
+                    ->falseLabel(__('ui.filters.active')),
             ])
             ->defaultSort('PeranAnggota')
             ->striped()
