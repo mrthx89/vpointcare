@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\LocaleFormatter;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -132,7 +133,7 @@ class LogData extends Page
             'label' => 'Queue kosong',
             'description' => 'Tidak ada backlog job database saat ini.',
             'oldestWaitingAt' => null,
-            'updatedAt' => now()->format('d M Y H:i:s'),
+            'updatedAt' => LocaleFormatter::dateTime(now()),
         ];
         $this->queueRows = [];
         $this->pendingJobs = [];
@@ -383,6 +384,6 @@ class LogData extends Page
             return null;
         }
 
-        return Carbon::createFromTimestamp((int) $timestamp)->format('d M Y H:i:s');
+        return LocaleFormatter::dateTime(Carbon::createFromTimestamp((int) $timestamp));
     }
 }

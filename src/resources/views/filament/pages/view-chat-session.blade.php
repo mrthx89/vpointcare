@@ -70,7 +70,7 @@
             <div class="flex items-center border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
                     &#x1F4AC; Riwayat Percakapan
-                    <span class="ml-1 font-normal text-gray-400">({{ count($messages) }} pesan)</span>
+                    <span class="ml-1 font-normal text-gray-400">({{ \App\Support\LocaleFormatter::number(count($messages)) }} pesan)</span>
                 </span>
             </div>
 
@@ -94,7 +94,7 @@
                         <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
                             {{ $isOut ? $session['NamaCS'] : ($msg['PengirimNamaKontak'] ?: 'Customer') }}
                             &middot;
-                            {{ \Illuminate\Support\Carbon::parse($msg['TglFormatted'])->format('d M H:i') }}
+                            {{ $msg['TglFormatted'] }}
                             @if ($msg['StatusKirim'])
                                 &middot; {{ $msg['StatusKirim'] }}
                             @endif
@@ -151,7 +151,7 @@
                 <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">&#9998; Catatan Internal</span>
                 @if (count($internalNotes) > 0)
                     <span class="ml-auto rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-bold text-white">
-                        {{ count($internalNotes) }}
+                        {{ \App\Support\LocaleFormatter::number(count($internalNotes)) }}
                     </span>
                 @endif
             </div>

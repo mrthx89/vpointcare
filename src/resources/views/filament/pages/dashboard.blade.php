@@ -63,14 +63,14 @@
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Pesan masuk</div>
                 <div class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white">
-                    {{ $summary['incoming_messages'] ?? 0 }}</div>
-                <div class="mt-1 text-sm text-gray-500">{{ $summary['incoming_chats'] ?? 0 }} sesi chat</div>
+                    {{ \App\Support\LocaleFormatter::number($summary['incoming_messages'] ?? 0) }}</div>
+                <div class="mt-1 text-sm text-gray-500">{{ \App\Support\LocaleFormatter::number($summary['incoming_chats'] ?? 0) }} sesi chat</div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Balasan CS / AI</div>
-                <div class="mt-2 text-3xl font-semibold text-blue-600">{{ $summary['outgoing_cs'] ?? 0 }} /
-                    {{ $summary['outgoing_ai'] ?? 0 }}</div>
+                <div class="mt-2 text-3xl font-semibold text-blue-600">{{ \App\Support\LocaleFormatter::number($summary['outgoing_cs'] ?? 0) }} /
+                    {{ \App\Support\LocaleFormatter::number($summary['outgoing_ai'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">Kontribusi manusia dan auto reply</div>
             </section>
             <section
@@ -78,24 +78,24 @@
                 <div class="text-sm text-gray-500 dark:text-gray-400">Belum terjawab</div>
                 <div
                     class="mt-2 text-3xl font-semibold {{ ($summary['unanswered_chats'] ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600' }}">
-                    {{ $summary['unanswered_chats'] ?? 0 }}</div>
-                <div class="mt-1 text-sm text-gray-500">{{ $summary['unread_messages'] ?? 0 }} pesan belum dibaca total
+                    {{ \App\Support\LocaleFormatter::number($summary['unanswered_chats'] ?? 0) }}</div>
+                <div class="mt-1 text-sm text-gray-500">{{ \App\Support\LocaleFormatter::number($summary['unread_messages'] ?? 0) }} pesan belum dibaca total
                 </div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Status Penanganan (CS)</div>
-                <div class="mt-2 text-3xl font-semibold text-violet-600">{{ $summary['active_chats'] ?? 0 }} /
-                    {{ $summary['closed_chats'] ?? 0 }}</div>
+                <div class="mt-2 text-3xl font-semibold text-violet-600">{{ \App\Support\LocaleFormatter::number($summary['active_chats'] ?? 0) }} /
+                    {{ \App\Support\LocaleFormatter::number($summary['closed_chats'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">Aktif dihandle / Selesai (periode ini)</div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">Rata-rata waktu balas</div>
                 <div class="mt-2 text-3xl font-semibold text-amber-600">
-                    {{ isset($summary['avg_response_minutes']) && $summary['avg_response_minutes'] !== null ? $summary['avg_response_minutes'] . 'm' : '-' }}
+                    {{ isset($summary['avg_response_minutes']) && $summary['avg_response_minutes'] !== null ? \App\Support\LocaleFormatter::number($summary['avg_response_minutes'], null, 1) . 'm' : '-' }}
                 </div>
-                <div class="mt-1 text-sm text-gray-500">{{ $summary['tickets_created'] ?? 0 }} ticket dibuat</div>
+                <div class="mt-1 text-sm text-gray-500">{{ \App\Support\LocaleFormatter::number($summary['tickets_created'] ?? 0) }} ticket dibuat</div>
             </section>
         </div>
 
@@ -108,7 +108,7 @@
                 <div class="mt-5 flex items-end gap-3">
                     <div
                         class="text-5xl font-semibold {{ ($satisfaction['score'] ?? 0) >= 70 ? 'text-emerald-600' : 'text-amber-600' }}">
-                        {{ $satisfaction['score'] ?? '-' }}
+                        {{ \App\Support\LocaleFormatter::number($satisfaction['score'] ?? null) }}
                     </div>
                     <div class="pb-1 text-sm font-medium text-gray-600 dark:text-gray-300">/
                         100<br>{{ $satisfaction['label'] ?? 'Belum ada data' }}</div>
@@ -118,7 +118,7 @@
                         <div>
                             <div class="flex justify-between text-xs font-medium text-gray-600 dark:text-gray-300">
                                 <span>{{ $label }}</span>
-                                <span>{{ $value }}%</span>
+                                <span>{{ \App\Support\LocaleFormatter::percent($value) }}</span>
                             </div>
                             <div class="mt-1 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                                 <div class="h-full rounded-full bg-blue-600"
@@ -138,7 +138,7 @@
                             periode.</div>
                     </div>
                     <div class="text-sm text-gray-500">Gagal WAHA: <span
-                            class="font-semibold text-red-600">{{ $summary['failed_waha'] ?? 0 }}</span></div>
+                            class="font-semibold text-red-600">{{ \App\Support\LocaleFormatter::number($summary['failed_waha'] ?? 0) }}</span></div>
                 </div>
                 <div class="mt-4 grid gap-3">
                     @forelse ($dailyRows as $row)
@@ -149,17 +149,17 @@
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 rounded-full bg-gray-900 dark:bg-gray-100"
                                         style="width: {{ max(3, ($row['incoming'] / $max) * 100) }}%"></div>
-                                    <span class="w-10 text-xs text-gray-500">M {{ $row['incoming'] }}</span>
+                                    <span class="w-10 text-xs text-gray-500">M {{ \App\Support\LocaleFormatter::number($row['incoming']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 rounded-full bg-blue-600"
                                         style="width: {{ max(3, ($row['cs'] / $max) * 100) }}%"></div>
-                                    <span class="w-10 text-xs text-gray-500">CS {{ $row['cs'] }}</span>
+                                    <span class="w-10 text-xs text-gray-500">CS {{ \App\Support\LocaleFormatter::number($row['cs']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 rounded-full bg-emerald-600"
                                         style="width: {{ max(3, ($row['ai'] / $max) * 100) }}%"></div>
-                                    <span class="w-10 text-xs text-gray-500">AI {{ $row['ai'] }}</span>
+                                    <span class="w-10 text-xs text-gray-500">AI {{ \App\Support\LocaleFormatter::number($row['ai']) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -198,10 +198,10 @@
                                         </div>
                                         <div class="text-xs text-gray-500">{{ $row['email'] }}</div>
                                     </td>
-                                    <td class="px-4 py-3 font-semibold">{{ $row['replies'] }}</td>
-                                    <td class="px-4 py-3">{{ $row['chats'] }}</td>
-                                    <td class="px-4 py-3 text-emerald-600">{{ $row['sent'] }}</td>
-                                    <td class="px-4 py-3 text-red-600">{{ $row['failed'] }}</td>
+                                    <td class="px-4 py-3 font-semibold">{{ \App\Support\LocaleFormatter::number($row['replies']) }}</td>
+                                    <td class="px-4 py-3">{{ \App\Support\LocaleFormatter::number($row['chats']) }}</td>
+                                    <td class="px-4 py-3 text-emerald-600">{{ \App\Support\LocaleFormatter::number($row['sent']) }}</td>
+                                    <td class="px-4 py-3 text-red-600">{{ \App\Support\LocaleFormatter::number($row['failed']) }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -226,10 +226,10 @@
                         <div class="flex items-center justify-between gap-4 p-4">
                             <div>
                                 <div class="font-semibold text-gray-950 dark:text-white">{{ $client['name'] }}</div>
-                                <div class="text-sm text-gray-500">{{ $client['chats'] }} sesi chat</div>
+                                <div class="text-sm text-gray-500">{{ \App\Support\LocaleFormatter::number($client['chats']) }} sesi chat</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-xl font-semibold text-blue-600">{{ $client['messages'] }}</div>
+                                <div class="text-xl font-semibold text-blue-600">{{ \App\Support\LocaleFormatter::number($client['messages']) }}</div>
                                 <div class="text-xs text-gray-500">pesan</div>
                             </div>
                         </div>

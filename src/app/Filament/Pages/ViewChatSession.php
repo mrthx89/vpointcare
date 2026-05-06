@@ -4,10 +4,10 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\LocaleFormatter;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Carbon;
 
 class ViewChatSession extends Page
 {
@@ -74,7 +74,7 @@ class ViewChatSession extends Page
             'NamaCustomer' => $row->NamaCustomer,
             'NamaInstansi' => $row->NamaInstansi ?: 'Belum dipetakan',
             'Status' => $row->NamaStatusChat ?: 'Selesai',
-            'TglTerakhir' => Carbon::parse($row->TglChatTerakhir)->format('d M Y H:i'),
+            'TglTerakhir' => LocaleFormatter::dateTime($row->TglChatTerakhir),
             'NamaCS' => $row->NamaCS ?: 'Belum ditangani',
         ];
 
@@ -108,7 +108,7 @@ class ViewChatSession extends Page
                 'UrlMedia' => $r->UrlMedia,
                 'NamaFileMedia' => $r->NamaFileMedia,
                 'PengirimNamaKontak' => $r->PengirimNamaKontak ?: $r->PengirimNomorWhatsapp,
-                'TglFormatted' => Carbon::parse($r->TglPesan)->format('d M Y H:i'),
+                'TglFormatted' => LocaleFormatter::dateTime($r->TglPesan),
                 'StatusKirim' => $r->StatusKirim,
                 'IsOutgoing' => $r->ArahPesan === 'Keluar',
             ])
@@ -130,7 +130,7 @@ class ViewChatSession extends Page
                 return [
                     'IsiCatatan' => $r->IsiCatatan,
                     'NamaPembuat' => $namaPembuat,
-                    'TglFormatted' => Carbon::parse($r->TglBuat)->format('d M Y H:i'),
+                    'TglFormatted' => LocaleFormatter::dateTime($r->TglBuat),
                 ];
             })
             ->all();

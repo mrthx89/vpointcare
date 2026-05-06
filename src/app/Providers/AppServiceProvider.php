@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Auth\PenggunaUserProvider;
+use App\Support\LocaleManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Number;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
         Auth::provider('pengguna', fn ($app, array $config): PenggunaUserProvider => new PenggunaUserProvider($app['hash'], $config['model']));
 
         Carbon::setLocale(config('app.locale'));
+        Number::useLocale(LocaleManager::regional(config('app.locale')));
+        Number::useCurrency('IDR');
 
         $appUrl = (string) config('app.url');
         $appUrlUsesHttps = str_starts_with($appUrl, 'https://');

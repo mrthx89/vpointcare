@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Number;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
@@ -18,6 +19,8 @@ class SetLocale
 
         App::setLocale($locale);
         Carbon::setLocale($locale);
+        Number::useLocale(LocaleManager::regional($locale));
+        Number::useCurrency('IDR');
         Session::put((string) config('localization.session_key', 'wacs_locale'), $locale);
 
         return $next($request);

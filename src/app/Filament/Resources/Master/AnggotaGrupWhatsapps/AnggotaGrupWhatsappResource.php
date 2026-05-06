@@ -114,12 +114,12 @@ class AnggotaGrupWhatsappResource extends Resource
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

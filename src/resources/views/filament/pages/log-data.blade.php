@@ -2,6 +2,7 @@
     <div class="space-y-6" wire:poll.15s="loadLogs">
         <section
             x-data="{
+                locale: @js(\App\Support\LocaleManager::browserLocale()),
                 status: window.wahaGetReverbStatus ? window.wahaGetReverbStatus() : {
                     state: 'unknown',
                     message: 'Reverb client belum terdeteksi di browser ini.',
@@ -40,7 +41,7 @@
                 formatDate(value) {
                     if (!value) return '-';
 
-                    return new Intl.DateTimeFormat('id-ID', {
+                    return new Intl.DateTimeFormat(this.locale, {
                         day: '2-digit',
                         month: 'short',
                         hour: '2-digit',
@@ -178,7 +179,7 @@
                                 Driver: <span class="font-mono">{{ $jobStatus['driver'] ?? '-' }}</span>
                                 &middot; Connection: <span class="font-mono">{{ $jobStatus['connection'] ?? '-' }}</span>
                                 &middot; Default queue: <span class="font-mono">{{ $jobStatus['defaultQueue'] ?? '-' }}</span>
-                                &middot; Retry after: {{ $jobStatus['retryAfter'] ?? 0 }} detik
+                                &middot; Retry after: {{ \App\Support\LocaleFormatter::number($jobStatus['retryAfter'] ?? 0) }} detik
                             </div>
                         </div>
                         <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -190,23 +191,23 @@
                 <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Total Jobs</div>
-                        <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ $jobStatus['total'] ?? 0 }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Pending {{ $jobStatus['pending'] ?? 0 }} &middot; Delayed {{ $jobStatus['delayed'] ?? 0 }}</div>
+                        <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ \App\Support\LocaleFormatter::number($jobStatus['total'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">Pending {{ \App\Support\LocaleFormatter::number($jobStatus['pending'] ?? 0) }} &middot; Delayed {{ \App\Support\LocaleFormatter::number($jobStatus['delayed'] ?? 0) }}</div>
                     </div>
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Sedang Diproses</div>
-                        <div class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-300">{{ $jobStatus['reserved'] ?? 0 }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Stale reserved {{ $jobStatus['staleReserved'] ?? 0 }}</div>
+                        <div class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-300">{{ \App\Support\LocaleFormatter::number($jobStatus['reserved'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">Stale reserved {{ \App\Support\LocaleFormatter::number($jobStatus['staleReserved'] ?? 0) }}</div>
                     </div>
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Failed Jobs</div>
-                        <div class="mt-1 text-2xl font-semibold {{ ($jobStatus['failed'] ?? 0) > 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300' }}">{{ $jobStatus['failed'] ?? 0 }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Failed batch jobs {{ $jobStatus['failedBatchJobs'] ?? 0 }}</div>
+                        <div class="mt-1 text-2xl font-semibold {{ ($jobStatus['failed'] ?? 0) > 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300' }}">{{ \App\Support\LocaleFormatter::number($jobStatus['failed'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">Failed batch jobs {{ \App\Support\LocaleFormatter::number($jobStatus['failedBatchJobs'] ?? 0) }}</div>
                     </div>
                     <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">Batch Aktif</div>
-                        <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ $jobStatus['activeBatches'] ?? 0 }}</div>
-                        <div class="mt-1 text-xs text-gray-500">Pending batch jobs {{ $jobStatus['pendingBatchJobs'] ?? 0 }}</div>
+                        <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">{{ \App\Support\LocaleFormatter::number($jobStatus['activeBatches'] ?? 0) }}</div>
+                        <div class="mt-1 text-xs text-gray-500">Pending batch jobs {{ \App\Support\LocaleFormatter::number($jobStatus['pendingBatchJobs'] ?? 0) }}</div>
                     </div>
                 </div>
 
@@ -230,10 +231,10 @@
                                     @forelse ($queueRows as $row)
                                         <tr>
                                             <td class="px-3 py-2 font-mono text-xs text-gray-900 dark:text-gray-100">{{ $row['queue'] }}</td>
-                                            <td class="px-3 py-2">{{ $row['total'] }}</td>
-                                            <td class="px-3 py-2">{{ $row['pending'] }}</td>
-                                            <td class="px-3 py-2">{{ $row['reserved'] }}</td>
-                                            <td class="px-3 py-2">{{ $row['delayed'] }}</td>
+                                            <td class="px-3 py-2">{{ \App\Support\LocaleFormatter::number($row['total']) }}</td>
+                                            <td class="px-3 py-2">{{ \App\Support\LocaleFormatter::number($row['pending']) }}</td>
+                                            <td class="px-3 py-2">{{ \App\Support\LocaleFormatter::number($row['reserved']) }}</td>
+                                            <td class="px-3 py-2">{{ \App\Support\LocaleFormatter::number($row['delayed']) }}</td>
                                         </tr>
                                     @empty
                                         <tr>
@@ -257,7 +258,7 @@
                                         <span class="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $jobStateClass($job['state']) }}">{{ $job['state'] }}</span>
                                     </div>
                                     <div class="mt-1 text-xs text-gray-500">
-                                        #{{ $job['id'] }} &middot; {{ $job['queue'] }} &middot; attempts {{ $job['attempts'] }}
+                                        #{{ \App\Support\LocaleFormatter::number($job['id']) }} &middot; {{ $job['queue'] }} &middot; attempts {{ \App\Support\LocaleFormatter::number($job['attempts']) }}
                                         &middot; available {{ $job['availableAt'] ?: '-' }}
                                     </div>
                                 </div>
@@ -279,7 +280,7 @@
                                     <div class="px-3 py-2 text-sm">
                                         <div class="flex items-center justify-between gap-3">
                                             <div class="min-w-0 truncate font-medium text-gray-950 dark:text-white">{{ $job['name'] }}</div>
-                                            <span class="shrink-0 text-xs text-gray-500">{{ \Illuminate\Support\Carbon::parse($job['failedAt'])->format('d M H:i:s') }}</span>
+                                            <span class="shrink-0 text-xs text-gray-500">{{ \App\Support\LocaleFormatter::shortDateTime($job['failedAt']) }}</span>
                                         </div>
                                         <div class="mt-1 text-xs text-gray-500">{{ $job['connection'] }} / {{ $job['queue'] }}</div>
                                         <div class="mt-1 rounded bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-300">{{ $job['exception'] }}</div>
@@ -302,7 +303,7 @@
                                             <span class="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $jobStateClass($batch['status']) }}">{{ $batch['status'] }}</span>
                                         </div>
                                         <div class="mt-1 text-xs text-gray-500">
-                                            total {{ $batch['totalJobs'] }} &middot; pending {{ $batch['pendingJobs'] }} &middot; failed {{ $batch['failedJobs'] }}
+                                            total {{ \App\Support\LocaleFormatter::number($batch['totalJobs']) }} &middot; pending {{ \App\Support\LocaleFormatter::number($batch['pendingJobs']) }} &middot; failed {{ \App\Support\LocaleFormatter::number($batch['failedJobs']) }}
                                         </div>
                                     </div>
                                 @empty
@@ -336,7 +337,7 @@
                         @forelse ($integrationLogs as $log)
                             <tr class="align-top">
                                 <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">
-                                    {{ \Illuminate\Support\Carbon::parse($log['TglRequest'])->format('d M H:i:s') }}
+                                    {{ \App\Support\LocaleFormatter::shortDateTime($log['TglRequest']) }}
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-950 dark:text-white">{{ $log['KodeIntegrasi'] }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">
@@ -387,7 +388,7 @@
                         @forelse ($webhookLogs as $log)
                             <tr>
                                 <td class="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">
-                                    {{ \Illuminate\Support\Carbon::parse($log['TglDiterima'])->format('d M H:i:s') }}
+                                    {{ \App\Support\LocaleFormatter::shortDateTime($log['TglDiterima']) }}
                                 </td>
                                 <td class="px-4 py-3 font-medium text-gray-950 dark:text-white">{{ $log['JenisEvent'] }}</td>
                                 <td class="px-4 py-3">

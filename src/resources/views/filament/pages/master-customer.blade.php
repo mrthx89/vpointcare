@@ -16,7 +16,7 @@
                     <div class="vc-stat-body">
                         <div>
                             <div class="vc-stat-label">{{ $card['label'] }}</div>
-                            <div class="vc-stat-value">{{ number_format($card['value']) }}</div>
+                            <div class="vc-stat-value">{{ \App\Support\LocaleFormatter::number($card['value']) }}</div>
                         </div>
                         <div class="vc-stat-tone {{ $card['tone'] }}"></div>
                     </div>

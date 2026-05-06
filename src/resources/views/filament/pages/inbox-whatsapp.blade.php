@@ -350,7 +350,7 @@
                                     <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
                                         {{ $message['SenderName'] }}
                                         &middot;
-                                        {{ \Illuminate\Support\Carbon::parse($message['TglPesan'])->format('d M H:i') }}
+                                        {{ \App\Support\LocaleFormatter::shortDate($message['TglPesan']) }} {{ \App\Support\LocaleFormatter::time($message['TglPesan']) }}
                                         @if ($message['StatusKirim'])
                                             &middot; {{ $message['StatusKirim'] }}
                                         @endif
@@ -590,7 +590,7 @@
                                             class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['AiSudahMenyapa'] ? 'Sudah' : 'Belum' }}</span>
                                     </div>
                                     <div>Terakhir AI: <span
-                                            class="font-medium text-gray-950 dark:text-white">{{ $selectedChat['TglAutoReplyAiTerakhir'] ? \Illuminate\Support\Carbon::parse($selectedChat['TglAutoReplyAiTerakhir'])->format('d M Y H:i') : '-' }}</span>
+                                            class="font-medium text-gray-950 dark:text-white">{{ \App\Support\LocaleFormatter::dateTime($selectedChat['TglAutoReplyAiTerakhir'] ?? null) }}</span>
                                     </div>
                                 </div>
                                 @if ($this->canManageInbox())
@@ -637,7 +637,7 @@
                     @foreach ($historyChats as $history)
                         <div class="py-3 flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <div class="font-medium text-gray-900 dark:text-white">{{ \Illuminate\Support\Carbon::parse($history['TglChatTerakhir'])->format('d M Y H:i') }}</div>
+                                <div class="font-medium text-gray-900 dark:text-white">{{ \App\Support\LocaleFormatter::dateTime($history['TglChatTerakhir']) }}</div>
                                 <div class="text-sm text-gray-500">{{ $history['NamaStatusChat'] }} &middot; {{ $history['JumlahPesanBelumDibaca'] }} unread</div>
                             </div>
                             <a href="{{ route('filament.admin.pages.view-chat-session') . '?id=' . $history['Id'] }}"
@@ -664,7 +664,7 @@
                     <div class="rounded-lg bg-yellow-50 p-3 text-sm dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20">
                         <div class="font-medium text-yellow-800 dark:text-yellow-400 mb-1 flex justify-between">
                             <span>{{ $note['DibuatOlehNama'] }}</span>
-                            <span class="text-xs opacity-70">{{ \Illuminate\Support\Carbon::parse($note['TglBuat'])->format('d M Y H:i') }}</span>
+                            <span class="text-xs opacity-70">{{ \App\Support\LocaleFormatter::dateTime($note['TglBuat']) }}</span>
                         </div>
                         <div class="text-yellow-900 dark:text-yellow-300 whitespace-pre-wrap">{{ $note['IsiCatatan'] }}</div>
                     </div>

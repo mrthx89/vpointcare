@@ -85,4 +85,26 @@ class LocaleManager
 
         return self::supported()[$locale]['label'] ?? strtoupper($locale);
     }
+
+    public static function regional(?string $locale = null): string
+    {
+        $locale = $locale ?: self::current();
+
+        return self::supported()[$locale]['regional'] ?? $locale;
+    }
+
+    public static function browserLocale(?string $locale = null): string
+    {
+        return str_replace('_', '-', self::regional($locale));
+    }
+
+    public static function format(string $key, ?string $locale = null): string
+    {
+        $locale = $locale ?: self::current();
+
+        return self::supported()[$locale][$key]
+            ?? self::supported()[self::default()][$key]
+            ?? self::supported()[self::fallback()][$key]
+            ?? '';
+    }
 }

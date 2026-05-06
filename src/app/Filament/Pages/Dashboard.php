@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\LocaleFormatter;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Schemas\Components\Section;
@@ -74,7 +75,7 @@ class Dashboard extends BaseDashboard
                     ->schema([
                         DateRangePicker::make('date_range')
                             ->label('Periode')
-                            ->format('d-m-Y')
+                            ->format(LocaleFormatter::dateInputFormat())
                             ->rangeSeparator(' to ')
                             ->showDropdowns()
                             ->autoApply(),
@@ -165,7 +166,7 @@ class Dashboard extends BaseDashboard
         $this->dailyRows = $this->dailyTrend($start, $end, $messageRows);
         $this->topClients = $this->topClients($start, $end);
         $this->satisfaction = $this->satisfactionIndex($incomingChats, $unansweredChats, $deliveryTotal, $sentWaha, $avgResponseMinutes, $periodChats, $mappedChats);
-        $this->lastUpdated = now()->format('d M Y H:i:s');
+        $this->lastUpdated = LocaleFormatter::dateTime(now());
     }
 
     private function syncDatesFromFilters(): bool
@@ -215,7 +216,7 @@ class Dashboard extends BaseDashboard
 
     private function parseSingleFilterDate(string $value): ?string
     {
-        foreach (['d-m-Y', 'Y-m-d', 'd/m/Y'] as $format) {
+        foreach ([LocaleFormatter::dateInputFormat(), 'd-m-Y', 'm-d-Y', 'Y-m-d', 'd/m/Y', 'm/d/Y'] as $format) {
             try {
                 return Carbon::createFromFormat($format, $value)->toDateString();
             } catch (\Throwable) {
@@ -232,7 +233,9 @@ class Dashboard extends BaseDashboard
             return null;
         }
 
-        return Carbon::parse($startDate)->format('d-m-Y') . ' to ' . Carbon::parse($endDate)->format('d-m-Y');
+        $format = LocaleFormatter::dateInputFormat();
+
+        return Carbon::parse($startDate)->format($format) . ' to ' . Carbon::parse($endDate)->format($format);
     }
 
     /**
@@ -384,7 +387,7 @@ class Dashboard extends BaseDashboard
             $dayRows = $messageRows->filter(fn (object $row): bool => Carbon::parse($row->TglPesan)->toDateString() === $key);
 
             $rows[] = [
-                'date' => $cursor->format('d M'),
+                'date' => LocaleFormatter::shortDate($cursor),
                 'incoming' => $dayRows->where('ArahPesan', 'Masuk')->count(),
                 'cs' => $dayRows->where('ArahPesan', 'Keluar')->where('DihasilkanOlehAi', false)->count(),
                 'ai' => $dayRows->where('ArahPesan', 'Keluar')->where('DihasilkanOlehAi', true)->count(),

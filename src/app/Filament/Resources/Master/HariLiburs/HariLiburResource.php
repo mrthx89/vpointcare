@@ -87,7 +87,7 @@ class HariLiburResource extends Resource
             ->columns([
                 TextColumn::make('TanggalLibur')
                     ->label('Tanggal')
-                    ->date()
+                    ->date(\App\Support\LocaleFormatter::tableDateFormat())
                     ->sortable(),
                 TextColumn::make('NamaHariLibur')
                     ->label('Nama hari libur')
@@ -107,12 +107,12 @@ class HariLiburResource extends Resource
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::HOLIDAY_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

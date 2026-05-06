@@ -155,7 +155,7 @@ class PenggunaResource extends Resource
                     ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::USER_MANAGE)),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
