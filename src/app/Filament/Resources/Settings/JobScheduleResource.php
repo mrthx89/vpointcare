@@ -3,23 +3,27 @@
 namespace App\Filament\Resources\Settings;
 
 use App\Filament\Resources\Settings\JobScheduleResource\Pages;
-use App\Models\JobSchedule;
+use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
-use Filament\Actions\EditAction;
-use Illuminate\Database\Eloquent\Builder;
 
 class JobScheduleResource extends Resource
 {
-    protected static ?string $model = JobSchedule::class;
+    protected static ?string $model = \App\Models\JobSchedule::class;
+
+    public static function getModel(): string
+    {
+        return \App\Models\JobSchedule::class;
+    }
 
     public static function getNavigationIcon(): ?string
     {
@@ -28,17 +32,27 @@ class JobScheduleResource extends Resource
     
     public static function getNavigationGroup(): ?string
     {
-        return 'Pengaturan';
+        return __('ui.navigation.settings');
     }
     
     public static function getNavigationLabel(): string
     {
-        return 'Penjadwalan Jobs';
+        return __('ui.models.job_schedule.label');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.job_schedule.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.job_schedule.plural');
     }
     
     public static function canViewAny(): bool
     {
-        return FilamentAccess::isRoot() || FilamentAccess::isCSLeader();
+        return FilamentAccess::can(AccessPermissions::JOB_SCHEDULE_VIEW);
     }
 
     public static function canCreate(): bool
@@ -48,7 +62,7 @@ class JobScheduleResource extends Resource
 
     public static function canEdit($record): bool
     {
-        return FilamentAccess::isRoot() || FilamentAccess::isCSLeader();
+        return FilamentAccess::can(AccessPermissions::JOB_SCHEDULE_VIEW);
     }
 
     public static function canDelete($record): bool
@@ -61,34 +75,34 @@ class JobScheduleResource extends Resource
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->label('Nama Job')
+                    ->label(__('ui.models.job_schedule.name'))
                     ->disabled(),
                 TextInput::make('command')
-                    ->label('Perintah Artisan')
+                    ->label(__('ui.models.job_schedule.command'))
                     ->disabled(),
                 Select::make('cron_expression')
-                    ->label('Jadwal Eksekusi')
+                    ->label(__('ui.models.job_schedule.cron_expression'))
                     ->options([
-                        'everySecond' => 'Setiap Detik (1s)',
-                        'everyTwoSeconds' => 'Setiap 2 Detik (2s)',
-                        'everyFiveSeconds' => 'Setiap 5 Detik (5s)',
-                        'everyTenSeconds' => 'Setiap 10 Detik (10s)',
-                        'everyFifteenSeconds' => 'Setiap 15 Detik (15s)',
-                        'everyTwentySeconds' => 'Setiap 20 Detik (20s)',
-                        'everyThirtySeconds' => 'Setiap 30 Detik (30s)',
-                        'everyMinute' => 'Setiap Menit',
-                        'everyFiveMinutes' => 'Setiap 5 Menit',
-                        'everyTenMinutes' => 'Setiap 10 Menit',
-                        'hourly' => 'Setiap Jam',
-                        'daily' => 'Setiap Hari',
+                        'everySecond' => __('ui.models.job_schedule.everySecond'),
+                        'everyTwoSeconds' => __('ui.models.job_schedule.everyTwoSeconds'),
+                        'everyFiveSeconds' => __('ui.models.job_schedule.everyFiveSeconds'),
+                        'everyTenSeconds' => __('ui.models.job_schedule.everyTenSeconds'),
+                        'everyFifteenSeconds' => __('ui.models.job_schedule.everyFifteenSeconds'),
+                        'everyTwentySeconds' => __('ui.models.job_schedule.everyTwentySeconds'),
+                        'everyThirtySeconds' => __('ui.models.job_schedule.everyThirtySeconds'),
+                        'everyMinute' => __('ui.models.job_schedule.everyMinute'),
+                        'everyFiveMinutes' => __('ui.models.job_schedule.everyFiveMinutes'),
+                        'everyTenMinutes' => __('ui.models.job_schedule.everyTenMinutes'),
+                        'hourly' => __('ui.models.job_schedule.hourly'),
+                        'daily' => __('ui.models.job_schedule.daily'),
                     ])
                     ->required()
                     ->default('everyMinute'),
                 Toggle::make('is_active')
-                    ->label('Aktif?')
+                    ->label(__('ui.models.job_schedule.is_active'))
                     ->default(true),
                 Textarea::make('description')
-                    ->label('Deskripsi')
+                    ->label(__('ui.models.job_schedule.description'))
                     ->disabled()
                     ->columnSpanFull(),
             ]);
@@ -99,38 +113,38 @@ class JobScheduleResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Nama Job'),
+                    ->label(__('ui.models.job_schedule.name')),
                 TextColumn::make('command')
-                    ->label('Perintah')
+                    ->label(__('ui.models.job_schedule.command'))
                     ->color('gray')
                     ->size('sm'),
                 TextColumn::make('cron_expression')
-                    ->label('Interval')
+                    ->label(__('ui.models.job_schedule.cron_expression'))
                     ->formatStateUsing(function (string $state) {
                         $labels = [
-                            'everySecond' => 'Setiap Detik (1s)',
-                            'everyTwoSeconds' => 'Setiap 2 Detik (2s)',
-                            'everyFiveSeconds' => 'Setiap 5 Detik (5s)',
-                            'everyTenSeconds' => 'Setiap 10 Detik (10s)',
-                            'everyFifteenSeconds' => 'Setiap 15 Detik (15s)',
-                            'everyTwentySeconds' => 'Setiap 20 Detik (20s)',
-                            'everyThirtySeconds' => 'Setiap 30 Detik (30s)',
-                            'everyMinute' => 'Setiap Menit',
-                            'everyFiveMinutes' => 'Setiap 5 Menit',
-                            'everyTenMinutes' => 'Setiap 10 Menit',
-                            'hourly' => 'Setiap Jam',
-                            'daily' => 'Setiap Hari',
+                            'everySecond' => __('ui.models.job_schedule.everySecond'),
+                            'everyTwoSeconds' => __('ui.models.job_schedule.everyTwoSeconds'),
+                            'everyFiveSeconds' => __('ui.models.job_schedule.everyFiveSeconds'),
+                            'everyTenSeconds' => __('ui.models.job_schedule.everyTenSeconds'),
+                            'everyFifteenSeconds' => __('ui.models.job_schedule.everyFifteenSeconds'),
+                            'everyTwentySeconds' => __('ui.models.job_schedule.everyTwentySeconds'),
+                            'everyThirtySeconds' => __('ui.models.job_schedule.everyThirtySeconds'),
+                            'everyMinute' => __('ui.models.job_schedule.everyMinute'),
+                            'everyFiveMinutes' => __('ui.models.job_schedule.everyFiveMinutes'),
+                            'everyTenMinutes' => __('ui.models.job_schedule.everyTenMinutes'),
+                            'hourly' => __('ui.models.job_schedule.hourly'),
+                            'daily' => __('ui.models.job_schedule.daily'),
                         ];
                         return $labels[$state] ?? $state;
                     })
                     ->badge()
                     ->color('info'),
                 ToggleColumn::make('is_active')
-                    ->label('Status'),
+                    ->label(__('ui.models.job_schedule.is_active')),
             ])
             ->paginated(false)
             ->recordActions([
-                \Filament\Tables\Actions\EditAction::make(),
+                EditAction::make(),
             ]);
     }
 

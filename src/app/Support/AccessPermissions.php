@@ -44,6 +44,8 @@ class AccessPermissions
 
     public const HAK_AKSES_MANAGE = 'hak_akses.manage';
 
+    public const JOB_SCHEDULE_VIEW = 'job_schedule.view';
+
     /**
      * @return array<string, array{label: string, module: string, description: string}>
      */
@@ -216,6 +218,11 @@ class AccessPermissions
                 'module' => 'ui.permissions.settings_module',
                 'description' => 'ui.permissions.hak_akses_manage_desc',
             ],
+            self::JOB_SCHEDULE_VIEW => [
+                'label' => 'ui.permissions.job_schedule_view',
+                'module' => 'ui.permissions.settings_module',
+                'description' => 'ui.permissions.job_schedule_view_desc',
+            ],
         ];
     }
 
@@ -253,6 +260,7 @@ class AccessPermissions
                 self::CHAT_HISTORY_VIEW,
                 self::HAK_AKSES_VIEW,
                 self::HAK_AKSES_MANAGE,
+                self::JOB_SCHEDULE_VIEW,
             ],
             'CS' => [
                 self::DASHBOARD_VIEW,

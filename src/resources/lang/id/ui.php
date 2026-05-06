@@ -71,6 +71,8 @@ return [
         'hak_akses_view_desc' => 'Melihat daftar hak akses dan deskripsinya.',
         'hak_akses_manage' => 'Kelola Hak Akses',
         'hak_akses_manage_desc' => 'Mengubah label, modul, dan deskripsi hak akses (multilanguage).',
+        'job_schedule_view' => 'Lihat Penjadwalan Job',
+        'job_schedule_view_desc' => 'Melihat dan mengatur jadwal eksekusi background job (interval & aktif/nonaktif).',
         'settings_module' => 'Pengaturan',
     ],
     'roles' => [
