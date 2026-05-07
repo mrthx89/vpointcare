@@ -380,6 +380,8 @@ return [
             'recipient_roles_help' => 'Pisahkan kode role dengan koma. User harus memiliki Nomor WhatsApp Internal.',
             'notification_template' => 'Template notifikasi',
             'notification_placeholders' => 'Placeholder: {nama_user}, {nama_instansi}, {jenis_chat}, {nama_kontak}, {nomor_whatsapp}, {pesan_terakhir}, {menit_menunggu}, {url_admin}',
+            'exclude_whatsapp_numbers' => 'Exclude Nomor WhatsApp',
+            'exclude_whatsapp_numbers_help' => 'Nomor pada daftar ini tidak akan dibuatkan sesi TChat saat ada pesan masuk, sehingga tidak muncul di Inbox, Histori Chat, dan notifikasi. Pisahkan dengan baris baru, koma, atau titik koma.',
             'save_settings' => 'Simpan Pengaturan',
         ],
         'dashboard' => [

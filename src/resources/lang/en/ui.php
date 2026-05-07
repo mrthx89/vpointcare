@@ -380,6 +380,8 @@ return [
             'recipient_roles_help' => 'Separate role codes with commas. Users must have an Internal WhatsApp Number.',
             'notification_template' => 'Notification template',
             'notification_placeholders' => 'Placeholders: {nama_user}, {nama_instansi}, {jenis_chat}, {nama_kontak}, {nomor_whatsapp}, {pesan_terakhir}, {menit_menunggu}, {url_admin}',
+            'exclude_whatsapp_numbers' => 'Exclude WhatsApp Numbers',
+            'exclude_whatsapp_numbers_help' => 'Numbers in this list will not create TChat sessions when incoming messages arrive, so they will not appear in Inbox, Chat History, or notifications. Separate with new lines, commas, or semicolons.',
             'save_settings' => 'Save Settings',
         ],
         'dashboard' => [

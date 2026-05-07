@@ -119,6 +119,7 @@ class AiAgent extends Page
             'pengaturan.JedaNotifikasiMenit' => ['required', 'integer', 'min:1', 'max:1440'],
             'pengaturan.KodePeranPenerimaNotifikasi' => ['required', 'string', 'max:200'],
             'pengaturan.TemplateNotifikasiChatBelumTerbalas' => ['nullable', 'string', 'max:4000'],
+            'pengaturan.ExcludeNomorWhatsapp' => ['nullable', 'string', 'max:4000'],
             'pengaturan.BatasRiwayatPesan' => ['required', 'integer', 'min:1', 'max:20'],
             'pengaturan.KirimKeWaha' => ['boolean'],
             'pengaturan.ModeKirim' => ['required', 'string', 'max:50'],
@@ -127,6 +128,7 @@ class AiAgent extends Page
 
         $data = $validated['pengaturan'];
         $data['HariKerja'] = implode(',', $data['HariKerja']);
+        $data['ExcludeNomorWhatsapp'] = $this->normalizeExcludedNumbers((string) ($data['ExcludeNomorWhatsapp'] ?? ''));
         $data = $this->normalizeProviderSettings($data);
         $data['KirimKeWaha'] = (bool) $data['KirimKeWaha'] || $data['ModeKirim'] === 'KirimWaha';
         $data['ModeKirim'] = $data['KirimKeWaha'] ? 'KirimWaha' : 'DraftLokal';
@@ -197,6 +199,7 @@ class AiAgent extends Page
             'JedaNotifikasiMenit' => (int) ($row->JedaNotifikasiMenit ?? 30),
             'KodePeranPenerimaNotifikasi' => $row->KodePeranPenerimaNotifikasi ?? 'ADMIN,SUPERVISOR_CS,CS',
             'TemplateNotifikasiChatBelumTerbalas' => $row->TemplateNotifikasiChatBelumTerbalas ?? $this->defaultNotificationTemplate(),
+            'ExcludeNomorWhatsapp' => Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp') ? (string) ($row->ExcludeNomorWhatsapp ?? '') : '',
             'BatasRiwayatPesan' => (int) $row->BatasRiwayatPesan,
             'KirimKeWaha' => (bool) $row->KirimKeWaha,
             'ModeKirim' => $row->ModeKirim ?: 'DraftLokal',
@@ -282,7 +285,7 @@ class AiAgent extends Page
             return;
         }
 
-        DB::table('MPengaturanAi')->insert([
+        $data = [
             'Id' => (string) Str::orderedUuid(),
             'KodePengaturan' => 'DEFAULT',
             'NamaPengaturan' => 'Pengaturan Default AI Agent',
@@ -313,7 +316,13 @@ class AiAgent extends Page
             'ModeKirim' => 'DraftLokal',
             'NonAktif' => false,
             'TglBuat' => now(),
-        ]);
+        ];
+
+        if (Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
+            $data['ExcludeNomorWhatsapp'] = '';
+        }
+
+        DB::table('MPengaturanAi')->insert($data);
     }
 
     /**
@@ -407,5 +416,17 @@ class AiAgent extends Page
     private function defaultHolidayTemplate(): string
     {
         return 'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.';
+    }
+
+    private function normalizeExcludedNumbers(string $value): string
+    {
+        $numbers = preg_split('/[\s,;]+/', $value) ?: [];
+
+        return collect($numbers)
+            ->map(fn (string $number): string => preg_replace('/@.+$/', '', trim($number)) ?: trim($number))
+            ->map(fn (string $number): ?string => preg_replace('/[^0-9]/', '', $number) ?: null)
+            ->filter()
+            ->unique()
+            ->implode(PHP_EOL);
     }
 }

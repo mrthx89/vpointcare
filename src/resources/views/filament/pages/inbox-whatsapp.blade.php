@@ -461,9 +461,12 @@
                             <input x-ref="attachmentInput" type="file" wire:model="attachment"
                                 accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
                                 class="hidden">
-                            <textarea wire:model="replyText"
-                                class="min-h-24 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                                placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
+                            <x-filament::input.wrapper :valid="! $errors->has('replyText')">
+                                <textarea wire:model="replyText"
+                                    class="w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
+                                    rows="4"
+                                    placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
+                            </x-filament::input.wrapper>
                             @error('replyText')
                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                             @enderror
@@ -486,16 +489,17 @@
                                 </div>
                             @endif
                             <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                <button type="button" @click="$refs.attachmentInput.click()"
-                                    class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.pages.inbox.attach_file') }}</button>
+                                <x-filament::button type="button" color="gray" outlined
+                                    x-on:click="$refs.attachmentInput.click()">
+                                    {{ __('ui.pages.inbox.attach_file') }}
+                                </x-filament::button>
                                 <div class="flex flex-wrap justify-end gap-2">
-                                    <button type="button" wire:click="simpanBalasanLokal"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.common.save') }}
-                                        Draft</button>
-                                    <button
-                                        class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-70"
-                                        wire:loading.attr="disabled"
-                                        wire:target="attachment,kirimBalasanWaha">{{ __('ui.pages.inbox.send_to_whatsapp') }}</button>
+                                    <x-filament::button type="button" color="gray" outlined wire:click="simpanBalasanLokal">
+                                        {{ __('ui.common.save') }} Draft
+                                    </x-filament::button>
+                                    <x-filament::button type="submit" wire:target="attachment,kirimBalasanWaha">
+                                        {{ __('ui.pages.inbox.send_to_whatsapp') }}
+                                    </x-filament::button>
                                 </div>
                             </div>
                         </form>
@@ -514,10 +518,12 @@
                             {{ __('ui.pages.inbox.profile_mapping') }}</div>
                         @if ($selectedChat && $this->canManageInbox())
                             <div class="flex flex-wrap justify-end gap-2">
-                                <button type="button" wire:click="refreshProfilWaha"
-                                    class="rounded-md border border-blue-300 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950/40">{{ __('ui.pages.inbox.fetch_profile') }}</button>
-                                <button type="button" wire:click="refreshMappingChat"
-                                    class="rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.common.refresh') }}</button>
+                                <x-filament::button type="button" color="info" size="xs" outlined wire:click="refreshProfilWaha">
+                                    {{ __('ui.pages.inbox.fetch_profile') }}
+                                </x-filament::button>
+                                <x-filament::button type="button" color="gray" size="xs" outlined wire:click="refreshMappingChat">
+                                    {{ __('ui.common.refresh') }}
+                                </x-filament::button>
                             </div>
                         @endif
                     </div>
@@ -606,12 +612,12 @@
                             </div>
                             @if ($this->canManageInbox())
                                 <div class="flex flex-wrap gap-2">
-                                    <button type="button" wire:click="toggleAutoReplyAi"
-                                        class="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                    <x-filament::button type="button" wire:click="toggleAutoReplyAi">
                                         {{ $selectedChat['AutoReplyAiAktif'] ? __('ui.pages.inbox.disable_auto_reply') : __('ui.pages.inbox.enable_auto_reply') }}
-                                    </button>
-                                    <button type="button" wire:click="resetSapaanAi"
-                                        class="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800">{{ __('ui.pages.inbox.reset_greeting') }}</button>
+                                    </x-filament::button>
+                                    <x-filament::button type="button" color="gray" outlined wire:click="resetSapaanAi">
+                                        {{ __('ui.pages.inbox.reset_greeting') }}
+                                    </x-filament::button>
                                 </div>
                             @endif
                         </div>
@@ -692,9 +698,11 @@
                 </div>
 
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
-                    <textarea wire:model="newInternalNote" rows="3"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:text-sm"
-                        placeholder="{{ __('ui.pages.inbox.new_internal_note_placeholder') }}"></textarea>
+                    <x-filament::input.wrapper>
+                        <textarea wire:model="newInternalNote" rows="3"
+                            class="w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
+                            placeholder="{{ __('ui.pages.inbox.new_internal_note_placeholder') }}"></textarea>
+                    </x-filament::input.wrapper>
                     <div class="mt-3 flex justify-end">
                         <x-filament::button color="warning" wire:click="saveInternalNote"
                             wire:loading.attr="disabled">

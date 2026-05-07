@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <form wire:submit.prevent="simpanPengaturan" class="space-y-6">
+    <form wire:submit.prevent="simpanPengaturan" class="wacs-ai-agent space-y-6">
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_auto_reply') }}
@@ -211,7 +211,7 @@
                                 </button>
                             @endforeach
                         </div>
-                        <div>
+                        {{-- <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.provider') }}</label>
                             <select wire:model="pengaturan.ProviderAi"
@@ -221,7 +221,7 @@
                                 <option value="DeepSeek">DeepSeek</option>
                                 <option value="OpenRouter">OpenRouter</option>
                             </select>
-                        </div>
+                        </div> --}}
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.model') }}</label>
@@ -339,6 +339,18 @@
                                 class="mt-2 min-h-32 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
                             <div class="mt-1 text-xs text-gray-500">
                                 {{ __('ui.pages.ai_agent.notification_placeholders') }}</div>
+                        </div>
+                        <div>
+                            <label
+                                class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.exclude_whatsapp_numbers') }}</label>
+                            <textarea wire:model="pengaturan.ExcludeNomorWhatsapp"
+                                class="mt-2 min-h-28 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
+                                placeholder="62812xxxx&#10;62813xxxx"></textarea>
+                            <div class="mt-1 text-xs text-gray-500">
+                                {{ __('ui.pages.ai_agent.exclude_whatsapp_numbers_help') }}</div>
+                            @error('pengaturan.ExcludeNomorWhatsapp')
+                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>

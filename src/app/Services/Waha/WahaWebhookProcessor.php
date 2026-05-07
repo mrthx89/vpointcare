@@ -55,6 +55,22 @@ class WahaWebhookProcessor
                     ];
                 }
 
+                if ($this->shouldIgnoreExcludedNumber($parsed)) {
+                    DB::table('TLogWebhookWaha')->where('Id', $webhookId)->update([
+                        'SudahDiproses' => true,
+                        'TglDiproses' => now(),
+                        'TglEdit' => now(),
+                    ]);
+
+                    return [
+                        'ok' => true,
+                        'ignored' => true,
+                        'webhook_id' => $webhookId,
+                        'jenis_chat' => $parsed['jenis_chat'],
+                        'message' => 'WhatsApp sender number excluded from chat inbox.',
+                    ];
+                }
+
                 $duplicate = $this->duplicateMessage($parsed['id_pesan']);
 
                 if ($duplicate) {
@@ -603,6 +619,47 @@ class WahaWebhookProcessor
         $nomor = preg_replace('/:.+$/', '', $nomor) ?: $nomor;
 
         return preg_replace('/[^0-9]/', '', $nomor) ?: null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parsed
+     */
+    private function shouldIgnoreExcludedNumber(array $parsed): bool
+    {
+        if ((bool) ($parsed['from_me'] ?? false)) {
+            return false;
+        }
+
+        if (! Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
+            return false;
+        }
+
+        $senderNumber = preg_replace('/[^0-9]/', '', (string) ($parsed['pengirim_nomor'] ?? '')) ?: null;
+
+        if (! $senderNumber) {
+            return false;
+        }
+
+        $settings = DB::table('MPengaturanAi')
+            ->where('KodePengaturan', 'DEFAULT')
+            ->where('NonAktif', false)
+            ->value('ExcludeNomorWhatsapp');
+
+        if (! is_string($settings) || trim($settings) === '') {
+            return false;
+        }
+
+        $excludedNumbers = preg_split('/[\s,;]+/', $settings) ?: [];
+
+        foreach ($excludedNumbers as $number) {
+            $normalized = preg_replace('/[^0-9]/', '', (string) $number);
+
+            if ($normalized !== '' && $normalized === $senderNumber) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
