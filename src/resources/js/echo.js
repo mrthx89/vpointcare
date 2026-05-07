@@ -15,8 +15,25 @@ window.Pusher = Pusher;
 const isSecure = window.location.protocol === "https:";
 const reverbHost = import.meta.env.VITE_REVERB_HOST ?? window.location.hostname;
 const reverbPort = import.meta.env.VITE_REVERB_PORT ?? 8080;
-const reverbScheme = isSecure ? "wss" : "ws";
-const reverbUrl = `${reverbScheme}://${reverbHost}:${reverbPort}/app/${import.meta.env.VITE_REVERB_APP_KEY}`;
+const configuredReverbScheme = import.meta.env.VITE_REVERB_SCHEME;
+const reverbScheme =
+    configuredReverbScheme === "https" || configuredReverbScheme === "wss"
+        ? "wss"
+        : configuredReverbScheme === "http" || configuredReverbScheme === "ws"
+          ? "ws"
+          : isSecure
+            ? "wss"
+            : "ws";
+const reverbForceTls = reverbScheme === "wss";
+const reverbEnabledTransports = reverbForceTls ? ["ws", "wss"] : ["ws"];
+const shouldDisplayReverbPort =
+    reverbPort &&
+    !(
+        (reverbScheme === "wss" && String(reverbPort) === "443") ||
+        (reverbScheme === "ws" && String(reverbPort) === "80")
+    );
+const reverbDisplayPort = shouldDisplayReverbPort ? `:${reverbPort}` : "";
+const reverbUrl = `${reverbScheme}://${reverbHost}${reverbDisplayPort}/app/${import.meta.env.VITE_REVERB_APP_KEY}`;
 
 const reverbStatusMessages = {
     connecting: "Reverb client sedang mencoba tersambung.",
@@ -32,7 +49,9 @@ const maxReverbStatusLogs = 60;
 
 const readReverbStatusLogs = () => {
     try {
-        const logs = JSON.parse(localStorage.getItem(reverbStatusLogKey) || "[]");
+        const logs = JSON.parse(
+            localStorage.getItem(reverbStatusLogKey) || "[]",
+        );
 
         return Array.isArray(logs) ? logs : [];
     } catch (error) {
@@ -140,8 +159,8 @@ window.Echo = new Echo({
     wsHost: reverbHost,
     wsPort: reverbPort,
     wssPort: reverbPort,
-    forceTLS: isSecure,
-    enabledTransports: isSecure ? ["wss"] : ["ws"],
+    forceTLS: reverbForceTls,
+    enabledTransports: reverbEnabledTransports,
     disableStats: true,
     authorizer: (channel, options) => {
         return {
@@ -200,6 +219,33 @@ const setWahaWsOnline = (online) => {
     window.dispatchEvent(
         new CustomEvent(online ? "waha-ws-connected" : "waha-ws-disconnected"),
     );
+};
+
+const syncCurrentReverbState = () => {
+    const connection = window.Echo?.connector?.pusher?.connection;
+
+    if (!connection) {
+        return;
+    }
+
+    const state = connection.state || "initialized";
+
+    if (state === "connected") {
+        logReverbStatus("connected", {
+            socketId: connection.socket_id,
+            source: "state-sync",
+        });
+        setWahaWsOnline(true);
+
+        return;
+    }
+
+    if (["disconnected", "unavailable", "failed"].includes(state)) {
+        logReverbStatus(state, {
+            source: "state-sync",
+        });
+        setWahaWsOnline(false);
+    }
 };
 
 /**
@@ -279,6 +325,18 @@ window.Echo.connector.pusher.connection.bind("error", (error) => {
     );
     writeReverbStatusLog(payload);
 });
+
+syncCurrentReverbState();
+
+const reverbInitialSync = window.setInterval(() => {
+    syncCurrentReverbState();
+
+    if (window.Echo?.connector?.pusher?.connection?.state === "connected") {
+        window.clearInterval(reverbInitialSync);
+    }
+}, 500);
+
+window.setTimeout(() => window.clearInterval(reverbInitialSync), 10000);
 
 // Presence channel untuk tracking Agent/CS aktif secara unik berdasarkan ID
 window.Echo.join("waha-agents")
