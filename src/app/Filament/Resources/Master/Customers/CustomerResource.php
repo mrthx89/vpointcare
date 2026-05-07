@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Master\Customers;
 
 use App\Filament\Resources\Master\Customers\Pages\ManageCustomers;
 use App\Models\Master\Customer;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -24,43 +27,83 @@ class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_CUSTOMER, Heroicon::OutlinedUserGroup);
+    }
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_CUSTOMER, __('ui.navigation.master_data'));
+    }
 
-    protected static ?string $navigationLabel = 'Kontak Customer';
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_CUSTOMER, 30);
+    }
 
-    protected static ?string $modelLabel = 'Kontak Customer';
+    public static function getNavigationLabel(): string
+    {
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_CUSTOMER, __('ui.models.customer.label'));
+    }
 
-    protected static ?string $pluralModelLabel = 'Kontak Customer';
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.customer.label');
+    }
 
-    protected static ?int $navigationSort = 42;
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.customer.plural');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_CUSTOMER);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 Select::make('IdInstansi')
-                    ->label('Klien / Instansi')
+                    ->label(__('ui.models.customer.client'))
                     ->relationship('instansi', 'NamaInstansi')
                     ->searchable()
                     ->preload()
                     ->required(),
                 TextInput::make('KodeCustomer')
-                    ->label('Kode Kontak')
+                    ->label(__('ui.models.customer.code'))
                     ->maxLength(50)
                     ->required(),
                 TextInput::make('NamaCustomer')
-                    ->label('Nama Kontak')
+                    ->label(__('ui.models.customer.name'))
                     ->maxLength(200)
                     ->required(),
-                TextInput::make('Jabatan')->maxLength(100),
+                TextInput::make('Jabatan')->label(__('ui.models.customer.job'))->maxLength(100),
                 TextInput::make('Email')->email()->maxLength(150),
                 TextInput::make('Telepon')->tel()->maxLength(50),
                 Textarea::make('Catatan')
+                    ->label(__('ui.models.customer.notes'))
                     ->rows(3)
                     ->columnSpanFull(),
-                Toggle::make('NonAktif')->label('Nonaktif'),
+                Toggle::make('NonAktif')->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -69,19 +112,20 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('KodeCustomer')
-                    ->label('Kode')
+                    ->label(__('ui.models.customer.code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.customer.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('NamaCustomer')
-                    ->label('Kontak')
+                    ->label(__('ui.models.customer.name'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('Jabatan')
+                    ->label(__('ui.models.customer.job'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('Email')
@@ -89,19 +133,20 @@ class CustomerResource extends Resource
                 TextColumn::make('Telepon')
                     ->searchable(),
                 TextColumn::make('nomor_whatsapp_count')
-                    ->label('Nomor')
+                    ->label(__('ui.models.customer.number'))
                     ->counts('nomorWhatsapp')
                     ->sortable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive'))
+                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -112,14 +157,18 @@ class CustomerResource extends Resource
                     ->searchable()
                     ->preload(),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status nonaktif'),
+                    ->label(__('ui.filters.status'))
+                    ->placeholder(__('ui.filters.all'))
+                    ->trueLabel(__('ui.filters.inactive'))
+                    ->falseLabel(__('ui.filters.active')),
             ])
             ->defaultSort('NamaCustomer')
             ->striped()
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
             ]);
     }
 

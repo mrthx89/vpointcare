@@ -31,18 +31,32 @@ GO
 
 CREATE TABLE MHakAkses (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MHakAkses_Id DEFAULT NEWSEQUENTIALID(),
-    KodeHakAkses varchar(100) NOT NULL,
+    IdHakAkses uniqueidentifier NULL,
+    KodeHakAkses varchar(100) NULL,
     NamaHakAkses varchar(150) NOT NULL,
+    NamaHakAksesId varchar(150) NULL,
+    NamaHakAksesEn varchar(150) NULL,
     Modul varchar(100) NOT NULL,
+    ModulId varchar(100) NULL,
+    ModulEn varchar(100) NULL,
     Keterangan varchar(255) NULL,
+    KeteranganId varchar(255) NULL,
+    KeteranganEn varchar(255) NULL,
+    SortOrder int NULL,
+    IconString varchar(100) NULL,
     NonAktif bit NOT NULL CONSTRAINT DF_MHakAkses_NonAktif DEFAULT 0,
     TglBuat datetime2 NOT NULL CONSTRAINT DF_MHakAkses_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_MHakAkses PRIMARY KEY (Id),
-    CONSTRAINT UQ_MHakAkses_KodeHakAkses UNIQUE (KodeHakAkses)
+    CONSTRAINT FK_MHakAkses_IdHakAkses FOREIGN KEY (IdHakAkses) REFERENCES MHakAkses(Id)
 );
+GO
+
+CREATE UNIQUE INDEX UX_MHakAkses_KodeHakAkses_NotNull
+    ON MHakAkses (KodeHakAkses)
+    WHERE KodeHakAkses IS NOT NULL;
 GO
 
 CREATE TABLE MPeranHakAkses (
@@ -68,6 +82,7 @@ CREATE TABLE MPengguna (
     Email varchar(150) NOT NULL,
     Password varchar(255) NOT NULL,
     NomorWhatsappInternal varchar(30) NULL,
+    FotoProfilPath nvarchar(500) NULL,
     Jabatan varchar(100) NULL,
     RememberToken varchar(100) NULL,
     EmailTerverifikasiPada datetime2 NULL,
@@ -332,12 +347,28 @@ CREATE TABLE MAiProvider (
 );
 GO
 
+CREATE TABLE MHariLibur (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MHariLibur_Id DEFAULT NEWSEQUENTIALID(),
+    TanggalLibur date NOT NULL,
+    NamaHariLibur varchar(200) NOT NULL,
+    Keterangan varchar(1000) NULL,
+    BerlakuTahunan bit NOT NULL CONSTRAINT DF_MHariLibur_BerlakuTahunan DEFAULT 0,
+    NonAktif bit NOT NULL CONSTRAINT DF_MHariLibur_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MHariLibur_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MHariLibur PRIMARY KEY (Id)
+);
+GO
+
 CREATE TABLE MPengaturanAi (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengaturanAi_Id DEFAULT NEWSEQUENTIALID(),
     KodePengaturan varchar(50) NOT NULL,
     NamaPengaturan varchar(100) NOT NULL,
     AutoReplyAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyAktif DEFAULT 0,
     AutoReplyDiluarJamKerja bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyDiluarJamKerja DEFAULT 1,
+    AutoReplyHariLibur bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyHariLibur DEFAULT 1,
     AutoReplyJamKerjaSapaan bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaSapaan DEFAULT 1,
     AutoReplyJamKerjaBerlanjut bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaBerlanjut DEFAULT 0,
     JamKerjaMulai time(0) NOT NULL CONSTRAINT DF_MPengaturanAi_JamKerjaMulai DEFAULT '08:00',
@@ -350,6 +381,7 @@ CREATE TABLE MPengaturanAi (
     ApiKeyTerenkripsi nvarchar(max) NULL,
     PromptSistem nvarchar(max) NULL,
     TemplateDiluarJamKerja nvarchar(max) NULL,
+    TemplateHariLibur nvarchar(max) NULL,
     TemplateJamKerjaSapaan nvarchar(max) NULL,
     TemplateFallback nvarchar(max) NULL,
     NotifikasiChatBelumTerbalasAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NotifikasiChatBelumTerbalasAktif DEFAULT 1,
@@ -462,51 +494,55 @@ CREATE TABLE TLogWebhookWaha (
 );
 GO
 
-CREATE TABLE TChatM (
-    Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatM_Id DEFAULT NEWSEQUENTIALID(),
+CREATE TABLE TChat (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_TChat_Id DEFAULT NEWSEQUENTIALID(),
     IdSesiWhatsapp uniqueidentifier NOT NULL,
     IdStatusChat uniqueidentifier NULL,
     IdCustomer uniqueidentifier NULL,
     IdInstansi uniqueidentifier NULL,
     IdNomorWhatsapp uniqueidentifier NULL,
     IdGrupWhatsapp uniqueidentifier NULL,
-    JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChatM_JenisChat DEFAULT 'Pribadi',
+    JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChat_JenisChat DEFAULT 'Pribadi',
     NomorWhatsapp varchar(30) NOT NULL,
     NamaKontak varchar(150) NULL,
     NamaGrupWhatsapp varchar(200) NULL,
-    Prioritas varchar(50) NOT NULL CONSTRAINT DF_TChatM_Prioritas DEFAULT 'Normal',
+    IdWahaTerdeteksi varchar(200) NULL,
+    NomorWhatsappTerdeteksi varchar(30) NULL,
+    UrlFotoProfil nvarchar(1000) NULL,
+    TglFotoProfilDiambil datetime2 NULL,
+    Prioritas varchar(50) NOT NULL CONSTRAINT DF_TChat_Prioritas DEFAULT 'Normal',
     DitugaskanKepada uniqueidentifier NULL,
     DiambilOleh uniqueidentifier NULL,
     TglDiambil datetime2 NULL,
     TglChatTerakhir datetime2 NULL,
     TglDibalasTerakhir datetime2 NULL,
-    JumlahPesanBelumDibaca int NOT NULL CONSTRAINT DF_TChatM_JumlahPesanBelumDibaca DEFAULT 0,
+    JumlahPesanBelumDibaca int NOT NULL CONSTRAINT DF_TChat_JumlahPesanBelumDibaca DEFAULT 0,
     DitutupOleh uniqueidentifier NULL,
     TglDitutup datetime2 NULL,
     RingkasanAi nvarchar(max) NULL,
-    AutoReplyAiAktif bit NOT NULL CONSTRAINT DF_TChatM_AutoReplyAiAktif DEFAULT 0,
-    AiSudahMenyapa bit NOT NULL CONSTRAINT DF_TChatM_AiSudahMenyapa DEFAULT 0,
-    ModeAutoReplyAi varchar(50) NOT NULL CONSTRAINT DF_TChatM_ModeAutoReplyAi DEFAULT 'Default',
+    AutoReplyAiAktif bit NOT NULL CONSTRAINT DF_TChat_AutoReplyAiAktif DEFAULT 0,
+    AiSudahMenyapa bit NOT NULL CONSTRAINT DF_TChat_AiSudahMenyapa DEFAULT 0,
+    ModeAutoReplyAi varchar(50) NOT NULL CONSTRAINT DF_TChat_ModeAutoReplyAi DEFAULT 'Default',
     TglAutoReplyAiTerakhir datetime2 NULL,
     TglNotifikasiBelumTerbalasTerakhir datetime2 NULL,
-    JumlahNotifikasiBelumTerbalas int NOT NULL CONSTRAINT DF_TChatM_JumlahNotifikasiBelumTerbalas DEFAULT 0,
-    TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatM_TglBuat DEFAULT SYSDATETIME(),
+    JumlahNotifikasiBelumTerbalas int NOT NULL CONSTRAINT DF_TChat_JumlahNotifikasiBelumTerbalas DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_TChat_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
-    CONSTRAINT PK_TChatM PRIMARY KEY (Id),
-    CONSTRAINT FK_TChatM_MSesiWhatsapp FOREIGN KEY (IdSesiWhatsapp) REFERENCES MSesiWhatsapp(Id),
-    CONSTRAINT FK_TChatM_MStatusChat FOREIGN KEY (IdStatusChat) REFERENCES MStatusChat(Id),
-    CONSTRAINT FK_TChatM_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
-    CONSTRAINT FK_TChatM_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
-    CONSTRAINT FK_TChatM_MNomorWhatsapp FOREIGN KEY (IdNomorWhatsapp) REFERENCES MNomorWhatsapp(Id),
-    CONSTRAINT FK_TChatM_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id)
+    CONSTRAINT PK_TChat PRIMARY KEY (Id),
+    CONSTRAINT FK_TChat_MSesiWhatsapp FOREIGN KEY (IdSesiWhatsapp) REFERENCES MSesiWhatsapp(Id),
+    CONSTRAINT FK_TChat_MStatusChat FOREIGN KEY (IdStatusChat) REFERENCES MStatusChat(Id),
+    CONSTRAINT FK_TChat_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
+    CONSTRAINT FK_TChat_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
+    CONSTRAINT FK_TChat_MNomorWhatsapp FOREIGN KEY (IdNomorWhatsapp) REFERENCES MNomorWhatsapp(Id),
+    CONSTRAINT FK_TChat_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id)
 );
 GO
 
 CREATE TABLE TChatD (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatD_Id DEFAULT NEWSEQUENTIALID(),
-    IdChatM uniqueidentifier NOT NULL,
+    IdChat uniqueidentifier NOT NULL,
     IdLogWebhookWaha uniqueidentifier NULL,
     IdPesanWaha varchar(200) NULL,
     ArahPesan varchar(20) NOT NULL,
@@ -532,44 +568,44 @@ CREATE TABLE TChatD (
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_TChatD PRIMARY KEY (Id),
-    CONSTRAINT FK_TChatD_TChatM FOREIGN KEY (IdChatM) REFERENCES TChatM(Id),
+    CONSTRAINT FK_TChatD_TChat FOREIGN KEY (IdChat) REFERENCES TChat(Id),
     CONSTRAINT FK_TChatD_TLogWebhookWaha FOREIGN KEY (IdLogWebhookWaha) REFERENCES TLogWebhookWaha(Id)
 );
 GO
 
-CREATE TABLE TChatPenugasan (
-    Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatPenugasan_Id DEFAULT NEWSEQUENTIALID(),
-    IdChatM uniqueidentifier NOT NULL,
+CREATE TABLE TChatDPenugasan (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatDPenugasan_Id DEFAULT NEWSEQUENTIALID(),
+    IdChat uniqueidentifier NOT NULL,
     DitugaskanDari uniqueidentifier NULL,
     DitugaskanKepada uniqueidentifier NOT NULL,
     AlasanPenugasan varchar(500) NULL,
-    TglPenugasan datetime2 NOT NULL CONSTRAINT DF_TChatPenugasan_TglPenugasan DEFAULT SYSDATETIME(),
-    TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatPenugasan_TglBuat DEFAULT SYSDATETIME(),
+    TglPenugasan datetime2 NOT NULL CONSTRAINT DF_TChatDPenugasan_TglPenugasan DEFAULT SYSDATETIME(),
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatDPenugasan_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
-    CONSTRAINT PK_TChatPenugasan PRIMARY KEY (Id),
-    CONSTRAINT FK_TChatPenugasan_TChatM FOREIGN KEY (IdChatM) REFERENCES TChatM(Id)
+    CONSTRAINT PK_TChatDPenugasan PRIMARY KEY (Id),
+    CONSTRAINT FK_TChatDPenugasan_TChat FOREIGN KEY (IdChat) REFERENCES TChat(Id)
 );
 GO
 
-CREATE TABLE TChatCatatanInternal (
-    Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatCatatanInternal_Id DEFAULT NEWSEQUENTIALID(),
-    IdChatM uniqueidentifier NOT NULL,
+CREATE TABLE TChatDCatatanInternal (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatDCatatanInternal_Id DEFAULT NEWSEQUENTIALID(),
+    IdChat uniqueidentifier NOT NULL,
     IsiCatatan nvarchar(max) NOT NULL,
-    TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatCatatanInternal_TglBuat DEFAULT SYSDATETIME(),
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatDCatatanInternal_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
-    CONSTRAINT PK_TChatCatatanInternal PRIMARY KEY (Id),
-    CONSTRAINT FK_TChatCatatanInternal_TChatM FOREIGN KEY (IdChatM) REFERENCES TChatM(Id)
+    CONSTRAINT PK_TChatDCatatanInternal PRIMARY KEY (Id),
+    CONSTRAINT FK_TChatDCatatanInternal_TChat FOREIGN KEY (IdChat) REFERENCES TChat(Id)
 );
 GO
 
-CREATE TABLE TTicketM (
-    Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicketM_Id DEFAULT NEWSEQUENTIALID(),
+CREATE TABLE TTicket (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicket_Id DEFAULT NEWSEQUENTIALID(),
     NomorTicket varchar(50) NOT NULL,
-    IdChatM uniqueidentifier NULL,
+    IdChat uniqueidentifier NULL,
     IdCustomer uniqueidentifier NULL,
     IdInstansi uniqueidentifier NULL,
     IdKategoriTicket uniqueidentifier NULL,
@@ -585,25 +621,25 @@ CREATE TABLE TTicketM (
     TglDitutup datetime2 NULL,
     DitutupOleh uniqueidentifier NULL,
     RingkasanAi nvarchar(max) NULL,
-    TglBuat datetime2 NOT NULL CONSTRAINT DF_TTicketM_TglBuat DEFAULT SYSDATETIME(),
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_TTicket_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
-    CONSTRAINT PK_TTicketM PRIMARY KEY (Id),
-    CONSTRAINT UQ_TTicketM_NomorTicket UNIQUE (NomorTicket),
-    CONSTRAINT FK_TTicketM_TChatM FOREIGN KEY (IdChatM) REFERENCES TChatM(Id),
-    CONSTRAINT FK_TTicketM_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
-    CONSTRAINT FK_TTicketM_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
-    CONSTRAINT FK_TTicketM_MKategoriTicket FOREIGN KEY (IdKategoriTicket) REFERENCES MKategoriTicket(Id),
-    CONSTRAINT FK_TTicketM_MPrioritasTicket FOREIGN KEY (IdPrioritasTicket) REFERENCES MPrioritasTicket(Id),
-    CONSTRAINT FK_TTicketM_MStatusTicket FOREIGN KEY (IdStatusTicket) REFERENCES MStatusTicket(Id),
-    CONSTRAINT FK_TTicketM_TChatD FOREIGN KEY (DibuatDariPesanId) REFERENCES TChatD(Id)
+    CONSTRAINT PK_TTicket PRIMARY KEY (Id),
+    CONSTRAINT UQ_TTicket_NomorTicket UNIQUE (NomorTicket),
+    CONSTRAINT FK_TTicket_TChat FOREIGN KEY (IdChat) REFERENCES TChat(Id),
+    CONSTRAINT FK_TTicket_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
+    CONSTRAINT FK_TTicket_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
+    CONSTRAINT FK_TTicket_MKategoriTicket FOREIGN KEY (IdKategoriTicket) REFERENCES MKategoriTicket(Id),
+    CONSTRAINT FK_TTicket_MPrioritasTicket FOREIGN KEY (IdPrioritasTicket) REFERENCES MPrioritasTicket(Id),
+    CONSTRAINT FK_TTicket_MStatusTicket FOREIGN KEY (IdStatusTicket) REFERENCES MStatusTicket(Id),
+    CONSTRAINT FK_TTicket_TChatD FOREIGN KEY (DibuatDariPesanId) REFERENCES TChatD(Id)
 );
 GO
 
 CREATE TABLE TTicketD (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicketD_Id DEFAULT NEWSEQUENTIALID(),
-    IdTicketM uniqueidentifier NOT NULL,
+    IdTicket uniqueidentifier NOT NULL,
     JenisAktivitas varchar(100) NOT NULL,
     IsiAktivitas nvarchar(max) NULL,
     StatusSebelum varchar(100) NULL,
@@ -615,39 +651,39 @@ CREATE TABLE TTicketD (
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_TTicketD PRIMARY KEY (Id),
-    CONSTRAINT FK_TTicketD_TTicketM FOREIGN KEY (IdTicketM) REFERENCES TTicketM(Id)
+    CONSTRAINT FK_TTicketD_TTicket FOREIGN KEY (IdTicket) REFERENCES TTicket(Id)
 );
 GO
 
-CREATE TABLE TTicketPenugasan (
-    Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicketPenugasan_Id DEFAULT NEWSEQUENTIALID(),
-    IdTicketM uniqueidentifier NOT NULL,
+CREATE TABLE TTicketDPenugasan (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicketDPenugasan_Id DEFAULT NEWSEQUENTIALID(),
+    IdTicket uniqueidentifier NOT NULL,
     DitugaskanDari uniqueidentifier NULL,
     DitugaskanKepada uniqueidentifier NOT NULL,
     AlasanPenugasan varchar(500) NULL,
-    TglPenugasan datetime2 NOT NULL CONSTRAINT DF_TTicketPenugasan_TglPenugasan DEFAULT SYSDATETIME(),
-    TglBuat datetime2 NOT NULL CONSTRAINT DF_TTicketPenugasan_TglBuat DEFAULT SYSDATETIME(),
+    TglPenugasan datetime2 NOT NULL CONSTRAINT DF_TTicketDPenugasan_TglPenugasan DEFAULT SYSDATETIME(),
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_TTicketDPenugasan_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
-    CONSTRAINT PK_TTicketPenugasan PRIMARY KEY (Id),
-    CONSTRAINT FK_TTicketPenugasan_TTicketM FOREIGN KEY (IdTicketM) REFERENCES TTicketM(Id)
+    CONSTRAINT PK_TTicketDPenugasan PRIMARY KEY (Id),
+    CONSTRAINT FK_TTicketDPenugasan_TTicket FOREIGN KEY (IdTicket) REFERENCES TTicket(Id)
 );
 GO
 
-CREATE TABLE TTicketLampiran (
-    Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicketLampiran_Id DEFAULT NEWSEQUENTIALID(),
-    IdTicketM uniqueidentifier NOT NULL,
+CREATE TABLE TTicketDLampiran (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_TTicketDLampiran_Id DEFAULT NEWSEQUENTIALID(),
+    IdTicket uniqueidentifier NOT NULL,
     NamaFile varchar(255) NOT NULL,
     PathFile varchar(1000) NOT NULL,
     TipeFile varchar(100) NULL,
     UkuranFile bigint NULL,
-    TglBuat datetime2 NOT NULL CONSTRAINT DF_TTicketLampiran_TglBuat DEFAULT SYSDATETIME(),
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_TTicketDLampiran_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
-    CONSTRAINT PK_TTicketLampiran PRIMARY KEY (Id),
-    CONSTRAINT FK_TTicketLampiran_TTicketM FOREIGN KEY (IdTicketM) REFERENCES TTicketM(Id)
+    CONSTRAINT PK_TTicketDLampiran PRIMARY KEY (Id),
+    CONSTRAINT FK_TTicketDLampiran_TTicket FOREIGN KEY (IdTicket) REFERENCES TTicket(Id)
 );
 GO
 
@@ -657,8 +693,8 @@ CREATE TABLE TAiPermintaan (
     JenisPermintaan varchar(100) NOT NULL,
     ProviderAi varchar(50) NOT NULL,
     ModelAi varchar(100) NULL,
-    IdChatM uniqueidentifier NULL,
-    IdTicketM uniqueidentifier NULL,
+    IdChat uniqueidentifier NULL,
+    IdTicket uniqueidentifier NULL,
     PromptRingkas nvarchar(max) NULL,
     PromptJson nvarchar(max) NULL,
     StatusPermintaan varchar(50) NOT NULL CONSTRAINT DF_TAiPermintaan_StatusPermintaan DEFAULT 'Baru',
@@ -671,8 +707,8 @@ CREATE TABLE TAiPermintaan (
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_TAiPermintaan PRIMARY KEY (Id),
     CONSTRAINT FK_TAiPermintaan_MAiProvider FOREIGN KEY (IdAiProvider) REFERENCES MAiProvider(Id),
-    CONSTRAINT FK_TAiPermintaan_TChatM FOREIGN KEY (IdChatM) REFERENCES TChatM(Id),
-    CONSTRAINT FK_TAiPermintaan_TTicketM FOREIGN KEY (IdTicketM) REFERENCES TTicketM(Id)
+    CONSTRAINT FK_TAiPermintaan_TChat FOREIGN KEY (IdChat) REFERENCES TChat(Id),
+    CONSTRAINT FK_TAiPermintaan_TTicket FOREIGN KEY (IdTicket) REFERENCES TTicket(Id)
 );
 GO
 
@@ -707,28 +743,31 @@ CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi);
 CREATE INDEX IX_MGrupWhatsapp_IdGrupWaha ON MGrupWhatsapp (IdGrupWaha);
 CREATE INDEX IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp ON MAnggotaGrupWhatsapp (IdGrupWhatsapp);
 CREATE INDEX IX_MProdukCustomer_IdCustomer ON MProdukCustomer (IdCustomer);
+CREATE INDEX IX_MHariLibur_TanggalLibur ON MHariLibur (TanggalLibur, NonAktif);
 CREATE INDEX IX_TLogAktivitas_TglAktivitas ON TLogAktivitas (TglAktivitas);
 CREATE INDEX IX_TLogError_TglError ON TLogError (TglError);
 CREATE INDEX IX_TLogIntegrasi_TglRequest ON TLogIntegrasi (TglRequest);
 CREATE INDEX IX_TLogWebhookWaha_TglDiterima ON TLogWebhookWaha (TglDiterima);
 CREATE INDEX IX_TLogWebhookWaha_SudahDiproses ON TLogWebhookWaha (SudahDiproses);
-CREATE INDEX IX_TChatM_NomorWhatsapp ON TChatM (NomorWhatsapp);
-CREATE INDEX IX_TChatM_IdCustomer ON TChatM (IdCustomer);
-CREATE INDEX IX_TChatM_IdInstansi ON TChatM (IdInstansi);
-CREATE INDEX IX_TChatM_IdGrupWhatsapp ON TChatM (IdGrupWhatsapp);
-CREATE INDEX IX_TChatM_IdStatusChat ON TChatM (IdStatusChat);
-CREATE INDEX IX_TChatM_DitugaskanKepada ON TChatM (DitugaskanKepada);
-CREATE INDEX IX_TChatM_TglChatTerakhir ON TChatM (TglChatTerakhir);
-CREATE INDEX IX_TChatD_IdChatM_TglPesan ON TChatD (IdChatM, TglPesan);
+CREATE INDEX IX_TChat_NomorWhatsapp ON TChat (NomorWhatsapp);
+CREATE INDEX IX_TChat_IdWahaTerdeteksi ON TChat (IdWahaTerdeteksi);
+CREATE INDEX IX_TChat_NomorWhatsappTerdeteksi ON TChat (NomorWhatsappTerdeteksi);
+CREATE INDEX IX_TChat_IdCustomer ON TChat (IdCustomer);
+CREATE INDEX IX_TChat_IdInstansi ON TChat (IdInstansi);
+CREATE INDEX IX_TChat_IdGrupWhatsapp ON TChat (IdGrupWhatsapp);
+CREATE INDEX IX_TChat_IdStatusChat ON TChat (IdStatusChat);
+CREATE INDEX IX_TChat_DitugaskanKepada ON TChat (DitugaskanKepada);
+CREATE INDEX IX_TChat_TglChatTerakhir ON TChat (TglChatTerakhir);
+CREATE INDEX IX_TChatD_IdChat_TglPesan ON TChatD (IdChat, TglPesan);
 CREATE INDEX IX_TChatD_IdPesanWaha ON TChatD (IdPesanWaha);
-CREATE INDEX IX_TTicketM_IdCustomer ON TTicketM (IdCustomer);
-CREATE INDEX IX_TTicketM_IdInstansi ON TTicketM (IdInstansi);
-CREATE INDEX IX_TTicketM_IdStatusTicket ON TTicketM (IdStatusTicket);
-CREATE INDEX IX_TTicketM_DitugaskanKepada ON TTicketM (DitugaskanKepada);
-CREATE INDEX IX_TTicketM_TglTargetSelesai ON TTicketM (TglTargetSelesai);
-CREATE INDEX IX_TTicketD_IdTicketM_TglAktivitas ON TTicketD (IdTicketM, TglAktivitas);
-CREATE INDEX IX_TAiPermintaan_IdChatM ON TAiPermintaan (IdChatM);
-CREATE INDEX IX_TAiPermintaan_IdTicketM ON TAiPermintaan (IdTicketM);
+CREATE INDEX IX_TTicket_IdCustomer ON TTicket (IdCustomer);
+CREATE INDEX IX_TTicket_IdInstansi ON TTicket (IdInstansi);
+CREATE INDEX IX_TTicket_IdStatusTicket ON TTicket (IdStatusTicket);
+CREATE INDEX IX_TTicket_DitugaskanKepada ON TTicket (DitugaskanKepada);
+CREATE INDEX IX_TTicket_TglTargetSelesai ON TTicket (TglTargetSelesai);
+CREATE INDEX IX_TTicketD_IdTicket_TglAktivitas ON TTicketD (IdTicket, TglAktivitas);
+CREATE INDEX IX_TAiPermintaan_IdChat ON TAiPermintaan (IdChat);
+CREATE INDEX IX_TAiPermintaan_IdTicket ON TAiPermintaan (IdTicket);
 CREATE INDEX IX_TChatD_IdAiRespon ON TChatD (IdAiRespon);
 GO
 
@@ -787,6 +826,7 @@ INSERT INTO MPengaturanAi (
     NamaPengaturan,
     AutoReplyAktif,
     AutoReplyDiluarJamKerja,
+    AutoReplyHariLibur,
     AutoReplyJamKerjaSapaan,
     AutoReplyJamKerjaBerlanjut,
     JamKerjaMulai,
@@ -798,6 +838,7 @@ INSERT INTO MPengaturanAi (
     BaseUrl,
     PromptSistem,
     TemplateDiluarJamKerja,
+    TemplateHariLibur,
     TemplateJamKerjaSapaan,
     TemplateFallback,
     NotifikasiChatBelumTerbalasAktif,
@@ -815,6 +856,7 @@ VALUES (
     0,
     1,
     1,
+    1,
     0,
     '08:00',
     '17:00',
@@ -825,6 +867,7 @@ VALUES (
     'https://api.openai.com/v1/responses',
     N'Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan. Jika masalah perlu ditangani manusia, arahkan bahwa tim customer service akan menindaklanjuti.',
     N'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
+    N'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.',
     N'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.',
     N'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.',
     1,

@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Master\GrupWhatsapps;
 
 use App\Filament\Resources\Master\GrupWhatsapps\Pages\ManageGrupWhatsapps;
 use App\Models\Master\GrupWhatsapp;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -24,47 +27,87 @@ class GrupWhatsappResource extends Resource
 {
     protected static ?string $model = GrupWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, Heroicon::OutlinedChatBubbleLeftRight);
+    }
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, __('ui.navigation.master_data'));
+    }
 
-    protected static ?string $navigationLabel = 'Grup WhatsApp';
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, 50);
+    }
 
-    protected static ?string $modelLabel = 'Grup WhatsApp';
+    public static function getNavigationLabel(): string
+    {
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP, __('ui.models.grup_whatsapp.label'));
+    }
 
-    protected static ?string $pluralModelLabel = 'Grup WhatsApp';
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.grup_whatsapp.label');
+    }
 
-    protected static ?int $navigationSort = 44;
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.grup_whatsapp.plural');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_GRUP_WHATSAPP);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 Select::make('IdInstansi')
-                    ->label('Klien / Instansi')
+                    ->label(__('ui.models.grup_whatsapp.client'))
                     ->relationship('instansi', 'NamaInstansi')
                     ->searchable()
                     ->preload()
                     ->required(),
                 TextInput::make('KodeGrup')
-                    ->label('Kode Grup')
+                    ->label(__('ui.models.customer.code'))
                     ->maxLength(50)
                     ->required(),
                 TextInput::make('NamaGrup')
-                    ->label('Nama Grup')
+                    ->label(__('ui.models.grup_whatsapp.group_name'))
                     ->maxLength(200)
                     ->required(),
                 TextInput::make('IdGrupWaha')
-                    ->label('ID Grup WAHA')
+                    ->label(__('ui.models.grup_whatsapp.waha_group_id'))
                     ->maxLength(200),
                 TextInput::make('NomorGrupWhatsapp')
-                    ->label('Nomor Grup WhatsApp')
+                    ->label(__('ui.models.grup_whatsapp.group_number'))
                     ->maxLength(50),
                 Textarea::make('Deskripsi')
+                    ->label(__('ui.models.customer.notes'))
                     ->rows(3)
                     ->columnSpanFull(),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -73,41 +116,43 @@ class GrupWhatsappResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.grup_whatsapp.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('KodeGrup')
-                    ->label('Kode')
+                    ->label(__('ui.models.customer.code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('NamaGrup')
-                    ->label('Nama Grup')
+                    ->label(__('ui.models.grup_whatsapp.group_name'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('IdGrupWaha')
-                    ->label('ID Grup WAHA')
+                    ->label(__('ui.models.grup_whatsapp.waha_group_id'))
                     ->searchable(),
                 TextColumn::make('NomorGrupWhatsapp')
-                    ->label('Nomor Grup')
+                    ->label(__('ui.models.grup_whatsapp.group_number'))
                     ->searchable(),
                 TextColumn::make('Deskripsi')
+                    ->label(__('ui.models.customer.notes'))
                     ->limit(50)
                     ->toggleable(),
                 TextColumn::make('anggota_count')
-                    ->label('Anggota')
+                    ->label(__('ui.models.grup_whatsapp.member_count'))
                     ->counts('anggota')
                     ->sortable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive'))
+                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -118,14 +163,18 @@ class GrupWhatsappResource extends Resource
                     ->searchable()
                     ->preload(),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status nonaktif'),
+                    ->label(__('ui.filters.status'))
+                    ->placeholder(__('ui.filters.all'))
+                    ->trueLabel(__('ui.filters.inactive'))
+                    ->falseLabel(__('ui.filters.active')),
             ])
             ->defaultSort('NamaGrup')
             ->striped()
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
             ]);
     }
 

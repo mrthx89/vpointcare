@@ -27,11 +27,11 @@ IF COL_LENGTH('MPengaturanAi', 'KodePeranPenerimaNotifikasi') IS NULL
 IF COL_LENGTH('MPengaturanAi', 'TemplateNotifikasiChatBelumTerbalas') IS NULL
     ALTER TABLE MPengaturanAi ADD TemplateNotifikasiChatBelumTerbalas nvarchar(max) NULL;
 
-IF COL_LENGTH('TChatM', 'TglNotifikasiBelumTerbalasTerakhir') IS NULL
-    ALTER TABLE TChatM ADD TglNotifikasiBelumTerbalasTerakhir datetime2 NULL;
+IF COL_LENGTH('TChat', 'TglNotifikasiBelumTerbalasTerakhir') IS NULL
+    ALTER TABLE TChat ADD TglNotifikasiBelumTerbalasTerakhir datetime2 NULL;
 
-IF COL_LENGTH('TChatM', 'JumlahNotifikasiBelumTerbalas') IS NULL
-    ALTER TABLE TChatM ADD JumlahNotifikasiBelumTerbalas int NOT NULL CONSTRAINT DF_TChatM_JumlahNotifikasiBelumTerbalas DEFAULT 0;
+IF COL_LENGTH('TChat', 'JumlahNotifikasiBelumTerbalas') IS NULL
+    ALTER TABLE TChat ADD JumlahNotifikasiBelumTerbalas int NOT NULL CONSTRAINT DF_TChat_JumlahNotifikasiBelumTerbalas DEFAULT 0;
 SQL);
 
         DB::unprepared(<<<'SQL'
@@ -50,15 +50,15 @@ SQL);
         }
 
         DB::unprepared(<<<'SQL'
-IF COL_LENGTH('TChatM', 'JumlahNotifikasiBelumTerbalas') IS NOT NULL
+IF COL_LENGTH('TChat', 'JumlahNotifikasiBelumTerbalas') IS NOT NULL
 BEGIN
-    IF OBJECT_ID(N'DF_TChatM_JumlahNotifikasiBelumTerbalas', 'D') IS NOT NULL
-        ALTER TABLE TChatM DROP CONSTRAINT DF_TChatM_JumlahNotifikasiBelumTerbalas;
-    ALTER TABLE TChatM DROP COLUMN JumlahNotifikasiBelumTerbalas;
+    IF OBJECT_ID(N'DF_TChat_JumlahNotifikasiBelumTerbalas', 'D') IS NOT NULL
+        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_JumlahNotifikasiBelumTerbalas;
+    ALTER TABLE TChat DROP COLUMN JumlahNotifikasiBelumTerbalas;
 END
 
-IF COL_LENGTH('TChatM', 'TglNotifikasiBelumTerbalasTerakhir') IS NOT NULL
-    ALTER TABLE TChatM DROP COLUMN TglNotifikasiBelumTerbalasTerakhir;
+IF COL_LENGTH('TChat', 'TglNotifikasiBelumTerbalasTerakhir') IS NOT NULL
+    ALTER TABLE TChat DROP COLUMN TglNotifikasiBelumTerbalasTerakhir;
 
 IF COL_LENGTH('MPengaturanAi', 'TemplateNotifikasiChatBelumTerbalas') IS NOT NULL
     ALTER TABLE MPengaturanAi DROP COLUMN TemplateNotifikasiChatBelumTerbalas;

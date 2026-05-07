@@ -37,6 +37,7 @@ return [
 
     'waha' => [
         'base_url' => env('WAHA_BASE_URL', 'http://127.0.0.1:3000'),
+        'media_base_url' => env('WAHA_MEDIA_BASE_URL', env('WAHA_BASE_URL', 'http://127.0.0.1:3000')),
         'api_key' => env('WAHA_API_KEY'),
         'webhook_token' => env('WAHA_WEBHOOK_TOKEN'),
         'webhook_hmac_key' => env('WAHA_WEBHOOK_HMAC_KEY'),
@@ -44,10 +45,28 @@ return [
         'notification_session' => env('WAHA_NOTIFICATION_SESSION', 'default'),
     ],
 
+    'vtoken' => [
+        'open_customers_url' => env('VTOKEN_OPEN_CUSTOMERS_URL'),
+    ],
+
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'model' => env('OPENAI_MODEL', 'gpt-5'),
         'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1/responses'),
+    ],
+
+    'deepseek' => [
+        'api_key' => env('DEEPSEEK_API_KEY'),
+        'model' => env('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'base_url' => env('DEEPSEEK_BASE_URL', 'https://api.deepseek.com/chat/completions'),
+    ],
+
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'deepseek/deepseek-chat-v3.1:free'),
+        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1/chat/completions'),
+        'site_url' => env('OPENROUTER_SITE_URL', env('APP_URL')),
+        'site_name' => env('OPENROUTER_SITE_NAME', env('APP_NAME', 'VPoint Care')),
     ],
 
 ];

@@ -1,0 +1,131 @@
+<?php
+
+namespace App\Filament\Auth;
+
+use App\Models\Master\Pengguna;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Filament\Auth\Http\Responses\Contracts\LoginResponse;
+use Filament\Auth\Pages\Login as BaseLogin;
+use Filament\Facades\Filament;
+use Filament\Models\Contracts\FilamentUser;
+use Illuminate\Auth\SessionGuard;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Validation\ValidationException;
+
+class Login extends BaseLogin
+{
+    public function authenticate(): ?LoginResponse
+    {
+        try {
+            $this->rateLimit(5);
+        } catch (TooManyRequestsException $exception) {
+            $this->getRateLimitedNotification($exception)?->send();
+
+            return null;
+        }
+
+        $data = $this->form->getState();
+
+        /** @var SessionGuard $authGuard */
+        $authGuard = Filament::auth();
+
+        $authProvider = $authGuard->getProvider();
+        $credentials = $this->getCredentialsFromFormData($data);
+
+        $user = $authProvider->retrieveByCredentials($credentials);
+
+        if ((! $user) || (! $authProvider->validateCredentials($user, $credentials))) {
+            $this->userUndertakingMultiFactorAuthentication = null;
+
+            $this->fireFailedEvent($authGuard, $user, $credentials);
+            $this->throwFailureValidationException();
+        }
+
+        if ($user instanceof Pengguna && $user->NonAktif) {
+            $this->userUndertakingMultiFactorAuthentication = null;
+            $this->fireFailedEvent($authGuard, $user, $credentials);
+
+            $this->throwAccountStatusValidationException($user);
+        }
+
+        if (
+            filled($this->userUndertakingMultiFactorAuthentication) &&
+            (decrypt($this->userUndertakingMultiFactorAuthentication) === $user->getAuthIdentifier())
+        ) {
+            if ($this->isMultiFactorChallengeRateLimited($user)) {
+                return null;
+            }
+
+            $this->multiFactorChallengeForm->validate();
+        } else {
+            foreach (Filament::getMultiFactorAuthenticationProviders() as $multiFactorAuthenticationProvider) {
+                if (! $multiFactorAuthenticationProvider->isEnabled($user)) {
+                    continue;
+                }
+
+                $this->userUndertakingMultiFactorAuthentication = encrypt($user->getAuthIdentifier());
+
+                if ($multiFactorAuthenticationProvider instanceof \Filament\Auth\MultiFactor\Contracts\HasBeforeChallengeHook) {
+                    $multiFactorAuthenticationProvider->beforeChallenge($user);
+                }
+
+                break;
+            }
+
+            if (filled($this->userUndertakingMultiFactorAuthentication)) {
+                $this->multiFactorChallengeForm->fill();
+
+                return null;
+            }
+        }
+
+        if (! $authGuard->attemptWhen($credentials, function (Authenticatable $user): bool {
+            if (! ($user instanceof FilamentUser)) {
+                return true;
+            }
+
+            return $user->canAccessPanel(Filament::getCurrentOrDefaultPanel());
+        }, $data['remember'] ?? false)) {
+            $this->fireFailedEvent($authGuard, $user, $credentials);
+            $this->throwFailureValidationException();
+        }
+
+        session()->regenerate();
+
+        if ($user instanceof Pengguna) {
+            $user->forceFill(['LoginTerakhirPada' => now()])->save();
+        }
+
+        return app(LoginResponse::class);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function getCredentialsFromFormData(array $data): array
+    {
+        return [
+            'Email' => $data['email'] ?? null,
+            'password' => $data['password'] ?? null,
+        ];
+    }
+
+    protected function throwAccountStatusValidationException(Pengguna $user): never
+    {
+        throw ValidationException::withMessages([
+            'data.email' => __('ui.auth.inactive_account'),
+        ]);
+    }
+
+    public function getTitle(): string | Htmlable
+    {
+        return __('ui.auth.login_title');
+    }
+
+    public function getHeading(): string | Htmlable | null
+    {
+        return __('ui.auth.login_heading');
+    }
+}

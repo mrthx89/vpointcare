@@ -27,6 +27,7 @@ class NomorWhatsapp extends Model
     {
         static::saving(function (self $nomor): void {
             $nomor->NomorWhatsapp = preg_replace('/[^0-9]/', '', (string) $nomor->NomorWhatsapp) ?: $nomor->NomorWhatsapp;
+            $nomor->IdWaha = $nomor->IdWaha ? trim((string) $nomor->IdWaha) : null;
 
             if ($nomor->IdCustomer && ! $nomor->IdInstansi) {
                 $nomor->IdInstansi = Customer::query()->whereKey($nomor->IdCustomer)->value('IdInstansi');

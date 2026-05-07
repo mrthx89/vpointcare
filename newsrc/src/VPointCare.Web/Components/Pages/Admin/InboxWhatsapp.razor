@@ -1,0 +1,117 @@
+@page "/admin/inbox-whatsapp"
+@attribute [Authorize]
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<PageTitle>Inbox WhatsApp - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div>
+            <MudText Typo="Typo.h5">Inbox WhatsApp</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Webhook WAHA masuk lewat SignalR dan memberi notifikasi ke user yang sedang membuka aplikasi.</MudText>
+        </div>
+        <MudChip T="string" Color="@(_connected ? Color.Success : Color.Warning)" Variant="Variant.Filled">
+            @(_connected ? "SignalR tersambung" : "SignalR belum tersambung")
+        </MudChip>
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="section-panel inbox-column" Elevation="0">
+                <MudText Typo="Typo.subtitle1">Daftar Chat</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Data chat akan dimuat dari TChat/TChatD pada tahap migrasi halaman detail.</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudPaper Class="section-panel inbox-column" Elevation="0">
+                <MudText Typo="Typo.subtitle1">Percakapan</MudText>
+                @if (_notifications.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Menunggu webhook WAHA.</MudText>
+                }
+                else
+                {
+                    <MudList T="NewMessageNotificationPayload" Dense="true">
+                        @foreach (var item in _notifications)
+                        {
+                            <MudListItem Icon="@Icons.Material.Filled.Chat">
+                                <MudText Typo="Typo.body2"><strong>@item.Title</strong> @item.Body</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudPaper Class="section-panel inbox-column" Elevation="0">
+                <MudText Typo="Typo.subtitle1">CS Aktif: @_agents.ActiveCount</MudText>
+                <MudList T="ActiveAgentPayload" Dense="true">
+                    @foreach (var agent in _agents.Agents)
+                    {
+                        <MudListItem Icon="@Icons.Material.Filled.SupportAgent">@agent.Name</MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code {
+    private DotNetObjectReference<InboxWhatsapp>? _dotNetRef;
+    private bool _connected;
+    private AgentsUpdatedPayload _agents = new(0, Array.Empty<ActiveAgentPayload>());
+    private readonly List<NewMessageNotificationPayload> _notifications = [];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _dotNetRef = DotNetObjectReference.Create(this);
+        try
+        {
+            await JS.InvokeAsync<object>("wacsSignalR.startInbox", _dotNetRef);
+            _connected = true;
+        }
+        catch
+        {
+            _connected = false;
+        }
+
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public Task OnInboxUpdated(InboxUpdatedPayload payload)
+    {
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task OnNewMessageNotification(NewMessageNotificationPayload payload)
+    {
+        _notifications.Insert(0, payload);
+        if (_notifications.Count > 10)
+        {
+            _notifications.RemoveAt(_notifications.Count - 1);
+        }
+
+        return InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public Task OnAgentsUpdated(AgentsUpdatedPayload payload)
+    {
+        _agents = payload;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await JS.InvokeVoidAsync("wacsSignalR.stopInbox");
+        _dotNetRef?.Dispose();
+    }
+}

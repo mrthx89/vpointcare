@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Master\AnggotaGrupWhatsapps;
 
 use App\Filament\Resources\Master\AnggotaGrupWhatsapps\Pages\ManageAnggotaGrupWhatsapps;
 use App\Models\Master\AnggotaGrupWhatsapp;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -23,39 +26,78 @@ class AnggotaGrupWhatsappResource extends Resource
 {
     protected static ?string $model = AnggotaGrupWhatsapp::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, Heroicon::OutlinedUsers);
+    }
 
-    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+    public static function getNavigationGroup(): string | UnitEnum | null
+    {
+        return NavigationHelper::groupFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, __('ui.navigation.master_data'));
+    }
 
-    protected static ?string $navigationLabel = 'Anggota Grup';
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, 60);
+    }
 
-    protected static ?string $modelLabel = 'Anggota Grup';
+    public static function getNavigationLabel(): string
+    {
+        return NavigationHelper::labelFor(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP, __('ui.models.anggota_grup.label'));
+    }
 
-    protected static ?string $pluralModelLabel = 'Anggota Grup';
+    public static function getModelLabel(): string
+    {
+        return __('ui.models.anggota_grup.label');
+    }
 
-    protected static ?int $navigationSort = 45;
+    public static function getPluralModelLabel(): string
+    {
+        return __('ui.models.anggota_grup.plural');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::MENU_MASTER_ANGGOTA_GRUP);
+    }
+
+    public static function canCreate(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canEdit($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
+
+    public static function canDelete($record): bool
+    {
+        return FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE);
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 Select::make('IdGrupWhatsapp')
-                    ->label('Grup WhatsApp')
+                    ->label(__('ui.models.anggota_grup.group'))
                     ->relationship('grupWhatsapp', 'NamaGrup')
                     ->searchable()
                     ->preload()
                     ->required(),
                 Select::make('IdNomorWhatsapp')
-                    ->label('Nomor WhatsApp')
+                    ->label(__('ui.models.anggota_grup.contact'))
                     ->relationship('nomorWhatsapp', 'NomorWhatsapp')
                     ->searchable(['NomorWhatsapp', 'NamaKontak'])
                     ->preload()
                     ->required(),
                 TextInput::make('PeranAnggota')
-                    ->label('Peran Anggota')
+                    ->label(__('ui.models.pengguna.role'))
                     ->maxLength(100),
                 Toggle::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive')),
             ]);
     }
 
@@ -64,39 +106,40 @@ class AnggotaGrupWhatsappResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('grupWhatsapp.instansi.NamaInstansi')
-                    ->label('Klien')
+                    ->label(__('ui.models.grup_whatsapp.client'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('grupWhatsapp.NamaGrup')
-                    ->label('Grup')
+                    ->label(__('ui.models.anggota_grup.group'))
                     ->searchable()
                     ->sortable()
                     ->weight('semibold'),
                 TextColumn::make('nomorWhatsapp.NamaKontak')
-                    ->label('Nama WA')
+                    ->label(__('ui.models.nomor_whatsapp.contact_name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('nomorWhatsapp.NomorWhatsapp')
-                    ->label('Nomor WA')
+                    ->label(__('ui.models.nomor_whatsapp.whatsapp_number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.NamaCustomer')
-                    ->label('Kontak Customer')
+                    ->label(__('ui.models.customer.label'))
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('PeranAnggota')
-                    ->label('Peran')
+                    ->label(__('ui.models.pengguna.role'))
                     ->searchable(),
                 ToggleColumn::make('NonAktif')
-                    ->label('Nonaktif'),
+                    ->label(__('ui.common.inactive'))
+                    ->disabled(fn (): bool => ! FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
                 TextColumn::make('TglBuat')
                     ->label('Dibuat')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('TglEdit')
                     ->label('Diedit')
-                    ->dateTime()
+                    ->dateTime(\App\Support\LocaleFormatter::tableDateTimeFormat())
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -107,14 +150,18 @@ class AnggotaGrupWhatsappResource extends Resource
                     ->searchable()
                     ->preload(),
                 TernaryFilter::make('NonAktif')
-                    ->label('Status nonaktif'),
+                    ->label(__('ui.filters.status'))
+                    ->placeholder(__('ui.filters.all'))
+                    ->trueLabel(__('ui.filters.inactive'))
+                    ->falseLabel(__('ui.filters.active')),
             ])
             ->defaultSort('PeranAnggota')
             ->striped()
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn (): bool => FilamentAccess::can(AccessPermissions::MASTER_CUSTOMER_MANAGE)),
             ]);
     }
 

@@ -1,0 +1,47 @@
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha-dev
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - WAHA_BASE_URL=https://wahavpoint.vpoint.my.id
+      - WAHA_API_KEY=VP01ntAPIKEY123456
+
+      # Dashboard / Swagger
+      - WAHA_DASHBOARD_USERNAME=admin
+      - WAHA_DASHBOARD_PASSWORD=VP01nt@Sg1
+      - WHATSAPP_SWAGGER_USERNAME=admin
+      - WHATSAPP_SWAGGER_PASSWORD=VP01nt@Sg1
+
+      # Media
+      - WHATSAPP_DOWNLOAD_MEDIA=true
+      - WHATSAPP_FILES_FOLDER=/app/.media
+      - WHATSAPP_FILES_LIFETIME=0
+
+      # Session auto-start
+      - WHATSAPP_START_SESSION=default
+      - WHATSAPP_RESTART_ALL_SESSIONS=True
+
+      # Global webhook WAHA
+      - WHATSAPP_HOOK_URL=https://care.vpoint.my.id/webhooks/waha
+      - WHATSAPP_HOOK_EVENTS=message
+      - WHATSAPP_HOOK_HMAC_KEY=9f3b8c2e7a1d4f6b0c9e8a7d5f2b1c3a4e6f8d9c0b1a2e3f4d5c6b7a8e9f0a1b
+      - WHATSAPP_HOOK_RETRIES_POLICY=linear
+      - WHATSAPP_HOOK_RETRIES_DELAY_SECONDS=2
+      - WHATSAPP_HOOK_RETRIES_ATTEMPTS=4
+
+      # Filter event
+      - WAHA_SESSION_CONFIG_IGNORE_STATUS=true
+      - WAHA_SESSION_CONFIG_IGNORE_CHANNELS=true
+      - WAHA_SESSION_CONFIG_IGNORE_BROADCAST=true
+      - WAHA_SESSION_CONFIG_IGNORE_GROUPS=false
+
+    volumes:
+      - waha_sessions:/app/.sessions
+      - waha_media:/app/.media
+
+volumes:
+  waha_sessions:
+  waha_media:

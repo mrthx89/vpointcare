@@ -1,0 +1,75 @@
+@page "/admin/users/pengguna"
+@attribute [Authorize]
+@inject VPointCare.Web.Data.VPointCareDbContext Db
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Pengguna Internal - VPoint Care</PageTitle>
+
+<MudStack Spacing="3">
+    <div class="page-heading-row">
+        <div><MudText Typo="Typo.h5">Pengguna Internal</MudText><MudText Typo="Typo.body2" Color="Color.Secondary">Padanan resource Filament `PenggunaResource` untuk tabel `MPengguna`.</MudText></div>
+        <MudButton Href="/admin/users" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">MUser</MudButton>
+    </div>
+    <MudPaper Class="section-panel" Elevation="0">
+        <MudTable T="Row" Items="@_rows" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm" RowsPerPage="10" Filter="FilterRow">
+            <ToolBarContent>
+                <MudText Typo="Typo.subtitle1">Data Pengguna Internal</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="_search" Placeholder="Filter data" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" Margin="Margin.Dense" Variant="Variant.Outlined" />
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<Row, object>(x => x.Nama)">Nama</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Row, object>(x => x.Email)">Email</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Row, object>(x => x.Peran)">Peran</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Row, object?>(x => x.Wa)">WA Internal</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Row, object?>(x => x.Jabatan)">Jabatan</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Row, object>(x => x.NonAktif)">Status</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Nama">@context.Nama</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Peran">@context.Peran</MudTd>
+                <MudTd DataLabel="WA Internal">@context.Wa</MudTd>
+                <MudTd DataLabel="Jabatan">@context.Jabatan</MudTd>
+                <MudTd DataLabel="Status">@(context.NonAktif ? "Nonaktif" : "Aktif")</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new[] { 10, 25, 50, 100 }" />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private List<Row> _rows = [];
+    private string _search = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _rows = await (from p in Db.Penggunas.AsNoTracking()
+            join r in Db.Perans.AsNoTracking() on p.IdPeran equals r.Id into roleJoin
+            from r in roleJoin.DefaultIfEmpty()
+            orderby p.NamaPengguna
+            select new Row(p.NamaPengguna, p.Email, r == null ? "-" : r.NamaPeran, p.NomorWhatsappInternal, p.Jabatan, p.NonAktif))
+            .ToListAsync();
+    }
+
+    private bool FilterRow(Row row)
+    {
+        if (string.IsNullOrWhiteSpace(_search))
+        {
+            return true;
+        }
+
+        return Contains(row.Nama)
+            || Contains(row.Email)
+            || Contains(row.Peran)
+            || Contains(row.Wa)
+            || Contains(row.Jabatan)
+            || Contains(row.NonAktif ? "Nonaktif" : "Aktif");
+    }
+
+    private bool Contains(string? value) => value?.Contains(_search, StringComparison.OrdinalIgnoreCase) == true;
+
+    private sealed record Row(string Nama, string Email, string Peran, string? Wa, string? Jabatan, bool NonAktif);
+}

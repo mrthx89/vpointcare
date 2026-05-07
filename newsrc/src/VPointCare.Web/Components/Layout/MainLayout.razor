@@ -1,0 +1,156 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@using VPointCare.Web.Services.Auth
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject PermissionService PermissionService
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Dense="true" Color="Color.Surface">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <img src="images/logo_primary.svg" alt="VPoint Care" class="app-logo" />
+        <MudText Typo="Typo.subtitle1" Class="app-title">VPoint Care</MudText>
+        <MudSpacer />
+        <MudButton Href="/logout" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Logout">Keluar</MudButton>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="1" Variant="DrawerVariant.Responsive" Width="260px">
+        <MudNavMenu Dense="true" Class="pt-3">
+            @foreach (var group in _menuGroups)
+            {
+                <MudNavGroup Title="@group.Title" Icon="@group.Icon" Expanded="true">
+                    @foreach (var item in group.Items)
+                    {
+                        <MudNavLink Href="@item.Href" Match="@item.Match" Icon="@item.Icon">@item.Title</MudNavLink>
+                    }
+                </MudNavGroup>
+            }
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="main-content">
+        <MudContainer MaxWidth="MaxWidth.False" Class="content-shell">
+            @if (!_accessReady)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+            }
+            else if (!_canAccessCurrentRoute)
+            {
+                <MudAlert Severity="Severity.Error">User tidak memiliki hak akses menu @_deniedMenuTitle.</MudAlert>
+            }
+            else
+            {
+                @Body
+            }
+        </MudContainer>
+        <footer class="app-footer">VPoint Care ASP.NET 8 Migration</footer>
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui">
+    Terjadi kesalahan aplikasi.
+    <a href="" class="reload">Muat ulang</a>
+    <a class="dismiss">Tutup</a>
+</div>
+
+@code {
+    private bool _drawerOpen = true;
+    private IReadOnlyList<AppMenuGroup> _menuGroups = [];
+    private HashSet<string> _permissions = new(StringComparer.OrdinalIgnoreCase);
+    private bool _accessReady;
+    private bool _canAccessCurrentRoute = true;
+    private string? _deniedMenuTitle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _permissions = await PermissionService.GetPermissionCodesAsync(authState.User);
+
+        _menuGroups = AppMenuDefinition.Groups
+            .Select(group =>
+            {
+                var visibleItems = group.Items
+                    .Where(item => _permissions.Contains(item.PermissionCode))
+                    .ToArray();
+
+                return new AppMenuGroup(group.Title, group.Icon, visibleItems);
+            })
+            .Where(group => group.Items.Count > 0)
+            .ToArray();
+
+        CheckCurrentRouteAccess();
+        NavigationManager.LocationChanged += HandleLocationChanged;
+        _accessReady = true;
+    }
+
+    private void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        CheckCurrentRouteAccess();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void CheckCurrentRouteAccess()
+    {
+        var currentPath = GetCurrentPath();
+        var routeMenu = AppMenuDefinition.Groups
+            .SelectMany(group => group.Items)
+            .Where(item => IsRouteMatch(currentPath, item))
+            .OrderByDescending(item => item.Href.Length)
+            .FirstOrDefault();
+
+        if (routeMenu is null)
+        {
+            _canAccessCurrentRoute = true;
+            _deniedMenuTitle = null;
+            return;
+        }
+
+        _canAccessCurrentRoute = _permissions.Contains(routeMenu.PermissionCode);
+        _deniedMenuTitle = routeMenu.Title;
+    }
+
+    private string GetCurrentPath()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var queryIndex = relativePath.IndexOfAny(['?', '#']);
+        if (queryIndex >= 0)
+        {
+            relativePath = relativePath[..queryIndex];
+        }
+
+        relativePath = relativePath.Trim('/');
+        return string.IsNullOrWhiteSpace(relativePath) ? "/" : $"/{relativePath}";
+    }
+
+    private static bool IsRouteMatch(string currentPath, AppMenuItem item)
+    {
+        var menuPath = item.Href.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(menuPath))
+        {
+            menuPath = "/";
+        }
+
+        if (item.Match == NavLinkMatch.All)
+        {
+            return string.Equals(currentPath, menuPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return string.Equals(currentPath, menuPath, StringComparison.OrdinalIgnoreCase)
+            || currentPath.StartsWith($"{menuPath}/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+}

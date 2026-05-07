@@ -15,6 +15,12 @@ class KirimNotifikasiChatBelumTerbalas extends Command
     {
         $result = $notifier->handle();
 
+        if (($result['dilewati_jadwal'] ?? 0) === 1) {
+            $this->info('Notifikasi internal dilewati karena sedang di luar jam kerja atau hari libur.');
+
+            return self::SUCCESS;
+        }
+
         $this->info(sprintf(
             'Chat: %d, penerima: %d, terkirim: %d, gagal: %d',
             $result['chat_diperiksa'],

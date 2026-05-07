@@ -5,6 +5,7 @@ namespace App\Services\Ai;
 use App\Services\Waha\WahaSender;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ChatBelumTerbalasNotifier
@@ -23,24 +24,20 @@ class ChatBelumTerbalasNotifier
             ->where('NonAktif', false)
             ->first();
 
-        if (! $settings || ! (bool) ($settings->NotifikasiChatBelumTerbalasAktif ?? false)) {
-            return [
-                'chat_diperiksa' => 0,
-                'notifikasi_terkirim' => 0,
-                'notifikasi_gagal' => 0,
-                'penerima' => 0,
-            ];
+        if (!$settings || !(bool) ($settings->NotifikasiChatBelumTerbalasAktif ?? false)) {
+            return $this->emptyResult();
+        }
+
+        if (!$this->insideWorkingSchedule($settings)) {
+            return $this->emptyResult([
+                'dilewati_jadwal' => 1,
+            ]);
         }
 
         $recipients = $this->recipients((string) ($settings->KodePeranPenerimaNotifikasi ?? ''));
 
         if ($recipients->isEmpty()) {
-            return [
-                'chat_diperiksa' => 0,
-                'notifikasi_terkirim' => 0,
-                'notifikasi_gagal' => 0,
-                'penerima' => 0,
-            ];
+            return $this->emptyResult();
         }
 
         $waitMinutes = max(1, (int) ($settings->MenitTungguNotifikasi ?? 10));
@@ -63,7 +60,7 @@ class ChatBelumTerbalasNotifier
                 $result['ok'] ? $sent++ : $failed++;
             }
 
-            DB::table('TChatM')->where('Id', $chat->Id)->update([
+            DB::table('TChat')->where('Id', $chat->Id)->update([
                 'TglNotifikasiBelumTerbalasTerakhir' => now(),
                 'JumlahNotifikasiBelumTerbalas' => DB::raw('JumlahNotifikasiBelumTerbalas + 1'),
                 'TglEdit' => now(),
@@ -75,13 +72,70 @@ class ChatBelumTerbalasNotifier
             'notifikasi_terkirim' => $sent,
             'notifikasi_gagal' => $failed,
             'penerima' => $recipients->count(),
+            'dilewati_jadwal' => 0,
         ];
+    }
+
+    /**
+     * @param  array<string, int>  $overrides
+     * @return array<string, int>
+     */
+    private function emptyResult(array $overrides = []): array
+    {
+        return array_merge([
+            'chat_diperiksa' => 0,
+            'notifikasi_terkirim' => 0,
+            'notifikasi_gagal' => 0,
+            'penerima' => 0,
+            'dilewati_jadwal' => 0,
+        ], $overrides);
+    }
+
+    private function insideWorkingSchedule(object $settings): bool
+    {
+        $timezone = $settings->ZonaWaktu ?: config('app.timezone', 'Asia/Jakarta');
+        $now = Carbon::now($timezone);
+        $workdays = array_map('intval', explode(',', (string) $settings->HariKerja));
+
+        if (!in_array($now->dayOfWeekIso, $workdays, true)) {
+            return false;
+        }
+
+        if ($this->isHoliday($now)) {
+            return false;
+        }
+
+        $start = Carbon::parse($now->toDateString() . ' ' . (string) $settings->JamKerjaMulai, $timezone);
+        $end = Carbon::parse($now->toDateString() . ' ' . (string) $settings->JamKerjaSelesai, $timezone);
+
+        return $now->betweenIncluded($start, $end);
+    }
+
+    private function isHoliday(Carbon $date): bool
+    {
+        if (!Schema::hasTable('MHariLibur')) {
+            return false;
+        }
+
+        return DB::table('MHariLibur')
+            ->where('NonAktif', false)
+            ->where(function ($query) use ($date): void {
+                $query
+                    ->whereDate('TanggalLibur', $date->toDateString())
+                    ->orWhere(function ($query) use ($date): void {
+                        $query
+                            ->where('BerlakuTahunan', true)
+                            ->whereRaw('MONTH(TanggalLibur) = ?', [$date->month])
+                            ->whereRaw('DAY(TanggalLibur) = ?', [$date->day]);
+                    });
+            })
+            ->exists();
     }
 
     private function recipients(string $roleCodes)
     {
         $codes = array_values(array_filter(array_map(
-            fn (string $value): string => trim($value),
+            fn(string $value): string => trim($value),
             explode(',', $roleCodes)
         )));
 
@@ -90,7 +144,7 @@ class ChatBelumTerbalasNotifier
             ->where('p.NonAktif', false)
             ->whereNotNull('p.NomorWhatsappInternal')
             ->where('p.NomorWhatsappInternal', '<>', '')
-            ->when($codes !== [], fn ($query) => $query->whereIn('r.KodePeran', $codes))
+            ->when($codes !== [], fn($query) => $query->whereIn('r.KodePeran', $codes))
             ->select('p.Id', 'p.NamaPengguna', 'p.NomorWhatsappInternal', 'r.KodePeran')
             ->get();
     }
@@ -98,18 +152,28 @@ class ChatBelumTerbalasNotifier
     private function unansweredChats(int $waitMinutes, int $cooldownMinutes)
     {
         $latestIncoming = DB::table('TChatD')
-            ->select('IdChatM', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
+            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
             ->where('ArahPesan', 'Masuk')
             ->where('DikirimOlehCustomer', true)
-            ->groupBy('IdChatM');
+            ->groupBy('IdChat');
 
-        return DB::table('TChatM as c')
-            ->joinSub($latestIncoming, 'masuk', fn ($join) => $join->on('masuk.IdChatM', '=', 'c.Id'))
+        $latestCsReply = DB::table('TChatD')
+            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
+            ->where('ArahPesan', 'Keluar')
+            ->where(function ($query): void {
+                $query->whereNull('DihasilkanOlehAi')
+                    ->orWhere('DihasilkanOlehAi', false);
+            })
+            ->groupBy('IdChat');
+
+        return DB::table('TChat as c')
+            ->joinSub($latestIncoming, 'masuk', fn($join) => $join->on('masuk.IdChat', '=', 'c.Id'))
+            ->leftJoinSub($latestCsReply, 'cs', fn($join) => $join->on('cs.IdChat', '=', 'c.Id'))
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
             ->where(function ($query): void {
-                $query->whereNull('c.TglDibalasTerakhir')
-                    ->orWhereColumn('c.TglDibalasTerakhir', '<', 'masuk.TglPesanTerakhirMasuk');
+                $query->whereNull('cs.TglPesanTerakhirCs')
+                    ->orWhereColumn('cs.TglPesanTerakhirCs', '<', 'masuk.TglPesanTerakhirMasuk');
             })
             ->where('masuk.TglPesanTerakhirMasuk', '<=', now()->subMinutes($waitMinutes))
             ->where(function ($query) use ($cooldownMinutes): void {
@@ -131,7 +195,7 @@ class ChatBelumTerbalasNotifier
             ->get()
             ->map(function (object $chat): object {
                 $chat->PesanTerakhir = (string) DB::table('TChatD')
-                    ->where('IdChatM', $chat->Id)
+                    ->where('IdChat', $chat->Id)
                     ->where('ArahPesan', 'Masuk')
                     ->where('TglPesan', $chat->TglPesanTerakhirMasuk)
                     ->value('IsiPesan');

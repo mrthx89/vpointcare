@@ -61,23 +61,23 @@ SQL);
 
         foreach ([
             'IdGrupWhatsapp uniqueidentifier NULL',
-            "JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChatM_JenisChat DEFAULT 'Pribadi'",
+            "JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChat_JenisChat DEFAULT 'Pribadi'",
             'NamaGrupWhatsapp varchar(200) NULL',
         ] as $definition) {
             [$column] = explode(' ', $definition, 2);
             DB::unprepared("
-                IF COL_LENGTH('TChatM', '{$column}') IS NULL
-                    ALTER TABLE TChatM ADD {$definition}
+                IF COL_LENGTH('TChat', '{$column}') IS NULL
+                    ALTER TABLE TChat ADD {$definition}
             ");
         }
 
         DB::unprepared(<<<'SQL'
 IF NOT EXISTS (
-    SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_TChatM_MGrupWhatsapp'
+    SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_TChat_MGrupWhatsapp'
 )
 BEGIN
-    ALTER TABLE TChatM
-    ADD CONSTRAINT FK_TChatM_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id);
+    ALTER TABLE TChat
+    ADD CONSTRAINT FK_TChat_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id);
 END
 SQL);
 
@@ -95,7 +95,7 @@ SQL);
         DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MGrupWhatsapp_IdInstansi') CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi)");
         DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MGrupWhatsapp_IdGrupWaha') CREATE INDEX IX_MGrupWhatsapp_IdGrupWaha ON MGrupWhatsapp (IdGrupWaha)");
         DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp') CREATE INDEX IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp ON MAnggotaGrupWhatsapp (IdGrupWhatsapp)");
-        DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatM_IdGrupWhatsapp') CREATE INDEX IX_TChatM_IdGrupWhatsapp ON TChatM (IdGrupWhatsapp)");
+        DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChat_IdGrupWhatsapp') CREATE INDEX IX_TChat_IdGrupWhatsapp ON TChat (IdGrupWhatsapp)");
     }
 
     public function down(): void
@@ -104,12 +104,12 @@ SQL);
             return;
         }
 
-        DB::unprepared("IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_TChatM_MGrupWhatsapp') ALTER TABLE TChatM DROP CONSTRAINT FK_TChatM_MGrupWhatsapp");
+        DB::unprepared("IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_TChat_MGrupWhatsapp') ALTER TABLE TChat DROP CONSTRAINT FK_TChat_MGrupWhatsapp");
         DB::unprepared("IF COL_LENGTH('TChatD', 'PengirimNamaKontak') IS NOT NULL ALTER TABLE TChatD DROP COLUMN PengirimNamaKontak");
         DB::unprepared("IF COL_LENGTH('TChatD', 'PengirimNomorWhatsapp') IS NOT NULL ALTER TABLE TChatD DROP COLUMN PengirimNomorWhatsapp");
-        DB::unprepared("IF COL_LENGTH('TChatM', 'NamaGrupWhatsapp') IS NOT NULL ALTER TABLE TChatM DROP COLUMN NamaGrupWhatsapp");
-        DB::unprepared("IF COL_LENGTH('TChatM', 'JenisChat') IS NOT NULL ALTER TABLE TChatM DROP CONSTRAINT DF_TChatM_JenisChat; IF COL_LENGTH('TChatM', 'JenisChat') IS NOT NULL ALTER TABLE TChatM DROP COLUMN JenisChat");
-        DB::unprepared("IF COL_LENGTH('TChatM', 'IdGrupWhatsapp') IS NOT NULL ALTER TABLE TChatM DROP COLUMN IdGrupWhatsapp");
+        DB::unprepared("IF COL_LENGTH('TChat', 'NamaGrupWhatsapp') IS NOT NULL ALTER TABLE TChat DROP COLUMN NamaGrupWhatsapp");
+        DB::unprepared("IF COL_LENGTH('TChat', 'JenisChat') IS NOT NULL ALTER TABLE TChat DROP CONSTRAINT DF_TChat_JenisChat; IF COL_LENGTH('TChat', 'JenisChat') IS NOT NULL ALTER TABLE TChat DROP COLUMN JenisChat");
+        DB::unprepared("IF COL_LENGTH('TChat', 'IdGrupWhatsapp') IS NOT NULL ALTER TABLE TChat DROP COLUMN IdGrupWhatsapp");
         DB::unprepared("IF OBJECT_ID(N'MAnggotaGrupWhatsapp', 'U') IS NOT NULL DROP TABLE MAnggotaGrupWhatsapp");
         DB::unprepared("IF OBJECT_ID(N'MGrupWhatsapp', 'U') IS NOT NULL DROP TABLE MGrupWhatsapp");
     }

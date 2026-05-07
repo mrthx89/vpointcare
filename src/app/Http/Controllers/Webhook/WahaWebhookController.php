@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Webhook;
 
+use App\Events\WahaInboxUpdated;
 use App\Http\Controllers\Controller;
 use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaWebhookProcessor;
@@ -19,7 +20,7 @@ class WahaWebhookController extends Controller
         if ($expectedToken && ! hash_equals($expectedToken, (string) $token)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Invalid webhook token.',
+                'message' => __('ui.controllers.webhook.invalid_token'),
             ], 403);
         }
 
@@ -28,13 +29,17 @@ class WahaWebhookController extends Controller
         if ($hmacKey && ! $this->validHmacSignature($request, (string) $hmacKey)) {
             return response()->json([
                 'ok' => false,
-                'message' => 'Invalid webhook HMAC signature.',
+                'message' => __('ui.controllers.webhook.invalid_hmac'),
             ], 403);
         }
 
         $result = $processor->process($request->all());
 
-        if (($result['ok'] ?? false) && ! empty($result['chat_id'])) {
+        if (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id'])) {
+            // Broadcast real-time ke semua browser via Reverb WebSocket.
+            // Menggunakan queue (database) agar response webhook tidak tertunda.
+            broadcast(new WahaInboxUpdated((string) $result['chat_id']))->toOthers();
+
             try {
                 $result['auto_reply'] = $autoReply->handleIncomingChat((string) $result['chat_id']);
             } catch (Throwable $exception) {
@@ -45,7 +50,7 @@ class WahaWebhookController extends Controller
 
                 $result['auto_reply'] = [
                     'ok' => false,
-                    'message' => 'AI auto reply gagal, webhook tetap diterima.',
+                    'message' => __('ui.controllers.webhook.ai_failed'),
                 ];
             }
         }

@@ -21,6 +21,13 @@ class GrupWhatsapp extends Model
         'TglEdit' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $grup): void {
+            $grup->IdGrupWaha = $grup->IdGrupWaha ? trim((string) $grup->IdGrupWaha) : null;
+        });
+    }
+
     public function instansi(): BelongsTo
     {
         return $this->belongsTo(Instansi::class, 'IdInstansi', 'Id');

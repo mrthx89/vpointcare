@@ -2,27 +2,88 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Master\Pengguna;
+use App\Services\Ai\AiAutoReplyService;
+use App\Services\Waha\WahaSender;
+use App\Support\AccessPermissions;
+use App\Support\FilamentAccess;
+use App\Support\FilamentBreadcrumbs;
+use App\Support\NavigationHelper;
+use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Schema as FilamentSchema;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
-class InboxWhatsapp extends Page
+class InboxWhatsapp extends Page implements HasForms
 {
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    use InteractsWithForms;
+    use WithFileUploads;
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Operasional';
+    public static function getNavigationIcon(): string | \BackedEnum | null
+    {
+        return NavigationHelper::iconFor(AccessPermissions::INBOX_VIEW, 'heroicon-o-chat-bubble-left-right');
+    }
 
-    protected static ?string $navigationLabel = 'Inbox WhatsApp';
+    public static function getNavigationGroup(): ?string
+    {
+        return NavigationHelper::groupFor(AccessPermissions::INBOX_VIEW, __('ui.navigation.operasional'));
+    }
 
-    protected static ?int $navigationSort = 10;
+    public static function getNavigationSort(): ?int
+    {
+        return NavigationHelper::sortFor(AccessPermissions::INBOX_VIEW, 10);
+    }
 
-    protected static ?string $title = 'Inbox WhatsApp';
+    public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
+    {
+        return 'Inbox WhatsApp';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return NavigationHelper::labelFor(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
+    }
 
     protected string $view = 'filament.pages.inbox-whatsapp';
 
+    public static function canAccess(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::INBOX_VIEW)
+            && NavigationHelper::isActive(AccessPermissions::INBOX_VIEW);
+    }
+
+    public function canReplyInbox(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::INBOX_REPLY);
+    }
+
+    public function canManageInbox(): bool
+    {
+        return FilamentAccess::can(AccessPermissions::INBOX_MANAGE);
+    }
+
     /** @var array<string, int> */
     public array $stats = [];
+
+    public int $activeAgents = 0;
 
     /** @var array<int, array<string, mixed>> */
     public array $chatRows = [];
@@ -30,75 +91,276 @@ class InboxWhatsapp extends Page
     /** @var array<int, array<string, mixed>> */
     public array $messages = [];
 
+    /** @var array<int, array<string, mixed>> */
+    public array $historyChats = [];
+
+    /** @var array<int, array<string, mixed>> */
+    public array $internalNotes = [];
+
+    public string $newInternalNote = '';
+
     public ?string $selectedChatId = null;
 
     public ?array $selectedChat = null;
 
     public string $replyText = '';
 
+    public ?TemporaryUploadedFile $attachment = null;
+
+    public string $filterText = '';
+
+    public string $filterType = 'keduanya';
+
+    /** Cache ID pengguna agar tidak query DB berulang kali per request. */
+    private ?string $cachedPenggunaId = null;
+
     public function mount(): void
     {
         $this->loadInbox();
     }
 
+    /**
+     * Dipanggil oleh Laravel Echo (via JavaScript) ketika Reverb
+     * WebSocket menerima event 'WahaInboxUpdated' dari webhook.
+     * Ini yang membuat halaman ini real-time seperti SignalR.
+     */
+    #[On('waha-inbox-updated')]
+    public function handleInboxUpdate(): void
+    {
+        $this->loadInbox();
+    }
+
+    public function updatedFilterText(): void
+    {
+        $this->refreshFilteredInbox();
+    }
+
+    public function updatedFilterType(): void
+    {
+        if (! in_array($this->filterType, ['pribadi', 'grup', 'keduanya'], true)) {
+            $this->filterType = 'keduanya';
+        }
+
+        $this->refreshFilteredInbox();
+    }
+
+    public function form(FilamentSchema $schema): FilamentSchema
+    {
+        return $schema
+            ->components([
+                TextInput::make('filterText')
+                    ->hiddenLabel()
+                    ->placeholder(__('ui.pages.inbox.filter_placeholder'))
+                    ->live(debounce: 300),
+                Radio::make('filterType')
+                    ->hiddenLabel()
+                    ->options([
+                        'pribadi' => __('ui.pages.inbox.filter_private'),
+                        'grup' => __('ui.pages.inbox.filter_group'),
+                        'keduanya' => __('ui.pages.inbox.filter_both'),
+                    ])
+                    ->inline()
+                    ->live(),
+            ]);
+    }
+
+    private function refreshFilteredInbox(): void
+    {
+        $this->resetSelectedChat();
+        $this->loadInbox();
+    }
+
+    public function loadInternalNotes(): void
+    {
+        if (! $this->selectedChatId) {
+            $this->internalNotes = [];
+
+            return;
+        }
+
+        $this->internalNotes = DB::table('TChatDCatatanInternal')
+            ->where('IdChat', $this->selectedChatId)
+            ->orderBy('TglBuat', 'asc')
+            ->get()
+            ->map(function ($row) {
+                // Fetch creator name if table Pengguna exists
+                $creatorName = __('ui.common.system');
+                if ($row->DibuatOleh && Schema::hasTable('Pengguna')) {
+                    $creatorName = DB::table('Pengguna')->where('Id', $row->DibuatOleh)->value('NamaPengguna') ?? __('ui.common.system');
+                }
+
+                return [
+                    'Id' => $row->Id,
+                    'IsiCatatan' => $row->IsiCatatan,
+                    'TglBuat' => $row->TglBuat,
+                    'DibuatOlehNama' => $creatorName,
+                ];
+            })
+            ->all();
+    }
+
+    public function saveInternalNote(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        if (! $this->selectedChatId || trim($this->newInternalNote) === '') {
+            return;
+        }
+
+        DB::table('TChatDCatatanInternal')->insert([
+            'Id' => (string) Str::orderedUuid(),
+            'IdChat' => $this->selectedChatId,
+            'IsiCatatan' => trim($this->newInternalNote),
+            'DibuatOleh' => $this->currentPenggunaId(),
+            'TglBuat' => now(),
+        ]);
+
+        $this->newInternalNote = '';
+        $this->loadInternalNotes();
+
+        Notification::make()
+            ->title(__('ui.pages.inbox.note_saved'))
+            ->success()
+            ->send();
+    }
+
     public function loadInbox(): void
     {
+        $this->refreshActiveAgents();
+
         $this->stats = [
-            'baru' => (int) DB::table('TChatM')->count(),
-            'belum_dibaca' => (int) DB::table('TChatM')->sum('JumlahPesanBelumDibaca'),
-            'grup' => (int) DB::table('TChatM')->where('JenisChat', 'Grup')->count(),
-            'unknown' => (int) DB::table('TChatM')->whereNull('IdInstansi')->count(),
+            'baru' => (int) DB::table('TChat')->count(),
+            'belum_dibaca' => (int) DB::table('TChat')->sum('JumlahPesanBelumDibaca'),
+            'grup' => (int) DB::table('TChat')->where('JenisChat', 'Grup')->count(),
+            'unknown' => (int) DB::table('TChat as c')
+                ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+                ->whereNull('c.IdInstansi')
+                ->whereNull('g.IdInstansi')
+                ->count(),
         ];
 
-        $rows = DB::table('TChatM as c')
+        $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
+        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
+        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
+
+        $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
+        $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
+
+        $query = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
+            ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->leftJoin('MInstansi as gi', 'gi.Id', '=', 'g.IdInstansi')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
+            ->leftJoin('MPengguna as pd', 'pd.Id', '=', 'c.DiambilOleh')
             ->select(
                 'c.Id',
                 'c.JenisChat',
                 'c.NomorWhatsapp',
                 'c.NamaKontak',
                 'c.NamaGrupWhatsapp',
+                $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as IdWahaTerdeteksi'),
+                $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as NomorWhatsappTerdeteksi'),
+                $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as UrlFotoProfil'),
+                $hasWahaProfileColumns ? 'c.TglFotoProfilDiambil' : DB::raw('NULL as TglFotoProfilDiambil'),
                 'c.JumlahPesanBelumDibaca',
                 'c.TglChatTerakhir',
                 'c.AutoReplyAiAktif',
                 'c.AiSudahMenyapa',
                 'c.TglAutoReplyAiTerakhir',
+                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
                 'i.NamaInstansi',
+                'gi.NamaInstansi as NamaInstansiGrup',
                 'm.NamaCustomer',
-                's.NamaStatusChat'
-            )
+                'n.NamaKontak as NamaKontakMaster',
+                'n.NomorWhatsapp as NomorWhatsappMaster',
+                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as NomorIdWaha'),
+                'g.NamaGrup as NamaGrupMaster',
+                'g.IdGrupWaha',
+                'g.NomorGrupWhatsapp',
+                's.NamaStatusChat',
+                'pd.NamaPengguna as NamaDiambilOleh'
+            );
+
+        if ($this->filterType === 'pribadi') {
+            $query->where('c.JenisChat', 'Pribadi');
+        } elseif ($this->filterType === 'grup') {
+            $query->where('c.JenisChat', 'Grup');
+        }
+
+        $search = trim($this->filterText);
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+
+            $query->where(function ($query) use ($like, $nomorHasIdWaha, $hasWahaProfileColumns): void {
+                $query
+                    ->where('c.NamaKontak', 'like', $like)
+                    ->orWhere('c.NomorWhatsapp', 'like', $like)
+                    ->orWhere('c.NamaGrupWhatsapp', 'like', $like)
+                    ->orWhere('i.NamaInstansi', 'like', $like)
+                    ->orWhere('gi.NamaInstansi', 'like', $like)
+                    ->orWhere('m.NamaCustomer', 'like', $like)
+                    ->orWhere('n.NamaKontak', 'like', $like)
+                    ->orWhere('n.NomorWhatsapp', 'like', $like)
+                    ->orWhere('g.NamaGrup', 'like', $like)
+                    ->orWhere('g.IdGrupWaha', 'like', $like)
+                    ->orWhere('g.NomorGrupWhatsapp', 'like', $like);
+
+                if ($nomorHasIdWaha) {
+                    $query->orWhere('n.IdWaha', 'like', $like);
+                }
+
+                if ($hasWahaProfileColumns) {
+                    $query
+                        ->orWhere('c.NomorWhatsappTerdeteksi', 'like', $like)
+                        ->orWhere('c.IdWahaTerdeteksi', 'like', $like);
+                }
+            });
+        }
+
+        $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
+        if ($statusDitutupId) {
+            $query->where(function ($q) use ($statusDitutupId) {
+                $q->where('c.IdStatusChat', '!=', $statusDitutupId)
+                    ->orWhereNull('c.IdStatusChat');
+            });
+        }
+
+        $rows = $query
             ->orderByDesc('c.TglChatTerakhir')
             ->limit(50)
             ->get();
 
-        $this->chatRows = $rows->map(function (object $row): array {
+        $this->chatRows = $rows->map(function (object $row) use ($chatDetailHasFileName, $chatDetailHasMimeType): array {
             $lastMessage = DB::table('TChatD')
-                ->where('IdChatM', $row->Id)
+                ->where('IdChat', $row->Id)
                 ->orderByDesc('TglPesan')
-                ->value('IsiPesan');
+                ->select(
+                    'IsiPesan',
+                    'JenisPesan',
+                    'UrlMedia',
+                    $chatDetailHasMimeType ? 'TipeMime' : DB::raw('NULL as TipeMime'),
+                    $chatDetailHasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia')
+                )
+                ->first();
 
-            return [
-                'Id' => $row->Id,
-                'JenisChat' => $row->JenisChat,
-                'NamaInstansi' => $row->NamaInstansi ?: 'Belum dipetakan',
-                'NamaCustomer' => $row->NamaCustomer,
-                'NamaKontak' => $row->NamaKontak ?: '-',
-                'NamaGrupWhatsapp' => $row->NamaGrupWhatsapp,
-                'NomorWhatsapp' => $row->NomorWhatsapp,
-                'Status' => $row->NamaStatusChat ?: 'Menunggu CS',
-                'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
-                'TglChatTerakhir' => $row->TglChatTerakhir,
-                'PesanTerakhir' => $lastMessage ?: '-',
-                'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
-                'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
-                'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
-            ];
+            return $this->formatChatRow($row, $this->messagePreview($lastMessage));
         })->all();
+
+        $selectedExists = $this->selectedChatId
+            && collect($this->chatRows)->contains('Id', $this->selectedChatId);
+
+        if (! $selectedExists) {
+            $this->selectedChatId = null;
+            $this->selectedChat = null;
+            $this->messages = [];
+        }
 
         if (! $this->selectedChatId && $this->chatRows) {
             $this->selectChat($this->chatRows[0]['Id']);
+
             return;
         }
 
@@ -107,39 +369,208 @@ class InboxWhatsapp extends Page
         }
     }
 
+    private function formatChatRow(object $row, string $lastMessage = '-'): array
+    {
+        $isGroup = $row->JenisChat === 'Grup';
+        $groupName = $row->NamaGrupMaster ?: $row->NamaGrupWhatsapp;
+        $groupWahaId = $row->IdGrupWaha ?? null;
+        $groupNumber = $row->NomorGrupWhatsapp ?: ($groupWahaId ?: $row->NomorWhatsapp);
+        $contactName = $row->NamaKontakMaster ?: $row->NamaKontak;
+        $mappingIdentifiers = $this->mappingIdentifiers((object) [
+            'Id' => $row->Id,
+            'NomorWhatsapp' => $isGroup ? $groupWahaId : ($row->NomorWhatsappMaster ?: $row->NomorWhatsapp),
+            'NamaGrupWhatsapp' => $groupName,
+        ]);
+        $contactNumber = $row->NomorWhatsappMaster
+            ?: ($row->NomorWhatsappTerdeteksi ?? null)
+            ?: $this->displayPhoneNumber($mappingIdentifiers)
+            ?: $row->NomorWhatsapp;
+        $displayInstansi = $isGroup
+            ? ($row->NamaInstansiGrup ?: $row->NamaInstansi)
+            : $row->NamaInstansi;
+        $detectedWahaId = $isGroup
+            ? $groupWahaId
+            : (($row->IdWahaTerdeteksi ?? null) ?: $this->firstWahaId($mappingIdentifiers) ?: ($row->NomorIdWaha ?? null));
+
+        return [
+            'Id' => $row->Id,
+            'JenisChat' => $row->JenisChat,
+            'NamaInstansi' => $displayInstansi ?: __('ui.common.not_mapped'),
+            'NamaCustomer' => $row->NamaCustomer,
+            'NamaKontak' => $contactName ?: '-',
+            'NamaGrupWhatsapp' => $groupName,
+            'NomorWhatsapp' => $isGroup ? $groupNumber : $contactNumber,
+            'NomorWhatsappRaw' => $row->NomorWhatsapp,
+            'IdWaha' => $detectedWahaId,
+            'FotoProfilUrl' => $row->UrlFotoProfil ?? null,
+            'Status' => $row->NamaStatusChat ?: __('ui.pages.inbox.waiting_cs'),
+            'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
+            'TglChatTerakhir' => $row->TglChatTerakhir,
+            'PesanTerakhir' => $lastMessage,
+            'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
+            'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
+            'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
+            // Handler info: siapa CS yang sedang menangani chat ini
+            'DiambilOleh' => $row->DiambilOleh ?? null,
+            'DiambilNamaCS' => $row->NamaDiambilOleh
+                ? (mb_strlen($row->NamaDiambilOleh) > 18
+                    ? mb_substr($row->NamaDiambilOleh, 0, 15).'...'
+                    : $row->NamaDiambilOleh)
+                : null,
+            'DiambilOlehSaya' => isset($row->DiambilOleh)
+                && $row->DiambilOleh === $this->currentPenggunaId(),
+            'MappingIdentifiers' => $mappingIdentifiers,
+        ];
+    }
+
+    public function loadHistoryChats(): void
+    {
+        if (! $this->selectedChatId) {
+            $this->historyChats = [];
+
+            return;
+        }
+
+        $rawChat = DB::table('TChat')->where('Id', $this->selectedChatId)->first();
+        if (! $rawChat) {
+            $this->historyChats = [];
+
+            return;
+        }
+
+        $conditions = [];
+        if ($rawChat->IdCustomer) {
+            $conditions[] = ['c.IdCustomer', '=', $rawChat->IdCustomer];
+        }
+        if ($rawChat->IdInstansi) {
+            $conditions[] = ['c.IdInstansi', '=', $rawChat->IdInstansi];
+        }
+        if ($rawChat->IdNomorWhatsapp) {
+            $conditions[] = ['c.IdNomorWhatsapp', '=', $rawChat->IdNomorWhatsapp];
+        }
+        if ($rawChat->NomorWhatsapp) {
+            $conditions[] = ['c.NomorWhatsapp', '=', $rawChat->NomorWhatsapp];
+        }
+
+        $query = DB::table('TChat as c')
+            ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
+            ->where('c.Id', '!=', $this->selectedChatId);
+
+        if (empty($conditions)) {
+            $this->historyChats = [];
+
+            return;
+        }
+
+        $query->where(function ($q) use ($conditions) {
+            foreach ($conditions as $cond) {
+                $q->orWhere($cond[0], $cond[1], $cond[2]);
+            }
+        });
+
+        $this->historyChats = $query->orderByDesc('c.TglChatTerakhir')
+            ->select('c.Id', 'c.TglChatTerakhir', 's.NamaStatusChat', 'c.JumlahPesanBelumDibaca')
+            ->limit(20)
+            ->get()
+            ->map(fn ($r) => [
+                'Id' => $r->Id,
+                'TglChatTerakhir' => $r->TglChatTerakhir,
+                'NamaStatusChat' => $r->NamaStatusChat ?: __('ui.common.completed'),
+                'JumlahPesanBelumDibaca' => (int) $r->JumlahPesanBelumDibaca,
+            ])
+            ->all();
+    }
+
     public function selectChat(string $chatId): void
     {
         $this->selectedChatId = $chatId;
         $this->selectedChat = collect($this->chatRows)->firstWhere('Id', $chatId)
             ?? $this->loadChatHeader($chatId);
+        $this->refreshWahaProfileIfNeeded($chatId);
+        $this->selectedChat = $this->loadChatHeader($chatId) ?? $this->selectedChat;
+        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
+        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
 
-        $this->messages = DB::table('TChatD')
-            ->where('IdChatM', $chatId)
-            ->orderBy('TglPesan')
+        $penggunaHasFotoProfil = Schema::hasColumn('MPengguna', 'FotoProfilPath');
+
+        $this->messages = DB::table('TChatD as d')
+            ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
+            ->where('d.IdChat', $chatId)
+            ->orderBy('d.TglPesan')
             ->limit(200)
+            ->select(
+                'd.Id',
+                'd.ArahPesan',
+                'd.JenisPesan',
+                'd.IsiPesan',
+                'd.UrlMedia',
+                $chatDetailHasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
+                $chatDetailHasMimeType ? 'TipeMime' : DB::raw('NULL as TipeMime'),
+                'd.PengirimNomorWhatsapp',
+                'd.PengirimNamaKontak',
+                'd.TglPesan',
+                'd.StatusKirim',
+                'd.PesanError',
+                'd.DihasilkanOlehAi',
+                'd.DibalasOleh',
+                'p.NamaPengguna as NamaPembalas',
+                $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as FotoProfilPembalasPath')
+            )
             ->get()
             ->map(fn (object $row): array => [
                 'Id' => $row->Id,
                 'ArahPesan' => $row->ArahPesan,
+                'JenisPesan' => $row->JenisPesan,
                 'IsiPesan' => $row->IsiPesan,
+                'UrlMedia' => $row->UrlMedia,
+                'NamaFileMedia' => $row->NamaFileMedia,
+                'TipeMime' => $row->TipeMime,
+                'MediaCategory' => $this->mediaCategory($row->JenisPesan, $row->TipeMime),
+                'MediaLabel' => $this->mediaLabel($row->JenisPesan, $row->TipeMime, $row->NamaFileMedia),
+                'MediaUrl' => $row->UrlMedia ? route('admin.waha-media.show', ['message' => $row->Id]) : null,
                 'PengirimNomorWhatsapp' => $row->PengirimNomorWhatsapp,
                 'PengirimNamaKontak' => $row->PengirimNamaKontak,
                 'TglPesan' => $row->TglPesan,
                 'StatusKirim' => $row->StatusKirim,
+                'PesanError' => $row->PesanError,
                 'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
+                'NamaPembalas' => $row->NamaPembalas,
+                'FotoProfilPembalasUrl' => $this->profileUrlFromPath($row->FotoProfilPembalasPath),
+                'SenderName' => $this->messageSenderName($row),
+                'SenderAvatarUrl' => $this->messageSenderAvatarUrl($row),
             ])
             ->all();
+
+        $this->loadHistoryChats();
+        $this->loadInternalNotes();
+
+        // Auto-claim chat jika belum ada yang menangani
+        if (Schema::hasColumn('TChat', 'DiambilOleh')) {
+            $current = DB::table('TChat')->where('Id', $chatId)->value('DiambilOleh');
+            if (! $current) {
+                $myId = $this->currentPenggunaId();
+                if ($myId) {
+                    DB::table('TChat')->where('Id', $chatId)->update([
+                        'DiambilOleh' => $myId,
+                        'TglDiambil' => now(),
+                        'TglEdit' => now(),
+                    ]);
+                }
+            }
+        }
     }
 
     public function toggleAutoReplyAi(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId || ! $this->selectedChat) {
             return;
         }
 
         $active = ! (bool) ($this->selectedChat['AutoReplyAiAktif'] ?? false);
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'AutoReplyAiAktif' => $active,
             'ModeAutoReplyAi' => $active ? 'ChatAktif' : 'Default',
             'TglEdit' => now(),
@@ -148,18 +579,63 @@ class InboxWhatsapp extends Page
         $this->loadInbox();
 
         Notification::make()
-            ->title($active ? 'Auto reply AI sesi ini aktif.' : 'Auto reply AI sesi ini dimatikan.')
+            ->title($active ? __('ui.pages.inbox.ai_reply_active') : __('ui.pages.inbox.ai_reply_inactive'))
+            ->success()
+            ->send();
+    }
+
+    public function tutupPercakapan(AiAutoReplyService $aiService): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        if (! $this->selectedChatId || ! $this->selectedChat) {
+            return;
+        }
+
+        $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
+
+        if (! $statusDitutupId) {
+            Notification::make()
+                ->title(__('ui.pages.inbox.closed_status_missing'))
+                ->body(__('ui.pages.inbox.closed_status_missing_desc'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $updateData = [
+            'IdStatusChat' => $statusDitutupId,
+            'AutoReplyAiAktif' => false,
+            'TglEdit' => now(),
+        ];
+
+        if (Schema::hasColumn('TChat', 'DitutupOleh')) {
+            $updateData['DitutupOleh'] = $this->currentPenggunaId();
+            $updateData['TglDitutup'] = now();
+        }
+
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update($updateData);
+
+        $aiService->sendClosingMessage($this->selectedChatId);
+
+        $this->loadInbox();
+
+        Notification::make()
+            ->title(__('ui.pages.inbox.conversation_closed'))
             ->success()
             ->send();
     }
 
     public function resetSapaanAi(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
         if (! $this->selectedChatId) {
             return;
         }
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'AiSudahMenyapa' => false,
             'TglEdit' => now(),
         ]);
@@ -167,13 +643,88 @@ class InboxWhatsapp extends Page
         $this->loadInbox();
 
         Notification::make()
-            ->title('Status sapaan AI direset.')
+            ->title(__('ui.pages.inbox.ai_greeting_reset'))
             ->success()
+            ->send();
+    }
+
+    public function refreshMappingChat(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $chat = DB::table('TChat')->where('Id', $this->selectedChatId)->first();
+
+        if (! $chat) {
+            return;
+        }
+
+        $mapping = $this->resolveMappingForChat($chat);
+
+        if (! ($mapping['IdInstansi'] ?? null)) {
+            $ids = $this->mappingIdentifiers($chat);
+
+            Notification::make()
+                ->title(__('ui.pages.inbox.mapping_not_found'))
+                ->body(__('ui.pages.inbox.detected_id_hint', ['ids' => implode(', ', array_slice($ids, 0, 8)) ?: '-']))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
+            'IdCustomer' => $mapping['IdCustomer'],
+            'IdInstansi' => $mapping['IdInstansi'],
+            'IdNomorWhatsapp' => $mapping['IdNomorWhatsapp'],
+            'IdGrupWhatsapp' => $mapping['IdGrupWhatsapp'],
+            'NamaKontak' => $mapping['NamaKontak'],
+            'NamaGrupWhatsapp' => $mapping['NamaGrupWhatsapp'],
+            'TglEdit' => now(),
+        ]);
+
+        $this->loadInbox();
+
+        Notification::make()
+            ->title(__('ui.pages.inbox.mapping_updated'))
+            ->success()
+            ->send();
+    }
+
+    public function refreshProfilWaha(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
+            Notification::make()
+                ->title(__('ui.pages.inbox.waha_profile_column_missing'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $updated = $this->refreshWahaProfile($this->selectedChatId, true);
+        $this->loadInbox();
+
+        Notification::make()
+            ->title($updated ? __('ui.pages.inbox.waha_profile_updated') : __('ui.pages.inbox.waha_profile_unavailable'))
+            ->body($updated ? null : __('ui.pages.inbox.waha_profile_privacy_hint'))
+            ->{$updated ? 'success' : 'warning'}()
             ->send();
     }
 
     public function simpanBalasanLokal(): void
     {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
         $this->validate([
             'replyText' => ['required', 'string', 'max:4000'],
         ]);
@@ -184,7 +735,7 @@ class InboxWhatsapp extends Page
 
         DB::table('TChatD')->insert([
             'Id' => (string) Str::orderedUuid(),
-            'IdChatM' => $this->selectedChatId,
+            'IdChat' => $this->selectedChatId,
             'ArahPesan' => 'Keluar',
             'JenisPesan' => 'Teks',
             'IsiPesan' => $this->replyText,
@@ -192,10 +743,11 @@ class InboxWhatsapp extends Page
             'TglPesan' => now(),
             'TglDikirim' => now(),
             'StatusKirim' => 'Draft Lokal',
+            'DibalasOleh' => $this->currentPenggunaId(),
             'TglBuat' => now(),
         ]);
 
-        DB::table('TChatM')->where('Id', $this->selectedChatId)->update([
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
             'TglDibalasTerakhir' => now(),
             'TglChatTerakhir' => now(),
             'JumlahPesanBelumDibaca' => 0,
@@ -206,41 +758,899 @@ class InboxWhatsapp extends Page
         $this->loadInbox();
 
         Notification::make()
-            ->title('Balasan tersimpan sebagai draft lokal.')
-            ->body('Pengiriman ke WAHA akan disambungkan pada tahap berikutnya.')
+            ->title(__('ui.pages.inbox.draft_saved'))
+            ->body(__('ui.pages.inbox.waha_delivery_later'))
             ->success()
             ->send();
     }
 
+    public function removeAttachment(): void
+    {
+        $this->attachment = null;
+    }
+
+    public function kirimBalasanWaha(WahaSender $wahaSender): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
+        $this->validate([
+            'replyText' => ['nullable', 'string', 'max:4000'],
+            'attachment' => ['nullable', 'file', 'max:51200'],
+        ]);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $reply = trim($this->replyText);
+
+        if ($reply === '' && ! $this->attachment) {
+            Notification::make()
+                ->title(__('ui.pages.inbox.reply_required'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $chat = DB::table('TChat as c')
+            ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->where('c.Id', $this->selectedChatId)
+            ->select('c.*', 's.KodeSesi', 'g.IdGrupWaha')
+            ->first();
+
+        if (! $chat) {
+            Notification::make()
+                ->title(__('ui.pages.inbox.chat_not_found'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if ($this->attachment) {
+            $sent = $this->sendAttachmentReply($wahaSender, $chat, $reply);
+        } else {
+            $sent = [
+                'response' => $wahaSender->sendText(
+                    $chat->KodeSesi ?: 'default',
+                    $this->wahaChatId($chat),
+                    $reply,
+                    'WAHA_MANUAL_SEND_TEXT'
+                ),
+                'message' => [
+                    'JenisPesan' => 'Teks',
+                    'IsiPesan' => $reply,
+                ],
+            ];
+        }
+
+        $success = (bool) ($sent['response']['ok'] ?? false);
+
+        DB::table('TChatD')->insert(array_merge([
+            'Id' => (string) Str::orderedUuid(),
+            'IdChat' => $this->selectedChatId,
+            'ArahPesan' => 'Keluar',
+            'DikirimOlehCustomer' => false,
+            'TglPesan' => now(),
+            'TglDikirim' => $success ? now() : null,
+            'StatusKirim' => $success ? 'Terkirim WAHA' : 'Gagal WAHA',
+            'PesanError' => $success ? null : ($sent['response']['error'] ?? __('ui.pages.inbox.waha_send_failed')),
+            'DibalasOleh' => $this->currentPenggunaId(),
+            'TglBuat' => now(),
+        ], $sent['message']));
+
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
+            'TglDibalasTerakhir' => now(),
+            'TglChatTerakhir' => now(),
+            'JumlahPesanBelumDibaca' => 0,
+            'TglEdit' => now(),
+        ]);
+
+        $this->replyText = '';
+        $this->attachment = null;
+        $this->loadInbox();
+
+        Notification::make()
+            ->title($success ? __('ui.pages.inbox.reply_sent') : __('ui.pages.inbox.reply_failed'))
+            ->body($success ? null : ($sent['response']['error'] ?? null))
+            ->{$success ? 'success' : 'danger'}()
+            ->send();
+    }
+
+    /**
+     * @return array{response: array<string, mixed>, message: array<string, mixed>}
+     */
+    private function sendAttachmentReply(WahaSender $wahaSender, object $chat, string $caption): array
+    {
+        $file = $this->attachment;
+        $mimeType = $file?->getMimeType() ?: 'application/octet-stream';
+        $fileName = $file?->getClientOriginalName() ?: ('lampiran-whatsapp.'.($file?->extension() ?: 'bin'));
+        $realPath = $file?->getRealPath();
+        $contents = $realPath ? file_get_contents($realPath) : false;
+
+        if ($contents === false) {
+            return [
+                'response' => [
+                    'ok' => false,
+                    'error' => 'File lampiran tidak bisa dibaca.',
+                ],
+                'message' => $this->outgoingMediaMessage($mimeType, $fileName, $caption, null),
+            ];
+        }
+
+        [$sendContents, $sendMimeType, $sendFileName] = $this->wahaReadyFile($contents, $mimeType, $fileName);
+
+        $response = $wahaSender->sendMedia(
+            $chat->KodeSesi ?: 'default',
+            $this->wahaChatId($chat),
+            base64_encode($sendContents),
+            $sendMimeType,
+            $sendFileName,
+            $caption !== '' ? $caption : null,
+            'WAHA_MANUAL_SEND_MEDIA'
+        );
+
+        $storedUrl = null;
+        $path = $file?->store('chat-outgoing', 'public');
+
+        if ($path) {
+            $storedUrl = Storage::disk('public')->url($path);
+        }
+
+        return [
+            'response' => $response,
+            'message' => $this->outgoingMediaMessage($mimeType, $fileName, $caption, $storedUrl),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function outgoingMediaMessage(string $mimeType, string $fileName, string $caption, ?string $url): array
+    {
+        $message = [
+            'JenisPesan' => $this->outgoingMediaType($mimeType),
+            'IsiPesan' => $caption !== '' ? $caption : null,
+            'UrlMedia' => $url,
+        ];
+
+        if (Schema::hasColumn('TChatD', 'NamaFileMedia')) {
+            $message['NamaFileMedia'] = $fileName;
+        }
+
+        if (Schema::hasColumn('TChatD', 'TipeMime')) {
+            $message['TipeMime'] = $mimeType;
+        }
+
+        return $message;
+    }
+
+    private function outgoingMediaType(string $mimeType): string
+    {
+        if (str_starts_with($mimeType, 'image/')) {
+            return 'Gambar';
+        }
+
+        if (str_starts_with($mimeType, 'video/')) {
+            return 'Video';
+        }
+
+        if (str_starts_with($mimeType, 'audio/')) {
+            return 'Audio';
+        }
+
+        return 'Dokumen';
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function wahaReadyFile(string $contents, string $mimeType, string $fileName): array
+    {
+        if (! str_starts_with($mimeType, 'image/') || in_array($mimeType, ['image/jpeg', 'image/jpg'], true)) {
+            return [$contents, $mimeType, $fileName];
+        }
+
+        $jpeg = $this->convertImageToJpeg($contents);
+
+        if ($jpeg === null) {
+            return [$contents, $mimeType, $fileName];
+        }
+
+        $baseName = pathinfo($fileName, PATHINFO_FILENAME) ?: 'whatsapp-image';
+
+        return [$jpeg, 'image/jpeg', $baseName.'.jpg'];
+    }
+
+    private function convertImageToJpeg(string $contents): ?string
+    {
+        if (! function_exists('imagecreatefromstring')) {
+            return null;
+        }
+
+        $source = @imagecreatefromstring($contents);
+
+        if (! $source) {
+            return null;
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $canvas = imagecreatetruecolor($width, $height);
+
+        if (! $canvas) {
+            imagedestroy($source);
+
+            return null;
+        }
+
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, $width, $height, $white);
+        imagecopy($canvas, $source, 0, 0, 0, 0, $width, $height);
+
+        ob_start();
+        imagejpeg($canvas, null, 90);
+        $jpeg = ob_get_clean();
+
+        imagedestroy($source);
+        imagedestroy($canvas);
+
+        return is_string($jpeg) && $jpeg !== '' ? $jpeg : null;
+    }
+
     private function loadChatHeader(string $chatId): ?array
     {
-        $row = DB::table('TChatM as c')
+        $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
+        $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
+        $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
+
+        $row = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
             ->leftJoin('MCustomer as m', 'm.Id', '=', 'c.IdCustomer')
+            ->leftJoin('MNomorWhatsapp as n', 'n.Id', '=', 'c.IdNomorWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->leftJoin('MInstansi as gi', 'gi.Id', '=', 'g.IdInstansi')
             ->leftJoin('MStatusChat as s', 's.Id', '=', 'c.IdStatusChat')
             ->where('c.Id', $chatId)
-            ->select('c.*', 'i.NamaInstansi', 'm.NamaCustomer', 's.NamaStatusChat')
+            ->select(
+                'c.*',
+                'i.NamaInstansi',
+                'gi.NamaInstansi as NamaInstansiGrup',
+                'm.NamaCustomer',
+                'n.NamaKontak as NamaKontakMaster',
+                'n.NomorWhatsapp as NomorWhatsappMaster',
+                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as NomorIdWaha'),
+                $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as IdWahaTerdeteksi'),
+                $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as NomorWhatsappTerdeteksi'),
+                $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as UrlFotoProfil'),
+                $hasWahaProfileColumns ? 'c.TglFotoProfilDiambil' : DB::raw('NULL as TglFotoProfilDiambil'),
+                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
+                DB::raw('NULL as NamaDiambilOleh'),
+                'g.NamaGrup as NamaGrupMaster',
+                'g.IdGrupWaha',
+                'g.NomorGrupWhatsapp',
+                's.NamaStatusChat'
+            )
             ->first();
 
         if (! $row) {
             return null;
         }
 
-        return [
-            'Id' => $row->Id,
-            'JenisChat' => $row->JenisChat,
-            'NamaInstansi' => $row->NamaInstansi ?: 'Belum dipetakan',
-            'NamaCustomer' => $row->NamaCustomer,
-            'NamaKontak' => $row->NamaKontak ?: '-',
-            'NamaGrupWhatsapp' => $row->NamaGrupWhatsapp,
-            'NomorWhatsapp' => $row->NomorWhatsapp,
-            'Status' => $row->NamaStatusChat ?: 'Menunggu CS',
-            'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
-            'TglChatTerakhir' => $row->TglChatTerakhir,
-            'PesanTerakhir' => '-',
-            'AutoReplyAiAktif' => (bool) ($row->AutoReplyAiAktif ?? false),
-            'AiSudahMenyapa' => (bool) ($row->AiSudahMenyapa ?? false),
-            'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir ?? null,
+        return $this->formatChatRow($row);
+    }
+
+    private function refreshWahaProfileIfNeeded(string $chatId): void
+    {
+        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
+            return;
+        }
+
+        $chat = DB::table('TChat')
+            ->where('Id', $chatId)
+            ->select('Id', 'JenisChat', 'NomorWhatsapp', 'IdWahaTerdeteksi', 'NomorWhatsappTerdeteksi', 'TglFotoProfilDiambil')
+            ->first();
+
+        if (! $chat) {
+            return;
+        }
+
+        $lastFetchedAt = $chat->TglFotoProfilDiambil;
+
+        if ($lastFetchedAt && Carbon::parse($lastFetchedAt)->gt(now()->subDay()) && ! $this->needsLidPhoneResolve($chat)) {
+            return;
+        }
+
+        $this->refreshWahaProfile($chatId, false);
+    }
+
+    private function needsLidPhoneResolve(object $chat): bool
+    {
+        if (($chat->JenisChat ?? null) === 'Grup') {
+            return false;
+        }
+
+        if (($chat->NomorWhatsappTerdeteksi ?? null) && ($chat->NomorWhatsapp ?? null) !== $chat->NomorWhatsappTerdeteksi) {
+            return true;
+        }
+
+        if (str_contains((string) ($chat->NomorWhatsapp ?? ''), '@lid') || str_contains((string) ($chat->IdWahaTerdeteksi ?? ''), '@lid')) {
+            return true;
+        }
+
+        return (bool) collect($this->mappingIdentifiers($chat))
+            ->first(fn (string $identifier): bool => str_contains($identifier, '@lid'));
+    }
+
+    private function refreshWahaProfile(string $chatId, bool $forceRefresh): bool
+    {
+        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
+            return false;
+        }
+
+        $chat = DB::table('TChat as c')
+            ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->where('c.Id', $chatId)
+            ->select(
+                'c.Id',
+                'c.JenisChat',
+                'c.NomorWhatsapp',
+                'c.NamaKontak',
+                'c.NamaGrupWhatsapp',
+                'c.IdWahaTerdeteksi',
+                'c.NomorWhatsappTerdeteksi',
+                'c.UrlFotoProfil',
+                's.KodeSesi',
+                'g.IdGrupWaha'
+            )
+            ->first();
+
+        if (! $chat) {
+            return false;
+        }
+
+        $wahaSender = app(WahaSender::class);
+        $session = $chat->KodeSesi ?: 'default';
+        $identifiers = $this->mappingIdentifiers($chat);
+        $contactId = $this->profileContactId($chat, $identifiers);
+        $update = [
+            'TglFotoProfilDiambil' => now(),
+            'TglEdit' => now(),
         ];
+
+        if (! $contactId) {
+            DB::table('TChat')->where('Id', $chatId)->update($update);
+
+            return false;
+        }
+
+        $detectedWahaId = $this->firstWahaId(array_merge([$contactId], $identifiers));
+        $detectedPhone = $this->displayPhoneNumber(array_merge([$contactId], $identifiers));
+
+        if (str_contains($contactId, '@lid')) {
+            $lidResult = $wahaSender->getPhoneNumberByLid($session, $contactId);
+
+            if (($lidResult['phone'] ?? null) && is_string($lidResult['phone'])) {
+                $detectedPhone = $lidResult['phone'];
+                $contactId = ($lidResult['pn'] ?? null) ?: $detectedPhone.'@c.us';
+            }
+        }
+
+        $picture = $wahaSender->getContactProfilePictureUrl($session, $contactId, $forceRefresh);
+
+        $update['IdWahaTerdeteksi'] = $detectedWahaId ?: $contactId;
+        $update['NomorWhatsappTerdeteksi'] = $detectedPhone;
+
+        if (($chat->JenisChat ?? null) !== 'Grup' && $detectedPhone) {
+            $update['NomorWhatsapp'] = $detectedPhone;
+            $this->updateIncomingSenderNumber($chatId, $detectedPhone);
+        }
+
+        if (($picture['ok'] ?? false)) {
+            $update['UrlFotoProfil'] = $picture['url'] ?? null;
+        }
+
+        DB::table('TChat')->where('Id', $chatId)->update($update);
+
+        return (bool) (($picture['url'] ?? null) || $detectedPhone);
+    }
+
+    private function updateIncomingSenderNumber(string $chatId, string $phone): void
+    {
+        DB::table('TChatD')
+            ->where('IdChat', $chatId)
+            ->where('ArahPesan', 'Masuk')
+            ->update([
+                'PengirimNomorWhatsapp' => $phone,
+                'TglEdit' => now(),
+            ]);
+    }
+
+    /**
+     * @param  array<int, string>  $identifiers
+     */
+    private function profileContactId(object $chat, array $identifiers): ?string
+    {
+        if (($chat->JenisChat ?? null) === 'Grup') {
+            return $chat->IdGrupWaha ?: $this->firstWahaId($identifiers);
+        }
+
+        return $this->firstWahaId($identifiers)
+            ?: (($chat->NomorWhatsappTerdeteksi ?? null) ? $chat->NomorWhatsappTerdeteksi.'@c.us' : null)
+            ?: (($chat->NomorWhatsapp ?? null) && $chat->NomorWhatsapp !== '-' ? $chat->NomorWhatsapp.'@c.us' : null);
+    }
+
+    private function resetSelectedChat(): void
+    {
+        $this->selectedChatId = null;
+        $this->selectedChat = null;
+        $this->messages = [];
+    }
+
+    private function messagePreview(?object $message): string
+    {
+        if (! $message) {
+            return '-';
+        }
+
+        $text = trim((string) ($message->IsiPesan ?? ''));
+
+        if ($text !== '') {
+            return $text;
+        }
+
+        return '['.$this->mediaLabel($message->JenisPesan ?? null, $message->TipeMime ?? null, $message->NamaFileMedia ?? null).']';
+    }
+
+    private function messageSenderName(object $message): string
+    {
+        if ($message->ArahPesan === 'Keluar') {
+            return (bool) ($message->DihasilkanOlehAi ?? false)
+                ? 'Medina'
+                : ((string) ($message->NamaPembalas ?: 'CS'));
+        }
+
+        return (string) ($message->PengirimNamaKontak ?: $message->PengirimNomorWhatsapp ?: 'Customer');
+    }
+
+    private function messageSenderAvatarUrl(object $message): ?string
+    {
+        if ($message->ArahPesan !== 'Keluar') {
+            return null;
+        }
+
+        if ((bool) ($message->DihasilkanOlehAi ?? false)) {
+            return asset('images/logo_ai.svg');
+        }
+
+        return $this->profileUrlFromPath($message->FotoProfilPembalasPath ?? null);
+    }
+
+    private function profileUrlFromPath(?string $path): ?string
+    {
+        return $path ? route('public-storage.show', ['path' => ltrim($path, '/')]) : null;
+    }
+
+    private function mediaCategory(?string $jenisPesan, ?string $mimeType): string
+    {
+        $type = strtolower((string) $jenisPesan);
+        $mime = strtolower((string) $mimeType);
+
+        if (str_starts_with($mime, 'image/') || str_starts_with($type, 'image/') || in_array($type, ['gambar', 'image', 'photo', 'picture', 'stiker', 'sticker'], true)) {
+            return 'image';
+        }
+
+        if (str_starts_with($mime, 'video/') || str_starts_with($type, 'video/') || $type === 'video') {
+            return 'video';
+        }
+
+        if (str_starts_with($mime, 'audio/') || str_starts_with($type, 'audio/') || in_array($type, ['audio', 'voice', 'ptt'], true)) {
+            return 'audio';
+        }
+
+        if ($type !== '' && $type !== 'teks' && $type !== 'text') {
+            return 'file';
+        }
+
+        return 'text';
+    }
+
+    private function mediaLabel(?string $jenisPesan, ?string $mimeType, ?string $fileName): string
+    {
+        if ($fileName) {
+            return $fileName;
+        }
+
+        $category = $this->mediaCategory($jenisPesan, $mimeType);
+
+        return match ($category) {
+            'image' => 'Gambar',
+            'video' => 'Video',
+            'audio' => 'Audio',
+            'file' => (string) ($jenisPesan ?: 'Dokumen'),
+            default => 'Pesan',
+        };
+    }
+
+    private function wahaChatId(object $chat): string
+    {
+        if ($chat->JenisChat === 'Grup' && $chat->IdGrupWaha) {
+            return $chat->IdGrupWaha;
+        }
+
+        $latestIncomingChatId = $this->latestIncomingWahaChatId((string) $chat->Id);
+
+        if ($latestIncomingChatId) {
+            return $latestIncomingChatId;
+        }
+
+        return $this->normalizeWahaChatId((string) $chat->NomorWhatsapp);
+    }
+
+    private function currentPenggunaId(): ?string
+    {
+        if ($this->cachedPenggunaId !== null) {
+            return $this->cachedPenggunaId ?: null;
+        }
+
+        $user = auth()->user();
+
+        if ($user instanceof Pengguna) {
+            $this->cachedPenggunaId = (string) $user->getKey();
+
+            return $this->cachedPenggunaId ?: null;
+        }
+
+        $email = $user?->email;
+
+        if (! $email) {
+            $this->cachedPenggunaId = '';
+
+            return null;
+        }
+
+        $this->cachedPenggunaId = (string) (DB::table('MPengguna')->where('Email', $email)->value('Id') ?? '');
+
+        return $this->cachedPenggunaId ?: null;
+    }
+
+    private function refreshActiveAgents(): void
+    {
+        $now = now()->timestamp;
+        $timeoutSeconds = 120;
+        $cacheKey = 'wacs_active_agents';
+        $agents = Cache::get($cacheKey, []);
+
+        if (! is_array($agents)) {
+            $agents = [];
+        }
+
+        $agents = array_filter(
+            $agents,
+            fn (array $agent): bool => (int) ($agent['last_seen'] ?? 0) >= ($now - $timeoutSeconds)
+        );
+
+        $user = auth()->user();
+
+        if ($user) {
+            $key = (string) ($user->getAuthIdentifier() ?: $user->email);
+
+            $agents[$key] = [
+                'id' => $key,
+                'name' => (string) ($user->name ?: $user->email ?: 'CS'),
+                'last_seen' => $now,
+            ];
+        }
+
+        Cache::put($cacheKey, $agents, now()->addMinutes(3));
+
+        $this->activeAgents = count($agents);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function resolveMappingForChat(object $chat): array
+    {
+        $ids = $this->mappingIdentifiers($chat);
+        $grup = null;
+        $nomor = null;
+
+        if ($chat->JenisChat === 'Grup') {
+            $grup = $this->findGrupMapping($ids, $chat);
+        } else {
+            $nomor = $this->findNomorMapping($ids);
+        }
+
+        return [
+            'IdCustomer' => $nomor->IdCustomer ?? null,
+            'IdInstansi' => $grup->IdInstansi ?? $nomor->IdInstansi ?? null,
+            'IdNomorWhatsapp' => $nomor->Id ?? null,
+            'IdGrupWhatsapp' => $grup->Id ?? null,
+            'NamaKontak' => $nomor->NamaKontak ?? $chat->NamaKontak ?? null,
+            'NamaGrupWhatsapp' => $grup->NamaGrup ?? $chat->NamaGrupWhatsapp ?? null,
+        ];
+    }
+
+    private function findNomorMapping(array $ids): ?object
+    {
+        $numbers = collect($ids)
+            ->map(fn (string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
+            ->map(fn (string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($numbers !== []) {
+            $nomor = DB::table('MNomorWhatsapp')
+                ->whereIn('NomorWhatsapp', $numbers)
+                ->where('NonAktif', false)
+                ->first();
+
+            if ($nomor) {
+                return $nomor;
+            }
+        }
+
+        if (! Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
+            return null;
+        }
+
+        return DB::table('MNomorWhatsapp')
+            ->whereIn('IdWaha', $ids)
+            ->where('NonAktif', false)
+            ->first();
+    }
+
+    private function findGrupMapping(array $ids, object $chat): ?object
+    {
+        $grup = DB::table('MGrupWhatsapp')
+            ->whereIn('IdGrupWaha', $ids)
+            ->where('NonAktif', false)
+            ->first();
+
+        if ($grup) {
+            return $grup;
+        }
+
+        $numbers = collect($ids)
+            ->map(fn (string $id): ?string => preg_replace('/@.+$/', '', $id) ?: $id)
+            ->map(fn (string $id): ?string => preg_replace('/[^0-9]/', '', $id) ?: null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($numbers !== []) {
+            $grup = DB::table('MGrupWhatsapp')
+                ->whereIn('IdGrupWaha', $numbers)
+                ->where('NonAktif', false)
+                ->first();
+
+            if ($grup) {
+                return $grup;
+            }
+        }
+
+        $namaGrup = trim((string) ($chat->NamaGrupWhatsapp ?? ''));
+
+        if ($namaGrup === '') {
+            return null;
+        }
+
+        return DB::table('MGrupWhatsapp')
+            ->where('NamaGrup', $namaGrup)
+            ->where('NonAktif', false)
+            ->first();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function mappingIdentifiers(object $chat): array
+    {
+        $ids = [
+            (string) ($chat->NomorWhatsapp ?? ''),
+            (string) ($chat->NamaGrupWhatsapp ?? ''),
+            (string) ($chat->IdWahaTerdeteksi ?? ''),
+            (string) ($chat->NomorWhatsappTerdeteksi ?? ''),
+        ];
+
+        $payload = $this->latestIncomingPayload((string) $chat->Id);
+
+        if ($payload) {
+            foreach ([
+                'chatId',
+                'from',
+                'from.id',
+                'id.remote',
+                'id._serialized',
+                '_data.id._serialized',
+                '_data.id.remote',
+                '_data.Info.Chat',
+                '_data.chatId',
+                'key.remoteJid',
+                'chat.id',
+                'chat.id._serialized',
+                'to',
+                'to.id',
+                'groupId',
+                'group.id',
+                'participant',
+                'author',
+                'sender.id',
+                '_data.author',
+            ] as $key) {
+                $value = Arr::get($payload, $key);
+
+                if (is_string($value) && $value !== '') {
+                    $ids[] = $value;
+                }
+            }
+
+            foreach ($this->payloadIdentifierStrings($payload) as $value) {
+                $ids[] = $value;
+            }
+        }
+
+        $expanded = [];
+
+        foreach ($ids as $id) {
+            $id = trim($id);
+
+            if ($id === '' || $id === '-') {
+                continue;
+            }
+
+            $expanded[] = $id;
+
+            if (str_contains($id, '@lid') || str_contains($id, '@g.us')) {
+                continue;
+            }
+
+            $number = preg_replace('/@.+$/', '', $id) ?: $id;
+            $number = preg_replace('/:.+$/', '', $number) ?: $number;
+            $number = preg_replace('/[^0-9]/', '', $number) ?: null;
+
+            if ($number) {
+                $expanded[] = $number;
+                $expanded[] = $number.'@c.us';
+                $expanded[] = $number.'@s.whatsapp.net';
+                $expanded[] = $number.'@lid';
+            }
+        }
+
+        return array_values(array_unique($expanded));
+    }
+
+    /**
+     * @param  array<int, string>  $identifiers
+     */
+    private function displayPhoneNumber(array $identifiers): ?string
+    {
+        foreach ($identifiers as $identifier) {
+            $identifier = trim($identifier);
+
+            if ($identifier === '' || str_contains($identifier, '@lid') || str_contains($identifier, '@g.us')) {
+                continue;
+            }
+
+            if (str_contains($identifier, '@') && ! str_contains($identifier, '@c.us') && ! str_contains($identifier, '@s.whatsapp.net')) {
+                continue;
+            }
+
+            $number = preg_replace('/@.+$/', '', $identifier) ?: $identifier;
+            $number = preg_replace('/:.+$/', '', $number) ?: $number;
+            $number = preg_replace('/[^0-9]/', '', $number) ?: null;
+
+            if ($number && strlen($number) >= 8) {
+                return $number;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<int, string>  $identifiers
+     */
+    private function firstWahaId(array $identifiers): ?string
+    {
+        foreach ($identifiers as $identifier) {
+            $identifier = trim($identifier);
+
+            if ($identifier !== '' && preg_match('/@(c\.us|s\.whatsapp\.net|lid|g\.us)$/', $identifier)) {
+                return str_ends_with($identifier, '@s.whatsapp.net')
+                    ? str_replace('@s.whatsapp.net', '@c.us', $identifier)
+                    : $identifier;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function payloadIdentifierStrings(array $payload): array
+    {
+        $values = [];
+        array_walk_recursive($payload, function ($value) use (&$values): void {
+            if (! is_string($value)) {
+                return;
+            }
+
+            if (preg_match_all('/[0-9A-Za-z_.:-]+@(g\.us|c\.us|s\.whatsapp\.net|lid)/', $value, $matches)) {
+                foreach ($matches[0] as $match) {
+                    $values[] = $match;
+                }
+            }
+        });
+
+        return array_values(array_unique($values));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function latestIncomingPayload(string $chatId): ?array
+    {
+        $payloadJson = DB::table('TChatD')
+            ->where('IdChat', $chatId)
+            ->where('ArahPesan', 'Masuk')
+            ->whereNotNull('PayloadJson')
+            ->orderByDesc('TglPesan')
+            ->value('PayloadJson');
+
+        if (! $payloadJson) {
+            return null;
+        }
+
+        $payload = json_decode((string) $payloadJson, true);
+
+        return is_array($payload) ? $payload : null;
+    }
+
+    private function latestIncomingWahaChatId(string $chatId): ?string
+    {
+        $payload = $this->latestIncomingPayload($chatId);
+
+        if (! $payload) {
+            return null;
+        }
+
+        foreach ([
+            'chatId',
+            'from',
+            'from.id',
+            '_data.id.remote',
+            '_data.Info.Chat',
+            'key.remoteJid',
+        ] as $key) {
+            $value = Arr::get($payload, $key);
+
+            if (is_string($value) && $value !== '') {
+                return $this->normalizeWahaChatId($value);
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeWahaChatId(string $chatIdOrNumber): string
+    {
+        if (str_contains($chatIdOrNumber, '@')) {
+            return str_ends_with($chatIdOrNumber, '@s.whatsapp.net')
+                ? str_replace('@s.whatsapp.net', '@c.us', $chatIdOrNumber)
+                : $chatIdOrNumber;
+        }
+
+        $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;
+
+        return $number.'@c.us';
     }
 }
