@@ -98,14 +98,6 @@ HTML
                 fn(): string => view('components.locale-switcher', ['compact' => true])->render()
             )
             ->renderHook(
-                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
-                fn(): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
-            )
-            ->renderHook(
-                PanelsRenderHook::AUTH_REGISTER_FORM_BEFORE,
-                fn(): string => view('components.locale-switcher', ['alignment' => 'center'])->render()
-            )
-            ->renderHook(
                 PanelsRenderHook::SCRIPTS_AFTER,
                 fn(): HtmlString => new HtmlString(
                     '<script type="module" src="' . Vite::asset('resources/js/app.js') . '"></script>'

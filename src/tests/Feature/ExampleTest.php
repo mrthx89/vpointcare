@@ -14,6 +14,11 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/admin');
+        $response
+            ->assertOk()
+            ->assertSee('og:image', false)
+            ->assertSee('seo-banner.jpg', false)
+            ->assertSee('notranslate', false)
+            ->assertSee('data-mobile-menu', false);
     }
 }

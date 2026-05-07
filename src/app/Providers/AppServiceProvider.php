@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Auth\PenggunaUserProvider;
+use App\Http\Responses\Auth\LandingLogoutResponse;
 use App\Support\LocaleManager;
 use Carbon\Carbon;
+use Filament\Auth\Http\Responses\Contracts\LogoutResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
@@ -17,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(LogoutResponse::class, LandingLogoutResponse::class);
     }
 
     /**
