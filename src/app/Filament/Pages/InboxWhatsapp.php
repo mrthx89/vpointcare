@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Master\Pengguna;
 use App\Services\Ai\AiAutoReplyService;
+use App\Services\Chat\ChatInitiationService;
 use App\Services\Waha\WahaSender;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -111,6 +113,20 @@ class InboxWhatsapp extends Page implements HasForms
 
     public string $filterType = 'keduanya';
 
+    public string $startChatContactSearch = '';
+
+    public ?string $startChatNomorWhatsappId = null;
+
+    public string $startChatManualNumber = '';
+
+    public string $startChatManualName = '';
+
+    public ?string $startChatSessionId = null;
+
+    public string $startChatMessage = '';
+
+    public string $startChatDeliveryMode = 'send';
+
     /** Cache ID pengguna agar tidak query DB berulang kali per request. */
     private ?string $cachedPenggunaId = null;
 
@@ -144,6 +160,116 @@ class InboxWhatsapp extends Page implements HasForms
         $this->refreshFilteredInbox();
     }
 
+    public function openStartChatDialog(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
+        $this->resetValidation();
+        $this->startChatContactSearch = '';
+        $this->startChatNomorWhatsappId = null;
+        $this->startChatManualNumber = '';
+        $this->startChatManualName = '';
+        $this->startChatSessionId = $this->defaultStartChatSessionId();
+        $this->startChatMessage = '';
+        $this->startChatDeliveryMode = 'send';
+
+        $this->dispatch('open-modal', id: 'start-chat-modal');
+    }
+
+    public function buatChat(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
+        $this->validate([
+            'startChatNomorWhatsappId' => ['nullable', 'string'],
+            'startChatManualNumber' => ['nullable', 'string', 'max:30'],
+            'startChatManualName' => ['nullable', 'string', 'max:120'],
+            'startChatSessionId' => ['nullable', 'string'],
+            'startChatMessage' => ['required', 'string', 'max:4000'],
+            'startChatDeliveryMode' => ['required', 'in:send,draft'],
+        ]);
+
+        if (! $this->startChatNomorWhatsappId && trim($this->startChatManualNumber) === '') {
+            throw ValidationException::withMessages([
+                'startChatManualNumber' => __('ui.pages.inbox.start_chat_target_required'),
+            ]);
+        }
+
+        $result = app(ChatInitiationService::class)->start([
+            'nomor_whatsapp_id' => $this->startChatNomorWhatsappId,
+            'manual_number' => $this->startChatManualNumber,
+            'manual_name' => $this->startChatManualName,
+            'session_id' => $this->startChatSessionId,
+            'message' => $this->startChatMessage,
+            'delivery_mode' => $this->startChatDeliveryMode,
+        ], $this->currentPenggunaId());
+
+        $this->selectedChatId = (string) $result['chat_id'];
+        $this->loadInbox();
+        $this->dispatch('close-modal', id: 'start-chat-modal');
+
+        $sendSuccess = (bool) ($result['send_success'] ?? true);
+        $wasExisting = (bool) ($result['was_existing_chat'] ?? false);
+
+        Notification::make()
+            ->title($wasExisting ? __('ui.pages.inbox.start_chat_reused') : __('ui.pages.inbox.start_chat_created'))
+            ->body($sendSuccess ? null : ($result['send_error'] ?? __('ui.pages.inbox.waha_send_failed')))
+            ->{$sendSuccess ? 'success' : 'danger'}()
+            ->send();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function startChatContactOptions(): array
+    {
+        $search = trim($this->startChatContactSearch);
+        $query = DB::table('MNomorWhatsapp as n')
+            ->leftJoin('MCustomer as c', 'c.Id', '=', 'n.IdCustomer')
+            ->leftJoin('MInstansi as i', 'i.Id', '=', 'n.IdInstansi')
+            ->where('n.NonAktif', false);
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $query->where(function ($query) use ($like): void {
+                $query->where('n.NamaKontak', 'like', $like)
+                    ->orWhere('n.NomorWhatsapp', 'like', $like)
+                    ->orWhere('c.NamaCustomer', 'like', $like)
+                    ->orWhere('i.NamaInstansi', 'like', $like);
+            });
+        }
+
+        return $query
+            ->orderBy('n.NamaKontak')
+            ->orderBy('n.NomorWhatsapp')
+            ->limit(50)
+            ->select('n.Id', 'n.NamaKontak', 'n.NomorWhatsapp', 'c.NamaCustomer', 'i.NamaInstansi')
+            ->get()
+            ->mapWithKeys(function (object $row): array {
+                $name = trim((string) ($row->NamaKontak ?: $row->NamaCustomer ?: $row->NamaInstansi ?: '-'));
+
+                return [(string) $row->Id => $name.' - '.$row->NomorWhatsapp];
+            })
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function startChatSessionOptions(): array
+    {
+        return DB::table('MSesiWhatsapp')
+            ->where('NonAktif', false)
+            ->orderByRaw("CASE WHEN KodeSesi = 'default' THEN 0 ELSE 1 END")
+            ->orderBy('KodeSesi')
+            ->limit(30)
+            ->get()
+            ->mapWithKeys(fn (object $row): array => [
+                (string) $row->Id => trim((string) ($row->NamaSesi ?: $row->KodeSesi ?: $row->Id)),
+            ])
+            ->all();
+    }
+
     public function form(FilamentSchema $schema): FilamentSchema
     {
         return $schema
@@ -168,6 +294,15 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $this->resetSelectedChat();
         $this->loadInbox();
+    }
+
+    private function defaultStartChatSessionId(): ?string
+    {
+        return DB::table('MSesiWhatsapp')
+            ->where('NonAktif', false)
+            ->orderByRaw("CASE WHEN KodeSesi = 'default' THEN 0 ELSE 1 END")
+            ->orderBy('KodeSesi')
+            ->value('Id');
     }
 
     public function loadInternalNotes(): void

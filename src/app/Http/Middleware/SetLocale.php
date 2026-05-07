@@ -18,6 +18,7 @@ class SetLocale
         $locale = LocaleManager::resolveFromRequest($request);
 
         App::setLocale($locale);
+        app('translator')->setLoaded([]);
         Carbon::setLocale($locale);
         Number::useLocale(LocaleManager::regional($locale));
         Number::useCurrency('IDR');

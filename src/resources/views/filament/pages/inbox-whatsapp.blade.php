@@ -140,7 +140,7 @@
         <div class="wacs-inbox-layout flex-1 min-h-0">
             {{-- KOLOM KIRI: Daftar Chat --}}
             <section
-                class="wacs-inbox-chat-list flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                class="wacs-inbox-chat-list relative flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 {{-- Header Daftar Chat --}}
                 <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                     <div class="flex items-center justify-between gap-2">
@@ -260,6 +260,14 @@
                         </div>
                     @endforelse
                 </div>
+                @if ($this->canReplyInbox())
+                    <button type="button" wire:click="openStartChatDialog"
+                        title="{{ __('ui.pages.inbox.create_chat') }}"
+                        aria-label="{{ __('ui.pages.inbox.create_chat') }}"
+                        class="absolute bottom-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg ring-1 ring-primary-500/40 transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:ring-primary-400/30">
+                        <x-heroicon-o-plus class="h-6 w-6" />
+                    </button>
+                @endif
             </section>
 
             {{-- KOLOM TENGAH: Ruang Percakapan --}}
@@ -461,11 +469,10 @@
                             <input x-ref="attachmentInput" type="file" wire:model="attachment"
                                 accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
                                 class="hidden">
-                            <x-filament::input.wrapper :valid="! $errors->has('replyText')">
+                            <x-filament::input.wrapper :valid="!$errors->has('replyText')">
                                 <textarea wire:model="replyText"
                                     class="w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
-                                    rows="4"
-                                    placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
+                                    rows="4" placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
                             </x-filament::input.wrapper>
                             @error('replyText')
                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
@@ -494,7 +501,8 @@
                                     {{ __('ui.pages.inbox.attach_file') }}
                                 </x-filament::button>
                                 <div class="flex flex-wrap justify-end gap-2">
-                                    <x-filament::button type="button" color="gray" outlined wire:click="simpanBalasanLokal">
+                                    <x-filament::button type="button" color="gray" outlined
+                                        wire:click="simpanBalasanLokal">
                                         {{ __('ui.common.save') }} Draft
                                     </x-filament::button>
                                     <x-filament::button type="submit" wire:target="attachment,kirimBalasanWaha">
@@ -518,10 +526,12 @@
                             {{ __('ui.pages.inbox.profile_mapping') }}</div>
                         @if ($selectedChat && $this->canManageInbox())
                             <div class="flex flex-wrap justify-end gap-2">
-                                <x-filament::button type="button" color="info" size="xs" outlined wire:click="refreshProfilWaha">
+                                <x-filament::button type="button" color="info" size="xs" outlined
+                                    wire:click="refreshProfilWaha">
                                     {{ __('ui.pages.inbox.fetch_profile') }}
                                 </x-filament::button>
-                                <x-filament::button type="button" color="gray" size="xs" outlined wire:click="refreshMappingChat">
+                                <x-filament::button type="button" color="gray" size="xs" outlined
+                                    wire:click="refreshMappingChat">
                                     {{ __('ui.common.refresh') }}
                                 </x-filament::button>
                             </div>
@@ -615,7 +625,8 @@
                                     <x-filament::button type="button" wire:click="toggleAutoReplyAi">
                                         {{ $selectedChat['AutoReplyAiAktif'] ? __('ui.pages.inbox.disable_auto_reply') : __('ui.pages.inbox.enable_auto_reply') }}
                                     </x-filament::button>
-                                    <x-filament::button type="button" color="gray" outlined wire:click="resetSapaanAi">
+                                    <x-filament::button type="button" color="gray" outlined
+                                        wire:click="resetSapaanAi">
                                         {{ __('ui.pages.inbox.reset_greeting') }}
                                     </x-filament::button>
                                 </div>
@@ -640,6 +651,127 @@
             </aside>
         </div>{{-- end grid 3-kolom --}}
     </div>{{-- end outer flex-col --}}
+
+    @if ($this->canReplyInbox())
+        <x-filament::modal id="start-chat-modal" width="2xl">
+            <x-slot name="heading">{{ __('ui.pages.inbox.create_chat') }}</x-slot>
+            <x-slot name="description">{{ __('ui.pages.inbox.create_chat_desc') }}</x-slot>
+
+            <form wire:submit.prevent="buatChat" class="space-y-5">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <div class="space-y-2 md:col-span-2">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            {{ __('ui.pages.inbox.contact_search') }}
+                        </label>
+                        <x-filament::input.wrapper>
+                            <x-filament::input type="text" wire:model.live.debounce.300ms="startChatContactSearch"
+                                placeholder="{{ __('ui.pages.inbox.contact_search_placeholder') }}" />
+                        </x-filament::input.wrapper>
+                    </div>
+
+                    <div class="space-y-2 md:col-span-2">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            {{ __('ui.pages.inbox.target_contact') }}
+                        </label>
+                        <x-filament::input.wrapper :valid="!$errors->has('startChatNomorWhatsappId')">
+                            <x-filament::input.select wire:model.live="startChatNomorWhatsappId">
+                                <option value="">{{ __('ui.pages.inbox.select_contact_optional') }}</option>
+                                @foreach ($this->startChatContactOptions() as $id => $label)
+                                    <option value="{{ $id }}">{{ $label }}</option>
+                                @endforeach
+                            </x-filament::input.select>
+                        </x-filament::input.wrapper>
+                        @error('startChatNomorWhatsappId')
+                            <div class="text-xs text-red-600">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            {{ __('ui.pages.inbox.manual_number') }}
+                        </label>
+                        <x-filament::input.wrapper :valid="!$errors->has('startChatManualNumber')">
+                            <x-filament::input type="text" wire:model="startChatManualNumber"
+                                placeholder="628xxxxxxxxxx" />
+                        </x-filament::input.wrapper>
+                        @error('startChatManualNumber')
+                            <div class="text-xs text-red-600">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            {{ __('ui.pages.inbox.manual_contact_name') }}
+                        </label>
+                        <x-filament::input.wrapper :valid="!$errors->has('startChatManualName')">
+                            <x-filament::input type="text" wire:model="startChatManualName"
+                                placeholder="{{ __('ui.pages.inbox.manual_contact_name_placeholder') }}" />
+                        </x-filament::input.wrapper>
+                        @error('startChatManualName')
+                            <div class="text-xs text-red-600">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            {{ __('ui.pages.inbox.waha_session') }}
+                        </label>
+                        <x-filament::input.wrapper :valid="!$errors->has('startChatSessionId')">
+                            <x-filament::input.select wire:model="startChatSessionId">
+                                @forelse ($this->startChatSessionOptions() as $id => $label)
+                                    <option value="{{ $id }}">{{ $label }}</option>
+                                @empty
+                                    <option value="">{{ __('ui.pages.inbox.default_session') }}</option>
+                                @endforelse
+                            </x-filament::input.select>
+                        </x-filament::input.wrapper>
+                        @error('startChatSessionId')
+                            <div class="text-xs text-red-600">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            {{ __('ui.pages.inbox.delivery_mode') }}
+                        </label>
+                        <x-filament::input.wrapper :valid="!$errors->has('startChatDeliveryMode')">
+                            <x-filament::input.select wire:model="startChatDeliveryMode">
+                                <option value="send">{{ __('ui.pages.inbox.send_now') }}</option>
+                                <option value="draft">{{ __('ui.pages.inbox.save_as_draft') }}</option>
+                            </x-filament::input.select>
+                        </x-filament::input.wrapper>
+                        @error('startChatDeliveryMode')
+                            <div class="text-xs text-red-600">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        {{ __('ui.pages.inbox.initial_message') }}
+                    </label>
+                    <x-filament::input.wrapper :valid="!$errors->has('startChatMessage')">
+                        <textarea wire:model="startChatMessage" rows="5"
+                            class="w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
+                            placeholder="{{ __('ui.pages.inbox.initial_message_placeholder') }}"></textarea>
+                    </x-filament::input.wrapper>
+                    @error('startChatMessage')
+                        <div class="text-xs text-red-600">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="flex flex-wrap justify-end gap-2">
+                    <x-filament::button type="button" color="gray" outlined
+                        x-on:click="$dispatch('close-modal', { id: 'start-chat-modal' })">
+                        {{ __('ui.common.cancel') }}
+                    </x-filament::button>
+                    <x-filament::button type="submit" wire:loading.attr="disabled" wire:target="buatChat">
+                        {{ __('ui.pages.inbox.create_chat') }}
+                    </x-filament::button>
+                </div>
+            </form>
+        </x-filament::modal>
+    @endif
 
     {{-- History Chat Modal --}}
     <x-filament::modal id="history-chat-modal" width="2xl">

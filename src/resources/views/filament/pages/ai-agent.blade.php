@@ -35,8 +35,7 @@
                     </div>
                     <div class="grid gap-4 p-4 md:grid-cols-2">
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-                            <input type="checkbox" wire:model="pengaturan.AutoReplyAktif"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.AutoReplyAktif" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.enable_ai') }}</span>
@@ -45,8 +44,7 @@
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-                            <input type="checkbox" wire:model="pengaturan.AutoReplyDiluarJamKerja"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.AutoReplyDiluarJamKerja" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.reply_after_hours') }}</span>
@@ -55,8 +53,7 @@
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-                            <input type="checkbox" wire:model="pengaturan.AutoReplyHariLibur"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.AutoReplyHariLibur" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.reply_holiday') }}</span>
@@ -65,8 +62,7 @@
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-                            <input type="checkbox" wire:model="pengaturan.AutoReplyJamKerjaSapaan"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.AutoReplyJamKerjaSapaan" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.working_hours_greeting') }}</span>
@@ -75,8 +71,7 @@
                             </span>
                         </label>
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-                            <input type="checkbox" wire:model="pengaturan.AutoReplyJamKerjaBerlanjut"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.AutoReplyJamKerjaBerlanjut" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.continue_all_sessions') }}</span>
@@ -98,8 +93,9 @@
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.start') }}</label>
-                            <input type="time" wire:model="pengaturan.JamKerjaMulai"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <x-filament::input.wrapper class="mt-2" :valid="! $errors->has('pengaturan.JamKerjaMulai')">
+                                <x-filament::input type="time" wire:model="pengaturan.JamKerjaMulai" />
+                            </x-filament::input.wrapper>
                             @error('pengaturan.JamKerjaMulai')
                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                             @enderror
@@ -107,8 +103,9 @@
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.end') }}</label>
-                            <input type="time" wire:model="pengaturan.JamKerjaSelesai"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <x-filament::input.wrapper class="mt-2" :valid="! $errors->has('pengaturan.JamKerjaSelesai')">
+                                <x-filament::input type="time" wire:model="pengaturan.JamKerjaSelesai" />
+                            </x-filament::input.wrapper>
                             @error('pengaturan.JamKerjaSelesai')
                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                             @enderror
@@ -116,8 +113,9 @@
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.timezone') }}</label>
-                            <input type="text" wire:model="pengaturan.ZonaWaktu"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <x-filament::input.wrapper class="mt-2" :valid="! $errors->has('pengaturan.ZonaWaktu')">
+                                <x-filament::input type="text" wire:model="pengaturan.ZonaWaktu" />
+                            </x-filament::input.wrapper>
                             @error('pengaturan.ZonaWaktu')
                                 <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                             @enderror
@@ -131,9 +129,8 @@
                                 @php($label = __('ui.pages.ai_agent.days.' . ($value - 1)))
                                 <label
                                     class="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-800">
-                                    <input type="checkbox" wire:model="pengaturan.HariKerja"
-                                        value="{{ $value }}"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                    <x-filament::input.checkbox wire:model="pengaturan.HariKerja"
+                                        value="{{ $value }}" />
                                     <span>{{ $label }}</span>
                                 </label>
                             @endforeach
@@ -155,35 +152,45 @@
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.system_prompt') }}</label>
-                            <textarea wire:model="pengaturan.PromptSistem"
-                                class="mt-2 min-h-28 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                            <x-filament::input.wrapper class="mt-2">
+                                <textarea wire:model="pengaturan.PromptSistem"
+                                    class="min-h-28 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                            </x-filament::input.wrapper>
                         </div>
                         <div class="grid gap-4 lg:grid-cols-4">
                             <div>
                                 <label
                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.after_hours_template') }}</label>
-                                <textarea wire:model="pengaturan.TemplateDiluarJamKerja"
-                                    class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                                <x-filament::input.wrapper class="mt-2">
+                                    <textarea wire:model="pengaturan.TemplateDiluarJamKerja"
+                                        class="min-h-36 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                                </x-filament::input.wrapper>
                             </div>
                             <div>
                                 <label
                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.holiday_template') }}</label>
-                                <textarea wire:model="pengaturan.TemplateHariLibur"
-                                    class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                                <x-filament::input.wrapper class="mt-2">
+                                    <textarea wire:model="pengaturan.TemplateHariLibur"
+                                        class="min-h-36 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                                </x-filament::input.wrapper>
                                 <div class="mt-1 text-xs text-gray-500">
                                     {{ __('ui.pages.ai_agent.holiday_placeholders') }}</div>
                             </div>
                             <div>
                                 <label
                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.working_greeting_template') }}</label>
-                                <textarea wire:model="pengaturan.TemplateJamKerjaSapaan"
-                                    class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                                <x-filament::input.wrapper class="mt-2">
+                                    <textarea wire:model="pengaturan.TemplateJamKerjaSapaan"
+                                        class="min-h-36 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                                </x-filament::input.wrapper>
                             </div>
                             <div>
                                 <label
                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.fallback_template') }}</label>
-                                <textarea wire:model="pengaturan.TemplateFallback"
-                                    class="mt-2 min-h-36 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                                <x-filament::input.wrapper class="mt-2">
+                                    <textarea wire:model="pengaturan.TemplateFallback"
+                                        class="min-h-36 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                                </x-filament::input.wrapper>
                             </div>
                         </div>
                     </div>
@@ -211,39 +218,31 @@
                                 </button>
                             @endforeach
                         </div>
-                        {{-- <div>
-                            <label
-                                class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.provider') }}</label>
-                            <select wire:model="pengaturan.ProviderAi"
-                                wire:change="applyProviderPreset($event.target.value)"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
-                                <option value="OpenAI">OpenAI / ChatGPT</option>
-                                <option value="DeepSeek">DeepSeek</option>
-                                <option value="OpenRouter">OpenRouter</option>
-                            </select>
-                        </div> --}}
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.model') }}</label>
-                            <input type="text" wire:model="pengaturan.ModelAi"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="text" wire:model="pengaturan.ModelAi" />
+                            </x-filament::input.wrapper>
                             <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.preset') }}:
                                 {{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['model'] ?? '-' }}</div>
                         </div>
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.common.endpoint') }}</label>
-                            <input type="url" wire:model="pengaturan.BaseUrl"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="url" wire:model="pengaturan.BaseUrl" />
+                            </x-filament::input.wrapper>
                             <div class="mt-1 break-all text-xs text-gray-500">
                                 {{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['base_url'] ?? '' }}</div>
                         </div>
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.api_key_selected') }}</label>
-                            <input type="password" wire:model="apiKeyBaru" autocomplete="new-password"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                                placeholder="{{ $apiKeyTerisi ? __('ui.pages.ai_agent.api_key_saved') : __('ui.pages.ai_agent.api_key_enter') }}">
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="password" wire:model="apiKeyBaru" autocomplete="new-password"
+                                    placeholder="{{ $apiKeyTerisi ? __('ui.pages.ai_agent.api_key_saved') : __('ui.pages.ai_agent.api_key_enter') }}" />
+                            </x-filament::input.wrapper>
                             <div class="mt-2 text-xs {{ $apiKeyTerisi ? 'text-emerald-600' : 'text-amber-600' }}">
                                 {{ $apiKeyInfo }}
                             </div>
@@ -262,8 +261,7 @@
                     <div class="mt-4 space-y-4">
                         <label
                             class="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-                            <input type="checkbox" wire:model="pengaturan.KirimKeWaha"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.KirimKeWaha" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-amber-900 dark:text-amber-200">{{ __('ui.pages.ai_agent.send_direct_waha') }}</span>
@@ -274,18 +272,20 @@
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.delivery_mode') }}</label>
-                            <select wire:model="pengaturan.ModeKirim"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
-                                <option value="DraftLokal">{{ __('ui.pages.ai_agent.draft_local') }}</option>
-                                <option value="KirimWaha">{{ __('ui.pages.ai_agent.send_waha') }}</option>
-                            </select>
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input.select wire:model="pengaturan.ModeKirim">
+                                    <option value="DraftLokal">{{ __('ui.pages.ai_agent.draft_local') }}</option>
+                                    <option value="KirimWaha">{{ __('ui.pages.ai_agent.send_waha') }}</option>
+                                </x-filament::input.select>
+                            </x-filament::input.wrapper>
                         </div>
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.history_limit') }}</label>
-                            <input type="number" min="1" max="20"
-                                wire:model="pengaturan.BatasRiwayatPesan"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="number" min="1" max="20"
+                                    wire:model="pengaturan.BatasRiwayatPesan" />
+                            </x-filament::input.wrapper>
                         </div>
                     </div>
                 </div>
@@ -298,8 +298,7 @@
                         {{ __('ui.pages.ai_agent.cs_notification_desc') }}</div>
                     <div class="mt-4 space-y-4">
                         <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-                            <input type="checkbox" wire:model="pengaturan.NotifikasiChatBelumTerbalasAktif"
-                                class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <x-filament::input.checkbox wire:model="pengaturan.NotifikasiChatBelumTerbalasAktif" class="mt-1" />
                             <span>
                                 <span
                                     class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.enable_unanswered_notification') }}</span>
@@ -311,41 +310,48 @@
                             <div>
                                 <label
                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.send_after_minutes') }}</label>
-                                <input type="number" min="1" max="1440"
-                                    wire:model="pengaturan.MenitTungguNotifikasi"
-                                    class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                                <x-filament::input.wrapper class="mt-2">
+                                    <x-filament::input type="number" min="1" max="1440"
+                                        wire:model="pengaturan.MenitTungguNotifikasi" />
+                                </x-filament::input.wrapper>
                             </div>
                             <div>
                                 <label
                                     class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.reminder_interval') }}</label>
-                                <input type="number" min="1" max="1440"
-                                    wire:model="pengaturan.JedaNotifikasiMenit"
-                                    class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950">
+                                <x-filament::input.wrapper class="mt-2">
+                                    <x-filament::input type="number" min="1" max="1440"
+                                        wire:model="pengaturan.JedaNotifikasiMenit" />
+                                </x-filament::input.wrapper>
                             </div>
                         </div>
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.recipient_roles') }}</label>
-                            <input type="text" wire:model="pengaturan.KodePeranPenerimaNotifikasi"
-                                class="mt-2 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                                placeholder="ADMIN,SUPERVISOR_CS,CS">
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="text" wire:model="pengaturan.KodePeranPenerimaNotifikasi"
+                                    placeholder="ADMIN,SUPERVISOR_CS,CS" />
+                            </x-filament::input.wrapper>
                             <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.recipient_roles_help') }}
                             </div>
                         </div>
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.notification_template') }}</label>
-                            <textarea wire:model="pengaturan.TemplateNotifikasiChatBelumTerbalas"
-                                class="mt-2 min-h-32 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"></textarea>
+                            <x-filament::input.wrapper class="mt-2">
+                                <textarea wire:model="pengaturan.TemplateNotifikasiChatBelumTerbalas"
+                                    class="min-h-32 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                            </x-filament::input.wrapper>
                             <div class="mt-1 text-xs text-gray-500">
                                 {{ __('ui.pages.ai_agent.notification_placeholders') }}</div>
                         </div>
                         <div>
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.exclude_whatsapp_numbers') }}</label>
-                            <textarea wire:model="pengaturan.ExcludeNomorWhatsapp"
-                                class="mt-2 min-h-28 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
-                                placeholder="62812xxxx&#10;62813xxxx"></textarea>
+                            <x-filament::input.wrapper class="mt-2" :valid="! $errors->has('pengaturan.ExcludeNomorWhatsapp')">
+                                <textarea wire:model="pengaturan.ExcludeNomorWhatsapp"
+                                    class="min-h-28 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
+                                    placeholder="62812xxxx&#10;62813xxxx"></textarea>
+                            </x-filament::input.wrapper>
                             <div class="mt-1 text-xs text-gray-500">
                                 {{ __('ui.pages.ai_agent.exclude_whatsapp_numbers_help') }}</div>
                             @error('pengaturan.ExcludeNomorWhatsapp')
