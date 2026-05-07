@@ -253,3 +253,31 @@ Selesai! Sekarang aplikasi Anda sudah menyala di:
 **http://care.vpoint.my.id:82**
 
 Dan Queue Worker serta Reverb sudah berjalan aman di dalam Docker secara otomatis!
+
+## Untuk Update :
+```bash
+# 1. Matikan dahulu yang lama
+docker compose down --remove-orphans
+
+# 2. Nyalakan ulang dengan sudah file yang baru
+sudo docker compose up -d
+
+# 3. Masuk ke dalam container untuk install Vendor (Composer) dan Vite
+sudo docker compose exec app composer install --optimize-autoloader --no-dev
+sudo docker compose exec app npm install
+sudo docker compose exec app npm run build
+sudo docker compose exec app php artisan storage:link
+
+# 4. Beri hak akses agar Docker diizinkan membaca file di Ubuntu Anda
+sudo chmod +x /home/it
+sudo chmod -R 755 /home/it/GIT_VPOINT/2026-vpoint-care
+sudo chmod -R 777 /home/it/GIT_VPOINT/2026-vpoint-care/storage /home/it/GIT_VPOINT/2026-vpoint-care/bootstrap/cache
+
+# 5. Clear Cache & Jalankan Migrasi/Seeder (Jika Perlu)
+sudo docker compose exec app php artisan optimize:clear
+
+# Optional Saja
+sudo docker compose exec app php artisan migrate --force
+sudo docker compose exec app php artisan db:seed --force
+
+```
