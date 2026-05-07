@@ -3,11 +3,31 @@
         <section class="vc-stats-grid">
             @php
                 $cards = [
-                    ['label' => __('ui.pages.master_customer.clients'), 'value' => $stats['instansi'] ?? 0, 'tone' => 'vc-tone-blue'],
-                    ['label' => __('ui.pages.master_customer.contacts'), 'value' => $stats['kontak'] ?? 0, 'tone' => 'vc-tone-emerald'],
-                    ['label' => __('ui.pages.master_customer.wa_numbers'), 'value' => $stats['nomor'] ?? 0, 'tone' => 'vc-tone-amber'],
-                    ['label' => __('ui.pages.master_customer.wa_groups'), 'value' => $stats['grup'] ?? 0, 'tone' => 'vc-tone-cyan'],
-                    ['label' => __('ui.pages.master_customer.group_members'), 'value' => $stats['anggota'] ?? 0, 'tone' => 'vc-tone-rose'],
+                    [
+                        'label' => __('ui.pages.master_customer.clients'),
+                        'value' => $stats['instansi'] ?? 0,
+                        'tone' => 'vc-tone-blue',
+                    ],
+                    [
+                        'label' => __('ui.pages.master_customer.contacts'),
+                        'value' => $stats['kontak'] ?? 0,
+                        'tone' => 'vc-tone-emerald',
+                    ],
+                    [
+                        'label' => __('ui.pages.master_customer.wa_numbers'),
+                        'value' => $stats['nomor'] ?? 0,
+                        'tone' => 'vc-tone-amber',
+                    ],
+                    [
+                        'label' => __('ui.pages.master_customer.wa_groups'),
+                        'value' => $stats['grup'] ?? 0,
+                        'tone' => 'vc-tone-cyan',
+                    ],
+                    [
+                        'label' => __('ui.pages.master_customer.group_members'),
+                        'value' => $stats['anggota'] ?? 0,
+                        'tone' => 'vc-tone-rose',
+                    ],
                 ];
             @endphp
 

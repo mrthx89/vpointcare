@@ -61,15 +61,20 @@
         <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.incoming_messages') }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.incoming_messages') }}
+                </div>
                 <div class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white">
                     {{ \App\Support\LocaleFormatter::number($summary['incoming_messages'] ?? 0) }}</div>
-                <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.chat_sessions', ['count' => \App\Support\LocaleFormatter::number($summary['incoming_chats'] ?? 0)]) }}</div>
+                <div class="mt-1 text-sm text-gray-500">
+                    {{ __('ui.pages.dashboard.chat_sessions', ['count' => \App\Support\LocaleFormatter::number($summary['incoming_chats'] ?? 0)]) }}
+                </div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.cs_ai_replies') }}</div>
-                <div class="mt-2 text-3xl font-semibold text-blue-600">{{ \App\Support\LocaleFormatter::number($summary['outgoing_cs'] ?? 0) }} /
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.cs_ai_replies') }}
+                </div>
+                <div class="mt-2 text-3xl font-semibold text-blue-600">
+                    {{ \App\Support\LocaleFormatter::number($summary['outgoing_cs'] ?? 0) }} /
                     {{ \App\Support\LocaleFormatter::number($summary['outgoing_ai'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.human_ai_contribution') }}</div>
             </section>
@@ -79,31 +84,39 @@
                 <div
                     class="mt-2 text-3xl font-semibold {{ ($summary['unanswered_chats'] ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600' }}">
                     {{ \App\Support\LocaleFormatter::number($summary['unanswered_chats'] ?? 0) }}</div>
-                <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.unread_total', ['count' => \App\Support\LocaleFormatter::number($summary['unread_messages'] ?? 0)]) }}
+                <div class="mt-1 text-sm text-gray-500">
+                    {{ __('ui.pages.dashboard.unread_total', ['count' => \App\Support\LocaleFormatter::number($summary['unread_messages'] ?? 0)]) }}
                 </div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.handling_status') }}</div>
-                <div class="mt-2 text-3xl font-semibold text-violet-600">{{ \App\Support\LocaleFormatter::number($summary['active_chats'] ?? 0) }} /
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.handling_status') }}
+                </div>
+                <div class="mt-2 text-3xl font-semibold text-violet-600">
+                    {{ \App\Support\LocaleFormatter::number($summary['active_chats'] ?? 0) }} /
                     {{ \App\Support\LocaleFormatter::number($summary['closed_chats'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.active_closed_period') }}</div>
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.avg_response_time') }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.avg_response_time') }}
+                </div>
                 <div class="mt-2 text-3xl font-semibold text-amber-600">
                     {{ isset($summary['avg_response_minutes']) && $summary['avg_response_minutes'] !== null ? \App\Support\LocaleFormatter::number($summary['avg_response_minutes'], null, 1) . 'm' : '-' }}
                 </div>
-                <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.tickets_created', ['count' => \App\Support\LocaleFormatter::number($summary['tickets_created'] ?? 0)]) }}</div>
+                <div class="mt-1 text-sm text-gray-500">
+                    {{ __('ui.pages.dashboard.tickets_created', ['count' => \App\Support\LocaleFormatter::number($summary['tickets_created'] ?? 0)]) }}
+                </div>
             </section>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.dashboard.satisfaction_index') }}</div>
-                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.satisfaction_desc') }}</div>
+                <div class="text-base font-semibold text-gray-950 dark:text-white">
+                    {{ __('ui.pages.dashboard.satisfaction_index') }}</div>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.satisfaction_desc') }}</div>
                 <div class="mt-5 flex items-end gap-3">
                     <div
                         class="text-5xl font-semibold {{ ($satisfaction['score'] ?? 0) >= 70 ? 'text-emerald-600' : 'text-amber-600' }}">
@@ -132,11 +145,14 @@
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.dashboard.daily_trend') }}</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.daily_trend_desc') }}</div>
+                        <div class="text-base font-semibold text-gray-950 dark:text-white">
+                            {{ __('ui.pages.dashboard.daily_trend') }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ __('ui.pages.dashboard.daily_trend_desc') }}</div>
                     </div>
                     <div class="text-sm text-gray-500">{{ __('ui.pages.dashboard.failed_waha') }}: <span
-                            class="font-semibold text-red-600">{{ \App\Support\LocaleFormatter::number($summary['failed_waha'] ?? 0) }}</span></div>
+                            class="font-semibold text-red-600">{{ \App\Support\LocaleFormatter::number($summary['failed_waha'] ?? 0) }}</span>
+                    </div>
                 </div>
                 <div class="mt-4 grid gap-3">
                     @forelse ($dailyRows as $row)
@@ -147,22 +163,26 @@
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 rounded-full bg-gray-900 dark:bg-gray-100"
                                         style="width: {{ max(3, ($row['incoming'] / $max) * 100) }}%"></div>
-                                    <span class="w-10 text-xs text-gray-500">M {{ \App\Support\LocaleFormatter::number($row['incoming']) }}</span>
+                                    <span class="w-10 text-xs text-gray-500">M
+                                        {{ \App\Support\LocaleFormatter::number($row['incoming']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 rounded-full bg-blue-600"
                                         style="width: {{ max(3, ($row['cs'] / $max) * 100) }}%"></div>
-                                    <span class="w-10 text-xs text-gray-500">CS {{ \App\Support\LocaleFormatter::number($row['cs']) }}</span>
+                                    <span class="w-10 text-xs text-gray-500">CS
+                                        {{ \App\Support\LocaleFormatter::number($row['cs']) }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <div class="h-2 rounded-full bg-emerald-600"
                                         style="width: {{ max(3, ($row['ai'] / $max) * 100) }}%"></div>
-                                    <span class="w-10 text-xs text-gray-500">AI {{ \App\Support\LocaleFormatter::number($row['ai']) }}</span>
+                                    <span class="w-10 text-xs text-gray-500">AI
+                                        {{ \App\Support\LocaleFormatter::number($row['ai']) }}</span>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="p-6 text-center text-sm text-gray-500">{{ __('ui.pages.dashboard.no_message_period') }}</div>
+                        <div class="p-6 text-center text-sm text-gray-500">
+                            {{ __('ui.pages.dashboard.no_message_period') }}</div>
                     @endforelse
                 </div>
             </section>
@@ -172,8 +192,10 @@
             <section
                 class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.dashboard.team_ai_performance') }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.team_ai_desc') }}</div>
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">
+                        {{ __('ui.pages.dashboard.team_ai_performance') }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.team_ai_desc') }}
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
@@ -195,14 +217,19 @@
                                         </div>
                                         <div class="text-xs text-gray-500">{{ $row['email'] }}</div>
                                     </td>
-                                    <td class="px-4 py-3 font-semibold">{{ \App\Support\LocaleFormatter::number($row['replies']) }}</td>
-                                    <td class="px-4 py-3">{{ \App\Support\LocaleFormatter::number($row['chats']) }}</td>
-                                    <td class="px-4 py-3 text-emerald-600">{{ \App\Support\LocaleFormatter::number($row['sent']) }}</td>
-                                    <td class="px-4 py-3 text-red-600">{{ \App\Support\LocaleFormatter::number($row['failed']) }}</td>
+                                    <td class="px-4 py-3 font-semibold">
+                                        {{ \App\Support\LocaleFormatter::number($row['replies']) }}</td>
+                                    <td class="px-4 py-3">{{ \App\Support\LocaleFormatter::number($row['chats']) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-emerald-600">
+                                        {{ \App\Support\LocaleFormatter::number($row['sent']) }}</td>
+                                    <td class="px-4 py-3 text-red-600">
+                                        {{ \App\Support\LocaleFormatter::number($row['failed']) }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">{{ __('ui.pages.dashboard.no_replies_period') }}</td>
+                                    <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500">
+                                        {{ __('ui.pages.dashboard.no_replies_period') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -213,23 +240,29 @@
             <section
                 class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.dashboard.top_customers') }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.top_customers_desc') }}</div>
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">
+                        {{ __('ui.pages.dashboard.top_customers') }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ __('ui.pages.dashboard.top_customers_desc') }}</div>
                 </div>
                 <div class="divide-y divide-gray-100 dark:divide-gray-800">
                     @forelse ($topClients as $client)
                         <div class="flex items-center justify-between gap-4 p-4">
                             <div>
                                 <div class="font-semibold text-gray-950 dark:text-white">{{ $client['name'] }}</div>
-                                <div class="text-sm text-gray-500">{{ __('ui.pages.dashboard.chat_sessions', ['count' => \App\Support\LocaleFormatter::number($client['chats'])]) }}</div>
+                                <div class="text-sm text-gray-500">
+                                    {{ __('ui.pages.dashboard.chat_sessions', ['count' => \App\Support\LocaleFormatter::number($client['chats'])]) }}
+                                </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-xl font-semibold text-blue-600">{{ \App\Support\LocaleFormatter::number($client['messages']) }}</div>
+                                <div class="text-xl font-semibold text-blue-600">
+                                    {{ \App\Support\LocaleFormatter::number($client['messages']) }}</div>
                                 <div class="text-xs text-gray-500">{{ __('ui.pages.dashboard.messages_unit') }}</div>
                             </div>
                         </div>
                     @empty
-                        <div class="p-6 text-center text-sm text-gray-500">{{ __('ui.pages.dashboard.no_incoming_period') }}</div>
+                        <div class="p-6 text-center text-sm text-gray-500">
+                            {{ __('ui.pages.dashboard.no_incoming_period') }}</div>
                     @endforelse
                 </div>
             </section>
