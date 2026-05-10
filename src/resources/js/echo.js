@@ -255,11 +255,15 @@ const syncCurrentReverbState = () => {
  * 2. Dispatch custom DOM event → sound notification di Alpine.js
  */
 window.Echo.channel("waha-inbox").listen(".inbox.updated", (event) => {
+    console.info("[Reverb] Event inbox.updated diterima.", event);
+
     // 1. Refresh data via Livewire
     if (window.Livewire) {
         window.Livewire.dispatch("waha-inbox-updated", {
             chatId: event.chat_id,
         });
+    } else {
+        console.warn("[Reverb] Livewire belum tersedia saat event inbox.updated diterima.");
     }
 
     // 2. Trigger sound notification (dihandle Alpine.js di blade)

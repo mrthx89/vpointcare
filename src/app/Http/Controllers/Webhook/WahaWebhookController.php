@@ -37,7 +37,6 @@ class WahaWebhookController extends Controller
 
         if (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id'])) {
             // Broadcast real-time ke semua browser via Reverb WebSocket.
-            // Menggunakan queue (database) agar response webhook tidak tertunda.
             broadcast(new WahaInboxUpdated((string) $result['chat_id']))->toOthers();
 
             try {
