@@ -528,16 +528,26 @@ class WahaWebhookProcessor
      */
     private function findOrCreateChat(string $sessionId, array $parsed, array $mapping): string
     {
-        $query = DB::table('TChat')->where('IdSesiWhatsapp', $sessionId)->where('JenisChat', $parsed['jenis_chat']);
+        $query = DB::table('TChat')->where('JenisChat', $parsed['jenis_chat']);
 
         if ($parsed['jenis_chat'] === 'Grup' && $mapping['IdGrupWhatsapp']) {
             $query->where('IdGrupWhatsapp', $mapping['IdGrupWhatsapp']);
         } else {
             $query->where(function ($query) use ($parsed): void {
-                $query->where('NomorWhatsapp', $parsed['pengirim_nomor'] ?: '-');
+                if ($parsed['pengirim_nomor']) {
+                    $query->where('NomorWhatsapp', $parsed['pengirim_nomor']);
+
+                    if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
+                        $query->orWhere('NomorWhatsappTerdeteksi', $parsed['pengirim_nomor']);
+                    }
+                }
 
                 if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi') && ($parsed['pengirim_jid'] ?? null)) {
                     $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_jid']);
+
+                    if ($parsed['pengirim_nomor'] && str_contains($parsed['pengirim_jid'], '@lid')) {
+                        $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_nomor'] . '@c.us');
+                    }
                 }
             });
         }
@@ -583,7 +593,7 @@ class WahaWebhookProcessor
             'IdNomorWhatsapp' => $mapping['IdNomorWhatsapp'],
             'IdGrupWhatsapp' => $mapping['IdGrupWhatsapp'],
             'JenisChat' => $parsed['jenis_chat'],
-            'NomorWhatsapp' => $parsed['pengirim_nomor'] ?: '-',
+            'NomorWhatsapp' => $parsed['pengirim_nomor'] ?: ($parsed['pengirim_jid'] ?? '-'),
             'NamaKontak' => $mapping['NamaKontak'],
             'NamaGrupWhatsapp' => $mapping['NamaGrupWhatsapp'],
             'Prioritas' => 'Normal',

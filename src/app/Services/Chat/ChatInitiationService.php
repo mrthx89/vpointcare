@@ -197,6 +197,10 @@ class ChatInitiationService
                 if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
                     $query->orWhere('NomorWhatsappTerdeteksi', $number);
                 }
+
+                if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
+                    $query->orWhere('IdWahaTerdeteksi', $number . '@c.us');
+                }
             });
 
         if ($statusDitutupId) {
