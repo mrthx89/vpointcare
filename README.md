@@ -10,7 +10,7 @@ Fokus utama aplikasi:
 
 - Inbox WhatsApp customer-service dengan status realtime.
 - Integrasi WAHA untuk webhook pesan masuk, pengiriman balasan, profile/media WhatsApp, dan mapping nomor/grup.
-- AI Agent untuk membuat balasan otomatis atau draft lokal menggunakan OpenAI, DeepSeek, atau OpenRouter.
+- AI Agent untuk membuat balasan otomatis atau draft lokal menggunakan OpenAI, DeepSeek, OpenRouter, atau 9Router.
 - Ticketing untuk tindak lanjut masalah customer.
 - Master data customer, instansi, pengguna, hak akses, nomor WhatsApp, grup WhatsApp, hari libur, dan pengetahuan AI.
 - Log operasional untuk aktivitas webhook, integrasi, error, dan histori chat.
@@ -29,7 +29,7 @@ Fokus utama aplikasi:
 | Queue | Laravel database queue |
 | Frontend build | Node.js, npm, Vite 8, Tailwind CSS 4 |
 | WhatsApp gateway | WAHA |
-| AI provider | OpenAI Responses API, DeepSeek Chat Completions, OpenRouter Chat Completions |
+| AI provider | OpenAI Responses API, DeepSeek Chat Completions, OpenRouter/9Router Chat Completions |
 | Bahasa | Indonesia (`id`) dan Inggris (`en`) |
 
 ## Struktur Repository
@@ -541,6 +541,8 @@ Script tersebut menjalankan queue listener dan Reverb, sedangkan HTTP request di
 | `OPENAI_API_KEY` | API key OpenAI untuk AI Agent. |
 | `DEEPSEEK_API_KEY` | API key DeepSeek jika memakai DeepSeek. |
 | `OPENROUTER_API_KEY` | API key OpenRouter jika memakai OpenRouter. |
+| `NINEROUTER_API_KEY` | API key 9Router jika memakai 9Router. |
+| `NINEROUTER_MODEL` / `NINEROUTER_BASE_URL` | Model dan endpoint 9Router. |
 | `REVERB_*` | Konfigurasi Reverb server/client. |
 
 ## Database
@@ -623,3 +625,4 @@ OpenSpec proyek tersedia di:
 - `openspec/specs/vpoint-care/spec.md`
 
 Gunakan OpenSpec sebagai acuan requirement saat menambah fitur, memperbaiki flow WhatsApp, atau mengubah behavior AI/ticketing.
+

@@ -84,14 +84,23 @@ The system SHALL fetch and serve WAHA media/profile data through authenticated a
 
 ### Requirement: AI Agent Settings
 
-The system SHALL allow administrators to configure AI provider, prompt behavior, API keys, auto-reply rules, and send mode.
+The system SHALL allow administrators to configure AI provider, prompt behavior, API keys, auto-reply rules, provider connection testing, visual status, and send mode for OpenAI, DeepSeek, OpenRouter, and 9Router where configured.
 
 #### Scenario: Administrator saves AI settings
 
 - GIVEN an administrator has permission to manage AI Agent
-- WHEN settings are saved
+- WHEN settings are saved with any supported provider
 - THEN the system SHALL persist provider, model, prompt, send mode, schedule, and exclusion settings
 - AND API keys SHALL be handled as secrets
+
+
+#### Scenario: Administrator tests AI provider connection
+
+- GIVEN an administrator has permission to manage AI Agent
+- WHEN a test prompt is submitted from the AI Agent page
+- THEN the system SHALL call the selected provider without sending a WAHA message
+- AND the response or sanitized error SHALL be shown in the text result area
+- AND no chat detail row SHALL be created by the test action
 
 #### Scenario: API key is removed
 
@@ -255,3 +264,4 @@ The system SHALL keep operational secrets outside source code.
 
 - WHEN repository files are committed
 - THEN `.env`, production API keys, production webhook tokens, and production database passwords SHALL NOT be included
+

@@ -69,4 +69,13 @@ return [
         'site_name' => env('OPENROUTER_SITE_NAME', env('APP_NAME', 'VPoint Care')),
     ],
 
+    'ninerouter' => [
+        'api_key' => env('NINEROUTER_API_KEY'),
+        'model' => env('NINEROUTER_MODEL', 'deepseek/deepseek-chat-v3.1:free'),
+        'base_url' => env('NINEROUTER_BASE_URL', 'https://openrouter.ai/api/v1/chat/completions'),
+        'site_url' => env('NINEROUTER_SITE_URL', env('APP_URL')),
+        'site_name' => env('NINEROUTER_SITE_NAME', env('APP_NAME', 'VPoint Care')),
+    ],
+
 ];
+

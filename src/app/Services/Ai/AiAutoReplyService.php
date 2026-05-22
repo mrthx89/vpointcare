@@ -19,6 +19,17 @@ class AiAutoReplyService
     {
     }
 
+    public function testProviderConnection(object $settings, string $prompt): string
+    {
+        $reply = $this->generateReply($settings, $prompt);
+
+        if (! $reply || trim($reply['text']) === '') {
+            throw new RuntimeException('Provider AI tidak mengembalikan jawaban. Periksa API key, model, dan base URL.');
+        }
+
+        return trim($reply['text']);
+    }
+
     /**
      * @return array<string, mixed>|null
      */
@@ -548,6 +559,10 @@ class AiAutoReplyService
             return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'openrouter');
         }
 
+        if (in_array($provider, ['9router', 'ninerouter'], true)) {
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'ninerouter');
+        }
+
         if ($provider === 'openai') {
             return $this->generateOpenAiReply($settings, $prompt, $apiKey);
         }
@@ -603,10 +618,10 @@ class AiAutoReplyService
             ->asJson()
             ->timeout(30);
 
-        if ($provider === 'openrouter') {
+        if (in_array($provider, ['openrouter', 'ninerouter'], true)) {
             $request = $request->withHeaders(array_filter([
-                'HTTP-Referer' => config('services.openrouter.site_url'),
-                'X-Title' => config('services.openrouter.site_name'),
+                'HTTP-Referer' => config("services.{$provider}.site_url"),
+                'X-Title' => config("services.{$provider}.site_name"),
             ]));
         }
 
@@ -673,6 +688,7 @@ class AiAutoReplyService
         return match ($provider) {
             'deepseek' => config('services.deepseek.api_key'),
             'openrouter' => config('services.openrouter.api_key'),
+            '9router', 'ninerouter' => config('services.ninerouter.api_key'),
             default => config('services.openai.api_key'),
         };
     }
@@ -682,6 +698,7 @@ class AiAutoReplyService
         $column = match ($provider) {
             'deepseek' => 'DeepSeekApiKeyTerenkripsi',
             'openrouter' => 'OpenRouterApiKeyTerenkripsi',
+            '9router', 'ninerouter' => 'NineRouterApiKeyTerenkripsi',
             default => 'OpenAiApiKeyTerenkripsi',
         };
 

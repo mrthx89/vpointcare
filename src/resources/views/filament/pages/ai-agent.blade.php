@@ -1,5 +1,23 @@
 <x-filament-panels::page>
     <form wire:submit.prevent="simpanPengaturan" class="wacs-ai-agent space-y-6">
+        <div class="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-5 shadow-sm dark:border-blue-900 dark:from-blue-950/40 dark:via-gray-900 dark:to-indigo-950/40">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+                        <x-filament::icon icon="heroicon-o-sparkles" class="h-9 w-9" />
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.hero_title') }}</div>
+                        <div class="mt-1 max-w-2xl text-sm text-gray-600 dark:text-gray-300">{{ __('ui.pages.ai_agent.hero_subtitle') }}</div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <span class="rounded-full bg-blue-100 px-3 py-1 font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">{{ $pengaturan['ProviderAi'] ?? 'OpenAI' }}</span>
+                    <span class="rounded-full {{ $apiKeyTerisi ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200' }} px-3 py-1 font-semibold">{{ $apiKeyTerisi ? __('ui.pages.ai_agent.api_key_saved') : __('ui.pages.ai_agent.api_key_missing_badge') }}</span>
+                    <span class="rounded-full {{ $pengaturan['AutoReplyAktif'] ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }} px-3 py-1 font-semibold">{{ $pengaturan['AutoReplyAktif'] ? __('ui.common.active') : __('ui.common.inactive') }}</span>
+                </div>
+            </div>
+        </div>
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_auto_reply') }}
@@ -209,12 +227,17 @@
                                 <button type="button" wire:click="applyProviderPreset('{{ $provider }}')"
                                     class="rounded-md border px-3 py-2 text-left text-sm transition {{ ($pengaturan['ProviderAi'] ?? 'OpenAI') === $provider ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-500/10 dark:text-blue-200' : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800' }}">
                                     <span class="flex items-center justify-between gap-3">
-                                        <span class="font-semibold">{{ $preset['label'] }}</span>
-                                        <span
-                                            class="text-xs text-gray-500 dark:text-gray-400">{{ $preset['key_label'] }}</span>
+                                        <span class="flex min-w-0 items-center gap-3">
+                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $preset['icon_class'] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }}">
+                                                <x-filament::icon :icon="$preset['icon'] ?? 'heroicon-o-sparkles'" class="h-5 w-5" />
+                                            </span>
+                                            <span class="min-w-0">
+                                                <span class="block font-semibold">{{ $preset['label'] }}</span>
+                                                <span class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ $preset['summary'] }}</span>
+                                            </span>
+                                        </span>
+                                        <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ $preset['key_label'] }}</span>
                                     </span>
-                                    <span
-                                        class="mt-1 block text-xs text-gray-500 dark:text-gray-400">{{ $preset['summary'] }}</span>
                                 </button>
                             @endforeach
                         </div>
@@ -250,6 +273,26 @@
                                 <button type="button" wire:click="hapusApiKey"
                                     class="mt-3 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('ui.pages.ai_agent.delete_api_key') }}</button>
                             @endif
+                        </div>
+                        <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                            <div class="text-sm font-semibold text-blue-900 dark:text-blue-100">{{ __('ui.pages.ai_agent.test_connection') }}</div>
+                            <div class="mt-2">
+                                <label class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ __('ui.pages.ai_agent.test_prompt') }}</label>
+                                <x-filament::input.wrapper class="mt-1" :valid="! $errors->has('testPrompt')">
+                                    <textarea wire:model="testPrompt" class="min-h-20 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                                </x-filament::input.wrapper>
+                                @error('testPrompt')
+                                    <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="button" wire:click="testKoneksiAi" wire:loading.attr="disabled" wire:target="testKoneksiAi" class="mt-3 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70">
+                                <span wire:loading.remove wire:target="testKoneksiAi">{{ __('ui.pages.ai_agent.test_connection') }}</span>
+                                <span wire:loading wire:target="testKoneksiAi">{{ __('ui.pages.ai_agent.testing_connection') }}</span>
+                            </button>
+                            <div class="mt-3 rounded-md border border-gray-200 bg-white p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                                <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('ui.pages.ai_agent.test_result') }}</div>
+                                <div class="whitespace-pre-wrap">{{ $testResult !== '' ? $testResult : __('ui.pages.ai_agent.test_result_empty') }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -369,3 +412,6 @@
         </div>
     </form>
 </x-filament-panels::page>
+
+
+

@@ -386,7 +386,14 @@ return [
             'api_key_deleted' => 'API key AI dihapus dari database.',
             'api_key_db_info' => 'API key tersimpan di database dan akan dipakai untuk provider terpilih.',
             'api_key_env_info' => 'API key provider ini tersedia dari .env.',
-            'api_key_missing_info' => 'API key provider ini belum diisi. AI akan memakai template fallback.',
+            'hero_title' => 'AI Agent VPoint Care',
+            'hero_subtitle' => 'Kelola provider, API key, prompt, auto-reply, dan uji koneksi AI tanpa mengirim pesan ke WAHA.',
+            'api_key_missing_badge' => 'API key belum diisi',
+            'test_connection' => 'Test Koneksi AI',
+            'testing_connection' => 'Mengetes koneksi...',
+            'test_prompt' => 'Pertanyaan test',
+            'test_result' => 'Text Result',
+            'test_result_empty' => 'Hasil test akan tampil di sini.',            'api_key_missing_info' => 'API key provider ini belum diisi. AI akan memakai template fallback.',
             'stats_auto_reply' => 'Auto reply aktif',
             'stats_sessions' => 'Sesi auto reply',
             'stats_replies' => 'Balasan AI',
@@ -745,3 +752,4 @@ return [
         ],
     ],
 ];
+

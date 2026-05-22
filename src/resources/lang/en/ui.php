@@ -386,7 +386,14 @@ return [
             'api_key_deleted' => 'AI API key deleted from the database.',
             'api_key_db_info' => 'API key is saved in the database and will be used for the selected provider.',
             'api_key_env_info' => 'This provider API key is available from .env.',
-            'api_key_missing_info' => 'This provider API key is not filled yet. AI will use the fallback template.',
+            'hero_title' => 'VPoint Care AI Agent',
+            'hero_subtitle' => 'Manage providers, API keys, prompts, auto-reply, and test AI connectivity without sending messages to WAHA.',
+            'api_key_missing_badge' => 'API key missing',
+            'test_connection' => 'Test AI Connection',
+            'testing_connection' => 'Testing connection...',
+            'test_prompt' => 'Test question',
+            'test_result' => 'Text Result',
+            'test_result_empty' => 'The test result will appear here.',            'api_key_missing_info' => 'This provider API key is not filled yet. AI will use the fallback template.',
             'stats_auto_reply' => 'Auto reply active',
             'stats_sessions' => 'Auto reply sessions',
             'stats_replies' => 'AI replies',
@@ -745,3 +752,4 @@ return [
         ],
     ],
 ];
+

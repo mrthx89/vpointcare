@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
+use App\Services\Ai\AiAutoReplyService;
 use App\Support\FilamentAccess;
 use App\Support\FilamentBreadcrumbs;
 use App\Support\NavigationHelper;
@@ -68,6 +69,12 @@ class AiAgent extends Page
 
     public string $apiKeyInfo = '';
 
+    public string $testPrompt = 'Apakah kamu sudah siap? Nama kamu siapa?';
+
+    public string $testResult = '';
+
+    public bool $testSedangBerjalan = false;
+
     public function mount(): void
     {
         $this->providerPresets = $this->providerPresets();
@@ -90,6 +97,40 @@ class AiAgent extends Page
         $this->pengaturan['BaseUrl'] = $preset['base_url'];
 
         $this->refreshApiKeyState();
+        $this->testResult = '';
+    }
+
+    public function testKoneksiAi(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::AI_AGENT_MANAGE), 403);
+
+        $this->validate([
+            'testPrompt' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $this->testSedangBerjalan = true;
+        $this->testResult = '';
+
+        try {
+            $dbSettings = DB::table('MPengaturanAi')->where('KodePengaturan', 'DEFAULT')->first();
+            $provider = (string) ($this->pengaturan['ProviderAi'] ?? 'OpenAI');
+            $apiKeyColumn = $this->providerApiKeyColumn($provider);
+            $settings = (object) array_merge($this->pengaturan, [
+                'OpenAiApiKeyTerenkripsi' => null,
+                'DeepSeekApiKeyTerenkripsi' => null,
+                'OpenRouterApiKeyTerenkripsi' => null,
+                'NineRouterApiKeyTerenkripsi' => null,
+                $apiKeyColumn => $this->apiKeyBaru !== ''
+                    ? Crypt::encryptString($this->apiKeyBaru)
+                    : $this->providerDbApiKey($dbSettings, $provider),
+            ]);
+
+            $this->testResult = app(AiAutoReplyService::class)->testProviderConnection($settings, $this->testPrompt);
+        } catch (\Throwable $exception) {
+            $this->testResult = $this->sanitizeSecretText($exception->getMessage());
+        } finally {
+            $this->testSedangBerjalan = false;
+        }
     }
 
     public function simpanPengaturan(): void
@@ -247,6 +288,7 @@ class AiAgent extends Page
         return match ($provider) {
             'deepseek' => config('services.deepseek.api_key'),
             'openrouter' => config('services.openrouter.api_key'),
+            '9router', 'ninerouter' => config('services.ninerouter.api_key'),
             default => config('services.openai.api_key'),
         };
     }
@@ -275,6 +317,7 @@ class AiAgent extends Page
         return match (strtolower($provider)) {
             'deepseek' => 'DeepSeekApiKeyTerenkripsi',
             'openrouter' => 'OpenRouterApiKeyTerenkripsi',
+            '9router', 'ninerouter' => 'NineRouterApiKeyTerenkripsi',
             default => 'OpenAiApiKeyTerenkripsi',
         };
     }
@@ -335,14 +378,18 @@ class AiAgent extends Page
         $baseUrl = (string) ($data['BaseUrl'] ?? '');
         $model = (string) ($data['ModelAi'] ?? '');
 
-        if (in_array($provider, ['deepseek', 'openrouter'], true)) {
-            $service = $provider === 'openrouter' ? 'openrouter' : 'deepseek';
+        if (in_array($provider, ['deepseek', 'openrouter', '9router', 'ninerouter'], true)) {
+            $service = match ($provider) {
+                'openrouter' => 'openrouter',
+                '9router', 'ninerouter' => 'ninerouter',
+                default => 'deepseek',
+            };
 
-            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || ($provider === 'openrouter' && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && str_contains($baseUrl, 'openrouter.ai'))) {
+            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && (str_contains($baseUrl, 'openrouter.ai') || str_contains($baseUrl, '9router')))) {
                 $data['BaseUrl'] = config("services.{$service}.base_url");
             }
 
-            if ($model === '' || str_starts_with($model, 'gpt-') || ($provider === 'openrouter' && str_starts_with($model, 'deepseek-')) || ($provider === 'deepseek' && str_contains($model, '/'))) {
+            if ($model === '' || str_starts_with($model, 'gpt-') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_starts_with($model, 'deepseek-')) || ($provider === 'deepseek' && str_contains($model, '/'))) {
                 $data['ModelAi'] = config("services.{$service}.model");
             }
 
@@ -365,6 +412,7 @@ class AiAgent extends Page
         return match (strtolower($provider)) {
             'deepseek' => (string) config('services.deepseek.model'),
             'openrouter' => (string) config('services.openrouter.model'),
+            '9router', 'ninerouter' => (string) config('services.ninerouter.model'),
             default => (string) config('services.openai.model'),
         };
     }
@@ -374,6 +422,7 @@ class AiAgent extends Page
         return match (strtolower($provider)) {
             'deepseek' => (string) config('services.deepseek.base_url'),
             'openrouter' => (string) config('services.openrouter.base_url'),
+            '9router', 'ninerouter' => (string) config('services.ninerouter.base_url'),
             default => (string) config('services.openai.base_url'),
         };
     }
@@ -390,6 +439,8 @@ class AiAgent extends Page
                 'model' => (string) config('services.openai.model'),
                 'base_url' => (string) config('services.openai.base_url'),
                 'key_label' => 'OPENAI_API_KEY',
+                'icon_text' => 'AI',
+                'icon_class' => 'bg-black text-white ring-1 ring-gray-300 dark:bg-white dark:text-black dark:ring-white/20',
             ],
             'DeepSeek' => [
                 'label' => 'DeepSeek',
@@ -397,6 +448,8 @@ class AiAgent extends Page
                 'model' => (string) config('services.deepseek.model'),
                 'base_url' => (string) config('services.deepseek.base_url'),
                 'key_label' => 'DEEPSEEK_API_KEY',
+                'icon_text' => 'DS',
+                'icon_class' => 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white',
             ],
             'OpenRouter' => [
                 'label' => 'OpenRouter',
@@ -404,6 +457,17 @@ class AiAgent extends Page
                 'model' => (string) config('services.openrouter.model'),
                 'base_url' => (string) config('services.openrouter.base_url'),
                 'key_label' => 'OPENROUTER_API_KEY',
+                'icon_text' => 'OR',
+                'icon_class' => 'bg-gradient-to-br from-slate-900 to-sky-600 text-white dark:from-sky-500 dark:to-cyan-400 dark:text-slate-950',
+            ],
+            '9Router' => [
+                'label' => '9Router',
+                'summary' => 'Preset 9Router dengan format chat completions.',
+                'model' => (string) config('services.ninerouter.model'),
+                'base_url' => (string) config('services.ninerouter.base_url'),
+                'key_label' => 'NINEROUTER_API_KEY',
+                'icon_text' => '9R',
+                'icon_class' => 'bg-gradient-to-br from-orange-500 to-amber-400 text-white',
             ],
         ];
     }
@@ -418,6 +482,17 @@ class AiAgent extends Page
         return 'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.';
     }
 
+    private function sanitizeSecretText(string $text): string
+    {
+        foreach ([$this->apiKeyBaru, (string) config('services.openai.api_key'), (string) config('services.deepseek.api_key'), (string) config('services.openrouter.api_key'), (string) config('services.ninerouter.api_key')] as $secret) {
+            if ($secret !== '') {
+                $text = str_replace($secret, '[secret]', $text);
+            }
+        }
+
+        return $text;
+    }
+
     private function normalizeExcludedNumbers(string $value): string
     {
         $numbers = preg_split('/[\s,;]+/', $value) ?: [];
@@ -430,3 +505,6 @@ class AiAgent extends Page
             ->implode(PHP_EOL);
     }
 }
+
+
+
