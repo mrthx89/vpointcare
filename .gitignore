@@ -1,36 +1,135 @@
-*.log
-.DS_Store
-.env
-.env.backup
-.env.production
-.phpactor.json
-.phpunit.result.cache
-/.codex
-/.cursor/
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-/vendor
-_ide_helper.php
-Homestead.json
-Homestead.yaml
-Thumbs.db
-.tools/
-[Ss]torage/
-storage/
+﻿# ============================================================
+# VPoint Care / WACS repository ignores
+# Root repository contains Laravel source in src/ plus docs/specs.
+# Keep dependency lock files tracked for reproducible installs.
+# ============================================================
 
-# =========================
-# Build results
-# =========================
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+
+# IDEs
+/.idea/
+/.vscode/
+/.zed/
+/.nova/
+/.cursor/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.sln.iml
+
+# Local agent/tooling
+/.codex/
+/.tools/
+.phpactor.json
+_ide_helper.php
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+auth.json
+**/auth.json
+secrets.json
+**/secrets.json
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.Local.json
+*.usersecrets
+
+# Logs and runtime output
+*.log
+log-*.txt
+serilog-*.txt
+logs/
+Logs/
+**/storage/logs/*
+!**/storage/logs/.gitignore
+
+# PHP / Laravel dependencies and runtime
+/vendor/
+**/vendor/
+**/.phpunit.result.cache
+**/.phpunit.cache/
+**/storage/*.key
+**/storage/pail/
+**/storage/app/*
+!**/storage/app/.gitignore
+!**/storage/app/public/
+**/storage/app/public/*
+!**/storage/app/public/.gitignore
+!**/storage/app/private/
+**/storage/app/private/*
+!**/storage/app/private/.gitignore
+**/storage/framework/cache/*
+!**/storage/framework/cache/.gitignore
+!**/storage/framework/cache/data/
+**/storage/framework/cache/data/*
+!**/storage/framework/cache/data/.gitignore
+**/storage/framework/sessions/*
+!**/storage/framework/sessions/.gitignore
+**/storage/framework/testing/*
+!**/storage/framework/testing/.gitignore
+**/storage/framework/views/*
+!**/storage/framework/views/.gitignore
+**/bootstrap/cache/*
+!**/bootstrap/cache/.gitignore
+**/public/storage
+**/public/hot
+**/public/build/
+
+# Node / frontend dependencies and generated assets
+/node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.yarn/
+.pnpm-store/
+dist/
+**/dist/
+wwwroot/dist/
+wwwroot/build/
+wwwroot/**/*.gz
+wwwroot/**/*.br
+
+# Keep lock files tracked
+!composer.lock
+!**/composer.lock
+!package-lock.json
+!**/package-lock.json
+!yarn.lock
+!**/yarn.lock
+!pnpm-lock.yaml
+!**/pnpm-lock.yaml
+
+# Test / coverage output
+TestResults/
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+**/coverage/
+coverage.opencover.xml
+coverage.cobertura.xml
+
+# .NET / Visual Studio generated output kept for old migration artifacts only
 [Bb]in/
 [Oo]bj/
 [Dd]ebug/
@@ -39,151 +138,35 @@ x64/
 x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
-
-# =========================
-# Visual Studio
-# =========================
-.vs/
-*.user
-*.rsuser
-*.suo
-*.userosscache
-*.sln.docstates
+artifacts/
+project.lock.json
+project.fragment.lock.json
 *.vcxproj.user
 *.csproj.user
 
-# =========================
-# Rider / JetBrains
-# =========================
-.idea/
-*.sln.iml
-
-# =========================
-# VS Code
-# =========================
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# =========================
-# .NET / ASP.NET Core
-# =========================
-project.lock.json
-project.fragment.lock.json
-artifacts/
-TestResults/
-*.trx
-*.coverage
-*.coveragexml
-coverage/
-coverage.opencover.xml
-coverage.cobertura.xml
-
-# =========================
-# NuGet
-# =========================
+# NuGet / publish output
 *.nupkg
 *.snupkg
 .nuget/
 packages/
 !**/packages/build/
 *.nuspec
-
-# =========================
-# Publish output
-# =========================
 publish/
 Published/
 app.publish/
 *.Publish.xml
 *.pubxml.user
+*.deploy.cmd
+*.SetParameters.xml
+*.SourceManifest.xml
+*.zip
 
-# =========================
-# Logs
-# =========================
-logs/
-Logs/
-*.log
-log-*.txt
-serilog-*.txt
-
-# =========================
-# ASP.NET app settings
-# =========================
-appsettings.Development.json
-appsettings.Local.json
-appsettings.*.Local.json
-
-# Jangan commit secrets
-secrets.json
-.env
-.env.*
-!.env.example
-
-# =========================
-# User secrets
-# =========================
-*.usersecrets
-
-# =========================
-# Database files
-# =========================
+# Local database files
 *.mdf
 *.ldf
 *.db
 *.sqlite
 *.sqlite3
 
-# =========================
-# Blazor / MudBlazor / Frontend
-# =========================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Jika pakai bundler seperti Vite/Webpack
-dist/
-wwwroot/dist/
-wwwroot/build/
-
-# =========================
-# Static web assets generated
-# =========================
-wwwroot/**/*.gz
-wwwroot/**/*.br
-
-# =========================
-# Temporary files
-# =========================
-*.tmp
-*.temp
-*.bak
-*.swp
-*.cache
-
-# =========================
-# OS files
-# =========================
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# =========================
-# IIS / hosting
-# =========================
-*.deploy.cmd
-*.SetParameters.xml
-*.SourceManifest.xml
-*.zip
-
-# =========================
-# Docker optional
-# =========================
+# Docker local overrides
 docker-compose.override.yml
