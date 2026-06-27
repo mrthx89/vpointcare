@@ -42,7 +42,7 @@ class Login extends BaseLogin
             $this->throwFailureValidationException();
         }
 
-        if ($user instanceof Pengguna && $user->NonAktif) {
+        if ($user instanceof Pengguna && ! $user->canAccessPanel(Filament::getCurrentOrDefaultPanel())) {
             $this->userUndertakingMultiFactorAuthentication = null;
             $this->fireFailedEvent($authGuard, $user, $credentials);
 
@@ -129,3 +129,4 @@ class Login extends BaseLogin
         return __('ui.auth.login_heading');
     }
 }
+

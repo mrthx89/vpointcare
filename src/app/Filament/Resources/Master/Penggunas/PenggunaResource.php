@@ -20,6 +20,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
@@ -166,6 +167,19 @@ class PenggunaResource extends Resource
                 TextColumn::make('Jabatan')
                     ->label(__('ui.models.pengguna.job'))
                     ->toggleable(),
+                TextColumn::make('StatusRegistrasi')
+                    ->label('Status Registrasi')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state): string => match ($state ?: Pengguna::REGISTRATION_APPROVED) {
+                        Pengguna::REGISTRATION_PENDING => 'Pending Approval',
+                        Pengguna::REGISTRATION_REJECTED => 'Ditolak',
+                        default => 'Disetujui',
+                    })
+                    ->color(fn (?string $state): string => match ($state ?: Pengguna::REGISTRATION_APPROVED) {
+                        Pengguna::REGISTRATION_PENDING => 'warning',
+                        Pengguna::REGISTRATION_REJECTED => 'danger',
+                        default => 'success',
+                    }),
                 TextColumn::make('StatusAktif')
                     ->label(__('ui.models.pengguna.status'))
                     ->badge()
@@ -179,6 +193,13 @@ class PenggunaResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('StatusRegistrasi')
+                    ->label('Status Registrasi')
+                    ->options([
+                        Pengguna::REGISTRATION_PENDING => 'Pending Approval',
+                        Pengguna::REGISTRATION_APPROVED => 'Disetujui',
+                        Pengguna::REGISTRATION_REJECTED => 'Ditolak',
+                    ]),
                 TernaryFilter::make('NonAktif')
                     ->label(__('ui.filters.status'))
                     ->placeholder(__('ui.filters.all'))
@@ -190,7 +211,38 @@ class PenggunaResource extends Resource
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(10)
             ->recordActions([
+                Action::make('approve')
+                    ->label('Approve')
+                    ->icon(Heroicon::CheckBadge)
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalDescription('Setujui user ini agar dapat login setelah role diisi.')
+                    ->visible(fn (Pengguna $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && ($record->StatusRegistrasi ?? Pengguna::REGISTRATION_APPROVED) === Pengguna::REGISTRATION_PENDING && filled($record->IdPeran))
+                    ->action(function (Pengguna $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
+                        $record->update([
+                            'StatusRegistrasi' => Pengguna::REGISTRATION_APPROVED,
+                            'NonAktif' => false,
+                        ]);
+                    }),
+                Action::make('reject')
+                    ->label('Reject')
+                    ->icon(Heroicon::XCircle)
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalDescription('Tolak pendaftaran user ini. User tetap tidak bisa masuk panel.')
+                    ->visible(fn (Pengguna $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && ($record->StatusRegistrasi ?? Pengguna::REGISTRATION_APPROVED) === Pengguna::REGISTRATION_PENDING)
+                    ->action(function (Pengguna $record): void {
+                        abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
+
+                        $record->update([
+                            'StatusRegistrasi' => Pengguna::REGISTRATION_REJECTED,
+                            'NonAktif' => true,
+                        ]);
+                    }),
                 Action::make('activate')
+
                     ->label(__('ui.models.pengguna.activate'))
                     ->icon(Heroicon::CheckCircle)
                     ->color('success')
@@ -240,3 +292,6 @@ class PenggunaResource extends Resource
         ];
     }
 }
+
+
+

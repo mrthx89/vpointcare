@@ -7,6 +7,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,12 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 
     public const STATUS_INACTIVE = 'inactive';
 
+    public const REGISTRATION_APPROVED = 'approved';
+
+    public const REGISTRATION_PENDING = 'pending';
+
+    public const REGISTRATION_REJECTED = 'rejected';
+
     public const STATUSES = [
         self::STATUS_ACTIVE => 'Aktif',
         self::STATUS_INACTIVE => 'Nonaktif',
@@ -43,6 +50,7 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
             'NonAktif' => 'boolean',
             'EmailTerverifikasiPada' => 'datetime',
             'LoginTerakhirPada' => 'datetime',
+            'RegistrasiExternalPada' => 'datetime',
             'TglBuat' => 'datetime',
             'TglEdit' => 'datetime',
         ];
@@ -90,7 +98,15 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return ! (bool) $this->getRawOriginal('NonAktif');
+        return ! (bool) $this->getRawOriginal('NonAktif')
+            && filled($this->getRawOriginal('IdPeran'))
+            && $this->roleCode() !== null
+            && (($this->getRawOriginal('StatusRegistrasi') ?: self::REGISTRATION_APPROVED) === self::REGISTRATION_APPROVED);
+    }
+
+    public function externalIdentities(): HasMany
+    {
+        return $this->hasMany(\App\Models\Auth\PenggunaExternalIdentity::class, 'IdPengguna', 'Id');
     }
 
     public function roleCode(): ?string
