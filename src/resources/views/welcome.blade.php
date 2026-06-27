@@ -74,8 +74,9 @@
             color: var(--ink);
             background: var(--surface-soft);
         }
-        h1, h2, h3, h4, h5, h6, .brand span {
+        h1, h2, h3, h4, h5, h6, th, .brand span {
             font-family: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif !important;
+            letter-spacing: 0.01em;
         }
 
         a {

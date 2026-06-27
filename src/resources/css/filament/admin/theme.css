@@ -1,4 +1,4 @@
-@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import "../../../../vendor/filament/filament/resources/css/theme.css";
 
 @source '../../../../app/Filament/**/*.php';
 @source '../../../../resources/views/**/*.blade.php';
@@ -28,15 +28,20 @@
     --md-sys-color-error-container: #fee2e2;
     --md-sys-color-on-error: #ffffff;
     --md-sys-color-on-error-container: #7f1d1d;
-    
+
     /* Material Elevation */
     --md-sys-elevation-level-0: none;
-    --md-sys-elevation-level-1: 0 1px 2px rgba(0,0,0,0.05), 0 1px 3px 1px rgba(0,0,0,0.1);
-    --md-sys-elevation-level-2: 0 1px 2px rgba(0,0,0,0.06), 0 2px 6px 2px rgba(0,0,0,0.1);
-    --md-sys-elevation-level-3: 0 1px 4px rgba(0,0,0,0.08), 0 4px 6px 4px rgba(0,0,0,0.1);
-    --md-sys-elevation-level-4: 0 2px 6px rgba(0,0,0,0.1), 0 8px 12px 6px rgba(0,0,0,0.1);
-    --md-sys-elevation-level-5: 0 4px 8px rgba(0,0,0,0.14), 0 12px 16px 8px rgba(0,0,0,0.14);
-    
+    --md-sys-elevation-level-1:
+        0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px 1px rgba(0, 0, 0, 0.1);
+    --md-sys-elevation-level-2:
+        0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 6px 2px rgba(0, 0, 0, 0.1);
+    --md-sys-elevation-level-3:
+        0 1px 4px rgba(0, 0, 0, 0.08), 0 4px 6px 4px rgba(0, 0, 0, 0.1);
+    --md-sys-elevation-level-4:
+        0 2px 6px rgba(0, 0, 0, 0.1), 0 8px 12px 6px rgba(0, 0, 0, 0.1);
+    --md-sys-elevation-level-5:
+        0 4px 8px rgba(0, 0, 0, 0.14), 0 12px 16px 8px rgba(0, 0, 0, 0.14);
+
     /* Border Radius */
     --md-sys-shape-none: 0;
     --md-sys-shape-extra-small: 4px;
@@ -76,34 +81,77 @@
 
 /* Set DM Sans as default font for EVERYTHING except display text */
 * {
-    font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family:
+        "DM Sans",
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif !important;
 }
 
 /* Set Playfair Display for ALL headings, titles, card headings, brand, dashboard titles, and table headers */
-h1, h2, h3, h4, h5, h6, 
-.fi-heading, .fi-header-heading, .fi-section-header-heading,
-.fi-modal-heading, .fi-sidebar-header, .vc-title, .vc-flow-title,
-.fi-section-title, .fi-card-heading, .fi-widget-heading,
-.fi-page-header-title, .fi-table-header-cell,
-.vpoint-brand span, .fi-sidebar-brand-name,
-.font-semibold.text-base, .font-semibold.text-xl, .font-semibold.text-3xl,
-.fi-section h1, .fi-section h2, .fi-section h3,
-.fi-card h1, .fi-card h2, .fi-card h3,
-.fi-widget h1, .fi-widget h2, .fi-widget h3,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.fi-heading,
+.fi-header-heading,
+.fi-section-header-heading,
+.fi-modal-heading,
+.fi-sidebar-header,
+.vc-title,
+.vc-flow-title,
+.fi-section-title,
+.fi-card-heading,
+.fi-widget-heading,
+.fi-page-header-title,
+.fi-table-header-cell,
+.vpoint-brand span,
+.fi-sidebar-brand-name,
+.font-semibold.text-base,
+.font-semibold.text-xl,
+.font-semibold.text-3xl,
+.fi-section h1,
+.fi-section h2,
+.fi-section h3,
+.fi-card h1,
+.fi-card h2,
+.fi-card h3,
+.fi-widget h1,
+.fi-widget h2,
+.fi-widget h3,
 .fi-ta-header-cell-label,
 .fi-ta-header-cell,
-.vc-card h1, .vc-card h2, .vc-card h3,
-.vc-stat-card h1, .vc-stat-card h2, .vc-stat-card h3,
-.vc-flow-card h1, .vc-flow-card h2, .vc-flow-card h3,
-.vc-link-card h1, .vc-link-card h2, .vc-link-card h3,
+.fi-ta-header-cell > span,
+.fi-ta-header-cell button,
+.fi-ta-header-cell-sort-btn,
+.fi-ta-header-cell-sort-btn > span,
+.vc-card h1,
+.vc-card h2,
+.vc-card h3,
+.vc-stat-card h1,
+.vc-stat-card h2,
+.vc-stat-card h3,
+.vc-flow-card h1,
+.vc-flow-card h2,
+.vc-flow-card h3,
+.vc-link-card h1,
+.vc-link-card h2,
+.vc-link-card h3,
 .vc-link-title,
 .vc-recent-client,
 th,
 thead th,
 [role="columnheader"] {
-    font-family: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif !important;
+    font-family:
+        "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman",
+        Times, serif !important;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.01em;
 }
 
 code,
@@ -112,7 +160,9 @@ samp,
 pre,
 .wacs-chat-message,
 .vc-code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace !important;
 }
 
 /* ================================================
@@ -186,7 +236,14 @@ pre,
 }
 
 /* 4. Cards / Widgets */
-.fi-widget, .fi-card, .vc-card, .vc-stat-card, .vc-link-card, .vc-recent-item, .vc-empty-state, .vc-flow-card {
+.fi-widget,
+.fi-card,
+.vc-card,
+.vc-stat-card,
+.vc-link-card,
+.vc-recent-item,
+.vc-empty-state,
+.vc-flow-card {
     border-radius: var(--md-sys-shape-large) !important;
     border: 1px solid var(--md-sys-color-outline-variant);
     background: var(--md-sys-color-surface);
@@ -194,7 +251,12 @@ pre,
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fi-widget:hover, .fi-card:hover, .vc-card:hover, .vc-stat-card:hover, .vc-link-card:hover, .vc-recent-item:hover {
+.fi-widget:hover,
+.fi-card:hover,
+.vc-card:hover,
+.vc-stat-card:hover,
+.vc-link-card:hover,
+.vc-recent-item:hover {
     box-shadow: var(--md-sys-elevation-level-2);
     transform: translateY(-2px);
 }
@@ -238,18 +300,35 @@ pre,
 }
 
 /* 6. Form Inputs */
-.fi-input, .fi-select select, .fi-textarea textarea, .fi-date-time-input {
+.fi-input-wrp,
+.fi-select select,
+.fi-textarea textarea,
+.fi-date-time-input {
     border-radius: var(--md-sys-shape-medium) !important;
     border: 1.5px solid var(--md-sys-color-outline) !important;
     background: var(--md-sys-color-surface-container-low) !important;
+    box-shadow: none !important;
+    outline: none !important;
     padding: 14px 16px !important;
     font-size: 15px !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fi-input:focus, .fi-select select:focus, .fi-textarea textarea:focus, .fi-date-time-input:focus {
+.fi-input {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-shadow: 0 0 #0000 !important;
+}
+
+.fi-input-wrp:focus-within,
+.fi-select select:focus,
+.fi-textarea textarea:focus,
+.fi-date-time-input:focus {
     border-color: var(--md-sys-color-primary) !important;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+    box-shadow: none !important;
     background: var(--md-sys-color-surface) !important;
 }
 
@@ -259,7 +338,8 @@ pre,
     margin-bottom: 6px !important;
 }
 
-.fi-field-helper-text, .fi-field-error-message {
+.fi-field-helper-text,
+.fi-field-error-message {
     font-size: 12px !important;
 }
 
@@ -397,7 +477,7 @@ a.fi-breadcrumbs-item-label:hover {
     overflow: hidden;
     color: var(--md-sys-color-on-surface);
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 900;
     line-height: 1.25rem;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -468,7 +548,10 @@ a.fi-breadcrumbs-item-label:hover {
     font-weight: 600;
     line-height: 1.25rem;
     text-decoration: none;
-    transition: background-color 200ms ease, color 200ms ease, transform 150ms ease;
+    transition:
+        background-color 200ms ease,
+        color 200ms ease,
+        transform 150ms ease;
 }
 
 .fi-breadcrumbs-item:first-child .fi-breadcrumbs-item-label::before {
@@ -565,7 +648,9 @@ a.fi-breadcrumbs-item-label:hover {
     border-radius: 1.25rem;
     background: var(--md-sys-color-surface);
     box-shadow: var(--md-sys-elevation-1);
-    transition: box-shadow 200ms ease, transform 150ms ease;
+    transition:
+        box-shadow 200ms ease,
+        transform 150ms ease;
 }
 
 .vc-card:hover,
@@ -760,7 +845,9 @@ a.fi-breadcrumbs-item-label:hover {
 .vc-recent-number {
     margin-top: 0.625rem;
     color: var(--md-sys-color-primary);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
     font-size: 0.875rem;
 }
 
@@ -824,7 +911,9 @@ a.fi-breadcrumbs-item-label:hover {
 
 /* Chat UI Styles */
 .wacs-chat-message {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
     font-size: 0.875rem;
     line-height: 1.5;
 }
@@ -925,7 +1014,10 @@ a.fi-breadcrumbs-item-label:hover {
 
     .wacs-inbox-layout {
         gap: 1.25rem;
-        grid-template-columns: minmax(280px, 340px) minmax(360px, 1fr) minmax(280px, 340px);
+        grid-template-columns: minmax(280px, 340px) minmax(360px, 1fr) minmax(
+                280px,
+                340px
+            );
         overflow: hidden;
         padding-bottom: 0;
     }
