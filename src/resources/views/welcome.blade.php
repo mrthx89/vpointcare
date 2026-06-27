@@ -11,7 +11,7 @@
     @include('components.seo-meta')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700,800,900|playfair-display:400,600,700,800,900&display=swap" rel="stylesheet" />
 
     <script>
         (() => {
@@ -70,9 +70,12 @@
 
         body {
             margin: 0;
-            font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--ink);
             background: var(--surface-soft);
+        }
+        h1, h2, h3, h4, h5, h6, .brand span {
+            font-family: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif !important;
         }
 
         a {

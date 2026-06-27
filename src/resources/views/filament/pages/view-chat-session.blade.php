@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     @if ($errorMessage)
         <div class="flex flex-col items-center justify-center py-24 text-center">
-            <svg class="mx-auto mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="mx-auto mb-4 h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
@@ -18,19 +18,19 @@
         @endif
         {{-- Header Info Sesi --}}
         <div
-            class="rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            class="rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-md dark:border-gray-700 dark:bg-gray-900">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 
                 {{-- Nama kontak & status --}}
-                <div class="flex items-center gap-2 min-w-0">
+                <div class="flex items-center gap-3 min-w-0">
                     <span
-                        class="text-base font-bold text-gray-900 dark:text-white truncate">{{ $session['NamaKontak'] }}</span>
+                        class="text-lg font-extrabold text-gray-900 dark:text-white truncate">{{ $session['NamaKontak'] }}</span>
                     <span
-                        class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium
+                        class="shrink-0 rounded-full px-3 py-1 text-xs font-bold
                     {{ str_contains(strtolower($session['Status']), 'selesai') ||
                     str_contains(strtolower($session['Status']), 'tutup')
-                        ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' }}">
+                        ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                        : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200' }}">
                         {{ $session['Status'] }}
                     </span>
                 </div>
@@ -38,11 +38,11 @@
                 <span class="text-gray-300 dark:text-gray-600 hidden sm:inline">&bull;</span>
 
                 {{-- Info singkat --}}
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
-                    <span>{{ $session['NomorWhatsapp'] }}</span>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <span class="font-mono">{{ $session['NomorWhatsapp'] }}</span>
                     @if ($session['NamaCustomer'])
                         <span class="hidden sm:inline text-gray-300 dark:text-gray-600">&bull;</span>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">{{ $session['NamaCustomer'] }}</span>
+                        <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $session['NamaCustomer'] }}</span>
                     @endif
                     @if ($session['NamaInstansi'])
                         <span class="hidden sm:inline text-gray-300 dark:text-gray-600">&bull;</span>
@@ -54,15 +54,15 @@
                 <div class="flex-1"></div>
 
                 {{-- Meta kanan --}}
-                <div class="flex flex-wrap items-center gap-3 text-sm">
-                    <span class="text-emerald-600 dark:text-emerald-400">
-                        &#x1F9D1; {{ __('ui.pages.view_chat.handled_by') }}: <strong>{{ $session['NamaCS'] }}</strong>
+                <div class="flex flex-wrap items-center gap-4 text-sm">
+                    <span class="text-emerald-700 dark:text-emerald-400 font-semibold">
+                        &#x1F9D1; {{ __('ui.pages.view_chat.handled_by') }}: <strong class="text-emerald-800 dark:text-emerald-300">{{ $session['NamaCS'] }}</strong>
                     </span>
-                    <span class="text-gray-400 dark:text-gray-500">
+                    <span class="text-gray-500 dark:text-gray-400 font-medium">
                         &#x1F552; {{ $session['TglTerakhir'] }}
                     </span>
                     <span
-                        class="rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                        class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                         {{ __('ui.pages.view_chat.read_only') }}
                     </span>
                 </div>
@@ -72,26 +72,26 @@
 
 
         {{-- ── Body: Chat + Notes ── --}}
-        <div class="mt-4 flex gap-4" style="height: calc(100vh - 260px); min-height: 400px;">
+        <div class="mt-6 flex gap-6" style="height: calc(100vh - 280px); min-height: 420px;">
 
             {{-- Kolom Kiri: Percakapan (2/3) --}}
             <div
-                class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900">
 
                 {{-- Header --}}
                 <div
-                    class="flex items-center border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
-                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    class="flex items-center border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                    <span class="text-base font-extrabold text-gray-800 dark:text-gray-100">
                         &#x1F4AC; {{ __('ui.pages.view_chat.conversation_history') }}
                         <span
-                            class="ml-1 font-normal text-gray-400">({{ \App\Support\LocaleFormatter::number(count($messages)) }}
+                            class="ml-2 font-normal text-gray-500 text-sm">({{ \App\Support\LocaleFormatter::number(count($messages)) }}
                             {{ __('ui.common.messages') }})</span>
                     </span>
                 </div>
 
                 {{-- Pesan --}}
                 <div
-                    class="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 dark:bg-gray-950/60">
+                    class="min-h-0 flex-1 space-y-5 overflow-y-auto overflow-x-hidden bg-gray-50 p-6 dark:bg-gray-950/70">
                     @forelse ($messages as $msg)
                         @php
                             $isOut = $msg['IsOutgoing'];
@@ -114,10 +114,10 @@
                         @endphp
 
                         <div
-                            class="{{ $isOut ? 'ml-auto bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm shadow-sm">
+                            class="{{ $isOut ? 'ml-auto bg-indigo-600 text-white shadow-lg' : 'bg-white text-gray-800 border border-gray-200 shadow-md dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700' }} max-w-[88%] rounded-2xl p-4">
 
                             {{-- Label pengirim & waktu --}}
-                            <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
+                            <div class="{{ $isOut ? 'text-indigo-100' : 'text-gray-500' }} text-xs font-semibold">
                                 {{ $isOut ? $session['NamaCS'] : ($msg['PengirimNamaKontak'] ?: __('ui.common.customer')) }}
                                 &middot;
                                 {{ $msg['TglFormatted'] }}
@@ -129,30 +129,30 @@
                             {{-- Media --}}
                             @if ($hasMedia)
                                 <div
-                                    class="mt-2 overflow-hidden rounded-md {{ $isOut ? 'bg-blue-700/40' : 'bg-gray-100 dark:bg-gray-950' }}">
+                                    class="mt-3 overflow-hidden rounded-xl {{ $isOut ? 'bg-indigo-700/50' : 'bg-gray-100 dark:bg-gray-950' }}">
                                     @if ($mediaUrl && $isImage)
                                         <a href="{{ $mediaUrl }}" target="_blank" rel="noopener" class="block">
                                             <img src="{{ $mediaUrl }}" alt="{{ $mediaLabel }}"
-                                                class="max-h-80 w-full object-contain">
+                                                class="max-h-96 w-full object-contain">
                                         </a>
                                     @elseif ($mediaUrl && $isVideo)
-                                        <video controls preload="metadata" class="max-h-80 w-full">
+                                        <video controls preload="metadata" class="max-h-96 w-full">
                                             <source src="{{ $mediaUrl }}">
                                         </video>
                                     @elseif ($mediaUrl && $isAudio)
-                                        <div class="p-3">
+                                        <div class="p-4">
                                             <audio controls preload="metadata" class="w-full">
                                                 <source src="{{ $mediaUrl }}">
                                             </audio>
                                         </div>
                                     @elseif ($mediaUrl)
                                         <a href="{{ $mediaUrl }}" target="_blank" rel="noopener"
-                                            class="{{ $isOut ? 'text-blue-50 hover:text-white' : 'text-blue-700 hover:text-blue-900 dark:text-blue-300' }} block px-3 py-2 text-sm font-medium underline underline-offset-2">
+                                            class="{{ $isOut ? 'text-indigo-50 hover:text-white' : 'text-indigo-700 hover:text-indigo-900 dark:text-indigo-300' }} block px-4 py-3 text-sm font-semibold underline underline-offset-4">
                                             {{ $mediaLabel }}
                                         </a>
                                     @else
                                         <div
-                                            class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
+                                            class="px-4 py-3 text-sm {{ $isOut ? 'text-indigo-50' : 'text-gray-600 dark:text-gray-300' }}">
                                             {{ __('ui.pages.view_chat.media_unavailable', ['file' => $mediaLabel]) }}
                                         </div>
                                     @endif
@@ -161,49 +161,49 @@
 
                             {{-- Teks pesan --}}
                             @if ($msg['IsiPesan'])
-                                <p class="mt-2 whitespace-pre-line">{{ $msg['IsiPesan'] }}</p>
+                                <p class="mt-3 whitespace-pre-line wacs-chat-message">{{ $msg['IsiPesan'] }}</p>
                             @elseif (!$hasMedia)
-                                <p class="mt-1 whitespace-pre-line text-xs opacity-60">
+                                <p class="mt-2 whitespace-pre-line text-xs opacity-70 wacs-chat-message">
                                     {{ __('ui.pages.view_chat.non_text_message') }}</p>
                             @endif
                         </div>
                     @empty
-                        <div class="p-6 text-center text-sm text-gray-500">{{ __('ui.pages.view_chat.no_messages') }}
+                        <div class="p-8 text-center text-sm text-gray-500">{{ __('ui.pages.view_chat.no_messages') }}
                         </div>
                     @endforelse
                 </div>
             </div>
 
             {{-- Kolom Kanan: Catatan Internal --}}
-            <div class="flex w-72 shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900"
-                style="max-width: 320px;">
+            <div class="flex w-80 shrink-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
+                style="max-width: 340px;">
 
                 {{-- Header --}}
                 <div
-                    class="flex items-center gap-2 border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
-                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">&#9998;
+                    class="flex items-center gap-3 border-b border-gray-200 bg-gray-50 px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+                    <span class="text-base font-extrabold text-gray-800 dark:text-gray-100">&#9998;
                         {{ __('ui.pages.view_chat.internal_notes') }}</span>
                     @if (count($internalNotes) > 0)
-                        <span class="ml-auto rounded-full bg-indigo-500 px-2 py-0.5 text-xs font-bold text-white">
+                        <span class="ml-auto rounded-full bg-indigo-600 px-3 py-1 text-xs font-extrabold text-white shadow-md">
                             {{ \App\Support\LocaleFormatter::number(count($internalNotes)) }}
                         </span>
                     @endif
                 </div>
 
-                <div class="min-h-0 flex-1 overflow-y-auto p-3 space-y-3">
+                <div class="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
                     @forelse ($internalNotes as $note)
                         <div
-                            class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+                            class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 shadow-sm">
                             <p class="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
                                 {{ $note['IsiCatatan'] }}</p>
-                            <div class="mt-2 flex items-center justify-between text-xs">
+                            <div class="mt-3 flex items-center justify-between text-xs">
                                 <span
-                                    class="font-semibold text-indigo-600 dark:text-indigo-400">{{ $note['NamaPembuat'] }}</span>
-                                <span class="text-gray-400">{{ $note['TglFormatted'] }}</span>
+                                    class="font-bold text-indigo-700 dark:text-indigo-400">{{ $note['NamaPembuat'] }}</span>
+                                <span class="text-gray-500 font-medium">{{ $note['TglFormatted'] }}</span>
                             </div>
                         </div>
                     @empty
-                        <p class="py-8 text-center text-sm text-gray-400">
+                        <p class="py-10 text-center text-sm text-gray-500">
                             {{ __('ui.pages.view_chat.no_internal_notes') }}</p>
                     @endforelse
                 </div>

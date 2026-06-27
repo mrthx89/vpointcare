@@ -61,8 +61,9 @@
         <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.incoming_messages') }}
-                </div>
+                <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.incoming_messages') }}
+                </h3>
                 <div class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white">
                     {{ \App\Support\LocaleFormatter::number($summary['incoming_messages'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">
@@ -71,8 +72,9 @@
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.cs_ai_replies') }}
-                </div>
+                <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.cs_ai_replies') }}
+                </h3>
                 <div class="mt-2 text-3xl font-semibold text-blue-600">
                     {{ \App\Support\LocaleFormatter::number($summary['outgoing_cs'] ?? 0) }} /
                     {{ \App\Support\LocaleFormatter::number($summary['outgoing_ai'] ?? 0) }}</div>
@@ -80,7 +82,9 @@
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.unanswered') }}</div>
+                <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.unanswered') }}
+                </h3>
                 <div
                     class="mt-2 text-3xl font-semibold {{ ($summary['unanswered_chats'] ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600' }}">
                     {{ \App\Support\LocaleFormatter::number($summary['unanswered_chats'] ?? 0) }}</div>
@@ -90,8 +94,9 @@
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.handling_status') }}
-                </div>
+                <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.handling_status') }}
+                </h3>
                 <div class="mt-2 text-3xl font-semibold text-violet-600">
                     {{ \App\Support\LocaleFormatter::number($summary['active_chats'] ?? 0) }} /
                     {{ \App\Support\LocaleFormatter::number($summary['closed_chats'] ?? 0) }}</div>
@@ -99,8 +104,9 @@
             </section>
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.avg_response_time') }}
-                </div>
+                <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.avg_response_time') }}
+                </h3>
                 <div class="mt-2 text-3xl font-semibold text-amber-600">
                     {{ isset($summary['avg_response_minutes']) && $summary['avg_response_minutes'] !== null ? \App\Support\LocaleFormatter::number($summary['avg_response_minutes'], null, 1) . 'm' : '-' }}
                 </div>
@@ -113,8 +119,8 @@
         <div class="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
             <section
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-base font-semibold text-gray-950 dark:text-white">
-                    {{ __('ui.pages.dashboard.satisfaction_index') }}</div>
+                <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.dashboard.satisfaction_index') }}</h3>
                 <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.satisfaction_desc') }}</div>
                 <div class="mt-5 flex items-end gap-3">
@@ -145,8 +151,8 @@
                 class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="flex items-center justify-between gap-3">
                     <div>
-                        <div class="text-base font-semibold text-gray-950 dark:text-white">
-                            {{ __('ui.pages.dashboard.daily_trend') }}</div>
+                        <h3 class="text-base font-semibold text-gray-950 dark:text-white">
+                            {{ __('ui.pages.dashboard.daily_trend') }}</h3>
                         <div class="text-sm text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.dashboard.daily_trend_desc') }}</div>
                     </div>
@@ -192,8 +198,8 @@
             <section
                 class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">
-                        {{ __('ui.pages.dashboard.team_ai_performance') }}</div>
+                    <h3 class="text-base font-semibold text-gray-950 dark:text-white">
+                        {{ __('ui.pages.dashboard.team_ai_performance') }}</h3>
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.dashboard.team_ai_desc') }}
                     </div>
                 </div>
@@ -240,8 +246,8 @@
             <section
                 class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-200 p-4 dark:border-gray-800">
-                    <div class="text-base font-semibold text-gray-950 dark:text-white">
-                        {{ __('ui.pages.dashboard.top_customers') }}</div>
+                    <h3 class="text-base font-semibold text-gray-950 dark:text-white">
+                        {{ __('ui.pages.dashboard.top_customers') }}</h3>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('ui.pages.dashboard.top_customers_desc') }}</div>
                 </div>

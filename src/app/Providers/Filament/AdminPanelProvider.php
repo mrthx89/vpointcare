@@ -31,18 +31,20 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $brandName = config('app.name', 'VPoint Care');
+
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
             ->registration(Register::class)
-            ->brandName('VPoint Care')
+            ->brandName($brandName)
             ->brandLogo(fn() => new HtmlString(
-                '<div class="vpoint-brand"><img src="' . asset('images/logo_primary.svg') . '" alt="VPoint Care"><span>VPoint Care</span></div>'
+                '<div class="vpoint-brand"><img src="' . asset('images/logo_primary.svg') . '" alt="' . e($brandName) . '"><span>' . e($brandName) . '</span></div>'
             ))
             ->darkModeBrandLogo(fn() => new HtmlString(
-                '<div class="vpoint-brand vpoint-brand-dark"><img src="' . asset('images/logo_secondary.svg') . '" alt="VPoint Care"><span>VPoint Care</span></div>'
+                '<div class="vpoint-brand vpoint-brand-dark"><img src="' . asset('images/logo_secondary.svg') . '" alt="' . e($brandName) . '"><span>' . e($brandName) . '</span></div>'
             ))
             ->brandLogoHeight('2.25rem')
             ->maxContentWidth(Width::Full)
@@ -55,7 +57,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
-                fn(): string => '<meta name="google" content="notranslate"><meta name="robots" content="notranslate">' . view('components.seo-meta')->render()
+                fn(): string => '<link rel="preconnect" href="https://fonts.bunny.net"><link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700,800,900|playfair-display:400,600,700,800,900&display=swap" rel="stylesheet" /><meta name="google" content="notranslate"><meta name="robots" content="notranslate">' . view('components.seo-meta')->render()
             )
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
@@ -135,12 +137,12 @@ HTML
                 )
             )
             ->colors([
-                'primary' => Color::Blue,
-                'danger' => Color::Red,
-                'gray' => Color::Slate,
-                'info' => Color::Sky,
-                'success' => Color::Emerald,
-                'warning' => Color::Amber,
+                'primary' => Color::Indigo,
+                'danger' => Color::Rose,
+                'gray' => Color::Gray,
+                'info' => Color::Cyan,
+                'success' => Color::Green,
+                'warning' => Color::Orange,
             ])
             ->navigationGroups(NavigationHelper::buildGroups())
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -177,7 +179,6 @@ HTML
         return app()->getLocale();
     }
 }
-
 
 
 
