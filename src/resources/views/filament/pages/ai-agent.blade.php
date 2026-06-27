@@ -228,8 +228,12 @@
                                     class="rounded-md border px-3 py-2 text-left text-sm transition {{ ($pengaturan['ProviderAi'] ?? 'OpenAI') === $provider ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-500/10 dark:text-blue-200' : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800' }}">
                                     <span class="flex items-center justify-between gap-3">
                                         <span class="flex min-w-0 items-center gap-3">
-                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $preset['icon_class'] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }}">
-                                                <x-filament::icon :icon="$preset['icon'] ?? 'heroicon-o-sparkles'" class="h-5 w-5" />
+                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg {{ $preset['icon_class'] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }}">
+                                                @if (! empty($preset['icon_path']))
+                                                    <img src="{{ asset($preset['icon_path']) }}" alt="{{ $preset['label'] }}" class="h-7 w-7 object-contain" loading="lazy" />
+                                                @else
+                                                    <x-filament::icon :icon="$preset['icon'] ?? 'heroicon-o-sparkles'" class="h-5 w-5" />
+                                                @endif
                                             </span>
                                             <span class="min-w-0">
                                                 <span class="block font-semibold">{{ $preset['label'] }}</span>
@@ -412,6 +416,7 @@
         </div>
     </form>
 </x-filament-panels::page>
+
 
 
 

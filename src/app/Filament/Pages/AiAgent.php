@@ -440,6 +440,7 @@ class AiAgent extends Page
                 'base_url' => (string) config('services.openai.base_url'),
                 'key_label' => 'OPENAI_API_KEY',
                 'icon_text' => 'AI',
+                'icon_path' => 'images/ai-provider-openai-2.svg',
                 'icon_class' => 'bg-black text-white ring-1 ring-gray-300 dark:bg-white dark:text-black dark:ring-white/20',
             ],
             'DeepSeek' => [
@@ -449,6 +450,7 @@ class AiAgent extends Page
                 'base_url' => (string) config('services.deepseek.base_url'),
                 'key_label' => 'DEEPSEEK_API_KEY',
                 'icon_text' => 'DS',
+                'icon_path' => 'images/ai-provider-deepseek-2.svg',
                 'icon_class' => 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white',
             ],
             'OpenRouter' => [
@@ -458,6 +460,7 @@ class AiAgent extends Page
                 'base_url' => (string) config('services.openrouter.base_url'),
                 'key_label' => 'OPENROUTER_API_KEY',
                 'icon_text' => 'OR',
+                'icon_path' => 'images/ai-provider-openrouter-2.svg',
                 'icon_class' => 'bg-gradient-to-br from-slate-900 to-sky-600 text-white dark:from-sky-500 dark:to-cyan-400 dark:text-slate-950',
             ],
             '9Router' => [
@@ -467,6 +470,7 @@ class AiAgent extends Page
                 'base_url' => (string) config('services.ninerouter.base_url'),
                 'key_label' => 'NINEROUTER_API_KEY',
                 'icon_text' => '9R',
+                'icon_path' => 'images/ai-provider-9router-2.svg',
                 'icon_class' => 'bg-gradient-to-br from-orange-500 to-amber-400 text-white',
             ],
         ];
@@ -505,6 +509,7 @@ class AiAgent extends Page
             ->implode(PHP_EOL);
     }
 }
+
 
 
 
