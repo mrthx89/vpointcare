@@ -104,6 +104,15 @@ class PengetahuanResource extends Resource
                     ->label('Tag')
                     ->maxLength(500)
                     ->placeholder('login,password,error,reset'),
+                TextInput::make('SearchKeywords')
+                    ->label(__('ui.ai_learning.knowledge_search_keywords'))
+                    ->maxLength(1000)
+                    ->helperText(__('ui.ai_learning.knowledge_search_keywords_help')),
+                TextInput::make('PrioritasAi')
+                    ->label(__('ui.ai_learning.knowledge_priority'))
+                    ->numeric()
+                    ->default(0)
+                    ->helperText(__('ui.ai_learning.knowledge_priority_help')),
                 Textarea::make('IsiPengetahuan')
                     ->label(__('ui.models.pengetahuan.content'))
                     ->rows(10)
@@ -132,6 +141,15 @@ class PengetahuanResource extends Resource
                     ->label('Tag')
                     ->searchable()
                     ->wrap()
+                    ->toggleable(),
+                TextColumn::make('SearchKeywords')
+                    ->label(__('ui.ai_learning.knowledge_keywords_column'))
+                    ->searchable()
+                    ->limit(80)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('PrioritasAi')
+                    ->label(__('ui.ai_learning.knowledge_priority'))
+                    ->sortable()
                     ->toggleable(),
                 TextColumn::make('IsiPengetahuan')
                     ->label(__('ui.models.pengetahuan.content'))
@@ -176,3 +194,4 @@ class PengetahuanResource extends Resource
         ];
     }
 }
+

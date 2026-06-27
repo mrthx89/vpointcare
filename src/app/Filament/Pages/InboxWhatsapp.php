@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Master\Pengguna;
 use App\Services\Ai\AiAutoReplyService;
+use App\Services\Ai\AiKnowledgeLearningService;
 use App\Services\Chat\ChatInitiationService;
 use App\Services\Waha\WahaSender;
 use App\Support\AccessPermissions;
@@ -380,6 +381,7 @@ class InboxWhatsapp extends Page implements HasForms
 
         $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
         $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
+        $hasKnowledgeMode = Schema::hasColumn('TChat', 'ModeKnowledgeAi');
 
         $query = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
@@ -404,6 +406,8 @@ class InboxWhatsapp extends Page implements HasForms
                 'c.AutoReplyAiAktif',
                 'c.AiSudahMenyapa',
                 'c.TglAutoReplyAiTerakhir',
+                $hasKnowledgeMode ? 'c.ModeKnowledgeAi' : DB::raw("'Ringan' as ModeKnowledgeAi"),
+                Schema::hasColumn('TChat', 'BatasKnowledgeAi') ? 'c.BatasKnowledgeAi' : DB::raw('NULL as BatasKnowledgeAi'),
                 $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
                 'i.NamaInstansi',
                 'gi.NamaInstansi as NamaInstansiGrup',
@@ -545,6 +549,8 @@ class InboxWhatsapp extends Page implements HasForms
             'AutoReplyAiAktif' => (bool) $row->AutoReplyAiAktif,
             'AiSudahMenyapa' => (bool) $row->AiSudahMenyapa,
             'TglAutoReplyAiTerakhir' => $row->TglAutoReplyAiTerakhir,
+            'ModeKnowledgeAi' => $row->ModeKnowledgeAi ?? 'Ringan',
+            'BatasKnowledgeAi' => $row->BatasKnowledgeAi ?? null,
             // Handler info: siapa CS yang sedang menangani chat ini
             'DiambilOleh' => $row->DiambilOleh ?? null,
             'DiambilNamaCS' => $row->NamaDiambilOleh
@@ -719,6 +725,61 @@ class InboxWhatsapp extends Page implements HasForms
             ->send();
     }
 
+    public function buatDraftKnowledge(AiKnowledgeLearningService $service): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE), 403);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $result = $service->createDraftFromChat($this->selectedChatId, auth()->id());
+
+        if ($result['ok'] ?? false) {
+            Notification::make()
+                ->title(__('ui.ai_learning.draft_created_title'))
+                ->body((string) ($result['title'] ?? __('ui.ai_learning.draft_created_message')))
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title(__('ui.ai_learning.draft_not_created_title'))
+            ->body((string) ($result['reason'] ?? __('ui.ai_learning.not_reusable')))
+            ->warning()
+            ->send();
+    }
+    public function updateModeKnowledgeAi(string $mode): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        if (! $this->selectedChatId || ! Schema::hasColumn('TChat', 'ModeKnowledgeAi')) {
+            return;
+        }
+
+        $mode = in_array($mode, ['Ringan', 'AllKnowledge', 'Nonaktif'], true) ? $mode : 'Ringan';
+        $limit = $mode === 'AllKnowledge' ? 20 : ($mode === 'Ringan' ? 5 : 0);
+
+        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
+            'ModeKnowledgeAi' => $mode,
+            'BatasKnowledgeAi' => $limit,
+            'TglEdit' => now(),
+        ]);
+
+        $this->selectedChat = $this->loadChatHeader($this->selectedChatId) ?? $this->selectedChat;
+
+        Notification::make()
+            ->title(__('ui.ai_learning.mode_updated_title'))
+            ->body(match ($mode) {
+                'AllKnowledge' => __('ui.ai_learning.mode_updated_all'),
+                'Nonaktif' => __('ui.ai_learning.mode_updated_off'),
+                default => __('ui.ai_learning.mode_updated_light'),
+            })
+            ->success()
+            ->send();
+    }
     public function tutupPercakapan(AiAutoReplyService $aiService): void
     {
         abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
@@ -1139,6 +1200,7 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
         $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
+        $hasKnowledgeMode = Schema::hasColumn('TChat', 'ModeKnowledgeAi');
         $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
 
         $row = DB::table('TChat as c')
@@ -1789,3 +1851,6 @@ class InboxWhatsapp extends Page implements HasForms
         return $number.'@c.us';
     }
 }
+
+
+

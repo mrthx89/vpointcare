@@ -621,6 +621,24 @@
                                 </div>
                             </div>
                             @if ($this->canManageInbox())
+                                <div>
+                                    <label
+                                        class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ __('ui.ai_learning.mode_label') }}</label>
+                                    <x-filament::input.wrapper class="mt-1">
+                                        <x-filament::input.select
+                                            wire:change="updateModeKnowledgeAi($event.target.value)">
+                                            <option value="Ringan" @selected(($selectedChat['ModeKnowledgeAi'] ?? 'Ringan') === 'Ringan')>
+                                                {{ __('ui.ai_learning.mode_light') }}</option>
+                                            <option value="AllKnowledge" @selected(($selectedChat['ModeKnowledgeAi'] ?? 'Ringan') === 'AllKnowledge')>
+                                                {{ __('ui.ai_learning.mode_all') }}</option>
+                                            <option value="Nonaktif" @selected(($selectedChat['ModeKnowledgeAi'] ?? 'Ringan') === 'Nonaktif')>
+                                                {{ __('ui.ai_learning.mode_off') }}</option>
+                                        </x-filament::input.select>
+                                    </x-filament::input.wrapper>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        {{ __('ui.ai_learning.mode_help') }}
+                                    </p>
+                                </div>
                                 <div class="flex flex-wrap gap-2">
                                     <x-filament::button type="button" wire:click="toggleAutoReplyAi">
                                         {{ $selectedChat['AutoReplyAiAktif'] ? __('ui.pages.inbox.disable_auto_reply') : __('ui.pages.inbox.enable_auto_reply') }}
@@ -629,6 +647,13 @@
                                         wire:click="resetSapaanAi">
                                         {{ __('ui.pages.inbox.reset_greeting') }}
                                     </x-filament::button>
+                                    @if (\App\Support\FilamentAccess::can(\App\Support\AccessPermissions::KNOWLEDGE_MANAGE))
+                                        <x-filament::button type="button" color="info" outlined
+                                            wire:click="buatDraftKnowledge" wire:loading.attr="disabled"
+                                            wire:target="buatDraftKnowledge">
+                                            {{ __('ui.ai_learning.create_draft_button') }}
+                                        </x-filament::button>
+                                    @endif
                                 </div>
                             @endif
                         </div>

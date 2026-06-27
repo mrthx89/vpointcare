@@ -6,6 +6,8 @@ use App\Support\AccessPermissions;
 use App\Support\FilamentBreadcrumbs;
 use App\Support\FilamentAccess;
 use App\Support\LocaleFormatter;
+use App\Services\Ai\AiKnowledgeLearningService;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -48,6 +50,28 @@ class ViewChatSession extends Page
         $this->loadSession();
     }
 
+    public function buatDraftKnowledge(AiKnowledgeLearningService $service): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE), 403);
+
+        $result = $service->createDraftFromChat($this->sessionId, auth()->id());
+
+        if ($result['ok'] ?? false) {
+            Notification::make()
+                ->title(__('ui.ai_learning.draft_created_title'))
+                ->body((string) ($result['title'] ?? $result['message'] ?? __('ui.ai_learning.draft_created_message')))
+                ->success()
+                ->send();
+
+            return;
+        }
+
+        Notification::make()
+            ->title(__('ui.ai_learning.draft_not_created_title'))
+            ->body((string) ($result['reason'] ?? __('ui.ai_learning.not_reusable')))
+            ->warning()
+            ->send();
+    }
     private function loadSession(): void
     {
         $row = DB::table('TChat as c')
@@ -147,3 +171,4 @@ class ViewChatSession extends Page
             ->all();
     }
 }
+

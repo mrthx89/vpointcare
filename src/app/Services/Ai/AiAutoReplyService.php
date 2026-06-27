@@ -24,7 +24,7 @@ class AiAutoReplyService
         $reply = $this->generateReply($settings, $prompt);
 
         if (! $reply || trim($reply['text']) === '') {
-            throw new RuntimeException('Provider AI tidak mengembalikan jawaban. Periksa API key, model, dan base URL.');
+            throw new RuntimeException(__('ui.ai_learning.provider_empty_answer'));
         }
 
         return trim($reply['text']);
@@ -458,7 +458,11 @@ class AiAutoReplyService
             ->IsiPesan ?? '');
 
         $customer = $chat->NamaInstansi ?: $chat->NamaCustomer ?: 'Belum dipetakan';
-        $knowledge = $this->relevantKnowledge($latestCustomerMessage . ' ' . $messages . ' ' . $customer);
+        $knowledge = $this->relevantKnowledge(
+            $latestCustomerMessage . ' ' . $messages . ' ' . $customer,
+            (string) ($chat->ModeKnowledgeAi ?? 'Ringan'),
+            (int) ($chat->BatasKnowledgeAi ?? 0)
+        );
 
         return trim(implode("\n\n", array_filter([
             $settings->PromptSistem ?: null,
@@ -473,72 +477,129 @@ class AiAutoReplyService
         ])));
     }
 
-    private function relevantKnowledge(string $context): string
+    private function relevantKnowledge(string $context, string $mode = 'Ringan', int $customLimit = 0): string
     {
-        $rows = DB::table('MPengetahuan')
+        $mode = in_array($mode, ['Ringan', 'AllKnowledge', 'Nonaktif'], true) ? $mode : 'Ringan';
+
+        if ($mode === 'Nonaktif') {
+            return '';
+        }
+
+        $tokens = $this->knowledgeTokens($context);
+        $maxItems = $mode === 'AllKnowledge' ? max(1, min($customLimit ?: 20, 50)) : max(1, min($customLimit ?: 5, 10));
+        $maxTotalChars = $mode === 'AllKnowledge' ? 12000 : 3500;
+        $maxItemChars = $mode === 'AllKnowledge' ? 1200 : 900;
+
+        $query = DB::table('MPengetahuan')
             ->where('NonAktif', false)
-            ->select('JudulPengetahuan', 'IsiPengetahuan', 'Tag')
+            ->select(
+                'Id',
+                'JudulPengetahuan',
+                'IsiPengetahuan',
+                'Tag',
+                Schema::hasColumn('MPengetahuan', 'SearchKeywords') ? 'SearchKeywords' : DB::raw('NULL as SearchKeywords'),
+                Schema::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : DB::raw('0 as PrioritasAi')
+            );
+
+        if ($mode !== 'AllKnowledge' && $tokens->isNotEmpty()) {
+            $query->where(function ($where) use ($tokens): void {
+                foreach ($tokens->take(10) as $token) {
+                    $like = '%' . str_replace(['%', '_', '['], ['[%]', '[_]', '[[]'], $token) . '%';
+                    $where->orWhere('JudulPengetahuan', 'like', $like)
+                        ->orWhere('Tag', 'like', $like)
+                        ->orWhere('IsiPengetahuan', 'like', $like);
+
+                    if (Schema::hasColumn('MPengetahuan', 'SearchKeywords')) {
+                        $where->orWhere('SearchKeywords', 'like', $like);
+                    }
+                }
+            });
+        }
+
+        $rows = $query
+            ->orderByDesc(Schema::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : 'JudulPengetahuan')
             ->orderBy('JudulPengetahuan')
-            ->limit(100)
+            ->limit($mode === 'AllKnowledge' ? $maxItems : 50)
             ->get();
 
         if ($rows->isEmpty()) {
             return '';
         }
 
-        $tokens = collect(preg_split('/[\s,.;:!?()\[\]{}"\'\/\\\\\-]+/u', Str::lower($context)) ?: [])
-            ->map(fn (string $token): string => trim($token))
-            ->filter(fn (string $token): bool => mb_strlen($token) >= 4)
-            ->reject(fn (string $token): bool => in_array($token, [
-                'yang',
-                'dari',
-                'untuk',
-                'dengan',
-                'atau',
-                'kami',
-                'saya',
-                'anda',
-                'bapak',
-                'ibu',
-                'halo',
-                'terima',
-                'kasih',
-                'pesan',
-                'customer',
-            ], true))
-            ->unique()
-            ->values();
-
         $scored = $rows
-            ->map(function (object $row) use ($tokens): array {
-                $haystack = Str::lower(trim(implode(' ', [
-                    $row->JudulPengetahuan,
-                    $row->Tag,
-                    $row->IsiPengetahuan,
-                ])));
+            ->map(function (object $row) use ($tokens, $mode): array {
+                $title = Str::lower((string) $row->JudulPengetahuan);
+                $tag = Str::lower((string) $row->Tag);
+                $keywords = Str::lower((string) ($row->SearchKeywords ?? ''));
+                $content = Str::lower((string) $row->IsiPengetahuan);
+                $score = (int) ($row->PrioritasAi ?? 0);
 
-                $score = $tokens->sum(fn (string $token): int => str_contains($haystack, $token) ? 1 : 0);
+                if ($mode === 'AllKnowledge') {
+                    $score += 1;
+                }
+
+                foreach ($tokens as $token) {
+                    $score += str_contains($title, $token) ? 5 : 0;
+                    $score += str_contains($tag, $token) ? 4 : 0;
+                    $score += str_contains($keywords, $token) ? 3 : 0;
+                    $score += str_contains($content, $token) ? 1 : 0;
+                }
 
                 return [
+                    'id' => (string) $row->Id,
                     'score' => $score,
                     'title' => (string) $row->JudulPengetahuan,
-                    'content' => Str::limit((string) $row->IsiPengetahuan, 900, ''),
+                    'content' => (string) $row->IsiPengetahuan,
                 ];
             })
-            ->filter(fn (array $row): bool => $row['score'] > 0)
+            ->filter(fn (array $row): bool => $mode === 'AllKnowledge' || $row['score'] >= 4)
             ->sortByDesc('score')
-            ->take(5)
+            ->take($maxItems)
             ->values();
 
         if ($scored->isEmpty()) {
             return '';
         }
 
-        return $scored
-            ->map(fn (array $row): string => '- ' . $row['title'] . ': ' . $row['content'])
-            ->implode("\n");
+        $used = [];
+        $total = 0;
+        $lines = [];
+
+        foreach ($scored as $row) {
+            $content = Str::limit($row['content'], $maxItemChars, '');
+            $line = '- ' . $row['title'] . ': ' . $content;
+
+            if ($total + mb_strlen($line) > $maxTotalChars) {
+                break;
+            }
+
+            $lines[] = $line;
+            $used[] = $row['id'];
+            $total += mb_strlen($line);
+        }
+
+        if ($used && Schema::hasColumn('MPengetahuan', 'JumlahDipakaiAi')) {
+            DB::table('MPengetahuan')->whereIn('Id', $used)->update([
+                'TerakhirDipakaiAi' => now(),
+                'JumlahDipakaiAi' => DB::raw('JumlahDipakaiAi + 1'),
+            ]);
+        }
+
+        return implode("\n", $lines);
     }
 
+    private function knowledgeTokens(string $context): \Illuminate\Support\Collection
+    {
+        return collect(preg_split('/[\s,.;:!?()\[\]{}"\'\/\\\-]+/u', Str::lower($context)) ?: [])
+            ->map(fn (string $token): string => trim($token))
+            ->filter(fn (string $token): bool => mb_strlen($token) >= 4)
+            ->reject(fn (string $token): bool => in_array($token, [
+                'yang', 'dari', 'untuk', 'dengan', 'atau', 'kami', 'saya', 'anda', 'bapak', 'ibu',
+                'halo', 'terima', 'kasih', 'pesan', 'customer', 'mohon', 'tolong', 'sudah', 'belum',
+            ], true))
+            ->unique()
+            ->values();
+    }
     /**
      * @return array{text: string, payload: array<string, mixed>}|null
      */
@@ -877,3 +938,4 @@ class AiAutoReplyService
         return 'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.';
     }
 }
+

@@ -15,8 +15,11 @@ class Pengetahuan extends Model
 
     protected $casts = [
         'NonAktif' => 'boolean',
+        'PrioritasAi' => 'integer',
+        'JumlahDipakaiAi' => 'integer',
         'TglBuat' => 'datetime',
         'TglEdit' => 'datetime',
+        'TerakhirDipakaiAi' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -30,3 +33,4 @@ class Pengetahuan extends Model
         });
     }
 }
+

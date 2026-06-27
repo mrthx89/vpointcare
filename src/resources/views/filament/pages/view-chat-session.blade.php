@@ -8,7 +8,15 @@
             <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">{{ $errorMessage }}</h2>
         </div>
     @elseif ($session)
-        {{-- ── Header Info Sesi ── --}}
+        @if (\App\Support\FilamentAccess::can(\App\Support\AccessPermissions::KNOWLEDGE_MANAGE))
+            <div class="mb-4 flex justify-end">
+                <x-filament::button type="button" color="info" wire:click="buatDraftKnowledge"
+                    wire:loading.attr="disabled" wire:target="buatDraftKnowledge">
+                    {{ __('ui.ai_learning.create_draft_button') }}
+                </x-filament::button>
+            </div>
+        @endif
+        {{-- Header Info Sesi --}}
         <div
             class="rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900">
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
