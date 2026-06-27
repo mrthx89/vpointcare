@@ -168,12 +168,12 @@ class PenggunaResource extends Resource
                     ->label(__('ui.models.pengguna.job'))
                     ->toggleable(),
                 TextColumn::make('StatusRegistrasi')
-                    ->label('Status Registrasi')
+                    ->label(__('ui.common.registration_status'))
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => match ($state ?: Pengguna::REGISTRATION_APPROVED) {
-                        Pengguna::REGISTRATION_PENDING => 'Pending Approval',
-                        Pengguna::REGISTRATION_REJECTED => 'Ditolak',
-                        default => 'Disetujui',
+                        Pengguna::REGISTRATION_PENDING => __('ui.common.registration_pending'),
+                        Pengguna::REGISTRATION_REJECTED => __('ui.common.registration_rejected'),
+                        default => __('ui.common.registration_approved'),
                     })
                     ->color(fn (?string $state): string => match ($state ?: Pengguna::REGISTRATION_APPROVED) {
                         Pengguna::REGISTRATION_PENDING => 'warning',
@@ -194,11 +194,11 @@ class PenggunaResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('StatusRegistrasi')
-                    ->label('Status Registrasi')
+                    ->label(__('ui.common.registration_status'))
                     ->options([
-                        Pengguna::REGISTRATION_PENDING => 'Pending Approval',
-                        Pengguna::REGISTRATION_APPROVED => 'Disetujui',
-                        Pengguna::REGISTRATION_REJECTED => 'Ditolak',
+                        Pengguna::REGISTRATION_PENDING => __('ui.common.registration_pending'),
+                        Pengguna::REGISTRATION_APPROVED => __('ui.common.registration_approved'),
+                        Pengguna::REGISTRATION_REJECTED => __('ui.common.registration_rejected'),
                     ]),
                 TernaryFilter::make('NonAktif')
                     ->label(__('ui.filters.status'))
@@ -212,11 +212,11 @@ class PenggunaResource extends Resource
             ->defaultPaginationPageOption(10)
             ->recordActions([
                 Action::make('approve')
-                    ->label('Approve')
+                    ->label(__('ui.common.approve'))
                     ->icon(Heroicon::CheckBadge)
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalDescription('Setujui user ini agar dapat login setelah role diisi.')
+                    ->modalDescription(__('ui.common.approve_pending_user_desc'))
                     ->visible(fn (Pengguna $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && ($record->StatusRegistrasi ?? Pengguna::REGISTRATION_APPROVED) === Pengguna::REGISTRATION_PENDING && filled($record->IdPeran))
                     ->action(function (Pengguna $record): void {
                         abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
@@ -227,11 +227,11 @@ class PenggunaResource extends Resource
                         ]);
                     }),
                 Action::make('reject')
-                    ->label('Reject')
+                    ->label(__('ui.common.reject'))
                     ->icon(Heroicon::XCircle)
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalDescription('Tolak pendaftaran user ini. User tetap tidak bisa masuk panel.')
+                    ->modalDescription(__('ui.common.reject_pending_user_desc'))
                     ->visible(fn (Pengguna $record): bool => FilamentAccess::can(AccessPermissions::USER_MANAGE) && ($record->StatusRegistrasi ?? Pengguna::REGISTRATION_APPROVED) === Pengguna::REGISTRATION_PENDING)
                     ->action(function (Pengguna $record): void {
                         abort_unless(FilamentAccess::can(AccessPermissions::USER_MANAGE), 403);
@@ -292,6 +292,7 @@ class PenggunaResource extends Resource
         ];
     }
 }
+
 
 
 

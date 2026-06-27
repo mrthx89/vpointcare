@@ -69,17 +69,18 @@ class AdminPanelProvider extends PanelProvider
     .wacs-locale-option:hover { background: white; color: rgb(15 23 42); }
     .wacs-locale-option.is-active { background: rgb(37 99 235); color: white; box-shadow: 0 1px 2px rgb(15 23 42 / .14); }
     .wacs-locale-switcher-compact .wacs-locale-options { background: transparent; }
-    .wacs-external-auth { margin-top: 1rem; display: grid; gap: .875rem; }
-    .wacs-auth-divider { display: flex; align-items: center; gap: .75rem; color: rgb(100 116 139); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .wacs-external-auth { width: 100%; margin-top: 1rem; display: grid; gap: .75rem; }
+    .wacs-auth-helper { color: rgb(71 85 105); font-size: .8125rem; font-weight: 700; text-align: center; }
+    .wacs-auth-divider { display: flex; align-items: center; gap: .75rem; color: rgb(100 116 139); font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
     .wacs-auth-divider::before, .wacs-auth-divider::after { content: ''; height: 1px; flex: 1; background: rgb(226 232 240); }
     .wacs-auth-buttons { display: grid; gap: .625rem; }
-    .wacs-auth-button { display: flex; align-items: center; justify-content: center; gap: .625rem; border-radius: .875rem; padding: .75rem 1rem; font-size: .925rem; font-weight: 800; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease; }
-    .wacs-auth-button:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgb(15 23 42 / .12); }
+    .wacs-auth-button { display: flex; align-items: center; justify-content: center; gap: .625rem; width: 100%; box-sizing: border-box; border-radius: .75rem; padding: .6875rem .875rem; font-size: .875rem; line-height: 1.25rem; font-weight: 800; text-decoration: none; transition: box-shadow .15s ease, border-color .15s ease, background .15s ease; }
+    .wacs-auth-button:hover { box-shadow: 0 8px 18px rgb(15 23 42 / .10); }
     .wacs-auth-button-google { border: 1px solid rgb(203 213 225); background: white; color: rgb(15 23 42); }
     .wacs-auth-button-sso { border: 1px solid rgb(29 78 216); background: linear-gradient(135deg, rgb(37 99 235), rgb(14 165 233)); color: white; }
-    .wacs-auth-icon { display: inline-grid; place-items: center; width: 1.625rem; height: 1.625rem; border-radius: 999px; background: rgb(241 245 249); color: rgb(37 99 235); font-weight: 900; }
+    .wacs-auth-icon { display: inline-grid; flex: 0 0 auto; place-items: center; min-width: 1.625rem; height: 1.625rem; padding-inline: .375rem; border-radius: 999px; background: rgb(241 245 249); color: rgb(37 99 235); font-size: .75rem; font-weight: 900; }
     .wacs-auth-button-sso .wacs-auth-icon { background: rgb(255 255 255 / .18); color: white; }
-    .wacs-auth-security-badge { border: 1px solid rgb(191 219 254); border-radius: .75rem; padding: .625rem .75rem; background: rgb(239 246 255); color: rgb(30 64 175); font-size: .8125rem; font-weight: 700; text-align: center; }
+    .wacs-auth-security-badge { border: 1px solid rgb(191 219 254); border-radius: .625rem; padding: .5rem .625rem; background: rgb(239 246 255); color: rgb(30 64 175); font-size: .75rem; line-height: 1rem; font-weight: 700; text-align: center; }
     .wacs-auth-alert { margin-bottom: 1rem; border-radius: .875rem; padding: .75rem .875rem; font-size: .875rem; font-weight: 700; }
     .wacs-auth-alert-success { border: 1px solid rgb(167 243 208); background: rgb(236 253 245); color: rgb(6 95 70); }
     .wacs-auth-alert-danger { border: 1px solid rgb(254 202 202); background: rgb(254 242 242); color: rgb(153 27 27); }
@@ -88,6 +89,7 @@ class AdminPanelProvider extends PanelProvider
     .dark .wacs-locale-option { color: rgb(203 213 225); }
     .dark .wacs-locale-option:hover { background: rgb(30 41 59); color: white; }
     .dark .wacs-locale-option.is-active { background: rgb(59 130 246); color: white; }
+    .dark .wacs-auth-helper { color: rgb(203 213 225); }
     .dark .wacs-auth-divider { color: rgb(148 163 184); }
     .dark .wacs-auth-divider::before, .dark .wacs-auth-divider::after { background: rgb(51 65 85); }
     .dark .wacs-auth-button-google { border-color: rgb(51 65 85); background: rgb(15 23 42); color: rgb(226 232 240); }
@@ -175,4 +177,7 @@ HTML
         return app()->getLocale();
     }
 }
+
+
+
 

@@ -324,6 +324,33 @@ return [
         'register_success_title' => 'Registrasi berhasil',
         'register_success_body' => 'Akun Anda menunggu approval admin sebelum bisa login.',
         'inactive_account' => 'Akun Anda belum aktif atau sedang dinonaktifkan.',
+        'external_provider_unavailable' => 'Login provider belum tersedia. Hubungi administrator.',
+        'external_pending' => 'Pendaftaran berhasil dikirim. Admin perlu menyetujui akun Anda sebelum dapat mengakses dashboard.',
+        'external_failed' => 'Login gagal. Akun belum terdaftar, belum disetujui, atau konfigurasi provider belum valid.',
+        'external_rate_limited' => 'Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.',
+        'external_provider_disabled' => 'Provider login tidak aktif.',
+        'external_provider_unknown' => 'Provider login tidak dikenal.',
+        'external_provider_unreachable' => 'Provider login tidak dapat dihubungi.',
+        'external_registration_disabled' => 'Akun belum terdaftar. Hubungi administrator.',
+        'external_provider_rejected' => 'Login dibatalkan atau ditolak provider.',
+        'external_invalid_state' => 'Sesi login tidak valid. Silakan coba lagi.',
+        'external_invalid_code' => 'Kode login tidak valid atau sudah kedaluwarsa.',
+        'external_invalid_token' => 'Provider tidak mengembalikan token akses yang valid.',
+        'external_profile_unreachable' => 'Profil login tidak dapat diambil dari provider.',
+        'external_invalid_profile' => 'Profil login tidak valid.',
+        'external_invalid_email_profile' => 'Provider tidak mengembalikan profil email yang valid.',
+        'external_email_unverified' => 'Email provider belum terverifikasi.',
+        'external_domain_denied' => 'Domain email belum diizinkan untuk login aplikasi.',
+        'external_not_approved' => 'Akun belum aktif atau belum disetujui admin.',
+        'external_login_divider' => 'atau masuk cepat dengan',
+        'external_register_divider' => 'atau daftar cepat dengan',
+        'external_login_google' => 'Masuk dengan Google',
+        'external_register_google' => 'Register dengan Google',
+        'external_login_sso' => 'Masuk dengan :provider',
+        'external_register_sso' => 'Register dengan :provider',
+        'sso_default_name' => 'SSO Perusahaan',
+        'external_security_badge' => 'Aman dengan verifikasi email dan domain perusahaan.',
+        'external_register_badge' => 'Akun baru masuk pending approval sampai admin menyetujui role akses.',
     ],
     'profile' => [
         'fallback_label' => 'Edit Profile',
@@ -377,6 +404,15 @@ return [
         'system' => 'Sistem',
         'completed' => 'Selesai',
         'edited_at' => 'Diedit',
+        'registration_status' => 'Status Registrasi',
+        'registration_approved' => 'Disetujui',
+        'registration_pending' => 'Pending Approval',
+        'registration_rejected' => 'Ditolak',
+        'approve' => 'Approve',
+        'reject' => 'Reject',
+        'approve_pending_user_desc' => 'Setujui user ini agar dapat login setelah role diisi.',
+        'reject_pending_user_desc' => 'Tolak pendaftaran user ini. User tetap tidak bisa masuk panel.',
+
     ],
     'pages' => [
         'ai_agent' => [
@@ -752,4 +788,9 @@ return [
         ],
     ],
 ];
+
+
+
+
+
 

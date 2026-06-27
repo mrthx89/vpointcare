@@ -324,6 +324,33 @@ return [
         'register_success_title' => 'Registration successful',
         'register_success_body' => 'Your account is waiting for admin approval before you can log in.',
         'inactive_account' => 'Your account is not active or has been disabled.',
+        'external_provider_unavailable' => 'The login provider is not available. Please contact an administrator.',
+        'external_pending' => 'Registration has been submitted. An administrator must approve your account before you can access the dashboard.',
+        'external_failed' => 'Login failed. The account is not registered, not approved, or the provider configuration is invalid.',
+        'external_rate_limited' => 'Too many login attempts. Please try again in a few minutes.',
+        'external_provider_disabled' => 'The login provider is disabled.',
+        'external_provider_unknown' => 'Unknown login provider.',
+        'external_provider_unreachable' => 'The login provider cannot be reached.',
+        'external_registration_disabled' => 'The account is not registered. Please contact an administrator.',
+        'external_provider_rejected' => 'Login was cancelled or rejected by the provider.',
+        'external_invalid_state' => 'The login session is invalid. Please try again.',
+        'external_invalid_code' => 'The login code is invalid or has expired.',
+        'external_invalid_token' => 'The provider did not return a valid access token.',
+        'external_profile_unreachable' => 'The login profile cannot be retrieved from the provider.',
+        'external_invalid_profile' => 'The login profile is invalid.',
+        'external_invalid_email_profile' => 'The provider did not return a valid email profile.',
+        'external_email_unverified' => 'The provider email is not verified.',
+        'external_domain_denied' => 'This email domain is not allowed to log in to the application.',
+        'external_not_approved' => 'The account is not active or has not been approved by an administrator.',
+        'external_login_divider' => 'or sign in quickly with',
+        'external_register_divider' => 'or register quickly with',
+        'external_login_google' => 'Sign in with Google',
+        'external_register_google' => 'Register with Google',
+        'external_login_sso' => 'Sign in with :provider',
+        'external_register_sso' => 'Register with :provider',
+        'sso_default_name' => 'Company SSO',
+        'external_security_badge' => 'Secured with verified email and company-domain validation.',
+        'external_register_badge' => 'New accounts stay pending until an administrator approves their access role.',
     ],
     'profile' => [
         'fallback_label' => 'Edit Profile',
@@ -377,6 +404,15 @@ return [
         'system' => 'System',
         'completed' => 'Completed',
         'edited_at' => 'Edited',
+        'registration_status' => 'Registration Status',
+        'registration_approved' => 'Approved',
+        'registration_pending' => 'Pending Approval',
+        'registration_rejected' => 'Rejected',
+        'approve' => 'Approve',
+        'reject' => 'Reject',
+        'approve_pending_user_desc' => 'Approve this user so they can log in after a role is assigned.',
+        'reject_pending_user_desc' => 'Reject this registration. The user will remain unable to access the panel.',
+
     ],
     'pages' => [
         'ai_agent' => [
@@ -752,4 +788,9 @@ return [
         ],
     ],
 ];
+
+
+
+
+
 

@@ -21,7 +21,7 @@ class ExternalAuthService
         $config = $this->providerConfig($provider);
 
         if (! $this->isEnabled($provider)) {
-            throw new RuntimeException('Provider login tidak aktif.');
+            throw new RuntimeException(__('ui.auth.external_provider_disabled'));
         }
 
         $state = Str::random(48);
@@ -51,7 +51,7 @@ class ExternalAuthService
         $config = $this->providerConfig($provider);
 
         if (! $this->isEnabled($provider)) {
-            throw new RuntimeException('Provider login tidak aktif.');
+            throw new RuntimeException(__('ui.auth.external_provider_disabled'));
         }
 
         $this->validateCallbackState($provider, $query);
@@ -92,7 +92,7 @@ class ExternalAuthService
 
             if (! (bool) config('external-auth.registration_enabled', true)) {
                 $this->audit('external_registration_disabled', $provider, $profile['email']);
-                throw new RuntimeException('Akun belum terdaftar. Hubungi administrator.');
+                throw new RuntimeException(__('ui.auth.external_registration_disabled'));
             }
 
             $user = $this->createPendingUser($provider, $profile);
@@ -124,7 +124,7 @@ class ExternalAuthService
     private function providerConfig(string $provider): array
     {
         if (! in_array($provider, ['google', 'sso'], true)) {
-            throw new RuntimeException('Provider login tidak dikenal.');
+            throw new RuntimeException(__('ui.auth.external_provider_unknown'));
         }
 
         return (array) config("external-auth.{$provider}", []);
@@ -148,7 +148,7 @@ class ExternalAuthService
     private function validateCallbackState(string $provider, array $query): void
     {
         if (isset($query['error'])) {
-            throw new RuntimeException('Login dibatalkan atau ditolak provider.');
+            throw new RuntimeException(__('ui.auth.external_provider_rejected'));
         }
 
         $state = session()->pull("external_auth.{$provider}.state");
@@ -156,7 +156,7 @@ class ExternalAuthService
 
         if (! filled($query['code'] ?? null) || ! filled($query['state'] ?? null) || ! is_string($state) || ! hash_equals($state, (string) $query['state'])) {
             $this->audit('external_login_invalid_state', $provider);
-            throw new RuntimeException('Sesi login tidak valid. Silakan coba lagi.');
+            throw new RuntimeException(__('ui.auth.external_invalid_state'));
         }
     }
 
@@ -175,29 +175,29 @@ class ExternalAuthService
                 'code' => $code,
             ]);
         } catch (ConnectionException $exception) {
-            throw new RuntimeException('Provider login tidak dapat dihubungi.');
+            throw new RuntimeException(__('ui.auth.external_provider_unreachable'));
         }
 
         if (! $tokenResponse->successful()) {
             $this->audit('external_token_failed', $provider);
-            throw new RuntimeException('Kode login tidak valid atau sudah kedaluwarsa.');
+            throw new RuntimeException(__('ui.auth.external_invalid_code'));
         }
 
         $accessToken = (string) Arr::get($tokenResponse->json(), 'access_token');
 
         if (! filled($accessToken)) {
-            throw new RuntimeException('Provider tidak mengembalikan token akses yang valid.');
+            throw new RuntimeException(__('ui.auth.external_invalid_token'));
         }
 
         try {
             $profileResponse = Http::withToken($accessToken)->timeout(10)->get($this->userinfoUrl($provider, $config));
         } catch (ConnectionException $exception) {
-            throw new RuntimeException('Profil login tidak dapat diambil dari provider.');
+            throw new RuntimeException(__('ui.auth.external_profile_unreachable'));
         }
 
         if (! $profileResponse->successful()) {
             $this->audit('external_userinfo_failed', $provider);
-            throw new RuntimeException('Profil login tidak valid.');
+            throw new RuntimeException(__('ui.auth.external_invalid_profile'));
         }
 
         $raw = (array) $profileResponse->json();
@@ -243,11 +243,11 @@ class ExternalAuthService
     private function validateProfile(string $provider, array $profile, array $config): void
     {
         if (! filled($profile['subject']) || ! filter_var($profile['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new RuntimeException('Provider tidak mengembalikan profil email yang valid.');
+            throw new RuntimeException(__('ui.auth.external_invalid_email_profile'));
         }
 
         if (! $profile['email_verified']) {
-            throw new RuntimeException('Email provider belum terverifikasi.');
+            throw new RuntimeException(__('ui.auth.external_email_unverified'));
         }
 
         $domains = array_map('strtolower', (array) ($config['allowed_domains'] ?? []));
@@ -255,7 +255,7 @@ class ExternalAuthService
 
         if ($domains !== [] && ! in_array($domain, $domains, true)) {
             $this->audit('external_domain_denied', $provider, $profile['email']);
-            throw new RuntimeException('Domain email belum diizinkan untuk login aplikasi.');
+            throw new RuntimeException(__('ui.auth.external_domain_denied'));
         }
     }
 
@@ -264,7 +264,8 @@ class ExternalAuthService
      */
     private function createPendingUser(string $provider, array $profile): Pengguna
     {
-        return Pengguna::query()->create([
+        return Pengguna::query()->forceCreate([
+            'Id' => (string) Str::uuid(),
             'NamaPengguna' => Str::limit($profile['name'], 150, ''),
             'Email' => $profile['email'],
             'Password' => Hash::make(Str::random(64)),
@@ -282,7 +283,8 @@ class ExternalAuthService
      */
     private function linkIdentity(Pengguna $user, string $provider, array $profile): PenggunaExternalIdentity
     {
-        return PenggunaExternalIdentity::query()->create([
+        return PenggunaExternalIdentity::query()->forceCreate([
+            'Id' => (string) Str::uuid(),
             'IdPengguna' => $user->getKey(),
             'Provider' => $provider,
             'ProviderUserId' => $profile['subject'],
@@ -315,7 +317,7 @@ class ExternalAuthService
     private function assertApprovedUser(Pengguna $user): void
     {
         if ((bool) $user->NonAktif || ! filled($user->IdPeran) || ! $user->roleCode() || (($user->StatusRegistrasi ?? 'approved') !== 'approved')) {
-            throw new RuntimeException('Akun belum aktif atau belum disetujui admin.');
+            throw new RuntimeException(__('ui.auth.external_not_approved'));
         }
     }
 
@@ -337,3 +339,6 @@ class ExternalAuthService
         ]);
     }
 }
+
+
+

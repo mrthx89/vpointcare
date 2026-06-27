@@ -22,7 +22,7 @@ class ExternalAuthController extends Controller
         } catch (Throwable $exception) {
             report($exception);
 
-            return redirect()->to(Filament::getLoginUrl())->with('external_auth_error', 'Login provider belum tersedia. Hubungi administrator.');
+            return redirect()->to(Filament::getLoginUrl())->with('external_auth_error', __('ui.auth.external_provider_unavailable'));
         }
     }
 
@@ -34,7 +34,7 @@ class ExternalAuthController extends Controller
             $result = $externalAuth->handleCallback($provider, $request->query());
 
             if ($result['status'] === 'pending') {
-                return redirect()->to(Filament::getLoginUrl())->with('external_auth_status', 'Pendaftaran berhasil dikirim. Admin perlu menyetujui akun Anda sebelum dapat mengakses dashboard.');
+                return redirect()->to(Filament::getLoginUrl())->with('external_auth_status', __('ui.auth.external_pending'));
             }
 
             return redirect()->intended(Filament::getUrl());
@@ -51,7 +51,7 @@ class ExternalAuthController extends Controller
         $limit = (int) config('external-auth.rate_limit', 10);
 
         if (RateLimiter::tooManyAttempts($key, $limit)) {
-            abort(429, 'Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.');
+            abort(429, __('ui.auth.external_rate_limited'));
         }
 
         RateLimiter::hit($key, 300);
@@ -65,6 +65,7 @@ class ExternalAuthController extends Controller
             return $message;
         }
 
-        return 'Login gagal. Akun belum terdaftar, belum disetujui, atau konfigurasi provider belum valid.';
+        return __('ui.auth.external_failed');
     }
 }
+
