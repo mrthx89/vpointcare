@@ -24,9 +24,9 @@
                 target.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }"
-        class="flex h-full min-h-0 flex-col"
+        class="relative flex h-[calc(100dvh-6rem)] min-h-0 flex-col overflow-hidden rounded-3xl bg-gray-50 dark:bg-gray-950"
     >
-        <section x-ref="chatArea" class="min-h-0 flex-1 overflow-y-auto bg-gray-50 px-4 py-6 dark:bg-gray-950 sm:px-6" x-on:paste.document="handlePaste($event)">
+        <main x-ref="chatArea" class="min-h-0 flex-1 overflow-y-auto px-4 pb-72 pt-6 sm:px-6" x-on:paste.document="handlePaste($event)">
             <div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
                 @if (empty($messages))
                     <div class="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center text-gray-500 dark:text-gray-400">
@@ -104,21 +104,24 @@
                     </div>
                 @endif
             </div>
-        </section>
+        </main>
 
-        <div class="shrink-0 border-t border-gray-200 bg-white px-4 pb-4 pt-3 dark:border-gray-800 dark:bg-gray-900 sm:px-6">
-            <div class="mx-auto w-full max-w-3xl">
-                <form wire:submit.prevent="sendMessage" class="flex flex-col gap-2">
+        <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-14 dark:from-gray-950 dark:via-gray-950/95 sm:px-6 sm:pb-5">
+            <div class="pointer-events-auto w-full max-w-3xl">
+                <div class="mx-auto flex flex-col gap-2 rounded-[1.65rem] border border-gray-200/80 bg-white/95 p-2 shadow-2xl shadow-gray-950/10 ring-1 ring-gray-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/95 dark:shadow-black/40 dark:ring-white/10">
                     @if (! empty($attachments))
-                        <div class="flex flex-wrap gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <div class="flex flex-wrap gap-1 px-2 pt-1 text-xs text-gray-500 dark:text-gray-400">
                             @foreach ($attachments as $attachment)
-                                <span class="rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">{{ $attachment->getClientOriginalName() }}</span>
+                                <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 dark:bg-gray-800">
+                                    <x-heroicon-o-paper-clip class="h-3 w-3" />
+                                    {{ $attachment->getClientOriginalName() }}
+                                </span>
                             @endforeach
                         </div>
                     @endif
 
-                    <div class="flex items-end gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-sm focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/30 dark:border-gray-700 dark:bg-gray-900">
-                        <label class="inline-flex cursor-pointer items-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800" title="{{ __('ui.chatbot.attach_file') }}">
+                    <form wire:submit.prevent="sendMessage" class="flex w-full items-end gap-2">
+                        <label class="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100" title="{{ __('ui.chatbot.attach_file') }}">
                             <x-heroicon-o-paper-clip class="h-5 w-5" />
                             <input x-ref="fileInput" type="file" wire:model="attachments" multiple class="sr-only">
                         </label>
@@ -128,31 +131,52 @@
                             placeholder="{{ __('ui.chatbot.placeholder') }}"
                             maxlength="4000"
                             rows="1"
-                            x-on:keydown.enter.prevent="$event.shiftKey ? $event.target.value += '\n' : $wire.sendMessage()"
+                            x-on:keydown.enter.prevent="$event.shiftKey ? ($event.target.value += '\n') : $wire.sendMessage()"
                             x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
                             x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
-                            class="block max-h-[180px] min-h-10 flex-1 resize-none border-none bg-transparent px-1 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 disabled:text-gray-500 dark:text-white dark:placeholder:text-gray-500"
+                            class="block max-h-[180px] min-h-10 flex-1 resize-none border-none bg-transparent px-1 py-2.5 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 disabled:text-gray-500 dark:text-white dark:placeholder:text-gray-500"
                         ></textarea>
 
-                        <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments" class="inline-flex items-center justify-center rounded-xl bg-primary-600 p-2 text-white shadow-sm transition hover:bg-primary-500 disabled:opacity-50">
+                        <div x-data="{ open: false }" class="relative shrink-0">
+                            <button type="button" x-on:click="open = ! open" x-on:click.outside="open = false" class="inline-flex h-10 items-center gap-1 rounded-full px-3 text-xs font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
+                                <span>{{ __('ui.chatbot.mode_'.$responseMode) }}</span>
+                                <span class="hidden sm:inline">· {{ __('ui.chatbot.knowledge_'.$knowledgeMode) }}</span>
+                                <x-heroicon-m-chevron-down class="h-4 w-4" />
+                            </button>
+
+                            <div x-cloak x-show="open" x-transition.origin.bottom.right class="absolute bottom-12 right-0 w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-2xl ring-1 ring-gray-950/5 dark:border-gray-700 dark:bg-gray-900 dark:ring-white/10">
+                                <div class="px-2 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ __('ui.chatbot.response_mode') }}</div>
+                                <button type="button" wire:click="$set('responseMode', 'light')" x-on:click="open = false" class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <span><span class="font-medium">{{ __('ui.chatbot.mode_light') }}</span><span class="block text-xs text-gray-500">{{ __('ui.chatbot.mode_light_desc') }}</span></span>
+                                    @if ($responseMode === 'light') <x-heroicon-m-check class="h-5 w-5 text-success-500" /> @endif
+                                </button>
+                                <button type="button" wire:click="$set('responseMode', 'fast')" x-on:click="open = false" class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <span><span class="font-medium">{{ __('ui.chatbot.mode_fast') }}</span><span class="block text-xs text-gray-500">{{ __('ui.chatbot.mode_fast_desc') }}</span></span>
+                                    @if ($responseMode === 'fast') <x-heroicon-m-check class="h-5 w-5 text-success-500" /> @endif
+                                </button>
+
+                                <div class="my-2 border-t border-gray-100 dark:border-gray-800"></div>
+                                <div class="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ __('ui.chatbot.knowledge_mode') }}</div>
+                                <button type="button" wire:click="$set('knowledgeMode', 'all')" x-on:click="open = false" class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <span><span class="font-medium">{{ __('ui.chatbot.knowledge_all') }}</span><span class="block text-xs text-gray-500">{{ __('ui.chatbot.knowledge_all_desc') }}</span></span>
+                                    @if ($knowledgeMode === 'all') <x-heroicon-m-check class="h-5 w-5 text-success-500" /> @endif
+                                </button>
+                                <button type="button" wire:click="$set('knowledgeMode', 'none')" x-on:click="open = false" class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800">
+                                    <span><span class="font-medium">{{ __('ui.chatbot.knowledge_none') }}</span><span class="block text-xs text-gray-500">{{ __('ui.chatbot.knowledge_none_desc') }}</span></span>
+                                    @if ($knowledgeMode === 'none') <x-heroicon-m-check class="h-5 w-5 text-success-500" /> @endif
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm transition hover:bg-primary-500 disabled:opacity-50">
                             <x-heroicon-m-paper-airplane class="h-5 w-5" />
                         </button>
-                    </div>
+                    </form>
 
-                    <div class="flex flex-wrap items-center gap-2 text-xs">
-                        <label class="font-medium text-gray-700 dark:text-gray-200">{{ __('ui.chatbot.response_mode') }}</label>
-                        <select wire:model="responseMode" class="rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
-                            <option value="light">{{ __('ui.chatbot.mode_light') }}</option>
-                            <option value="fast">{{ __('ui.chatbot.mode_fast') }}</option>
-                        </select>
-                        <label class="ml-2 font-medium text-gray-700 dark:text-gray-200">{{ __('ui.chatbot.knowledge_mode') }}</label>
-                        <select wire:model="knowledgeMode" class="rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
-                            <option value="all">{{ __('ui.chatbot.knowledge_all') }}</option>
-                            <option value="none">{{ __('ui.chatbot.knowledge_none') }}</option>
-                        </select>
-                        <span class="ml-auto text-[11px] text-gray-400 dark:text-gray-500">{{ __('ui.chatbot.paste_hint') }}</span>
+                    <div class="px-3 pb-0.5 text-center text-[11px] text-gray-400 dark:text-gray-500">
+                        {{ __('ui.chatbot.paste_hint') }}
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>

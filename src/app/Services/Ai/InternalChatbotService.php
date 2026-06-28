@@ -143,7 +143,7 @@ class InternalChatbotService
     }
 
     /** @return array<int, object> */
-    private function searchKnowledge(string $query): array
+    private function searchKnowledge(string $query, int $limit = self::KNOWLEDGE_SEARCH_LIMIT): array
     {
         $keywords = collect(preg_split('/\s+/u', Str::lower($query)) ?: [])
             ->map(fn (string $word): string => trim($word, " \t\n\r\0\x0B.,;:!?()[]{}\"'"))
