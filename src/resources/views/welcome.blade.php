@@ -39,7 +39,8 @@
             --accent: #c2410c;
             --blue: #2563eb;
             --violet: #6d28d9;
-            --shadow: 0 22px 60px rgba(15, 33, 42, .12);
+            --shadow: none;
+            --card-radius: 1rem;
             --hero-overlay: linear-gradient(90deg, rgba(246, 250, 249, .98) 0%, rgba(246, 250, 249, .9) 39%, rgba(246, 250, 249, .28) 74%);
         }
 
@@ -56,7 +57,7 @@
             --accent: #fb923c;
             --blue: #60a5fa;
             --violet: #a78bfa;
-            --shadow: 0 22px 60px rgba(0, 0, 0, .36);
+            --shadow: none;
             --hero-overlay: linear-gradient(90deg, rgba(8, 15, 20, .98) 0%, rgba(8, 15, 20, .9) 42%, rgba(8, 15, 20, .34) 78%);
         }
 
@@ -105,7 +106,7 @@
             margin: 0 auto;
             padding: 10px 12px;
             border: 1px solid color-mix(in srgb, var(--line), transparent 18%);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: color-mix(in srgb, var(--surface), transparent 8%);
             box-shadow: var(--shadow);
             backdrop-filter: blur(18px);
@@ -116,16 +117,20 @@
             align-items: center;
             gap: 10px;
             min-width: 0;
+            font-size: 24px;
+            line-height: 1;
             font-weight: 700;
         }
 
         .brand img {
-            width: 34px;
-            height: 34px;
+            width: 1em;
+            height: 1em;
+            display: block;
         }
 
         .brand span {
             white-space: nowrap;
+            line-height: 1;
         }
 
         .nav-links,
@@ -159,7 +164,7 @@
             gap: 3px;
             padding: 3px;
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: color-mix(in srgb, var(--surface-soft), var(--surface) 35%);
         }
 
@@ -168,7 +173,7 @@
             min-width: 36px;
             min-height: 32px;
             border: 0;
-            border-radius: 6px;
+            border-radius: 0.75rem;
             color: var(--muted);
             background: transparent;
             cursor: pointer;
@@ -212,7 +217,7 @@
             width: 40px;
             height: 40px;
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             color: var(--ink);
             background: color-mix(in srgb, var(--surface), transparent 8%);
             cursor: pointer;
@@ -225,7 +230,7 @@
             width: min(320px, calc(100vw - 32px));
             padding: 12px;
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: color-mix(in srgb, var(--surface), transparent 2%);
             box-shadow: var(--shadow);
             backdrop-filter: blur(18px);
@@ -259,7 +264,7 @@
 
         .mobile-menu-links a {
             padding: 10px 12px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             color: var(--ink);
             background: var(--surface-soft);
             font-size: 14px;
@@ -278,10 +283,10 @@
             justify-content: center;
             min-height: 40px;
             padding: 10px 16px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             font-size: 14px;
             font-weight: 800;
-            transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+            transition: transform .16s ease, background .16s ease;
         }
 
         .button:hover {
@@ -291,7 +296,7 @@
         .button-primary {
             color: #fff;
             background: #0f766e;
-            box-shadow: 0 12px 28px rgba(15, 118, 110, .24);
+            box-shadow: none;
         }
 
         :root[data-theme="dark"] .button-primary {
@@ -344,7 +349,7 @@
             margin: 0 0 18px;
             padding: 7px 10px;
             border: 1px solid color-mix(in srgb, var(--brand), transparent 68%);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             color: var(--brand-strong);
             background: color-mix(in srgb, var(--surface), transparent 16%);
             font-size: 13px;
@@ -384,7 +389,7 @@
 
         .ops-panel {
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: color-mix(in srgb, var(--surface), transparent 4%);
             box-shadow: var(--shadow);
         }
@@ -434,7 +439,7 @@
             min-height: 68px;
             padding: 12px;
             border: 1px solid color-mix(in srgb, var(--line), transparent 26%);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: color-mix(in srgb, var(--surface-soft), var(--surface) 45%);
         }
 
@@ -443,7 +448,7 @@
             place-items: center;
             width: 42px;
             height: 42px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             color: #fff;
             background: var(--brand-strong);
             font-size: 12px;
@@ -489,9 +494,9 @@
             min-height: 112px;
             padding: 18px;
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: var(--surface);
-            box-shadow: 0 16px 40px rgba(15, 33, 42, .06);
+            box-shadow: none;
         }
 
         .metric strong {
@@ -549,7 +554,7 @@
             min-height: 220px;
             padding: 22px;
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: var(--surface);
         }
 
@@ -559,7 +564,7 @@
             width: 40px;
             height: 40px;
             margin-bottom: 20px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             color: #fff;
             background: var(--brand-strong);
             font-size: 12px;
@@ -601,7 +606,7 @@
         .workflow-main,
         .admin-panel {
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             background: var(--surface);
         }
 
@@ -626,7 +631,7 @@
             place-items: center;
             width: 36px;
             height: 36px;
-            border-radius: 8px;
+            border-radius: var(--card-radius);
             color: var(--brand-strong);
             background: var(--surface-strong);
             font-weight: 900;
@@ -767,7 +772,7 @@
     <div class="page">
         <header class="nav">
             <a class="brand" href="{{ url('/') }}" aria-label="{{ config('app.name', 'VPoint Care') }}">
-                <img src="{{ asset('images/logo_primary.svg') }}" alt="">
+                <img src="{{ asset('images/logo_primary.svg') }}" alt="{{ config('app.name', 'VPoint Care') }}">
                 <span>{{ config('app.name', 'VPoint Care') }}</span>
             </a>
 

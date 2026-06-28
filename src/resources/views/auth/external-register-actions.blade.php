@@ -19,14 +19,14 @@
         <div class="wacs-auth-buttons">
             @if ($googleEnabled)
                 <a class="wacs-auth-button wacs-auth-button-google" href="{{ route('external-auth.redirect', ['provider' => 'google']) }}">
-                    <span class="wacs-auth-icon">G</span>
+                    <span class="wacs-auth-icon"><img src="{{ asset('images/ic_google.svg') }}" alt="" aria-hidden="true"></span>
                     <span>{{ __('ui.auth.external_register_google') }}</span>
                 </a>
             @endif
 
             @if ($ssoEnabled)
                 <a class="wacs-auth-button wacs-auth-button-sso" href="{{ route('external-auth.redirect', ['provider' => 'sso']) }}">
-                    <span class="wacs-auth-icon">SSO</span>
+                    <span class="wacs-auth-icon"><img src="{{ asset('images/ic_sso.svg') }}" alt="" aria-hidden="true"></span>
                     <span>{{ __('ui.auth.external_register_sso', ['provider' => config('external-auth.sso.name', __('ui.auth.sso_default_name'))]) }}</span>
                 </a>
             @endif

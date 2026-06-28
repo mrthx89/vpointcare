@@ -321,6 +321,7 @@ return [
         'register_title' => 'Register Account',
         'register_heading' => 'Register VPoint Care Account',
         'register_action' => 'Register',
+        'back_to_landing' => 'Back to Landing Page',
         'register_success_title' => 'Registration successful',
         'register_success_body' => 'Your account is waiting for admin approval before you can log in.',
         'inactive_account' => 'Your account is not active or has been disabled.',

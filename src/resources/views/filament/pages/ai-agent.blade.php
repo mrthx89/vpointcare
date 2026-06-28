@@ -1,9 +1,9 @@
 <x-filament-panels::page>
     <form wire:submit.prevent="simpanPengaturan" class="wacs-ai-agent space-y-6">
-        <div class="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-5 shadow-sm dark:border-blue-900 dark:from-blue-950/40 dark:via-gray-900 dark:to-indigo-950/40">
+        <div class="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-5 dark:border-blue-900 dark:from-blue-950/40 dark:via-gray-900 dark:to-indigo-950/40">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-blue-600/20">
                         <x-filament::icon icon="heroicon-o-sparkles" class="h-9 w-9" />
                     </div>
                     <div>
@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_auto_reply') }}
                 </div>
                 <div
@@ -27,15 +27,15 @@
                     {{ $pengaturan['AutoReplyAktif'] ? __('ui.common.active') : __('ui.common.inactive') }}
                 </div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_sessions') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-blue-600">{{ $stats['chat_auto'] ?? 0 }}</div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_replies') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-amber-600">{{ $stats['balasan_ai'] ?? 0 }}</div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.stats_recipients') }}
                 </div>
                 <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $stats['penerima_notifikasi'] ?? 0 }}</div>
@@ -44,7 +44,7 @@
 
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <section class="space-y-4">
-                <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                     <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">
                             {{ __('ui.pages.ai_agent.auto_reply_mode') }}</div>
@@ -52,7 +52,7 @@
                             {{ __('ui.pages.ai_agent.auto_reply_desc') }}</div>
                     </div>
                     <div class="grid gap-4 p-4 md:grid-cols-2">
-                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <label class="flex gap-3 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
                             <x-filament::input.checkbox wire:model="pengaturan.AutoReplyAktif" class="mt-1" />
                             <span>
                                 <span
@@ -61,7 +61,7 @@
                                     class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.enable_ai_desc') }}</span>
                             </span>
                         </label>
-                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <label class="flex gap-3 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
                             <x-filament::input.checkbox wire:model="pengaturan.AutoReplyDiluarJamKerja" class="mt-1" />
                             <span>
                                 <span
@@ -70,7 +70,7 @@
                                     class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.reply_after_hours_desc') }}</span>
                             </span>
                         </label>
-                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <label class="flex gap-3 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
                             <x-filament::input.checkbox wire:model="pengaturan.AutoReplyHariLibur" class="mt-1" />
                             <span>
                                 <span
@@ -79,7 +79,7 @@
                                     class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.reply_holiday_desc') }}</span>
                             </span>
                         </label>
-                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <label class="flex gap-3 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
                             <x-filament::input.checkbox wire:model="pengaturan.AutoReplyJamKerjaSapaan" class="mt-1" />
                             <span>
                                 <span
@@ -88,7 +88,7 @@
                                     class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.working_hours_greeting_desc') }}</span>
                             </span>
                         </label>
-                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <label class="flex gap-3 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
                             <x-filament::input.checkbox wire:model="pengaturan.AutoReplyJamKerjaBerlanjut" class="mt-1" />
                             <span>
                                 <span
@@ -100,7 +100,7 @@
                     </div>
                 </div>
 
-                <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                     <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">
                             {{ __('ui.pages.ai_agent.working_hours') }}</div>
@@ -146,7 +146,7 @@
                             @foreach ([1, 2, 3, 4, 5, 6, 7] as $value)
                                 @php($label = __('ui.pages.ai_agent.days.' . ($value - 1)))
                                 <label
-                                    class="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm dark:border-gray-800">
+                                    class="flex items-center gap-2 rounded-2xl border border-gray-200 px-3 py-2 text-sm dark:border-gray-800">
                                     <x-filament::input.checkbox wire:model="pengaturan.HariKerja"
                                         value="{{ $value }}" />
                                     <span>{{ $label }}</span>
@@ -159,7 +159,7 @@
                     </div>
                 </div>
 
-                <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                     <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">
                             {{ __('ui.pages.ai_agent.phrases_prompts') }}</div>
@@ -218,17 +218,17 @@
 
             <aside class="space-y-4">
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.ai_agent.provider_ai') }}</div>
                     <div class="mt-4 space-y-4">
                         <div class="grid gap-2">
                             @foreach ($providerPresets as $provider => $preset)
                                 <button type="button" wire:click="applyProviderPreset('{{ $provider }}')"
-                                    class="rounded-md border px-3 py-2 text-left text-sm transition {{ ($pengaturan['ProviderAi'] ?? 'OpenAI') === $provider ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-500/10 dark:text-blue-200' : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800' }}">
+                                    class="rounded-2xl border px-3 py-2 text-left text-sm transition {{ ($pengaturan['ProviderAi'] ?? 'OpenAI') === $provider ? 'border-blue-500 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-500/10 dark:text-blue-200' : 'border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800' }}">
                                     <span class="flex items-center justify-between gap-3">
                                         <span class="flex min-w-0 items-center gap-3">
-                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg {{ $preset['icon_class'] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }}">
+                                            <span class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-2xl {{ $preset['icon_class'] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' }}">
                                                 @if (! empty($preset['icon_path']))
                                                     <img src="{{ asset($preset['icon_path']) }}" alt="{{ $preset['label'] }}" class="h-7 w-7 object-contain" loading="lazy" />
                                                 @else
@@ -275,10 +275,10 @@
                             </div>
                             @if ($apiKeyTerisi)
                                 <button type="button" wire:click="hapusApiKey"
-                                    class="mt-3 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('ui.pages.ai_agent.delete_api_key') }}</button>
+                                    class="mt-3 rounded-2xl border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('ui.pages.ai_agent.delete_api_key') }}</button>
                             @endif
                         </div>
-                        <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                        <div class="rounded-2xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
                             <div class="text-sm font-semibold text-blue-900 dark:text-blue-100">{{ __('ui.pages.ai_agent.test_connection') }}</div>
                             <div class="mt-2">
                                 <label class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ __('ui.pages.ai_agent.test_prompt') }}</label>
@@ -289,11 +289,11 @@
                                     <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <button type="button" wire:click="testKoneksiAi" wire:loading.attr="disabled" wire:target="testKoneksiAi" class="mt-3 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70">
+                            <button type="button" wire:click="testKoneksiAi" wire:loading.attr="disabled" wire:target="testKoneksiAi" class="mt-3 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70">
                                 <span wire:loading.remove wire:target="testKoneksiAi">{{ __('ui.pages.ai_agent.test_connection') }}</span>
                                 <span wire:loading wire:target="testKoneksiAi">{{ __('ui.pages.ai_agent.testing_connection') }}</span>
                             </button>
-                            <div class="mt-3 rounded-md border border-gray-200 bg-white p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                            <div class="mt-3 rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
                                 <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('ui.pages.ai_agent.test_result') }}</div>
                                 <div class="whitespace-pre-wrap">{{ $testResult !== '' ? $testResult : __('ui.pages.ai_agent.test_result_empty') }}</div>
                             </div>
@@ -302,12 +302,12 @@
                 </div>
 
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.ai_agent.delivery') }}</div>
                     <div class="mt-4 space-y-4">
                         <label
-                            class="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+                            class="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
                             <x-filament::input.checkbox wire:model="pengaturan.KirimKeWaha" class="mt-1" />
                             <span>
                                 <span
@@ -338,13 +338,13 @@
                 </div>
 
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.ai_agent.cs_notification') }}</div>
                     <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {{ __('ui.pages.ai_agent.cs_notification_desc') }}</div>
                     <div class="mt-4 space-y-4">
-                        <label class="flex gap-3 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                        <label class="flex gap-3 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
                             <x-filament::input.checkbox wire:model="pengaturan.NotifikasiChatBelumTerbalasAktif" class="mt-1" />
                             <span>
                                 <span
@@ -410,7 +410,7 @@
 
                 <div class="flex justify-end">
                     <button type="submit"
-                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">{{ __('ui.pages.ai_agent.save_settings') }}</button>
+                        class="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">{{ __('ui.pages.ai_agent.save_settings') }}</button>
                 </div>
             </aside>
         </div>

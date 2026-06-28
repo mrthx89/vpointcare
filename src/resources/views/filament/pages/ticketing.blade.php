@@ -3,7 +3,7 @@
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             @foreach ([[__('ui.pages.ticketing.new'), '12', 'text-blue-600'], [__('ui.pages.ticketing.forwarded_dev'), '8', 'text-amber-600'], [__('ui.pages.ticketing.in_progress'), '15', 'text-indigo-600'], [__('ui.pages.ticketing.overdue_sla'), '3', 'text-red-600']] as $stat)
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ $stat[0] }}</div>
                     <div class="mt-2 text-2xl font-semibold {{ $stat[2] }}">{{ $stat[1] }}</div>
                 </div>
@@ -12,7 +12,7 @@
 
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <section
-                class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div
                     class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                     <div>
@@ -58,7 +58,7 @@
             </section>
 
             <aside
-                class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-base font-semibold text-gray-950 dark:text-white">
                     {{ __('ui.pages.ticketing.timeline') }}</div>
                 <div class="mt-4 space-y-4">

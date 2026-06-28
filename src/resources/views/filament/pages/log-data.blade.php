@@ -49,7 +49,7 @@
                 }).format(new Date(value));
             },
         }" @wacs-reverb-status-changed.window="applyStatus($event)"
-            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -99,7 +99,7 @@
                         </div>
                     </dl>
                 </div>
-                <div class="rounded-md border border-gray-200 dark:border-gray-800">
+                <div class="rounded-2xl border border-gray-200 dark:border-gray-800">
                     <div
                         class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
                         {{ __('ui.pages.log_data.client_history') }}
@@ -172,7 +172,7 @@
         @endphp
 
         <section
-            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -190,7 +190,7 @@
             </div>
 
             <div class="space-y-4 p-4">
-                <div class="rounded-md border p-4 {{ $jobTone['panel'] }}">
+                <div class="rounded-2xl border p-4 {{ $jobTone['panel'] }}">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <div class="text-sm font-semibold text-gray-950 dark:text-white">
@@ -214,7 +214,7 @@
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
+                    <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.total_jobs') }}</div>
                         <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">
@@ -224,7 +224,7 @@
                             {{ __('ui.pages.log_data.delayed') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['delayed'] ?? 0) }}</div>
                     </div>
-                    <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
+                    <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.processing') }}</div>
                         <div class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-300">
@@ -232,7 +232,7 @@
                         <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.stale_reserved') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['staleReserved'] ?? 0) }}</div>
                     </div>
-                    <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
+                    <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.failed_jobs') }}</div>
                         <div
@@ -241,7 +241,7 @@
                         <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.failed_batch_jobs') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['failedBatchJobs'] ?? 0) }}</div>
                     </div>
-                    <div class="rounded-md border border-gray-200 p-3 dark:border-gray-800">
+                    <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.active_batches') }}</div>
                         <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">
@@ -252,7 +252,7 @@
                 </div>
 
                 <div class="grid gap-4 xl:grid-cols-2">
-                    <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
+                    <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
                         <div
                             class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
                             {{ __('ui.pages.log_data.queue_breakdown') }}
@@ -294,7 +294,7 @@
                         </div>
                     </div>
 
-                    <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
+                    <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
                         <div
                             class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
                             {{ __('ui.pages.log_data.upcoming_jobs') }}
@@ -325,7 +325,7 @@
 
                 @if (!empty($failedJobs) || !empty($jobBatches))
                     <div class="grid gap-4 xl:grid-cols-2">
-                        <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
+                        <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
                             <div
                                 class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                 {{ __('ui.pages.log_data.last_failed_jobs') }}
@@ -352,7 +352,7 @@
                             </div>
                         </div>
 
-                        <div class="overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
+                        <div class="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
                             <div
                                 class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                 {{ __('ui.pages.log_data.last_batch_jobs') }}
@@ -385,7 +385,7 @@
         </section>
 
         <section
-            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                 <div class="text-base font-semibold text-gray-950 dark:text-white">
                     {{ __('ui.pages.log_data.integration_title') }}</div>
@@ -447,7 +447,7 @@
         </section>
 
         <section
-            class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 p-4 dark:border-gray-800">
                 <div class="text-base font-semibold text-gray-950 dark:text-white">
                     {{ __('ui.pages.log_data.webhook_title') }}</div>

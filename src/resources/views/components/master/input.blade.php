@@ -5,7 +5,7 @@
     <input
         wire:model="{{ $model }}"
         placeholder="{{ $placeholder }}"
-        class="mt-1 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
+        class="mt-1 w-full rounded-2xl border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-950"
     >
     @error($model)
         <span class="mt-1 block text-xs text-red-600">{{ $message }}</span>

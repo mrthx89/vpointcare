@@ -321,6 +321,7 @@ return [
         'register_title' => 'Daftar Akun',
         'register_heading' => 'Daftar Akun VPoint Care',
         'register_action' => 'Daftar',
+        'back_to_landing' => 'Kembali ke Landing Page',
         'register_success_title' => 'Registrasi berhasil',
         'register_success_body' => 'Akun Anda menunggu approval admin sebelum bisa login.',
         'inactive_account' => 'Akun Anda belum aktif atau sedang dinonaktifkan.',

@@ -18,7 +18,7 @@
         @endif
         {{-- Header Info Sesi --}}
         <div
-            class="rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-md dark:border-gray-700 dark:bg-gray-900">
+            class="rounded-2xl border border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-900">
             <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 
                 {{-- Nama kontak & status --}}
@@ -62,7 +62,7 @@
                         &#x1F552; {{ $session['TglTerakhir'] }}
                     </span>
                     <span
-                        class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                        class="rounded-2xl border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                         {{ __('ui.pages.view_chat.read_only') }}
                     </span>
                 </div>
@@ -76,7 +76,7 @@
 
             {{-- Kolom Kiri: Percakapan (2/3) --}}
             <div
-                class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900">
+                class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
 
                 {{-- Header --}}
                 <div
@@ -114,7 +114,7 @@
                         @endphp
 
                         <div
-                            class="{{ $isOut ? 'ml-auto bg-indigo-600 text-white shadow-lg' : 'bg-white text-gray-800 border border-gray-200 shadow-md dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700' }} max-w-[88%] rounded-2xl p-4">
+                            class="{{ $isOut ? 'ml-auto bg-indigo-600 text-white' : 'bg-white text-gray-800 border border-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700' }} max-w-[88%] rounded-2xl p-4">
 
                             {{-- Label pengirim & waktu --}}
                             <div class="{{ $isOut ? 'text-indigo-100' : 'text-gray-500' }} text-xs font-semibold">
@@ -129,7 +129,7 @@
                             {{-- Media --}}
                             @if ($hasMedia)
                                 <div
-                                    class="mt-3 overflow-hidden rounded-xl {{ $isOut ? 'bg-indigo-700/50' : 'bg-gray-100 dark:bg-gray-950' }}">
+                                    class="mt-3 overflow-hidden rounded-2xl {{ $isOut ? 'bg-indigo-700/50' : 'bg-gray-100 dark:bg-gray-950' }}">
                                     @if ($mediaUrl && $isImage)
                                         <a href="{{ $mediaUrl }}" target="_blank" rel="noopener" class="block">
                                             <img src="{{ $mediaUrl }}" alt="{{ $mediaLabel }}"
@@ -175,7 +175,7 @@
             </div>
 
             {{-- Kolom Kanan: Catatan Internal --}}
-            <div class="flex w-80 shrink-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
+            <div class="flex w-80 shrink-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
                 style="max-width: 340px;">
 
                 {{-- Header --}}
@@ -184,7 +184,7 @@
                     <span class="text-base font-extrabold text-gray-800 dark:text-gray-100">&#9998;
                         {{ __('ui.pages.view_chat.internal_notes') }}</span>
                     @if (count($internalNotes) > 0)
-                        <span class="ml-auto rounded-full bg-indigo-600 px-3 py-1 text-xs font-extrabold text-white shadow-md">
+                        <span class="ml-auto rounded-full bg-indigo-600 px-3 py-1 text-xs font-extrabold text-white">
                             {{ \App\Support\LocaleFormatter::number(count($internalNotes)) }}
                         </span>
                     @endif
@@ -193,7 +193,7 @@
                 <div class="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
                     @forelse ($internalNotes as $note)
                         <div
-                            class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 shadow-sm">
+                            class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
                             <p class="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
                                 {{ $note['IsiCatatan'] }}</p>
                             <div class="mt-3 flex items-center justify-between text-xs">

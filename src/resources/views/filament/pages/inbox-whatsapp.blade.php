@@ -83,18 +83,18 @@
                 this.shown = false;
             }
         }" x-show="shown" x-cloak
-            class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-lg border border-gray-300 bg-gray-100 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
+            class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                 <span>🔔</span>
                 <span>{{ __('ui.pages.inbox.sound_permission') }}</span>
             </div>
             <button type="button" x-on:click="allowAudio()"
-                class="rounded-md border border-gray-400 bg-white px-4 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 transition dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                class="rounded-2xl border border-gray-400 bg-white px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                 {{ __('ui.pages.inbox.allow_sound') }}
             </button>
         </div>
         <div x-show="reverbStatus.state !== 'connected'" x-cloak
-            class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-lg border px-4 py-3 text-sm"
+            class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border px-4 py-3 text-sm"
             :class="reverbBadgeClass()">
             <div class="min-w-0">
                 <div class="flex items-center gap-2 font-semibold">
@@ -109,28 +109,28 @@
                 </div>
             </div>
             <a href="{{ route('filament.admin.pages.log-data') }}"
-                class="rounded-md border border-current px-3 py-1.5 text-xs font-semibold hover:bg-white/40 dark:hover:bg-white/10">
+                class="rounded-2xl border border-current px-3 py-1.5 text-xs font-semibold hover:bg-white/40 dark:hover:bg-white/10">
                 {{ __('ui.pages.inbox.open_log_data') }}
             </a>
         </div>
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.active_team') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $activeAgents }}</div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.total_chat') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unread') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-amber-600">{{ $stats['belum_dibaca'] ?? 0 }}</div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.group_chat') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-blue-600">{{ $stats['grup'] ?? 0 }}</div>
             </div>
-            <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unmapped') }}</div>
                 <div class="mt-2 text-2xl font-semibold text-red-600">{{ $stats['unknown'] ?? 0 }}</div>
             </div>
@@ -140,7 +140,7 @@
         <div class="wacs-inbox-layout flex-1 min-h-0">
             {{-- KOLOM KIRI: Daftar Chat --}}
             <section
-                class="wacs-inbox-chat-list relative flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                class="wacs-inbox-chat-list relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 {{-- Header Daftar Chat --}}
                 <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                     <div class="flex items-center justify-between gap-2">
@@ -264,7 +264,7 @@
                     <button type="button" wire:click="openStartChatDialog"
                         title="{{ __('ui.pages.inbox.create_chat') }}"
                         aria-label="{{ __('ui.pages.inbox.create_chat') }}"
-                        class="absolute bottom-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg ring-1 ring-primary-500/40 transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:ring-primary-400/30">
+                        class="absolute bottom-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white ring-1 ring-primary-500/40 transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:ring-primary-400/30">
                         <x-heroicon-o-plus class="h-6 w-6" />
                     </button>
                 @endif
@@ -272,7 +272,7 @@
 
             {{-- KOLOM TENGAH: Ruang Percakapan --}}
             <section
-                class="wacs-inbox-conversation flex min-h-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                class="wacs-inbox-conversation flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 @if ($selectedChat)
                     {{-- Header Chat: Tidak Ikut Scroll --}}
                     <div
@@ -361,7 +361,7 @@
                                     </div>
                                 @endif
                                 <div
-                                    class="{{ $isOut ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm shadow-sm">
+                                    class="{{ $isOut ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm">
                                     <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
                                         {{ $message['SenderName'] }}
                                         &middot;
@@ -486,7 +486,7 @@
                             </div>
                             @if ($attachment)
                                 <div
-                                    class="mt-2 flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
+                                    class="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
                                     <div class="min-w-0 truncate">
                                         {{ __('ui.pages.inbox.attachment') }}:
                                         {{ $attachment->getClientOriginalName() }}
@@ -520,7 +520,7 @@
 
             <aside class="wacs-inbox-aside min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between gap-3">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">
                             {{ __('ui.pages.inbox.profile_mapping') }}</div>
@@ -603,7 +603,7 @@
                     @endif
                 </div>
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.inbox.ai_control') }}</div>
                     @if ($selectedChat)
@@ -662,7 +662,7 @@
                     @endif
                 </div>
                 <div
-                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.inbox.waha_webhook') }}</div>
                     <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
@@ -819,7 +819,7 @@
                             </div>
                             <a href="{{ route('filament.admin.pages.view-chat-session') . '?id=' . $history['Id'] }}"
                                 target="_blank"
-                                class="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition">
+                                class="inline-flex items-center gap-1 rounded-2xl border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition">
                                 <x-heroicon-s-arrow-top-right-on-square class="w-3.5 h-3.5" />
                                 {{ __('ui.pages.inbox.open_session') }}
                             </a>
