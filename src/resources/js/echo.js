@@ -251,22 +251,29 @@ const syncCurrentReverbState = () => {
 /**
  * Subscribe ke channel 'waha-inbox'.
  * Ketika event diterima:
- * 1. Trigger Livewire dispatch → loadInbox() di PHP
- * 2. Dispatch custom DOM event → sound notification di Alpine.js
+ * 1. Trigger Livewire dispatch â†’ loadInbox() di PHP
+ * 2. Dispatch custom DOM event â†’ sound notification di Alpine.js
  */
+let wahaInboxUpdateTimer = null;
+let wahaInboxLatestChatId = null;
+
 window.Echo.channel("waha-inbox").listen(".inbox.updated", (event) => {
     console.info("[Reverb] Event inbox.updated diterima.", event);
+    wahaInboxLatestChatId = event.chat_id;
 
-    // 1. Refresh data via Livewire
-    if (window.Livewire) {
-        window.Livewire.dispatch("waha-inbox-updated", {
-            chatId: event.chat_id,
-        });
-    } else {
-        console.warn("[Reverb] Livewire belum tersedia saat event inbox.updated diterima.");
-    }
+    // 1. Refresh data via Livewire dengan debounce agar burst pesan tidak memicu loadInbox berulang.
+    clearTimeout(wahaInboxUpdateTimer);
+    wahaInboxUpdateTimer = setTimeout(() => {
+        if (window.Livewire) {
+            window.Livewire.dispatch("waha-inbox-updated", {
+                chatId: wahaInboxLatestChatId,
+            });
+        } else {
+            console.warn("[Reverb] Livewire belum tersedia saat event inbox.updated diterima.");
+        }
+    }, 300);
 
-    // 2. Trigger sound notification (dihandle Alpine.js di blade)
+    // 2. Trigger sound notification tetap langsung (dihandle Alpine.js di blade)
     window.dispatchEvent(
         new CustomEvent("waha-new-message", {
             detail: { chatId: event.chat_id },

@@ -2,13 +2,16 @@
 
 namespace App\Services\Ai;
 
+use App\Support\AiSettings;
+use App\Support\SchemaCache;
+use App\Support\WahaChatHelper;
+
 use App\Services\Waha\WahaSender;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -173,10 +176,7 @@ class AiAutoReplyService
 
     private function settings(): ?object
     {
-        return DB::table('MPengaturanAi')
-            ->where('KodePengaturan', 'DEFAULT')
-            ->where('NonAktif', false)
-            ->first();
+        return AiSettings::get();
     }
 
     public function sendClosingMessage(string $chatId): void
@@ -322,7 +322,7 @@ class AiAutoReplyService
 
     private function holidayForDate(Carbon $date): ?object
     {
-        if (! Schema::hasTable('MHariLibur')) {
+        if (! SchemaCache::hasTable('MHariLibur')) {
             return null;
         }
 
@@ -497,8 +497,8 @@ class AiAutoReplyService
                 'JudulPengetahuan',
                 'IsiPengetahuan',
                 'Tag',
-                Schema::hasColumn('MPengetahuan', 'SearchKeywords') ? 'SearchKeywords' : DB::raw('NULL as SearchKeywords'),
-                Schema::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : DB::raw('0 as PrioritasAi')
+                SchemaCache::hasColumn('MPengetahuan', 'SearchKeywords') ? 'SearchKeywords' : DB::raw('NULL as SearchKeywords'),
+                SchemaCache::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : DB::raw('0 as PrioritasAi')
             );
 
         if ($mode !== 'AllKnowledge' && $tokens->isNotEmpty()) {
@@ -509,7 +509,7 @@ class AiAutoReplyService
                         ->orWhere('Tag', 'like', $like)
                         ->orWhere('IsiPengetahuan', 'like', $like);
 
-                    if (Schema::hasColumn('MPengetahuan', 'SearchKeywords')) {
+                    if (SchemaCache::hasColumn('MPengetahuan', 'SearchKeywords')) {
                         $where->orWhere('SearchKeywords', 'like', $like);
                     }
                 }
@@ -517,7 +517,7 @@ class AiAutoReplyService
         }
 
         $rows = $query
-            ->orderByDesc(Schema::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : 'JudulPengetahuan')
+            ->orderByDesc(SchemaCache::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : 'JudulPengetahuan')
             ->orderBy('JudulPengetahuan')
             ->limit($mode === 'AllKnowledge' ? $maxItems : 50)
             ->get();
@@ -578,7 +578,7 @@ class AiAutoReplyService
             $total += mb_strlen($line);
         }
 
-        if ($used && Schema::hasColumn('MPengetahuan', 'JumlahDipakaiAi')) {
+        if ($used && SchemaCache::hasColumn('MPengetahuan', 'JumlahDipakaiAi')) {
             DB::table('MPengetahuan')->whereIn('Id', $used)->update([
                 'TerakhirDipakaiAi' => now(),
                 'JumlahDipakaiAi' => DB::raw('JumlahDipakaiAi + 1'),
@@ -859,13 +859,13 @@ class AiAutoReplyService
             return $chat->IdGrupWaha;
         }
 
-        $latestIncomingChatId = $this->latestIncomingWahaChatId((string) $chat->Id);
+        $latestIncomingChatId = WahaChatHelper::latestIncomingWahaChatId((string) $chat->Id);
 
         if ($latestIncomingChatId) {
             return $latestIncomingChatId;
         }
 
-        return $this->normalizeWahaChatId((string) $chat->NomorWhatsapp);
+        return WahaChatHelper::normalizeChatId((string) $chat->NomorWhatsapp);
     }
 
     private function latestIncomingWahaChatId(string $chatId): ?string

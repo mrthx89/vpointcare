@@ -2,6 +2,9 @@
 
 namespace App\Services\Ai;
 
+use App\Support\AiSettings;
+use App\Support\SchemaCache;
+
 use App\Models\Ai\DraftPengetahuan;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
@@ -151,7 +154,7 @@ class AiKnowledgeLearningService
 
     private function settings(): ?object
     {
-        return DB::table('MPengaturanAi')->where('KodePengaturan', 'DEFAULT')->where('NonAktif', false)->first();
+        return AiSettings::get();
     }
 
     private function callProvider(object $settings, string $prompt): string

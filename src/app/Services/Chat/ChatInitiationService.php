@@ -2,10 +2,11 @@
 
 namespace App\Services\Chat;
 
+use App\Support\SchemaCache;
+
 use App\Events\WahaInboxUpdated;
 use App\Services\Waha\WahaSender;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -120,7 +121,7 @@ class ChatInitiationService
                 'IdCustomer' => $nomor->IdCustomer ?? null,
                 'IdInstansi' => $nomor->IdInstansi ?? null,
                 'NamaKontak' => $nomor->NamaKontak ?? null,
-                'IdWaha' => Schema::hasColumn('MNomorWhatsapp', 'IdWaha') ? ($nomor->IdWaha ?? null) : null,
+                'IdWaha' => SchemaCache::hasColumn('MNomorWhatsapp', 'IdWaha') ? ($nomor->IdWaha ?? null) : null,
             ];
         }
 
@@ -159,7 +160,7 @@ class ChatInitiationService
 
     private function isExcludedNumber(string $number): bool
     {
-        if (! Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
+        if (! SchemaCache::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
             return false;
         }
 
@@ -194,11 +195,11 @@ class ChatInitiationService
                     $query->orWhere('IdNomorWhatsapp', $nomorWhatsappId);
                 }
 
-                if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
+                if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
                     $query->orWhere('NomorWhatsappTerdeteksi', $number);
                 }
 
-                if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
+                if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
                     $query->orWhere('IdWahaTerdeteksi', $number . '@c.us');
                 }
             });
@@ -236,15 +237,15 @@ class ChatInitiationService
             'TglBuat' => now(),
         ];
 
-        if (Schema::hasColumn('TChat', 'DiambilOleh')) {
+        if (SchemaCache::hasColumn('TChat', 'DiambilOleh')) {
             $chat['DiambilOleh'] = $penggunaId;
         }
 
-        if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
+        if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
             $chat['IdWahaTerdeteksi'] = $target['IdWaha'] ?: $target['NomorWhatsapp'].'@c.us';
         }
 
-        if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
+        if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
             $chat['NomorWhatsappTerdeteksi'] = $target['NomorWhatsapp'];
         }
 

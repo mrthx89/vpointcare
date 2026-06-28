@@ -2,9 +2,11 @@
 
 namespace App\Services\Waha;
 
+use App\Support\SchemaCache;
+use App\Support\WahaChatHelper;
+
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -37,7 +39,7 @@ class WahaWebhookProcessor
 
             try {
                 $parsed = $this->parseMessage($payload, $message);
-                $parsed = $this->resolveLidPhoneNumber((string) $session->KodeSesi, $parsed);
+                $parsed = WahaChatHelper::resolveLidPhoneNumber($this->wahaSender, (string) $session->KodeSesi, $parsed);
 
                 if ($parsed['is_status_broadcast']) {
                     DB::table('TLogWebhookWaha')->where('Id', $webhookId)->update([
@@ -111,11 +113,11 @@ class WahaWebhookProcessor
                     'TglBuat' => now(),
                 ];
 
-                if (Schema::hasColumn('TChatD', 'NamaFileMedia')) {
+                if (SchemaCache::hasColumn('TChatD', 'NamaFileMedia')) {
                     $chatMessage['NamaFileMedia'] = $parsed['nama_file_media'];
                 }
 
-                if (Schema::hasColumn('TChatD', 'TipeMime')) {
+                if (SchemaCache::hasColumn('TChatD', 'TipeMime')) {
                     $chatMessage['TipeMime'] = $parsed['tipe_mime'];
                 }
 
@@ -261,7 +263,7 @@ class WahaWebhookProcessor
             'jenis_chat' => $isGroup ? 'Grup' : 'Pribadi',
             'group_jid' => $isGroup ? $remoteId : null,
             'pengirim_jid' => $senderJid,
-            'pengirim_nomor' => $this->normalisasiNomorWhatsapp($senderJid),
+            'pengirim_nomor' => WahaChatHelper::normalizePhoneNumber($senderJid),
             'pengirim_nama' => $this->stringValue(Arr::get($message, 'sender.pushname') ?? Arr::get($message, 'notifyName') ?? Arr::get($message, 'pushName') ?? ''),
             'isi_pesan' => $this->messageBody($message),
             'jenis_pesan' => $this->messageType($message, $mimeType, $mediaUrl),
@@ -492,7 +494,7 @@ class WahaWebhookProcessor
             $nomor = DB::table('MNomorWhatsapp')->where('NomorWhatsapp', $parsed['pengirim_nomor'])->where('NonAktif', false)->first();
         }
 
-        if (! $nomor && Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
+        if (! $nomor && SchemaCache::hasColumn('MNomorWhatsapp', 'IdWaha')) {
             $wahaIds = array_values(array_filter(array_unique([
                 $parsed['pengirim_jid'] ?? null,
                 $parsed['pengirim_nomor'] ?? null,
@@ -537,12 +539,12 @@ class WahaWebhookProcessor
                 if ($parsed['pengirim_nomor']) {
                     $query->where('NomorWhatsapp', $parsed['pengirim_nomor']);
 
-                    if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
+                    if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi')) {
                         $query->orWhere('NomorWhatsappTerdeteksi', $parsed['pengirim_nomor']);
                     }
                 }
 
-                if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi') && ($parsed['pengirim_jid'] ?? null)) {
+                if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi') && ($parsed['pengirim_jid'] ?? null)) {
                     $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_jid']);
 
                     if ($parsed['pengirim_nomor'] && str_contains($parsed['pengirim_jid'], '@lid')) {
@@ -566,11 +568,11 @@ class WahaWebhookProcessor
                 'TglEdit' => now(),
             ];
 
-            if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
+            if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
                 $update['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
             }
 
-            if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
+            if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
                 $update['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
             }
 
@@ -602,11 +604,11 @@ class WahaWebhookProcessor
             'TglBuat' => now(),
         ];
 
-        if (Schema::hasColumn('TChat', 'IdWahaTerdeteksi')) {
+        if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
             $chat['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
         }
 
-        if (Schema::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
+        if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
             $chat['NomorWhatsappTerdeteksi'] = $parsed['pengirim_nomor'];
         }
 
@@ -640,7 +642,7 @@ class WahaWebhookProcessor
             return false;
         }
 
-        if (! Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
+        if (! SchemaCache::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
             return false;
         }
 

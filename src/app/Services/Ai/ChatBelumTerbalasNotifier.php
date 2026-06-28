@@ -2,10 +2,11 @@
 
 namespace App\Services\Ai;
 
+use App\Support\SchemaCache;
+
 use App\Services\Waha\WahaSender;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ChatBelumTerbalasNotifier
@@ -113,7 +114,7 @@ class ChatBelumTerbalasNotifier
 
     private function isHoliday(Carbon $date): bool
     {
-        if (!Schema::hasTable('MHariLibur')) {
+        if (!SchemaCache::hasTable('MHariLibur')) {
             return false;
         }
 

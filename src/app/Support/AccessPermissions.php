@@ -40,6 +40,8 @@ class AccessPermissions
 
     public const CHAT_HISTORY_VIEW = 'chat_history.view';
 
+    public const CHATBOT_ACCESS = 'chatbot.access';
+
     public const HAK_AKSES_VIEW = 'hak_akses.view';
 
     public const HAK_AKSES_MANAGE = 'hak_akses.manage';
@@ -159,6 +161,7 @@ class AccessPermissions
             self::DASHBOARD_VIEW => self::sidebarPermissionMenu($definitions, self::DASHBOARD_VIEW, null, 1, 'heroicon-o-home'),
             self::INBOX_VIEW => self::sidebarPermissionMenu($definitions, self::INBOX_VIEW, 'operasional', 10, 'heroicon-o-chat-bubble-left-right'),
             self::CHAT_HISTORY_VIEW => self::sidebarPermissionMenu($definitions, self::CHAT_HISTORY_VIEW, 'operasional', 11, 'heroicon-o-clock'),
+            self::CHATBOT_ACCESS => self::sidebarPermissionMenu($definitions, self::CHATBOT_ACCESS, 'operasional', 15, 'heroicon-o-chat-bubble-bottom-center-text'),
             self::TICKET_VIEW => self::sidebarPermissionMenu($definitions, self::TICKET_VIEW, 'operasional', 20, 'heroicon-o-ticket'),
             self::AI_AGENT_VIEW => self::sidebarPermissionMenu($definitions, self::AI_AGENT_VIEW, 'assistant', 10, 'heroicon-o-sparkles'),
             self::KNOWLEDGE_VIEW => self::sidebarPermissionMenu($definitions, self::KNOWLEDGE_VIEW, 'assistant', 20, 'heroicon-o-book-open'),
@@ -348,6 +351,11 @@ class AccessPermissions
                 'module' => 'ui.permissions.chat_history_module',
                 'description' => 'ui.permissions.chat_history_view_desc',
             ],
+            self::CHATBOT_ACCESS => [
+                'label' => 'ui.permissions.chatbot_access',
+                'module' => 'ui.permissions.chatbot_module',
+                'description' => 'ui.permissions.chatbot_access_desc',
+            ],
             self::HAK_AKSES_VIEW => [
                 'label' => 'ui.permissions.hak_akses_view',
                 'module' => 'ui.permissions.settings_module',
@@ -398,6 +406,7 @@ class AccessPermissions
                 self::HOLIDAY_VIEW,
                 self::HOLIDAY_MANAGE,
                 self::CHAT_HISTORY_VIEW,
+                self::CHATBOT_ACCESS,
                 self::HAK_AKSES_VIEW,
                 self::HAK_AKSES_MANAGE,
                 self::JOB_SCHEDULE_VIEW,
@@ -410,6 +419,7 @@ class AccessPermissions
                 self::TICKET_MANAGE,
                 self::MASTER_CUSTOMER_VIEW,
                 self::CHAT_HISTORY_VIEW,
+                self::CHATBOT_ACCESS,
             ],
             'DEVELOPER' => [
                 self::DASHBOARD_VIEW,
@@ -417,6 +427,7 @@ class AccessPermissions
                 self::TICKET_MANAGE,
                 self::LOG_DATA_VIEW,
                 self::CHAT_HISTORY_VIEW,
+                self::CHATBOT_ACCESS,
             ],
             'VIEWER' => [
                 self::DASHBOARD_VIEW,

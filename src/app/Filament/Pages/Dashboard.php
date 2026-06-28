@@ -130,23 +130,27 @@ class Dashboard extends BaseDashboard
 
         [$start, $end] = $this->periodBounds();
 
-        $messageRows = DB::table('TChatD')
+        $messageStats = DB::table('TChatD')
             ->whereBetween('TglPesan', [$start, $end])
-            ->select('IdChat', 'ArahPesan', 'DihasilkanOlehAi', 'StatusKirim', 'TglPesan')
-            ->orderBy('TglPesan')
-            ->get();
+            ->selectRaw("
+                SUM(CASE WHEN ArahPesan = 'Masuk' THEN 1 ELSE 0 END) as IncomingMessages,
+                COUNT(DISTINCT CASE WHEN ArahPesan = 'Masuk' THEN IdChat END) as IncomingChats,
+                SUM(CASE WHEN ArahPesan = 'Keluar' AND (DihasilkanOlehAi = 0 OR DihasilkanOlehAi IS NULL) THEN 1 ELSE 0 END) as OutgoingCs,
+                SUM(CASE WHEN ArahPesan = 'Keluar' AND DihasilkanOlehAi = 1 THEN 1 ELSE 0 END) as OutgoingAi,
+                SUM(CASE WHEN ArahPesan = 'Keluar' AND StatusKirim = 'Gagal WAHA' THEN 1 ELSE 0 END) as FailedWaha,
+                SUM(CASE WHEN ArahPesan = 'Keluar' AND StatusKirim = 'Terkirim WAHA' THEN 1 ELSE 0 END) as SentWaha
+            ")
+            ->first();
 
-        $incomingRows = $messageRows->where('ArahPesan', 'Masuk');
-        $outgoingRows = $messageRows->where('ArahPesan', 'Keluar');
-        $aiRows = $outgoingRows->where('DihasilkanOlehAi', true);
-        $csRows = $outgoingRows->where('DihasilkanOlehAi', false);
-
-        $incomingChats = $incomingRows->pluck('IdChat')->unique()->count();
+        $incomingMessages = (int) ($messageStats->IncomingMessages ?? 0);
+        $incomingChats = (int) ($messageStats->IncomingChats ?? 0);
+        $outgoingCs = (int) ($messageStats->OutgoingCs ?? 0);
+        $outgoingAi = (int) ($messageStats->OutgoingAi ?? 0);
+        $failedWaha = (int) ($messageStats->FailedWaha ?? 0);
+        $sentWaha = (int) ($messageStats->SentWaha ?? 0);
         $unansweredChats = $this->unansweredChats($start, $end);
-        $failedWaha = $outgoingRows->where('StatusKirim', 'Gagal WAHA')->count();
-        $sentWaha = $outgoingRows->where('StatusKirim', 'Terkirim WAHA')->count();
         $deliveryTotal = $sentWaha + $failedWaha;
-        $avgResponseMinutes = $this->averageResponseMinutes($messageRows);
+        $avgResponseMinutes = $this->averageResponseMinutes($start, $end);
         $mappedChats = $this->mappedChats($start, $end);
         $periodChats = DB::table('TChat')
             ->whereBetween('TglChatTerakhir', [$start, $end])
@@ -170,10 +174,10 @@ class Dashboard extends BaseDashboard
             ->count();
 
         $this->summary = [
-            'incoming_messages' => $incomingRows->count(),
+            'incoming_messages' => $incomingMessages,
             'incoming_chats' => $incomingChats,
-            'outgoing_cs' => $csRows->count(),
-            'outgoing_ai' => $aiRows->count(),
+            'outgoing_cs' => $outgoingCs,
+            'outgoing_ai' => $outgoingAi,
             'unanswered_chats' => $unansweredChats,
             'unread_messages' => (int) DB::table('TChat')->sum('JumlahPesanBelumDibaca'),
             'failed_waha' => $failedWaha,
@@ -186,8 +190,8 @@ class Dashboard extends BaseDashboard
             'closed_chats' => $closedChats,
         ];
 
-        $this->teamRows = $this->teamPerformance($start, $end, $messageRows);
-        $this->dailyRows = $this->dailyTrend($start, $end, $messageRows);
+        $this->teamRows = $this->teamPerformance($start, $end);
+        $this->dailyRows = $this->dailyTrend($start, $end);
         $this->topClients = $this->topClients($start, $end);
         $this->satisfaction = $this->satisfactionIndex($incomingChats, $unansweredChats, $deliveryTotal, $sentWaha, $avgResponseMinutes, $periodChats, $mappedChats);
         $this->lastUpdated = LocaleFormatter::dateTime(now());
@@ -312,42 +316,39 @@ class Dashboard extends BaseDashboard
             ->count();
     }
 
-    private function averageResponseMinutes(Collection $messageRows): ?float
+    private function averageResponseMinutes(Carbon $start, Carbon $end): ?float
     {
-        $durations = [];
+        $firstIncoming = DB::table('TChatD')
+            ->select('IdChat', DB::raw('MIN(TglPesan) as TglMasuk'))
+            ->where('ArahPesan', 'Masuk')
+            ->whereBetween('TglPesan', [$start, $end])
+            ->groupBy('IdChat');
 
-        foreach ($messageRows->groupBy('IdChat') as $rows) {
-            $orderedRows = $rows->sortBy('TglPesan')->values();
+        $rows = DB::query()
+            ->fromSub($firstIncoming, 'masuk')
+            ->join('TChatD as keluar', function ($join): void {
+                $join->on('keluar.IdChat', '=', 'masuk.IdChat')
+                    ->whereRaw("keluar.ArahPesan = 'Keluar'")
+                    ->whereColumn('keluar.TglPesan', '>', 'masuk.TglMasuk');
+            })
+            ->select('masuk.IdChat', 'masuk.TglMasuk', DB::raw('MIN(keluar.TglPesan) as TglKeluar'))
+            ->groupBy('masuk.IdChat', 'masuk.TglMasuk')
+            ->get();
 
-            foreach ($orderedRows as $index => $row) {
-                if ($row->ArahPesan !== 'Masuk') {
-                    continue;
-                }
-
-                $incomingAt = Carbon::parse($row->TglPesan);
-                $nextOutgoing = $orderedRows
-                    ->slice($index + 1)
-                    ->first(fn (object $candidate): bool => $candidate->ArahPesan === 'Keluar');
-
-                if (! $nextOutgoing) {
-                    continue;
-                }
-
-                $durations[] = max(0, $incomingAt->diffInSeconds(Carbon::parse($nextOutgoing->TglPesan)) / 60);
-            }
-        }
-
-        if (! $durations) {
+        if ($rows->isEmpty()) {
             return null;
         }
 
-        return round(array_sum($durations) / count($durations), 1);
+        $seconds = $rows->map(fn (object $row): float => max(0, Carbon::parse($row->TglMasuk)->diffInSeconds(Carbon::parse($row->TglKeluar))))
+            ->average();
+
+        return $seconds === null ? null : round($seconds / 60, 1);
     }
 
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function teamPerformance(Carbon $start, Carbon $end, Collection $messageRows): array
+    private function teamPerformance(Carbon $start, Carbon $end): array
     {
         $rows = DB::table('TChatD as d')
             ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
@@ -378,18 +379,21 @@ class Dashboard extends BaseDashboard
             ])
             ->all();
 
-        $aiReplies = $messageRows
+        $aiStats = DB::table('TChatD')
             ->where('ArahPesan', 'Keluar')
-            ->where('DihasilkanOlehAi', true);
+            ->where('DihasilkanOlehAi', true)
+            ->whereBetween('TglPesan', [$start, $end])
+            ->selectRaw("COUNT(*) as JumlahBalasan, COUNT(DISTINCT IdChat) as JumlahChat, SUM(CASE WHEN StatusKirim = 'Terkirim WAHA' THEN 1 ELSE 0 END) as Terkirim, SUM(CASE WHEN StatusKirim = 'Gagal WAHA' THEN 1 ELSE 0 END) as Gagal")
+            ->first();
 
-        if ($aiReplies->isNotEmpty()) {
+        if ((int) ($aiStats->JumlahBalasan ?? 0) > 0) {
             array_unshift($rows, [
                 'name' => 'AI Agent',
                 'email' => 'auto-reply',
-                'replies' => $aiReplies->count(),
-                'chats' => $aiReplies->pluck('IdChat')->unique()->count(),
-                'sent' => $aiReplies->where('StatusKirim', 'Terkirim WAHA')->count(),
-                'failed' => $aiReplies->where('StatusKirim', 'Gagal WAHA')->count(),
+                'replies' => (int) $aiStats->JumlahBalasan,
+                'chats' => (int) $aiStats->JumlahChat,
+                'sent' => (int) $aiStats->Terkirim,
+                'failed' => (int) $aiStats->Gagal,
                 'type' => 'AI',
             ]);
         }
@@ -400,28 +404,31 @@ class Dashboard extends BaseDashboard
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function dailyTrend(Carbon $start, Carbon $end, Collection $messageRows): array
+    private function dailyTrend(Carbon $start, Carbon $end): array
     {
+        $grouped = DB::table('TChatD')
+            ->whereBetween('TglPesan', [$start, $end])
+            ->selectRaw("CAST(TglPesan AS date) as Tanggal, SUM(CASE WHEN ArahPesan = 'Masuk' THEN 1 ELSE 0 END) as Masuk, SUM(CASE WHEN ArahPesan = 'Keluar' AND (DihasilkanOlehAi = 0 OR DihasilkanOlehAi IS NULL) THEN 1 ELSE 0 END) as Cs, SUM(CASE WHEN ArahPesan = 'Keluar' AND DihasilkanOlehAi = 1 THEN 1 ELSE 0 END) as Ai")
+            ->groupBy(DB::raw('CAST(TglPesan AS date)'))
+            ->get()
+            ->keyBy(fn (object $row): string => Carbon::parse($row->Tanggal)->toDateString());
+
         $rows = [];
         $cursor = $start->copy()->startOfDay();
         $last = $end->copy()->startOfDay();
 
-        while ($cursor->lte($last)) {
+        while ($cursor->lte($last) && count($rows) < 31) {
             $key = $cursor->toDateString();
-            $dayRows = $messageRows->filter(fn (object $row): bool => Carbon::parse($row->TglPesan)->toDateString() === $key);
+            $row = $grouped->get($key);
 
             $rows[] = [
                 'date' => LocaleFormatter::shortDate($cursor),
-                'incoming' => $dayRows->where('ArahPesan', 'Masuk')->count(),
-                'cs' => $dayRows->where('ArahPesan', 'Keluar')->where('DihasilkanOlehAi', false)->count(),
-                'ai' => $dayRows->where('ArahPesan', 'Keluar')->where('DihasilkanOlehAi', true)->count(),
+                'incoming' => (int) ($row->Masuk ?? 0),
+                'cs' => (int) ($row->Cs ?? 0),
+                'ai' => (int) ($row->Ai ?? 0),
             ];
 
             $cursor->addDay();
-
-            if (count($rows) >= 31) {
-                break;
-            }
         }
 
         return $rows;

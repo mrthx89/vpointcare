@@ -133,6 +133,9 @@ return [
         'chat_history_view' => 'Histori Chat',
         'chat_history_view_desc' => 'Melihat daftar histori sesi chat dan membuka detail percakapan.',
         'chat_history_module' => 'Histori Chat',
+        'chatbot_access' => 'VPoint Assistant',
+        'chatbot_access_desc' => 'Mengakses chatbot internal untuk bantuan operasional VPoint Care.',
+        'chatbot_module' => 'VPoint Assistant',
         'hak_akses_view' => 'Pengaturan Hak Akses',
         'hak_akses_view_desc' => 'Melihat daftar hak akses dan deskripsinya.',
         'hak_akses_manage' => 'Kelola Hak Akses',
@@ -851,10 +854,29 @@ return [
         'knowledge_priority' => 'Prioritas AI',
         'knowledge_priority_help' => 'Semakin tinggi, semakin mudah dipilih sebagai konteks AI.',
         'knowledge_keywords_column' => 'Kata Kunci AI',
-    ],];
-
-
-
-
-
+    ],
+    'scalability' => [
+        'webhook_queued' => 'Webhook diterima dan masuk antrean pemrosesan.',
+        'circuit_breaker_active' => 'Integrasi WAHA sedang dijeda sementara karena beberapa kegagalan beruntun.',
+        'ai_reply_skipped_cs_replied' => 'Balasan AI dilewati karena CS sudah membalas chat ini.',
+    ],
+    'chatbot' => [
+        'title' => 'VPoint Assistant',
+        'navigation_label' => 'VPoint Assistant',
+        'empty_title' => 'VPoint Assistant siap membantu.',
+        'empty_description' => 'Tanyakan knowledge, alur kerja aplikasi, atau minta bantuan menyusun draft balasan customer.',
+        'placeholder' => 'Ketik pertanyaan Anda...',
+        'send' => 'Kirim',
+        'clear_history' => 'Hapus Riwayat',
+        'clear_confirm' => 'Hapus semua riwayat chat dengan VPoint Assistant?',
+        'typing' => 'VPoint Assistant sedang mengetik...',
+        'error_provider_missing' => 'Pengaturan AI belum dikonfigurasi.',
+        'error_provider_failed' => 'VPoint Assistant belum bisa menghubungi provider AI.',
+        'error_empty_response' => 'Provider AI tidak memberikan jawaban.',
+        'knowledge_used' => 'Knowledge digunakan: :knowledge',
+        'history_cleared' => 'Riwayat VPoint Assistant berhasil dihapus.',
+        'message_required' => 'Pertanyaan wajib diisi.',
+        'message_max' => 'Pertanyaan maksimal :max karakter.',
+    ],
+];
 

@@ -5,12 +5,23 @@ services:
       dockerfile: Dockerfile
     image: vpointcare-php85
     restart: unless-stopped
+    environment:
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REVERB_SCALING_ENABLED: "true"
     volumes:
       - ./:/var/www/html
     networks:
       - vpoint-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
 
   web:
     image: nginx:alpine
@@ -25,10 +36,19 @@ services:
     depends_on:
       - app
 
-  queue:
+  queue-webhooks:
     image: vpointcare-php85
     restart: unless-stopped
-    command: php artisan queue:work --tries=3 --timeout=120 --sleep=3
+    command: php artisan queue:work --queue=webhooks --tries=3 --timeout=60 --sleep=1
+    environment:
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REVERB_SCALING_ENABLED: "true"
     volumes:
       - ./:/var/www/html
     networks:
@@ -37,11 +57,67 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - app
+      - redis
+
+  queue-ai:
+    image: vpointcare-php85
+    restart: unless-stopped
+    command: php artisan queue:work --queue=ai-replies --tries=2 --timeout=90 --sleep=1
+    environment:
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REVERB_SCALING_ENABLED: "true"
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - vpoint-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - app
+      - redis
+
+  queue-broadcasts:
+    image: vpointcare-php85
+    restart: unless-stopped
+    command: php artisan queue:work --queue=broadcasts,default --tries=3 --timeout=30 --sleep=1
+    environment:
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REVERB_SCALING_ENABLED: "true"
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - vpoint-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - app
+      - redis
 
   reverb:
     image: vpointcare-php85
     restart: unless-stopped
     command: php artisan reverb:start --host=0.0.0.0 --port=7060
+    environment:
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REVERB_SCALING_ENABLED: "true"
     ports:
       - "7060:7060"
     volumes:
@@ -52,7 +128,20 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - app
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - vpoint-net
 
 networks:
   vpoint-net:
     driver: bridge
+
+volumes:
+  redis_data:

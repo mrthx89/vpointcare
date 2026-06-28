@@ -133,6 +133,9 @@ return [
         'chat_history_view' => 'Chat History',
         'chat_history_view_desc' => 'View chat session history list and open conversation details.',
         'chat_history_module' => 'Chat History',
+        'chatbot_access' => 'VPoint Assistant',
+        'chatbot_access_desc' => 'Access the internal chatbot for VPoint Care operational assistance.',
+        'chatbot_module' => 'VPoint Assistant',
         'hak_akses_view' => 'Access Rights Settings',
         'hak_akses_view_desc' => 'View the list of access rights and their descriptions.',
         'hak_akses_manage' => 'Manage Access Rights',
@@ -851,10 +854,29 @@ return [
         'knowledge_priority' => 'AI Priority',
         'knowledge_priority_help' => 'Higher values make this knowledge easier to select as AI context.',
         'knowledge_keywords_column' => 'AI Keywords',
-    ],];
-
-
-
-
-
+    ],
+    'scalability' => [
+        'webhook_queued' => 'Webhook accepted and queued for processing.',
+        'circuit_breaker_active' => 'WAHA integration is temporarily paused after consecutive failures.',
+        'ai_reply_skipped_cs_replied' => 'AI reply skipped because a CS user already replied to this chat.',
+    ],
+    'chatbot' => [
+        'title' => 'VPoint Assistant',
+        'navigation_label' => 'VPoint Assistant',
+        'empty_title' => 'VPoint Assistant is ready to help.',
+        'empty_description' => 'Ask about knowledge, application workflows, or request help drafting a customer reply.',
+        'placeholder' => 'Type your question...',
+        'send' => 'Send',
+        'clear_history' => 'Clear History',
+        'clear_confirm' => 'Clear all VPoint Assistant chat history?',
+        'typing' => 'VPoint Assistant is typing...',
+        'error_provider_missing' => 'AI settings are not configured.',
+        'error_provider_failed' => 'VPoint Assistant could not reach the AI provider.',
+        'error_empty_response' => 'The AI provider returned an empty response.',
+        'knowledge_used' => 'Knowledge used: :knowledge',
+        'history_cleared' => 'VPoint Assistant history cleared.',
+        'message_required' => 'Question is required.',
+        'message_max' => 'Question may not exceed :max characters.',
+    ],
+];
 

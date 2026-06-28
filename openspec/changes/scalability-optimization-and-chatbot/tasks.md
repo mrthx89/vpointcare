@@ -1,10 +1,51 @@
-﻿# Tasks: Scalability Optimization & Internal Chatbot
+# Tasks: Scalability Optimization & Internal Chatbot
 
-> Status: Seluruh item belum dikerjakan `[ ]`. Checklist ini siap dipakai sebagai panduan implementasi berurutan.
+> Status Update: Implementasi kode sudah selesai dan tervalidasi pada 2026-06-28. Item implementasi utama ditandai selesai di ringkasan ini. Item deployment/infra production seperti install Redis, menjalankan migration SQL Server production, menjalankan queue worker production, dan browser test real device tetap perlu dilakukan saat publish.
+
+## Implementation Status Summary
+
+- [x] Async webhook processing dibuat melalui `ProcessWebhookJob`.
+- [x] AI auto-reply dipindahkan ke `ProcessAiAutoReplyJob`.
+- [x] Broadcast Reverb dibuat debounce melalui `SendBroadcastDebouncedJob`.
+- [x] Browser Echo listener dibuat debounce 300ms.
+- [x] Webhook route diberi throttle `100,1`.
+- [x] `WahaSender` diberi circuit breaker.
+- [x] `WahaChatHelper` dibuat untuk normalisasi WAHA ID.
+- [x] `SchemaCache` dibuat untuk cache `Schema::hasColumn()` dan `Schema::hasTable()`.
+- [x] `AiSettings` dibuat untuk cache `MPengaturanAi`.
+- [x] Dashboard query utama dioptimasi memakai SQL aggregation.
+- [x] Migration composite indexes dibuat.
+- [x] Migration `TChatbotInternal` dibuat.
+- [x] Model `ChatbotMessage` dibuat.
+- [x] `InternalChatbotService` dibuat dengan RAG ringan dari `MPengetahuan`.
+- [x] Page `VPointAssistant` dibuat di Filament.
+- [x] Blade view `vpoint-assistant` dibuat.
+- [x] Multilanguage ID/EN ditambahkan untuk chatbot dan scalability messages.
+- [x] `src/.env.example` disiapkan untuk Redis production.
+- [x] `src/Dockerfile` ditambah ekstensi PHP Redis.
+- [x] `src/docker-compose.yml` ditambah service Redis dan dedicated queue workers.
+- [x] `deploy-update-server.bat` disesuaikan untuk rebuild image, Redis, dedicated workers, migrate, optimize, dan health check baru.
+- [x] `DATABASE_SCHEMA_WACS.sql` ditambah referensi tabel/index baru.
+- [x] Validasi `php -l` semua file berubah sukses.
+- [x] Validasi `npm run build` sukses.
+- [x] Validasi route chatbot dan webhook sukses.
+- [x] Validasi translation key sukses.
+- [x] Validasi `php artisan test` sukses.
+
+## Deployment / Manual Verification Pending
+
+- [ ] Install dan aktifkan Redis di server production/Docker.
+- [ ] Update `.env` production sesuai Redis dan queue worker.
+- [ ] Backup database SQL Server production.
+- [ ] Jalankan `php artisan migrate --force` di production.
+- [ ] Jalankan queue worker untuk `webhooks`, `ai-replies`, `broadcasts`, dan `default`.
+- [ ] Jalankan browser test VPoint Assistant di locale `id` dan `en`.
+- [ ] Jalankan webhook test dengan payload WAHA asli.
+- [ ] Monitor queue depth, Redis memory, dan log WAHA setelah publish.
 
 ---
 
-## FASE A — SCALABILITY OPTIMIZATION
+## FASE A ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â SCALABILITY OPTIMIZATION
 
 ### A0. Pre-Implementation Decisions
 
@@ -20,26 +61,26 @@
 
 ### A1. Audit Existing Code
 
-- [ ] Audit `WahaWebhookController` — rangkai seluruh synchronous flow dan ukur estimasi waktu.
-- [ ] Audit `WahaWebhookProcessor` — hitung jumlah DB queries per webhook request.
-- [ ] Audit `AiAutoReplyService` — hitung HTTP calls, DB writes, dan timeout scenarios.
-- [ ] Audit `WahaSender` — identifikasi semua HTTP call points dan failure modes.
-- [ ] Audit `Dashboard::loadDashboard()` — ukur data volume dan memory footprint.
-- [ ] Audit `ChatBelumTerbalasNotifier::unansweredChats()` — ukur query complexity.
-- [ ] Audit `InboxWhatsapp::loadInbox()` — ukur query count dan data volume per request.
-- [ ] Audit semua `Schema::hasColumn()` calls — hitung total per request lifecycle.
-- [ ] Audit semua `DB::table('MPengaturanAi')` calls — hitung frequency per request.
+- [ ] Audit `WahaWebhookController` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â rangkai seluruh synchronous flow dan ukur estimasi waktu.
+- [ ] Audit `WahaWebhookProcessor` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â hitung jumlah DB queries per webhook request.
+- [ ] Audit `AiAutoReplyService` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â hitung HTTP calls, DB writes, dan timeout scenarios.
+- [ ] Audit `WahaSender` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â identifikasi semua HTTP call points dan failure modes.
+- [ ] Audit `Dashboard::loadDashboard()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ukur data volume dan memory footprint.
+- [ ] Audit `ChatBelumTerbalasNotifier::unansweredChats()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ukur query complexity.
+- [ ] Audit `InboxWhatsapp::loadInbox()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ukur query count dan data volume per request.
+- [ ] Audit semua `Schema::hasColumn()` calls ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â hitung total per request lifecycle.
+- [ ] Audit semua `DB::table('MPengaturanAi')` calls ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â hitung frequency per request.
 - [ ] Audit duplicate `normalizeWahaChatId()` di 3 file berbeda.
 - [ ] Audit duplicate `latestIncomingWahaChatId()` di `AiAutoReplyService` dan `InboxWhatsapp`.
-- [ ] Audit `config/queue.php` dan `config/cache.php` — konfigurasi Redis existing.
-- [ ] Audit `config/reverb.php` — konfigurasi scaling existing.
+- [ ] Audit `config/queue.php` dan `config/cache.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â konfigurasi Redis existing.
+- [ ] Audit `config/reverb.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â konfigurasi scaling existing.
 
 ### A2. Aktifkan Redis
 
-- [ ] Update `config/cache.php` — pastikan store `redis` terkonfigurasi dengan benar.
-- [ ] Update `config/queue.php` — pastikan connection `redis` terkonfigurasi.
-- [ ] Update `config/database.php` — pastikan Redis connection benar.
-- [ ] Update `config/session.php` — pertimbangkan session driver ke Redis.
+- [ ] Update `config/cache.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pastikan store `redis` terkonfigurasi dengan benar.
+- [ ] Update `config/queue.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pastikan connection `redis` terkonfigurasi.
+- [ ] Update `config/database.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pastikan Redis connection benar.
+- [ ] Update `config/session.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â pertimbangkan session driver ke Redis.
 - [ ] Update `.env.example`:
   - `CACHE_STORE=redis`
   - `QUEUE_CONNECTION=redis`
@@ -65,11 +106,11 @@
 - [ ] Pindahkan `expandIdentifiers(array $identifiers): array` dari InboxWhatsapp.
 - [ ] Pindahkan `firstWahaId(array $identifiers): ?string` dari InboxWhatsapp.
 - [ ] Pindahkan `displayPhoneNumber(array $identifiers): ?string` dari InboxWhatsapp.
-- [ ] Update `AiAutoReplyService` — gunakan `WahaChatHelper`.
-- [ ] Update `WahaWebhookProcessor` — gunakan `WahaChatHelper`.
-- [ ] Update `InboxWhatsapp` — gunakan `WahaChatHelper`.
+- [ ] Update `AiAutoReplyService` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `WahaChatHelper`.
+- [ ] Update `WahaWebhookProcessor` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `WahaChatHelper`.
+- [ ] Update `InboxWhatsapp` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `WahaChatHelper`.
 - [ ] Test: verify semua normalize logic menghasilkan output yang sama.
-- [ ] Test: verify `@s.whatsapp.net` → `@c.us` conversion.
+- [ ] Test: verify `@s.whatsapp.net` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `@c.us` conversion.
 - [ ] Test: verify `@lid` resolution.
 - [ ] Test: verify nomor tanpa `@` di-convert ke format `62xxxxxxxxx@c.us`.
 
@@ -78,12 +119,12 @@
 - [ ] Buat helper method di `AppServiceProvider` atau `WahaChatHelper`:
   - `SchemaCheck::hasColumn(string $table, string $column): bool`
   - Gunakan `Cache::rememberForever()` dengan key `schema:{$table}:{$column}`
-- [ ] Update `WahaWebhookProcessor` — ganti semua `Schema::hasColumn()` calls.
-- [ ] Update `ChatInitiationService` — ganti semua `Schema::hasColumn()` calls.
-- [ ] Update `ChatBelumTerbalasNotifier` — ganti `Schema::hasColumn()` calls.
-- [ ] Update `AiAutoReplyService` — ganti `Schema::hasColumn()` calls.
+- [ ] Update `WahaWebhookProcessor` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ganti semua `Schema::hasColumn()` calls.
+- [ ] Update `ChatInitiationService` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ganti semua `Schema::hasColumn()` calls.
+- [ ] Update `ChatBelumTerbalasNotifier` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ganti `Schema::hasColumn()` calls.
+- [ ] Update `AiAutoReplyService` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ganti `Schema::hasColumn()` calls.
 - [ ] Tambah cache clear logic saat migration dijalankan:
-  - `php artisan migrate` → `Cache::tags(['schema'])->flush()` atau manual forget
+  - `php artisan migrate` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `Cache::tags(['schema'])->flush()` atau manual forget
 - [ ] Test: verify `SchemaCheck::hasColumn()` mengembalikan nilai yang benar.
 - [ ] Test: verify cache dihit setelah call pertama.
 
@@ -91,9 +132,9 @@
 
 - [ ] Buat helper method `App\Support\AiSettings::get(): ?object`:
   - `Cache::remember('mpengaturan_ai_default', 300, fn() => DB::table(...) )`
-- [ ] Update `AiAutoReplyService::settings()` — gunakan `AiSettings::get()`.
-- [ ] Update `AiKnowledgeLearningService::settings()` — gunakan `AiSettings::get()`.
-- [ ] Update `ChatBelumTerbalasNotifier` — gunakan `AiSettings::get()`.
+- [ ] Update `AiAutoReplyService::settings()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `AiSettings::get()`.
+- [ ] Update `AiKnowledgeLearningService::settings()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `AiSettings::get()`.
+- [ ] Update `ChatBelumTerbalasNotifier` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `AiSettings::get()`.
 - [ ] Tambah cache invalidation di Filament resource MPengaturanAi:
   - `Cache::forget('mpengaturan_ai_default')` setelah save
 - [ ] Test: verify settings di-cache setelah query pertama.
@@ -120,14 +161,14 @@
   - Insert lightweight log ke `TLogWebhookWaha`
   - Dispatch `ProcessWebhookJob::dispatch()`
   - Return response 200 segera
-- [ ] Update `ProcessWebhookJob` — setelah processing:
+- [ ] Update `ProcessWebhookJob` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â setelah processing:
   - Dispatch `ProcessAiAutoReplyJob::dispatch($chatId)` jika ada chat_id
   - Dispatch `SendBroadcastDebouncedJob::dispatch($chatId)`
 - [ ] Test: verify webhook response < 500ms.
 - [ ] Test: verify ProcessWebhookJob diproses oleh worker.
 - [ ] Test: verify AI reply diproses terpisah dari webhook.
-- [ ] Test: verify deduplication — jika CS reply manual saat AI job waiting, AI skip.
-- [ ] Test: verify retry — jika AI provider timeout, job di-retry.
+- [ ] Test: verify deduplication ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jika CS reply manual saat AI job waiting, AI skip.
+- [ ] Test: verify retry ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jika AI provider timeout, job di-retry.
 
 ### A7. Debounced Broadcast
 
@@ -141,8 +182,8 @@
     - Jika flag tidak ada, skip (sudah broadcast)
     - Jika flag ada, pull flag, broadcast event
   - Method static `dispatchDebounced(string $chatId)`: set flag + dispatch job
-- [ ] Update `ProcessWebhookJob` — ganti `broadcast()` dengan `SendBroadcastDebouncedJob::dispatchDebounced($chatId)`.
-- [ ] Update `ChatInitiationService` — ganti `broadcast()` dengan debounce pattern.
+- [ ] Update `ProcessWebhookJob` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ganti `broadcast()` dengan `SendBroadcastDebouncedJob::dispatchDebounced($chatId)`.
+- [ ] Update `ChatInitiationService` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ganti `broadcast()` dengan debounce pattern.
 - [ ] Update JavaScript di inbox view:
   - Tambah debounce 300ms pada Echo listener `inbox.updated`
   - Gunakan `setTimeout` dan `clearTimeout` pattern
@@ -183,7 +224,7 @@
 
 ### A10. Optimasi Dashboard Query
 
-- [ ] Rewrite `Dashboard::loadDashboard()` — gunakan DB aggregation:
+- [ ] Rewrite `Dashboard::loadDashboard()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan DB aggregation:
   ```sql
   SELECT
     COUNT(*) as total_messages,
@@ -196,9 +237,9 @@
   FROM TChatD
   WHERE TglPesan BETWEEN @start AND @end
   ```
-- [ ] Rewrite `teamRows()` — gunakan DB aggregation di SQL.
-- [ ] Rewrite `dailyTrend()` — gunakan `GROUP BY DATE(TglPesan)`.
-- [ ] Rewrite `topClients()` — sudah OK (menggunakan GROUP BY).
+- [ ] Rewrite `teamRows()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan DB aggregation di SQL.
+- [ ] Rewrite `dailyTrend()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â gunakan `GROUP BY DATE(TglPesan)`.
+- [ ] Rewrite `topClients()` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â sudah OK (menggunakan GROUP BY).
 - [ ] Pertimbangkan caching summary per date range:
   - `Cache::remember("dashboard:{$start}:{$end}", 60, fn() => ...)`
 - [ ] Test: verify data accuracy match dengan query lama.
@@ -245,17 +286,17 @@
   php artisan queue:work --queue=ai-replies --timeout=90 --sleep=1 --tries=2
   php artisan queue:work --queue=broadcasts,default --timeout=30 --sleep=1
   ```
-- [ ] Update deployment script — jalankan workers sebagai supervised process.
-- [ ] Tambah monitoring script — cek queue depth:
+- [ ] Update deployment script ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jalankan workers sebagai supervised process.
+- [ ] Tambah monitoring script ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cek queue depth:
   ```
   php artisan queue:monitor redis:webhooks,ai-replies,broadcasts,default --max=100
   ```
-- [ ] Update `deploy-update-server.bat` — tambah restart workers.
+- [ ] Update `deploy-update-server.bat` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah restart workers.
 
-### A13. Integration Testing — Fase A
+### A13. Integration Testing ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Fase A
 
 - [ ] Test full webhook flow end-to-end:
-  - POST webhook → response 200 < 500ms
+  - POST webhook ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ response 200 < 500ms
   - Verify ProcessWebhookJob berjalan di queue
   - Verify TChat + TChatD terisi
   - Verify ProcessAiAutoReplyJob ter-dispatch
@@ -271,7 +312,7 @@
 
 ---
 
-## FASE B — INTERNAL CHATBOT (VPoint Assistant)
+## FASE B ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â INTERNAL CHATBOT (VPoint Assistant)
 
 ### B0. Pre-Implementation Decisions
 
@@ -401,7 +442,7 @@
 ### B6. Permission dan Localization
 
 - [ ] Tambah `AccessPermissions::CHATBOT_ACCESS = 'chatbot.access'` (opsional, atau reuse `dashboard.view`).
-- [ ] Update `lang/id/ui.php` — tambah keys:
+- [ ] Update `lang/id/ui.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah keys:
   - `ui.pages.chatbot.title`
   - `ui.pages.chatbot.navigation_label`
   - `ui.pages.chatbot.placeholder`
@@ -409,10 +450,10 @@
   - `ui.pages.chatbot.clear_confirm`
   - `ui.pages.chatbot.typing`
   - `ui.pages.chatbot.error`
-- [ ] Update `lang/en/ui.php` — tambah English equivalents.
+- [ ] Update `lang/en/ui.php` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah English equivalents.
 - [ ] Test: verify tidak ada hardcoded string di UI.
 
-### B7. Integration Testing — Fase B
+### B7. Integration Testing ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Fase B
 
 - [ ] Test: buka halaman VPoint Assistant, verify empty state.
 - [ ] Test: kirim pesan "Apa itu VPoint Care?", verify AI response.
@@ -423,7 +464,7 @@
 - [ ] Test: clear history, verify semua terhapus.
 - [ ] Test: verify error handling jika AI provider down.
 - [ ] Test: verify chatbot tidak mengirim ke WhatsApp.
-- [ ] Test: verify permission — user tanpa akses tidak bisa buka halaman.
+- [ ] Test: verify permission ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â user tanpa akses tidak bisa buka halaman.
 - [ ] Test: verify 2 user berbeda punya history terpisah.
 - [ ] Test: verify role-aware response (CS vs Admin).
 - [ ] Test: verify responsive layout di desktop dan tablet.
@@ -431,19 +472,19 @@
 
 ---
 
-## FASE C — DOKUMENTASI & DEPLOYMENT
+## FASE C ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â DOKUMENTASI & DEPLOYMENT
 
 ### C1. Documentation
 
-- [ ] Update `openspec/project.md` — tambah referensi ke change ini.
-- [ ] Update `openspec/specs/vpoint-care/spec.md` — tambah requirements baru.
+- [ ] Update `openspec/project.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah referensi ke change ini.
+- [ ] Update `openspec/specs/vpoint-care/spec.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah requirements baru.
 - [ ] Update `README.md`:
   - Tambah section Redis setup
   - Tambah section queue worker strategy
   - Tambah section VPoint Assistant usage
   - Update architecture diagram
-- [ ] Buat `docs/PLAN_SCALABILITY_OPTIMIZATION_CHATBOT.md` — plan document lengkap.
-- [ ] Update `.env.example` — tambah semua env vars baru dengan komentar.
+- [ ] Buat `docs/PLAN_SCALABILITY_OPTIMIZATION_CHATBOT.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â plan document lengkap.
+- [ ] Update `.env.example` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah semua env vars baru dengan komentar.
 - [ ] Update deployment guide (jika ada) dengan:
   - Redis installation steps
   - Queue worker supervisor config
@@ -470,3 +511,16 @@
 - [ ] Monitor queue depth selama 24 jam pertama.
 - [ ] Monitor Redis memory usage.
 - [ ] Monitor AI provider usage dan cost.
+
+### B8. Multilanguage Preservation
+
+- [ ] Audit `src/lang/id/ui.php` dan `src/lang/en/ui.php` untuk struktur key existing.
+- [ ] Tambahkan semua key UI VPoint Assistant di `src/lang/id/ui.php`.
+- [ ] Tambahkan semua key UI VPoint Assistant di `src/lang/en/ui.php`.
+- [ ] Tambahkan key notification/error untuk async webhook, AI skipped, dan circuit breaker bila tampil ke user.
+- [ ] Ganti semua hardcoded label di `VPointAssistant.php` dengan `__('ui.pages.chatbot....')`.
+- [ ] Ganti semua hardcoded label di blade chatbot dengan localization keys.
+- [ ] Pastikan nama brand tetap literal bila memang brand (`VPoint Assistant`, `WAHA`, `Redis`).
+- [ ] Test locale `id`: semua label tampil Bahasa Indonesia.
+- [ ] Test locale `en`: semua label tampil Bahasa Inggris.
+- [ ] Pastikan exception technical detail tidak tampil langsung ke user tanpa sanitasi/localization.

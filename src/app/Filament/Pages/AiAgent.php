@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Support\AccessPermissions;
+use App\Support\AiSettings;
 use App\Services\Ai\AiAutoReplyService;
 use App\Support\FilamentAccess;
 use App\Support\FilamentBreadcrumbs;
@@ -183,6 +184,7 @@ class AiAgent extends Page
             ->where('KodePengaturan', 'DEFAULT')
             ->update($data);
 
+        AiSettings::flush();
         $this->apiKeyBaru = '';
         $this->loadPengaturan();
 
@@ -205,6 +207,7 @@ class AiAgent extends Page
                 'TglEdit' => now(),
             ]);
 
+        AiSettings::flush();
         $this->loadPengaturan();
 
         Notification::make()

@@ -24,6 +24,7 @@ Route::prefix('auth/{provider}')
     });
 
 Route::post('/webhooks/waha/{token?}', WahaWebhookController::class)
+    ->middleware('throttle:100,1')
     ->name('webhooks.waha');
 
 Route::get('/admin/waha-media/{message}', WahaMediaController::class)

@@ -2,14 +2,25 @@
 
 namespace App\Services\Waha;
 
+use App\Support\WahaChatHelper;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
 class WahaSender
 {
+    private static int $consecutiveFailures = 0;
+
+    private static ?Carbon $circuitOpenUntil = null;
+
+    private const CIRCUIT_FAILURE_THRESHOLD = 5;
+
+    private const CIRCUIT_COOLDOWN_SECONDS = 120;
+
     /**
      * @return array{ok: bool, status?: int, body?: string, error?: string}
      */
@@ -17,7 +28,7 @@ class WahaSender
     {
         $payload = [
             'session' => $session,
-            'chatId' => $this->normalizeChatId($chatIdOrNumber),
+            'chatId' => WahaChatHelper::normalizeChatId($chatIdOrNumber),
             'text' => $text,
         ];
 
@@ -44,7 +55,7 @@ class WahaSender
 
         $payload = [
             'session' => $session,
-            'chatId' => $this->normalizeChatId($chatIdOrNumber),
+            'chatId' => WahaChatHelper::normalizeChatId($chatIdOrNumber),
             'file' => [
                 'mimetype' => $mimeType,
                 'filename' => $fileName,
@@ -70,7 +81,7 @@ class WahaSender
     public function getContactProfilePictureUrl(string $session, string $contactId, bool $refresh = false): array
     {
         $response = $this->getJson('/api/contacts/profile-picture', [
-            'contactId' => $this->normalizeContactId($contactId),
+            'contactId' => WahaChatHelper::normalizeContactId($contactId),
             'session' => $session,
             'refresh' => $refresh ? 'true' : 'false',
         ], 'WAHA_CONTACT_PROFILE_PICTURE');
@@ -94,7 +105,7 @@ class WahaSender
      */
     public function getPhoneNumberByLid(string $session, string $lid): array
     {
-        $response = $this->getJson('/api/' . rawurlencode($session) . '/lids/' . $this->encodeWahaPathId($this->normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE');
+        $response = $this->getJson('/api/'.rawurlencode($session).'/lids/'.$this->encodeWahaPathId(WahaChatHelper::normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE');
 
         if (! ($response['ok'] ?? false)) {
             return $response;
@@ -108,7 +119,7 @@ class WahaSender
         }
 
         $pn = $this->firstPhoneContactId($payload);
-        $phone = is_string($pn) ? $this->phoneNumberFromContactId($pn) : null;
+        $phone = is_string($pn) ? WahaChatHelper::normalizePhoneNumber($pn) : null;
 
         return array_merge($response, [
             'phone' => $phone,
@@ -136,6 +147,15 @@ class WahaSender
             'TglBuat' => now(),
         ]);
 
+        if ($this->isCircuitOpen()) {
+            $this->markCircuitBreakerLog($logId);
+
+            return [
+                'ok' => false,
+                'error' => __('ui.scalability.circuit_breaker_active'),
+            ];
+        }
+
         try {
             $request = Http::acceptJson()->asJson()->timeout(20);
 
@@ -144,6 +164,7 @@ class WahaSender
             }
 
             $response = $request->post($url, $payload);
+            $this->recordCircuitResult($response->successful());
 
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
                 'ResponseJson' => $response->body(),
@@ -161,6 +182,8 @@ class WahaSender
                 'error' => $response->successful() ? null : $response->body(),
             ];
         } catch (Throwable $exception) {
+            $this->recordWahaFailure();
+
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
                 'Berhasil' => false,
                 'PesanError' => $exception->getMessage(),
@@ -195,6 +218,15 @@ class WahaSender
             'TglBuat' => now(),
         ]);
 
+        if ($this->isCircuitOpen()) {
+            $this->markCircuitBreakerLog($logId);
+
+            return [
+                'ok' => false,
+                'error' => __('ui.scalability.circuit_breaker_active'),
+            ];
+        }
+
         try {
             $request = Http::acceptJson()->timeout(8);
 
@@ -203,6 +235,7 @@ class WahaSender
             }
 
             $response = $request->get($url, $query);
+            $this->recordCircuitResult($response->successful());
 
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
                 'ResponseJson' => $response->body(),
@@ -220,6 +253,8 @@ class WahaSender
                 'error' => $response->successful() ? null : $response->body(),
             ];
         } catch (Throwable $exception) {
+            $this->recordWahaFailure();
+
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
                 'Berhasil' => false,
                 'PesanError' => $exception->getMessage(),
@@ -232,42 +267,6 @@ class WahaSender
                 'error' => $exception->getMessage(),
             ];
         }
-    }
-
-    private function normalizeChatId(string $chatIdOrNumber): string
-    {
-        if (str_contains($chatIdOrNumber, '@')) {
-            return str_ends_with($chatIdOrNumber, '@s.whatsapp.net')
-                ? str_replace('@s.whatsapp.net', '@c.us', $chatIdOrNumber)
-                : $chatIdOrNumber;
-        }
-
-        $number = preg_replace('/[^0-9]/', '', $chatIdOrNumber) ?: $chatIdOrNumber;
-
-        return $number.'@c.us';
-    }
-
-    private function normalizeContactId(string $contactId): string
-    {
-        $contactId = trim($contactId);
-
-        if (str_contains($contactId, '@')) {
-            return str_ends_with($contactId, '@s.whatsapp.net')
-                ? str_replace('@s.whatsapp.net', '@c.us', $contactId)
-                : $contactId;
-        }
-
-        $number = preg_replace('/[^0-9]/', '', $contactId) ?: $contactId;
-
-        return $number.'@c.us';
-    }
-
-    private function phoneNumberFromContactId(string $contactId): ?string
-    {
-        $number = preg_replace('/@.+$/', '', $contactId) ?: $contactId;
-        $number = preg_replace('/:.+$/', '', $number) ?: $number;
-
-        return preg_replace('/[^0-9]/', '', $number) ?: null;
     }
 
     private function firstPhoneContactId(mixed $payload): ?string
@@ -305,5 +304,68 @@ class WahaSender
     private function encodeWahaPathId(string $id): string
     {
         return str_replace('%40', '@', rawurlencode($id));
+    }
+
+    private function isCircuitOpen(): bool
+    {
+        if (! self::$circuitOpenUntil) {
+            return false;
+        }
+
+        if (now()->greaterThanOrEqualTo(self::$circuitOpenUntil)) {
+            self::$circuitOpenUntil = null;
+            self::$consecutiveFailures = 0;
+            Log::info('WAHA circuit breaker reset.');
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function markCircuitBreakerLog(string $logId): void
+    {
+        DB::table('TLogIntegrasi')->where('Id', $logId)->update([
+            'Berhasil' => false,
+            'PesanError' => __('ui.scalability.circuit_breaker_active'),
+            'TglResponse' => now(),
+            'TglEdit' => now(),
+        ]);
+    }
+
+    private function recordCircuitResult(bool $success): void
+    {
+        if ($success) {
+            $this->recordWahaSuccess();
+
+            return;
+        }
+
+        $this->recordWahaFailure();
+    }
+
+    private function recordWahaSuccess(): void
+    {
+        if (self::$consecutiveFailures > 0 || self::$circuitOpenUntil) {
+            Log::info('WAHA circuit breaker closed after successful response.');
+        }
+
+        self::$consecutiveFailures = 0;
+        self::$circuitOpenUntil = null;
+    }
+
+    private function recordWahaFailure(): void
+    {
+        self::$consecutiveFailures++;
+
+        if (self::$consecutiveFailures < self::CIRCUIT_FAILURE_THRESHOLD || self::$circuitOpenUntil) {
+            return;
+        }
+
+        self::$circuitOpenUntil = now()->addSeconds(self::CIRCUIT_COOLDOWN_SECONDS);
+        Log::critical('WAHA circuit breaker opened after consecutive failures.', [
+            'failures' => self::$consecutiveFailures,
+            'open_until' => self::$circuitOpenUntil?->toDateTimeString(),
+        ]);
     }
 }

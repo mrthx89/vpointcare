@@ -880,3 +880,41 @@ VALUES (
     'DraftLokal'
 );
 GO
+
+/* Added by scalability-optimization-and-chatbot */
+IF OBJECT_ID(N'TChatbotInternal', 'U') IS NULL
+BEGIN
+    CREATE TABLE TChatbotInternal (
+        Id uniqueidentifier NOT NULL CONSTRAINT DF_TChatbotInternal_Id DEFAULT NEWSEQUENTIALID(),
+        IdPengguna uniqueidentifier NOT NULL,
+        PeranPengirim varchar(20) NOT NULL,
+        IsiPesan nvarchar(max) NOT NULL,
+        IdAiRespon uniqueidentifier NULL,
+        KonteksJson nvarchar(max) NULL,
+        TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatbotInternal_TglBuat DEFAULT SYSDATETIME(),
+        CONSTRAINT PK_TChatbotInternal PRIMARY KEY (Id),
+        CONSTRAINT FK_TChatbotInternal_MPengguna FOREIGN KEY (IdPengguna) REFERENCES MPengguna(Id),
+        CONSTRAINT CK_TChatbotInternal_Peran CHECK (PeranPengirim IN ('user', 'assistant'))
+    );
+END;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatbotInternal_Pengguna_Tgl' AND object_id = OBJECT_ID('TChatbotInternal'))
+    CREATE INDEX IX_TChatbotInternal_Pengguna_Tgl ON TChatbotInternal (IdPengguna, TglBuat DESC);
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_IdPesanWaha_Partial' AND object_id = OBJECT_ID('TChatD'))
+    CREATE INDEX IX_TChatD_IdPesanWaha_Partial ON TChatD (IdPesanWaha) WHERE IdPesanWaha IS NOT NULL;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_Arah_Dikirim_Tgl' AND object_id = OBJECT_ID('TChatD'))
+    CREATE INDEX IX_TChatD_Arah_Dikirim_Tgl ON TChatD (ArahPesan, DikirimOlehCustomer, TglPesan DESC) INCLUDE (IdChat, IsiPesan);
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_IdChat_Arah_Ai_Tgl' AND object_id = OBJECT_ID('TChatD'))
+    CREATE INDEX IX_TChatD_IdChat_Arah_Ai_Tgl ON TChatD (IdChat, ArahPesan, DihasilkanOlehAi, TglPesan DESC);
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_TglPesan_Arah_Status' AND object_id = OBJECT_ID('TChatD'))
+    CREATE INDEX IX_TChatD_TglPesan_Arah_Status ON TChatD (TglPesan) INCLUDE (IdChat, ArahPesan, DihasilkanOlehAi, StatusKirim);
+GO

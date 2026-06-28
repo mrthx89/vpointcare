@@ -855,3 +855,38 @@ Browser (Laravel Echo)
         │ Cache/   │ │  Server  │ │  Server  │
         │ Queue    │ │  (DB)    │ │          │
         └──────────┘ └──────────┘ └──────────┘
+
+## Addendum: Multilanguage Preservation
+
+Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existing (`src/lang/id/ui.php` dan `src/lang/en/ui.php`).
+
+### Rules
+
+- Semua label UI baru wajib memakai `__('ui....')`, bukan hardcoded string.
+- Semua notification success/error baru wajib memakai key localization.
+- Semua page title, navigation label, placeholder, button, modal title, helper text, empty state, loading text, dan confirmation text wajib tersedia minimal di `id` dan `en`.
+- Nama brand seperti `VPoint Assistant`, `WAHA`, `Redis`, `OpenAI`, `DeepSeek`, `OpenRouter`, `NineRouter` boleh tetap literal.
+- Error teknis dari exception boleh disimpan di log, tetapi pesan yang tampil ke user harus localized dan disanitasi.
+- Jika menambah permission/menu baru, label Indonesia dan Inggris harus sinkron.
+
+### Required Localization Keys
+
+- `ui.pages.chatbot.title`
+- `ui.pages.chatbot.navigation_label`
+- `ui.pages.chatbot.empty_title`
+- `ui.pages.chatbot.empty_description`
+- `ui.pages.chatbot.placeholder`
+- `ui.pages.chatbot.send`
+- `ui.pages.chatbot.clear_history`
+- `ui.pages.chatbot.clear_confirm`
+- `ui.pages.chatbot.typing`
+- `ui.pages.chatbot.error_provider_missing`
+- `ui.pages.chatbot.error_provider_failed`
+- `ui.pages.chatbot.error_empty_response`
+- `ui.pages.chatbot.knowledge_used`
+- `ui.pages.chatbot.history_cleared`
+- `ui.pages.chatbot.message_required`
+- `ui.pages.chatbot.message_max`
+- `ui.scalability.webhook_queued`
+- `ui.scalability.circuit_breaker_active`
+- `ui.scalability.ai_reply_skipped_cs_replied`

@@ -262,3 +262,21 @@ Sistem SHALL mencegah AI menjawab chat yang sudah dijawab CS manual.
 - **THEN** sistem SHALL cek apakah ada reply CS setelah trigger
 - **AND** jika CS sudah reply, job SHALL di-cancel (delete)
 - **AND** AI tidak mengirim reply tambahan
+
+### Requirement: Multilanguage Preservation
+
+Sistem SHALL mempertahankan multilanguage untuk seluruh fitur optimasi dan VPoint Assistant.
+
+#### Scenario: Label UI chatbot ditampilkan
+
+- **GIVEN** user memakai locale `id` atau `en`
+- **WHEN** user membuka VPoint Assistant
+- **THEN** semua title, navigation label, placeholder, button, empty state, loading text, dan confirmation text SHALL tampil sesuai locale aktif
+- **AND** tidak boleh ada hardcoded UI string kecuali nama brand
+
+#### Scenario: Error AI provider terjadi
+
+- **GIVEN** AI provider gagal merespons
+- **WHEN** error ditampilkan ke user
+- **THEN** pesan user-facing SHALL memakai localization key
+- **AND** detail teknis SHALL hanya masuk log dan tidak membocorkan secret

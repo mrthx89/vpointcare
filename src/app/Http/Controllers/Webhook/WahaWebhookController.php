@@ -2,18 +2,14 @@
 
 namespace App\Http\Controllers\Webhook;
 
-use App\Events\WahaInboxUpdated;
 use App\Http\Controllers\Controller;
-use App\Services\Ai\AiAutoReplyService;
-use App\Services\Waha\WahaWebhookProcessor;
+use App\Jobs\ProcessWebhookJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class WahaWebhookController extends Controller
 {
-    public function __invoke(Request $request, WahaWebhookProcessor $processor, AiAutoReplyService $autoReply, ?string $token = null): JsonResponse
+    public function __invoke(Request $request, ?string $token = null): JsonResponse
     {
         $expectedToken = config('services.waha.webhook_token');
 
@@ -33,28 +29,13 @@ class WahaWebhookController extends Controller
             ], 403);
         }
 
-        $result = $processor->process($request->all());
+        ProcessWebhookJob::dispatch($request->all());
 
-        if (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id'])) {
-            // Broadcast real-time ke semua browser via Reverb WebSocket.
-            broadcast(new WahaInboxUpdated((string) $result['chat_id']))->toOthers();
-
-            try {
-                $result['auto_reply'] = $autoReply->handleIncomingChat((string) $result['chat_id']);
-            } catch (Throwable $exception) {
-                Log::error('AI auto reply failed after WAHA webhook.', [
-                    'chat_id' => $result['chat_id'],
-                    'message' => $exception->getMessage(),
-                ]);
-
-                $result['auto_reply'] = [
-                    'ok' => false,
-                    'message' => __('ui.controllers.webhook.ai_failed'),
-                ];
-            }
-        }
-
-        return response()->json($result);
+        return response()->json([
+            'ok' => true,
+            'queued' => true,
+            'message' => __('ui.scalability.webhook_queued'),
+        ]);
     }
 
     private function validHmacSignature(Request $request, string $hmacKey): bool
