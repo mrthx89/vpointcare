@@ -17,14 +17,9 @@ use Throwable;
 class InternalChatbotService
 {
     private const MAX_CONTEXT_MESSAGES = 20;
-
     private const KNOWLEDGE_SEARCH_LIMIT = 5;
-
     private const KNOWLEDGE_SEARCH_LIMIT_LIGHT = 2;
 
-    /**
-     * @return array<string, mixed>
-     */
     public function ask(string $userId, string $message, array $options = []): array
     {
         $settings = AiSettings::get();
@@ -85,23 +80,29 @@ class InternalChatbotService
             $knowledge
         )));
 
+        $parsed = $this->parseStructuredReply($reply);
+
         $assistantMessageId = (string) Str::orderedUuid();
         DB::table('TChatbotInternal')->insert([
             'Id' => $assistantMessageId,
             'IdPengguna' => $userId,
             'PeranPengirim' => ChatbotMessage::PERAN_ASSISTANT,
-            'IsiPesan' => $reply,
+            'IsiPesan' => $parsed['visible'],
             'KonteksJson' => json_encode([
                 'knowledge_used' => $knowledgeTitles,
                 'response_mode' => $mode,
                 'knowledge_mode' => $knowledgeMode,
+                'suggested_replies' => $parsed['suggested'],
+                'reasoning' => $parsed['reasoning'],
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglBuat' => now(),
         ]);
 
         return [
             'ok' => true,
-            'reply' => $reply,
+            'reply' => $parsed['visible'],
+            'reasoning' => $parsed['reasoning'],
+            'suggested_replies' => $parsed['suggested'],
             'message_id' => $assistantMessageId,
             'knowledge_used' => $knowledgeTitles,
             'response_mode' => $mode,
@@ -179,11 +180,6 @@ class InternalChatbotService
             ->all();
     }
 
-    /**
-     * @param array<int, object> $history
-     * @param array<int, object> $knowledge
-     * @return array<int, array{role: string, content: string}>
-     */
     private function messagesForProvider(string $userId, array $history, array $knowledge, string $message, string $mode, string $knowledgeMode, array $attachments): array
     {
         $attachmentContext = $this->attachmentContext($attachments);
@@ -208,7 +204,6 @@ class InternalChatbotService
         return $messages;
     }
 
-    /** @param array<int, object> $knowledge */
     private function buildSystemPrompt(string $userId, array $knowledge, string $mode, string $knowledgeMode, string $attachmentContext): string
     {
         $user = DB::table('MPengguna as p')
@@ -232,11 +227,31 @@ class InternalChatbotService
         $name = (string) ($user->NamaPengguna ?? 'User');
         $role = (string) ($user->NamaPeran ?? 'User');
         $modeInstruction = $mode === 'light'
-            ? 'Mode jawaban: Ringan. Jawab lebih singkat, langsung ke langkah praktis, dan hindari penjelasan terlalu panjang.'
-            : 'Mode jawaban: Cepat. Jawab tetap praktis namun boleh lebih lengkap bila perlu.';
+            ? 'Mode jawaban: Ringan. Jawab lebih singkat, langsung ke langkah praktis.'
+            : 'Mode jawaban: Cepat. Jawab praktis namun boleh lebih lengkap.';
         $knowledgeInstruction = $knowledgeMode === 'none'
-            ? 'Mode knowledge: Tanpa Knowledge. Jangan memakai knowledge base; jawab dari konteks chat dan file user saja.'
-            : 'Mode knowledge: All Knowledge. Gunakan knowledge base yang tersedia sebagai konteks utama bila relevan.';
+            ? 'Mode knowledge: Tanpa Knowledge. Jangan pakai knowledge base.'
+            : 'Mode knowledge: All Knowledge. Gunakan knowledge base yang relevan.';
+
+        $reasoningRules = <<<'REASONING'
+
+Setelah memberikan jawaban utama yang ramah dan praktis, tambahkan analisis internal terstruktur berikut:
+
+**Goals:** [Apa tujuan utama percakapan ini - 1 kalimat]
+**Constraints:** [Aturan/batasan yang tidak boleh dilanggar - max 2 poin]
+**Context:** [Informasi yang sudah diketahui tentang user, role, percakapan - max 3 poin]
+**Intent:** [Apa sebenarnya yang diminta/dibutuhkan user - 1 kalimat]
+**Plan:** [Langkah-langkah menjawab - max 3 poin]
+**Tools:** [Knowledge/RAG/database yang dipakai, atau "Tidak perlu"]
+
+Kemudian berikan 3-4 opsi tindak lanjut untuk user:
+
+**Selanjutnya:**
+- [Opsi pertanyaan spesifik 1 untuk memperjelas atau melanjutkan]
+- [Opsi pertanyaan spesifik 2]
+- [Opsi pertanyaan spesifik 3]
+- [Opsi pertanyaan spesifik 4 bila perlu]
+REASONING;
 
         return <<<PROMPT
 Anda adalah VPoint Assistant, chatbot internal untuk tim VPoint Care.
@@ -252,7 +267,8 @@ Aturan jawaban:
 - Jika memakai knowledge base, rangkum dengan jelas dan jangan mengarang detail yang tidak ada.
 - Jika tidak tahu, katakan tidak yakin dan sarankan cek menu terkait atau hubungi admin/supervisor.
 - Jangan menampilkan API key, token, password, atau rahasia teknis.
-- Format jawaban dengan Markdown yang rapi. Pakai heading, bullet, tabel, dan fenced code block bila membantu.
+- Format jawaban utama dengan Markdown rapi. Pakai heading, bullet, tabel, dan fenced code block bila membantu.
+{$reasoningRules}
 {$knowledgeContext}
 {$attachmentContext}
 PROMPT;
@@ -274,6 +290,41 @@ PROMPT;
         }
 
         return $context;
+    }
+
+    /** @return array{visible: string, reasoning: string, suggested: array<int, string>} */
+    private function parseStructuredReply(string $reply): array
+    {
+        $suggested = [];
+        $reasoning = '';
+        $visible = $reply;
+
+        // Extract "Selanjutnya:" section for suggested replies
+        if (preg_match('/\*\*Selanjutnya:\*\*\s*(.+?)(?:$|\*\*Response)/s', $reply, $m)) {
+            preg_match_all('/^\s*[-*]\s+(.+)$/m', $m[1], $options);
+            if (! empty($options[1])) {
+                $suggested = array_map('trim', $options[1]);
+                $suggested = array_slice($suggested, 0, 4);
+            }
+        }
+
+        // Extract reasoning between **Goals:** and **Selanjutnya:** (or end)
+        if (preg_match('/(\*\*Goals:\*\*[\s\S]*?)(?=\*\*Selanjutnya:|\*\*Response:|\z)/', $reply, $rm)) {
+            $reasoning = trim($rm[1]);
+        }
+
+        // Remove reasoning + suggested blocks from visible reply
+        $visible = preg_replace([
+            '/\*\*Goals:\*\*[\s\S]*?(?=\*\*Selanjutnya:|\*\*Response:|\z)/s',
+            '/\*\*Selanjutnya:\*\*[\s\S]*?(?=\*\*Response:|\z)/s',
+        ], '', $reply);
+        $visible = trim($visible);
+
+        return [
+            'visible' => $visible ?: $reply,
+            'reasoning' => $reasoning,
+            'suggested' => $suggested,
+        ];
     }
 
     /** @param array<int, array{role: string, content: string}> $messages */
@@ -335,7 +386,6 @@ PROMPT;
         return $text;
     }
 
-    /** @param array<int, array<string, string>> $messages */
     private function messagesToTranscript(array $messages): string
     {
         return collect($messages)

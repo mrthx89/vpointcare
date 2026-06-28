@@ -26,7 +26,23 @@
         }"
         class="relative flex h-[calc(100dvh-6rem)] min-h-0 flex-col overflow-hidden rounded-3xl bg-gray-50 dark:bg-gray-950"
     >
-        <main x-ref="chatArea" class="min-h-0 flex-1 overflow-y-auto px-4 pb-72 pt-6 sm:px-6" x-on:paste.document="handlePaste($event)">
+        <div class="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-4 pt-3 sm:px-6">
+            <div class="pointer-events-auto flex w-full max-w-3xl justify-end">
+                @if (! empty($messages))
+                    <button
+                        type="button"
+                        wire:click="clearHistory"
+                        wire:confirm="{{ __('ui.chatbot.clear_confirm') }}"
+                        class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm backdrop-blur transition hover:border-danger-200 hover:bg-danger-50 hover:text-danger-600 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-300 dark:hover:border-danger-500/40 dark:hover:bg-danger-500/10 dark:hover:text-danger-300"
+                    >
+                        <x-heroicon-o-trash class="h-4 w-4" />
+                        <span>{{ __('ui.chatbot.clear_history') }}</span>
+                    </button>
+                @endif
+            </div>
+        </div>
+
+        <main x-ref="chatArea" class="min-h-0 flex-1 overflow-y-auto px-4 pb-72 pt-16 sm:px-6" x-on:paste.document="handlePaste($event)">
             <div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
                 @if (empty($messages))
                     <div class="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center text-gray-500 dark:text-gray-400">
@@ -120,6 +136,19 @@
                         </div>
                     @endif
 
+                    @if (! empty($suggestedReplies))
+                        <div class="flex max-h-24 flex-wrap gap-1 overflow-y-auto px-2 pt-1">
+                            @foreach ($suggestedReplies as $reply)
+                                <button
+                                    type="button"
+                                    wire:click="useSuggestedReply(@js($reply))"
+                                    class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-left text-xs font-medium text-gray-700 transition hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-200 dark:hover:border-primary-500/40 dark:hover:bg-primary-500/10 dark:hover:text-primary-200"
+                                >
+                                    {{ $reply }}
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                     <form wire:submit.prevent="sendMessage" class="flex w-full items-end gap-2">
                         <label class="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100" title="{{ __('ui.chatbot.attach_file') }}">
                             <x-heroicon-o-paper-clip class="h-5 w-5" />
@@ -132,15 +161,17 @@
                             maxlength="4000"
                             rows="1"
                             x-on:keydown.enter.prevent="$event.shiftKey ? ($event.target.value += '\n') : $wire.sendMessage()"
-                            x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
-                            x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
-                            class="block max-h-[180px] min-h-10 flex-1 resize-none border-none bg-transparent px-1 py-2.5 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 disabled:text-gray-500 dark:text-white dark:placeholder:text-gray-500"
+                            x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, Math.floor(window.innerHeight * 0.6))+'px'"
+                            x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, Math.floor(window.innerHeight * 0.6))+'px'"
+                            wire:loading.attr="disabled"
+                            wire:target="sendMessage"
+                            class="block max-h-[60vh] min-h-10 flex-1 resize-none overflow-y-auto border-none bg-transparent px-1 py-2.5 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 disabled:cursor-wait disabled:text-gray-500 dark:text-white dark:placeholder:text-gray-500"
                         ></textarea>
 
                         <div x-data="{ open: false }" class="relative shrink-0">
                             <button type="button" x-on:click="open = ! open" x-on:click.outside="open = false" class="inline-flex h-10 items-center gap-1 rounded-full px-3 text-xs font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
                                 <span>{{ __('ui.chatbot.mode_'.$responseMode) }}</span>
-                                <span class="hidden sm:inline">· {{ __('ui.chatbot.knowledge_'.$knowledgeMode) }}</span>
+                                <span class="hidden sm:inline">&middot; {{ __('ui.chatbot.knowledge_'.$knowledgeMode) }}</span>
                                 <x-heroicon-m-chevron-down class="h-4 w-4" />
                             </button>
 
@@ -168,10 +199,18 @@
                             </div>
                         </div>
 
-                        <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm transition hover:bg-primary-500 disabled:opacity-50">
-                            <x-heroicon-m-paper-airplane class="h-5 w-5" />
+                        <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm transition hover:bg-primary-500 disabled:cursor-wait disabled:opacity-50">
+                            <x-heroicon-m-paper-airplane wire:loading.remove wire:target="sendMessage,attachments" class="h-5 w-5" />
+                            <svg wire:loading wire:target="sendMessage,attachments" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+                            </svg>
                         </button>
                     </form>
+
+                    <div wire:loading wire:target="sendMessage" class="px-3 text-center text-[11px] font-medium text-primary-500 dark:text-primary-300">
+                        {{ __('ui.chatbot.typing') }}
+                    </div>
 
                     <div class="px-3 pb-0.5 text-center text-[11px] text-gray-400 dark:text-gray-500">
                         {{ __('ui.chatbot.paste_hint') }}
@@ -182,6 +221,7 @@
     </div>
 
     <style>
+        [x-cloak]{display:none!important}
         .vpoint-ai-markdown :where(h1,h2,h3){font-weight:700;margin:.65rem 0 .35rem}.vpoint-ai-markdown h1{font-size:1.15rem}.vpoint-ai-markdown h2{font-size:1.05rem}.vpoint-ai-markdown h3{font-size:1rem}.vpoint-ai-markdown p{margin:.45rem 0}.vpoint-ai-markdown ul,.vpoint-ai-markdown ol{margin:.45rem 0 .45rem 1.25rem}.vpoint-ai-markdown ul{list-style:disc}.vpoint-ai-markdown ol{list-style:decimal}.vpoint-ai-markdown code{border-radius:.35rem;background:rgba(148,163,184,.22);padding:.1rem .3rem;font-size:.86em}.vpoint-ai-markdown pre{margin:.7rem 0;overflow:auto;border-radius:.85rem;background:#020617;color:#e2e8f0;padding:1rem}.vpoint-ai-markdown pre code{background:transparent;padding:0;color:inherit}.vpoint-ai-markdown table{margin:.7rem 0;width:100%;border-collapse:collapse;font-size:.9em}.vpoint-ai-markdown th,.vpoint-ai-markdown td{border:1px solid rgba(148,163,184,.35);padding:.45rem}.vpoint-ai-markdown blockquote{border-left:3px solid rgba(99,102,241,.65);padding-left:.8rem;color:#64748b}
     </style>
 </x-filament-panels::page>

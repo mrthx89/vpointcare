@@ -930,3 +930,26 @@ Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existi
 ### Files
 - `src/resources/views/filament/pages/vpoint-assistant.blade.php`
 - `src/resources/lang/id/ui.php` / `src/resources/lang/en/ui.php` untuk label `paste_hint`.
+
+## Addendum 2026-06-28-C — Structured Reasoning & Quick Replies
+
+### Istilah Fitur
+- Fitur ini disebut **structured reasoning + quick replies**.
+- Structured reasoning meminta model menyusun Goals, Constraints, Context, Intent, Plan, Tools, lalu Response.
+- Quick replies adalah opsi tindak lanjut yang dihasilkan model agar user bisa klik pilihan tanpa mengetik ulang.
+
+### Implementasi
+- `InternalChatbotService` menginstruksikan model untuk menambahkan blok reasoning internal dan section `Selanjutnya`.
+- Service mem-parse output AI:
+  - `reply` yang tampil ke user hanya jawaban utama.
+  - `reasoning` disimpan di `KonteksJson` untuk audit/debug.
+  - `suggested_replies` disimpan di `KonteksJson` dan dikirim ke Livewire.
+- `VPointAssistant` menyimpan `suggestedReplies` sebagai state Livewire.
+- UI menampilkan quick reply chips di atas composer floating.
+- Klik chip mengisi textarea, user tetap bisa edit sebelum menekan send.
+
+### Acceptance Criteria
+- Jawaban AI tidak menampilkan Goals/Constraints/Plan ke user.
+- Opsi tindak lanjut tampil sebagai chips setelah AI menjawab.
+- Klik chip mengisi input chat.
+- History memuat ulang suggested replies terakhir dari `KonteksJson`.

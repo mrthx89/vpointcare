@@ -25,9 +25,7 @@ class VPointAssistant extends Page
     protected string $view = 'filament.pages.vpoint-assistant';
 
     public string $userMessage = '';
-
     public string $responseMode = 'fast';
-
     public string $knowledgeMode = 'all';
 
     /** @var array<int, TemporaryUploadedFile> */
@@ -35,6 +33,9 @@ class VPointAssistant extends Page
 
     /** @var array<int, array<string, mixed>> */
     public array $messages = [];
+
+    /** @var array<int, string> */
+    public array $suggestedReplies = [];
 
     public bool $isTyping = false;
 
@@ -96,6 +97,7 @@ class VPointAssistant extends Page
         $attachmentNames = array_column($attachmentContext, 'name');
         $this->userMessage = '';
         $this->attachments = [];
+        $this->suggestedReplies = [];
         $this->isTyping = true;
 
         $this->messages[] = [
@@ -106,6 +108,8 @@ class VPointAssistant extends Page
             'attachments' => $attachmentNames,
             'response_mode' => $this->responseMode,
             'knowledge_mode' => $this->knowledgeMode,
+            'suggested_replies' => [],
+            'reasoning' => '',
         ];
 
         $result = $chatbot->ask($this->penggunaId(), $message, [
@@ -116,6 +120,7 @@ class VPointAssistant extends Page
         $this->isTyping = false;
 
         if (($result['ok'] ?? false) === true) {
+            $suggestedReplies = array_values(array_filter((array) ($result['suggested_replies'] ?? [])));
             $this->messages[] = [
                 'role' => 'assistant',
                 'content' => (string) $result['reply'],
@@ -124,7 +129,10 @@ class VPointAssistant extends Page
                 'message_id' => $result['message_id'] ?? null,
                 'response_mode' => $result['response_mode'] ?? $this->responseMode,
                 'knowledge_mode' => $result['knowledge_mode'] ?? $this->knowledgeMode,
+                'suggested_replies' => $suggestedReplies,
+                'reasoning' => (string) ($result['reasoning'] ?? ''),
             ];
+            $this->suggestedReplies = $suggestedReplies;
 
             return;
         }
@@ -135,7 +143,15 @@ class VPointAssistant extends Page
             'time' => now()->format('H:i'),
             'knowledge' => [],
             'error' => true,
+            'suggested_replies' => [],
+            'reasoning' => '',
         ];
+        $this->suggestedReplies = [];
+    }
+
+    public function useSuggestedReply(string $reply): void
+    {
+        $this->userMessage = $reply;
     }
 
     public function createKnowledgeDraft(int $index): void
@@ -143,7 +159,6 @@ class VPointAssistant extends Page
         abort_unless(FilamentAccess::can(AccessPermissions::KNOWLEDGE_MANAGE), 403);
 
         $message = $this->messages[$index] ?? null;
-
         if (! is_array($message) || ($message['role'] ?? '') !== 'assistant' || trim((string) ($message['content'] ?? '')) === '') {
             return;
         }
@@ -172,6 +187,8 @@ class VPointAssistant extends Page
                     'message_id' => $message['message_id'] ?? null,
                     'response_mode' => $message['response_mode'] ?? null,
                     'knowledge_mode' => $message['knowledge_mode'] ?? null,
+                    'suggested_replies' => $message['suggested_replies'] ?? [],
+                    'reasoning' => $message['reasoning'] ?? '',
                 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'DibuatOlehAi' => true,
                 'DibuatOleh' => Auth::id(),
@@ -192,6 +209,7 @@ class VPointAssistant extends Page
         $this->messages = [];
         $this->userMessage = '';
         $this->attachments = [];
+        $this->suggestedReplies = [];
 
         Notification::make()
             ->title(__('ui.chatbot.history_cleared'))
@@ -222,30 +240,32 @@ class VPointAssistant extends Page
                     'message_id' => (string) ($row->Id ?? ''),
                     'response_mode' => is_array($context) ? ($context['response_mode'] ?? null) : null,
                     'knowledge_mode' => is_array($context) ? ($context['knowledge_mode'] ?? null) : null,
+                    'suggested_replies' => is_array($context) ? array_values((array) ($context['suggested_replies'] ?? [])) : [],
+                    'reasoning' => is_array($context) ? (string) ($context['reasoning'] ?? '') : '',
                 ];
             })
             ->values()
             ->all();
+
+        $latest = collect(array_reverse($this->messages))
+            ->first(fn (array $message): bool => ($message['role'] ?? '') === 'assistant' && ! empty($message['suggested_replies']));
+        $this->suggestedReplies = is_array($latest) ? array_values((array) ($latest['suggested_replies'] ?? [])) : [];
     }
 
     /** @return array<int, array{name: string, mime: string, size: int, content: string}> */
     private function prepareAttachments(): array
     {
         $files = [];
-
         foreach ($this->attachments as $file) {
             if (! $file instanceof TemporaryUploadedFile) {
                 continue;
             }
-
             $mime = (string) ($file->getMimeType() ?: 'application/octet-stream');
-            $content = $this->extractAttachmentText($file, $mime);
-
             $files[] = [
                 'name' => $file->getClientOriginalName(),
                 'mime' => $mime,
                 'size' => (int) $file->getSize(),
-                'content' => $content,
+                'content' => $this->extractAttachmentText($file, $mime),
             ];
         }
 
@@ -262,16 +282,13 @@ class VPointAssistant extends Page
             return __('ui.chatbot.attachment_binary_notice', ['name' => $file->getClientOriginalName(), 'mime' => $mime]);
         }
 
-        $content = @file_get_contents($file->getRealPath()) ?: '';
-
-        return Str::limit($content, 12000, '');
+        return Str::limit(@file_get_contents($file->getRealPath()) ?: '', 12000, '');
     }
 
     private function titleFromMarkdown(string $content): string
     {
         foreach (preg_split('/\R/u', $content) ?: [] as $line) {
             $line = trim(preg_replace('/^#+\s*/', '', $line) ?: '');
-
             if ($line !== '') {
                 return $line;
             }
