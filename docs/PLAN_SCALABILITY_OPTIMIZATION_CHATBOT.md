@@ -890,3 +890,43 @@ Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existi
 - `ui.scalability.webhook_queued`
 - `ui.scalability.circuit_breaker_active`
 - `ui.scalability.ai_reply_skipped_cs_replied`
+
+## Addendum 2026-06-28 — VPoint Assistant UX & Scale-up
+
+### Fitur Baru
+- Attach file di internal chatbot: user bisa melampirkan file teks seperti `.txt`, `.md`, `.csv`, `.json`, `.log`, `.sql`, `.xml`, `.yml`, `.yaml`; konten file masuk ke konteks AI secara terbatas agar token tetap terkendali.
+- Mode AI `Ringan` / `Cepat`: `Ringan` membatasi knowledge retrieval dan menginstruksikan jawaban lebih pendek; `Cepat` memberi jawaban lebih lengkap namun tetap praktis.
+- Mode knowledge `All Knowledge` / `Tanpa Knowledge`: user bisa memaksa AI memakai knowledge base atau menjawab hanya dari chat + file.
+- Draft knowledge dari jawaban AI: jawaban assistant dapat dikirim menjadi `TAiDraftPengetahuan` untuk review dan approval sebelum masuk `MPengetahuan`.
+- Copy clipboard: setiap jawaban AI punya icon copy seperti ChatGPT.
+- Markdown rendering: jawaban AI dirender sebagai HTML aman sehingga heading, bullet, tabel, inline code, dan code block tampil terstruktur tanpa menampilkan literal `##`.
+
+### Alasan Teknis
+- Attach file mempercepat troubleshooting karena user tidak perlu copy-paste log panjang, namun tetap dibatasi 5 MB per file dan 12.000 karakter teks per file.
+- Mode `Ringan` mengurangi beban token/provider untuk pertanyaan operasional sederhana.
+- Mode `Tanpa Knowledge` berguna saat user bertanya tentang file/log spesifik dan tidak ingin retrieval knowledge mengganggu konteks.
+- Draft knowledge menjaga governance: AI hanya membuat draft, manusia tetap review sebelum knowledge dipublish.
+- Markdown + copy meningkatkan produktivitas CS/admin saat menyalin command, SOP, atau draft jawaban.
+
+### Catatan Implementasi
+- File non-teks tetap dicatat sebagai attachment, tetapi kontennya tidak diekstrak otomatis.
+- Draft knowledge deduplicate memakai `HashKonten` agar jawaban yang sama tidak membuat draft berulang.
+- Multilanguage ID/EN ditambahkan untuk label mode, attach file, copy, dan draft.
+
+## Addendum 2026-06-28-B — Composed Layout & Clipboard Paste
+
+### Masalah Sebelumnya
+- Composer (input chat) sering tertutup karena area chat menggunakan `h-[calc(100dvh-10.5rem)]` yang tidak stabil di dalam page Filament.
+- Tidak ada cara menempelkan file/gambar dari clipboard.
+
+### Perbaikan
+- Ubah layout menjadi komposer sticky mirip ChatGPT: area chat `flex-1 overflow-y-auto` dan composer `shrink-0` selalu terlihat di bawah.
+- Composer melebar otomatis hingga `max-h-[180px]` saat user mengetik panjang.
+- Auto-scroll cerdas: tetap mengikuti pesan baru hanya jika user sudah di bawah; jika user scroll ke atas, tidak memaksa scroll.
+- Paste clipboard: event `paste` di level document menangkap file/gambar lalu memasukkannya ke `wire:model="attachments"` lewat `DataTransfer`, sehingga user tinggal Ctrl+V.
+- Tombol kirim `Enter`, `Shift+Enter` untuk baris baru.
+- Layout dibatasi `max-w-3xl` dengan padding bawah agar mirip chat modern.
+
+### Files
+- `src/resources/views/filament/pages/vpoint-assistant.blade.php`
+- `src/resources/lang/id/ui.php` / `src/resources/lang/en/ui.php` untuk label `paste_hint`.

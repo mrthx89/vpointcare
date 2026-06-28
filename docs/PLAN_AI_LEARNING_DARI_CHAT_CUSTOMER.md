@@ -347,3 +347,19 @@ CS yang sedang membuka chat bisa memilih mode knowledge AI khusus untuk chat ter
 - **Tanpa Knowledge**: AI menjawab hanya dari prompt dan riwayat chat.
 
 Pilihan ini disimpan di `TChat`, sehingga hanya berlaku untuk chat itu dan tidak mengubah setting global AI Agent.
+
+## Addendum 2026-06-28 — Integrasi VPoint Assistant Internal
+
+### Scope Tambahan
+- VPoint Assistant dapat membuat `TAiDraftPengetahuan` dari jawaban AI internal melalui tombol draft pada bubble assistant.
+- Draft memakai `HashKonten` untuk deduplikasi agar jawaban yang sama tidak membuat draft berulang.
+- Draft dari assistant tetap masuk alur review existing: reviewer dapat approve menjadi `MPengetahuan`, revisi, reject, atau archive.
+- Mode `All Knowledge` membantu assistant menyusun draft berbasis knowledge aktif; mode `Tanpa Knowledge` membantu membuat draft dari file/log/percakapan user tanpa retrieval knowledge.
+- Attach file teks menjadi sumber tambahan untuk draft, tetapi file non-teks hanya dicatat sebagai metadata karena ekstraksi konten belum otomatis.
+
+### Acceptance Criteria
+- User dengan `knowledge.manage` melihat tombol buat draft pada jawaban VPoint Assistant.
+- Klik tombol draft membuat record `TAiDraftPengetahuan` status `Draft`.
+- Draft yang sama tidak diduplikasi bila tombol ditekan ulang.
+- Draft dapat diproses di resource Draft Pengetahuan AI existing.
+- Label UI tersedia dalam Bahasa Indonesia dan English.

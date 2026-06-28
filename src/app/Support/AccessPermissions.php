@@ -160,8 +160,8 @@ class AccessPermissions
         return [
             self::DASHBOARD_VIEW => self::sidebarPermissionMenu($definitions, self::DASHBOARD_VIEW, null, 1, 'heroicon-o-home'),
             self::INBOX_VIEW => self::sidebarPermissionMenu($definitions, self::INBOX_VIEW, 'operasional', 10, 'heroicon-o-chat-bubble-left-right'),
-            self::CHAT_HISTORY_VIEW => self::sidebarPermissionMenu($definitions, self::CHAT_HISTORY_VIEW, 'operasional', 11, 'heroicon-o-clock'),
             self::CHATBOT_ACCESS => self::sidebarPermissionMenu($definitions, self::CHATBOT_ACCESS, 'operasional', 15, 'heroicon-o-chat-bubble-bottom-center-text'),
+            self::CHAT_HISTORY_VIEW => self::sidebarPermissionMenu($definitions, self::CHAT_HISTORY_VIEW, 'operasional', 11, 'heroicon-o-clock'),
             self::TICKET_VIEW => self::sidebarPermissionMenu($definitions, self::TICKET_VIEW, 'operasional', 20, 'heroicon-o-ticket'),
             self::AI_AGENT_VIEW => self::sidebarPermissionMenu($definitions, self::AI_AGENT_VIEW, 'assistant', 10, 'heroicon-o-sparkles'),
             self::KNOWLEDGE_VIEW => self::sidebarPermissionMenu($definitions, self::KNOWLEDGE_VIEW, 'assistant', 20, 'heroicon-o-book-open'),

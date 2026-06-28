@@ -20,10 +20,12 @@ class InternalChatbotService
 
     private const KNOWLEDGE_SEARCH_LIMIT = 5;
 
+    private const KNOWLEDGE_SEARCH_LIMIT_LIGHT = 2;
+
     /**
      * @return array<string, mixed>
      */
-    public function ask(string $userId, string $message): array
+    public function ask(string $userId, string $message, array $options = []): array
     {
         $settings = AiSettings::get();
 
@@ -34,16 +36,24 @@ class InternalChatbotService
             ];
         }
 
-        $message = Str::limit(trim($message), 2000, '');
-        $knowledge = $this->searchKnowledge($message);
+        $message = Str::limit(trim($message), 4000, '');
+        $mode = in_array(($options['response_mode'] ?? 'fast'), ['light', 'fast'], true) ? $options['response_mode'] : 'fast';
+        $knowledgeMode = in_array(($options['knowledge_mode'] ?? 'all'), ['all', 'none'], true) ? $options['knowledge_mode'] : 'all';
+        $attachments = is_array($options['attachments'] ?? null) ? $options['attachments'] : [];
+        $knowledge = $knowledgeMode === 'none' ? [] : $this->searchKnowledge($message, $mode === 'light' ? self::KNOWLEDGE_SEARCH_LIMIT_LIGHT : self::KNOWLEDGE_SEARCH_LIMIT);
         $history = $this->conversationHistory($userId);
-        $messages = $this->messagesForProvider($userId, $history, $knowledge, $message);
+        $messages = $this->messagesForProvider($userId, $history, $knowledge, $message, $mode, $knowledgeMode, $attachments);
 
         DB::table('TChatbotInternal')->insert([
             'Id' => (string) Str::orderedUuid(),
             'IdPengguna' => $userId,
             'PeranPengirim' => ChatbotMessage::PERAN_USER,
             'IsiPesan' => $message,
+            'KonteksJson' => json_encode([
+                'response_mode' => $mode,
+                'knowledge_mode' => $knowledgeMode,
+                'attachments' => array_map(fn (array $file): array => Arr::only($file, ['name', 'mime', 'size']), $attachments),
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglBuat' => now(),
         ]);
 
@@ -83,6 +93,8 @@ class InternalChatbotService
             'IsiPesan' => $reply,
             'KonteksJson' => json_encode([
                 'knowledge_used' => $knowledgeTitles,
+                'response_mode' => $mode,
+                'knowledge_mode' => $knowledgeMode,
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglBuat' => now(),
         ]);
@@ -92,6 +104,8 @@ class InternalChatbotService
             'reply' => $reply,
             'message_id' => $assistantMessageId,
             'knowledge_used' => $knowledgeTitles,
+            'response_mode' => $mode,
+            'knowledge_mode' => $knowledgeMode,
         ];
     }
 
@@ -160,7 +174,7 @@ class InternalChatbotService
                 }
             })
             ->orderByDesc($hasPriority ? 'PrioritasAi' : 'JudulPengetahuan')
-            ->limit(self::KNOWLEDGE_SEARCH_LIMIT)
+            ->limit($limit)
             ->get()
             ->all();
     }
@@ -170,11 +184,13 @@ class InternalChatbotService
      * @param array<int, object> $knowledge
      * @return array<int, array{role: string, content: string}>
      */
-    private function messagesForProvider(string $userId, array $history, array $knowledge, string $message): array
+    private function messagesForProvider(string $userId, array $history, array $knowledge, string $message, string $mode, string $knowledgeMode, array $attachments): array
     {
+        $attachmentContext = $this->attachmentContext($attachments);
+
         $messages = [[
             'role' => 'system',
-            'content' => $this->buildSystemPrompt($userId, $knowledge),
+            'content' => $this->buildSystemPrompt($userId, $knowledge, $mode, $knowledgeMode, $attachmentContext),
         ]];
 
         foreach ($history as $row) {
@@ -193,7 +209,7 @@ class InternalChatbotService
     }
 
     /** @param array<int, object> $knowledge */
-    private function buildSystemPrompt(string $userId, array $knowledge): string
+    private function buildSystemPrompt(string $userId, array $knowledge, string $mode, string $knowledgeMode, string $attachmentContext): string
     {
         $user = DB::table('MPengguna as p')
             ->leftJoin('MPeran as r', 'r.Id', '=', 'p.IdPeran')
@@ -215,12 +231,20 @@ class InternalChatbotService
 
         $name = (string) ($user->NamaPengguna ?? 'User');
         $role = (string) ($user->NamaPeran ?? 'User');
+        $modeInstruction = $mode === 'light'
+            ? 'Mode jawaban: Ringan. Jawab lebih singkat, langsung ke langkah praktis, dan hindari penjelasan terlalu panjang.'
+            : 'Mode jawaban: Cepat. Jawab tetap praktis namun boleh lebih lengkap bila perlu.';
+        $knowledgeInstruction = $knowledgeMode === 'none'
+            ? 'Mode knowledge: Tanpa Knowledge. Jangan memakai knowledge base; jawab dari konteks chat dan file user saja.'
+            : 'Mode knowledge: All Knowledge. Gunakan knowledge base yang tersedia sebagai konteks utama bila relevan.';
 
         return <<<PROMPT
 Anda adalah VPoint Assistant, chatbot internal untuk tim VPoint Care.
 
 User aktif: {$name}
 Role user: {$role}
+{$modeInstruction}
+{$knowledgeInstruction}
 
 Aturan jawaban:
 - Jawab dalam bahasa sesuai pertanyaan user, default Bahasa Indonesia.
@@ -228,9 +252,28 @@ Aturan jawaban:
 - Jika memakai knowledge base, rangkum dengan jelas dan jangan mengarang detail yang tidak ada.
 - Jika tidak tahu, katakan tidak yakin dan sarankan cek menu terkait atau hubungi admin/supervisor.
 - Jangan menampilkan API key, token, password, atau rahasia teknis.
-- Format jawaban dengan markdown ringan bila membantu.
+- Format jawaban dengan Markdown yang rapi. Pakai heading, bullet, tabel, dan fenced code block bila membantu.
 {$knowledgeContext}
+{$attachmentContext}
 PROMPT;
+    }
+
+    private function attachmentContext(array $attachments): string
+    {
+        if ($attachments === []) {
+            return '';
+        }
+
+        $context = "\n\n=== FILE USER ===\n";
+
+        foreach ($attachments as $file) {
+            $name = Str::limit((string) ($file['name'] ?? 'file'), 180, '');
+            $mime = (string) ($file['mime'] ?? 'unknown');
+            $content = Str::limit((string) ($file['content'] ?? ''), 5000, '');
+            $context .= "[{$name}] {$mime}\n{$content}\n\n";
+        }
+
+        return $context;
     }
 
     /** @param array<int, array{role: string, content: string}> $messages */
