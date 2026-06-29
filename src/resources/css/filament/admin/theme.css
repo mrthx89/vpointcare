@@ -510,7 +510,7 @@ a.fi-breadcrumbs-item-label:hover {
 
 .dark .vpoint-brand span,
 .vpoint-brand-dark span {
-    color: var(--md-sys-color-surface);
+    color: #ffffff;
 }
 
 .fi-main.fi-width-full {
