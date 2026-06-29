@@ -261,16 +261,25 @@
                                 </button>
                             @endforeach
                         </div>
-                        <div>
-                            <label
-                                class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.model') }}</label>
-                            <x-filament::input.wrapper class="mt-2">
-                                <x-filament::input type="text" wire:model="pengaturan.ModelAi" />
-                            </x-filament::input.wrapper>
-                            <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.preset') }}:
-                                {{ $providerPresets[$pengaturan['ProviderAi'] ?? 'OpenAI']['model'] ?? '-' }}</div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.primary_model') }}</label>
+                                <x-filament::input.wrapper class="mt-2">
+                                    <x-filament::input type="text" wire:model="pengaturan.ModelAi" />
+                                </x-filament::input.wrapper>
+                                <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.primary_model_help') }}</div>
+                            </div>
+                            <div>
+                                <label
+                                    class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.instruct_model') }}</label>
+                                <x-filament::input.wrapper class="mt-2">
+                                    <x-filament::input type="text" wire:model="pengaturan.ModelInstructAi" />
+                                </x-filament::input.wrapper>
+                                <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.ai_agent.instruct_model_help') }}</div>
+                            </div>
                         </div>
-                        <div>
+                        <div class="mt-4">
                             <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.common.endpoint') }}</label>
                             <x-filament::input.wrapper class="mt-2">

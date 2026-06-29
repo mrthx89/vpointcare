@@ -33,7 +33,7 @@
                         type="button"
                         wire:click="clearHistory"
                         wire:confirm="{{ __('ui.chatbot.clear_confirm') }}"
-                        class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm backdrop-blur transition hover:border-danger-200 hover:bg-danger-50 hover:text-danger-600 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-300 dark:hover:border-danger-500/40 dark:hover:bg-danger-500/10 dark:hover:text-danger-300"
+                        class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-600 backdrop-blur transition hover:border-danger-200 hover:bg-danger-50 hover:text-danger-600 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-300 dark:hover:border-danger-500/40 dark:hover:bg-danger-500/10 dark:hover:text-danger-300"
                     >
                         <x-heroicon-o-trash class="h-4 w-4" />
                         <span>{{ __('ui.chatbot.clear_history') }}</span>
@@ -124,7 +124,7 @@
 
         <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-14 dark:from-gray-950 dark:via-gray-950/95 sm:px-6 sm:pb-5">
             <div class="pointer-events-auto w-full max-w-3xl">
-                <div class="mx-auto flex flex-col gap-2 rounded-[1.65rem] border border-gray-200/80 bg-white/95 p-2 shadow-2xl shadow-gray-950/10 ring-1 ring-gray-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/95 dark:shadow-black/40 dark:ring-white/10">
+                <div class="mx-auto flex flex-col gap-2 rounded-[1.65rem] border border-gray-200/80 bg-white/95 p-2 ring-1 ring-gray-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/95 dark:ring-white/10">
                     @if (! empty($attachments))
                         <div class="flex flex-wrap gap-1 px-2 pt-1 text-xs text-gray-500 dark:text-gray-400">
                             @foreach ($attachments as $attachment)

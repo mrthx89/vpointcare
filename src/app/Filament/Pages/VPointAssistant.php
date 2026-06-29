@@ -152,6 +152,7 @@ class VPointAssistant extends Page
     public function useSuggestedReply(string $reply): void
     {
         $this->userMessage = $reply;
+        $this->suggestedReplies = [];
     }
 
     public function createKnowledgeDraft(int $index): void

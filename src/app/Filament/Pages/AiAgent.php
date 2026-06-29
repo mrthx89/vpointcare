@@ -96,6 +96,10 @@ class AiAgent extends Page
         $this->pengaturan['ProviderAi'] = $provider;
         $this->pengaturan['ModelAi'] = $preset['model'];
         $this->pengaturan['BaseUrl'] = $preset['base_url'];
+        // Only set ModelInstructAi if it's currently empty
+        if (empty($this->pengaturan['ModelInstructAi'])) {
+            $this->pengaturan['ModelInstructAi'] = $preset['instruct_model'] ?? $preset['model'];
+        }
 
         $this->refreshApiKeyState();
         $this->testResult = '';
@@ -150,6 +154,7 @@ class AiAgent extends Page
             'pengaturan.ZonaWaktu' => ['required', 'string', 'max:100'],
             'pengaturan.ProviderAi' => ['required', 'string', 'max:50'],
             'pengaturan.ModelAi' => ['nullable', 'string', 'max:100'],
+            'pengaturan.ModelInstructAi' => ['nullable', 'string', 'max:100'],
             'pengaturan.BaseUrl' => ['nullable', 'url', 'max:255'],
             'pengaturan.PromptSistem' => ['nullable', 'string', 'max:8000'],
             'pengaturan.TemplateDiluarJamKerja' => ['nullable', 'string', 'max:4000'],
@@ -178,6 +183,11 @@ class AiAgent extends Page
 
         if ($this->apiKeyBaru !== '') {
             $data[$this->providerApiKeyColumn((string) $data['ProviderAi'])] = Crypt::encryptString($this->apiKeyBaru);
+        }
+
+        // Only add ModelInstructAi to data if the column exists
+        if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
+            $data['ModelInstructAi'] = $validated['pengaturan']['ModelInstructAi'] ?? null;
         }
 
         DB::table('MPengaturanAi')
@@ -232,6 +242,7 @@ class AiAgent extends Page
             'ZonaWaktu' => $row->ZonaWaktu ?: 'Asia/Jakarta',
             'ProviderAi' => $row->ProviderAi ?: 'OpenAI',
             'ModelAi' => $row->ModelAi ?: $this->defaultModel($row->ProviderAi ?: 'OpenAI'),
+            'ModelInstructAi' => Schema::hasColumn('MPengaturanAi', 'ModelInstructAi') ? ($row->ModelInstructAi ?? null) : null,
             'BaseUrl' => $row->BaseUrl ?: $this->defaultBaseUrl($row->ProviderAi ?: 'OpenAI'),
             'PromptSistem' => $row->PromptSistem,
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,
@@ -367,6 +378,9 @@ class AiAgent extends Page
         if (Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
             $data['ExcludeNomorWhatsapp'] = '';
         }
+        if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
+            $data['ModelInstructAi'] = null;
+        }
 
         DB::table('MPengaturanAi')->insert($data);
     }
@@ -440,6 +454,7 @@ class AiAgent extends Page
                 'label' => 'OpenAI',
                 'summary' => 'Stabil untuk customer service.',
                 'model' => (string) config('services.openai.model'),
+                'instruct_model' => (string) config('services.openai.model'),
                 'base_url' => (string) config('services.openai.base_url'),
                 'key_label' => 'OPENAI_API_KEY',
                 'icon_text' => 'AI',
@@ -450,6 +465,7 @@ class AiAgent extends Page
                 'label' => 'DeepSeek',
                 'summary' => 'Alternatif hemat dengan API sendiri.',
                 'model' => (string) config('services.deepseek.model'),
+                'instruct_model' => (string) config('services.deepseek.model'),
                 'base_url' => (string) config('services.deepseek.base_url'),
                 'key_label' => 'DEEPSEEK_API_KEY',
                 'icon_text' => 'DS',
@@ -460,6 +476,7 @@ class AiAgent extends Page
                 'label' => 'OpenRouter',
                 'summary' => 'Router banyak model, termasuk opsi free.',
                 'model' => (string) config('services.openrouter.model'),
+                'instruct_model' => (string) config('services.openrouter.model'),
                 'base_url' => (string) config('services.openrouter.base_url'),
                 'key_label' => 'OPENROUTER_API_KEY',
                 'icon_text' => 'OR',
@@ -470,6 +487,7 @@ class AiAgent extends Page
                 'label' => '9Router',
                 'summary' => 'Preset 9Router dengan format chat completions.',
                 'model' => (string) config('services.ninerouter.model'),
+                'instruct_model' => (string) config('services.ninerouter.model'),
                 'base_url' => (string) config('services.ninerouter.base_url'),
                 'key_label' => 'NINEROUTER_API_KEY',
                 'icon_text' => '9R',
