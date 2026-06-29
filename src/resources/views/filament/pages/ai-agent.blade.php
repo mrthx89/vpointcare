@@ -3,7 +3,7 @@
         <div class="wacs-ai-agent-hero wacs-ai-agent-card overflow-hidden p-5">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="wacs-ai-agent-icon flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">
+                    <div class="wacs-ai-agent-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">
                         <x-filament::icon icon="heroicon-o-sparkles" class="h-6 w-6" />
                     </div>
                     <div>

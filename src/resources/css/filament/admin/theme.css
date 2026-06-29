@@ -1193,8 +1193,26 @@ a.fi-breadcrumbs-item-label:hover {
 }
 
 .wacs-ai-agent-icon {
+    width: 3rem !important;
+    min-width: 3rem !important;
+    max-width: 3rem !important;
+    height: 3rem !important;
+    min-height: 3rem !important;
+    max-height: 3rem !important;
+    aspect-ratio: 1 / 1;
+    flex: 0 0 3rem !important;
     border: 1px solid #bfdbfe;
+    border-radius: 0.75rem !important;
     box-shadow: none !important;
+}
+
+.wacs-ai-agent-icon svg,
+.wacs-ai-agent-icon .fi-icon {
+    width: 1.5rem !important;
+    min-width: 1.5rem !important;
+    height: 1.5rem !important;
+    min-height: 1.5rem !important;
+    flex-shrink: 0 !important;
 }
 
 .dark .wacs-ai-agent-icon {
