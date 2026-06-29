@@ -184,7 +184,7 @@
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.system_prompt') }}</label>
                             <x-filament::input.wrapper class="mt-2">
                                 <textarea wire:model="pengaturan.PromptSistem"
-                                    class="min-h-220 w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
+                                    class="min-h-[220px] w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"></textarea>
                             </x-filament::input.wrapper>
                         </div>
                         <div class="grid gap-4 lg:grid-cols-2">
