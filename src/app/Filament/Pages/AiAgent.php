@@ -459,7 +459,7 @@ class AiAgent extends Page
                 'key_label' => 'OPENAI_API_KEY',
                 'icon_text' => 'AI',
                 'icon_path' => 'images/ai-provider-openai-2.svg',
-                'icon_class' => 'bg-black text-white ring-1 ring-gray-300 dark:bg-white dark:text-black dark:ring-white/20',
+                'icon_class' => 'bg-black text-white ring-1 ring-gray-300',
             ],
             'DeepSeek' => [
                 'label' => 'DeepSeek',
