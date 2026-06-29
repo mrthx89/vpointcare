@@ -1,11 +1,9 @@
 <x-filament-panels::page>
     <form wire:submit.prevent="simpanPengaturan" class="wacs-ai-agent space-y-6">
-        <div
-            class="overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-5 dark:border-blue-900 dark:from-blue-950/40 dark:via-gray-900 dark:to-indigo-950/40">
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="flex items-center gap-4">
-                    <div
-                        class="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-blue-600/20">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white">
                         <x-filament::icon icon="heroicon-o-sparkles" class="h-9 w-9" />
                     </div>
                     <div>
@@ -311,8 +309,7 @@
                                     class="mt-3 rounded-2xl border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950/40">{{ __('ui.pages.ai_agent.delete_api_key') }}</button>
                             @endif
                         </div>
-                        <div
-                            class="rounded-2xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30">
+                        <div class="rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
                             <div class="text-sm font-semibold text-blue-900 dark:text-blue-100">
                                 {{ __('ui.pages.ai_agent.test_connection') }}</div>
                             <div class="mt-2">
@@ -351,7 +348,7 @@
                         {{ __('ui.pages.ai_agent.delivery') }}</div>
                     <div class="mt-4 space-y-4">
                         <label
-                            class="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+                            class="flex gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                             <x-filament::input.checkbox wire:model="pengaturan.KirimKeWaha" class="mt-1" />
                             <span>
                                 <span
