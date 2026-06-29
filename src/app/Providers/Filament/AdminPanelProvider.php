@@ -137,7 +137,9 @@ HTML
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,
-                fn(): string => '<div style="padding: 1rem 1.5rem; text-align: center; font-size: 0.8125rem; color: rgb(100 116 139);">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
+                fn(): string => request()->is('admin/v-point-assistant')
+                    ? ''
+                    : '<div class="wacs-admin-footer">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
@@ -192,6 +194,5 @@ HTML
         return app()->getLocale();
     }
 }
-
 
 

@@ -191,6 +191,22 @@ pre,
     border-color: rgb(31 41 55);
 }
 
+.fi-topbar,
+.fi-footer {
+    background: var(--md-sys-color-surface) !important;
+}
+
+.dark .fi-footer {
+    border-color: rgb(31 41 55);
+}
+
+.wacs-admin-footer {
+    padding: 1rem 1.5rem;
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 0.8125rem;
+    text-align: center;
+}
+
 /* 3. Sidebar */
 .fi-sidebar {
     background: var(--md-sys-color-surface);
