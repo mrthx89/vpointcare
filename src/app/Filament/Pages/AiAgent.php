@@ -459,7 +459,7 @@ class AiAgent extends Page
                 'key_label' => 'OPENAI_API_KEY',
                 'icon_text' => 'AI',
                 'icon_path' => 'images/ai-provider-openai-2.svg',
-                'icon_class' => 'bg-black text-white ring-1 ring-gray-300',
+                'icon_class' => 'border-gray-300 bg-gray-50 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100',
             ],
             'DeepSeek' => [
                 'label' => 'DeepSeek',
@@ -470,7 +470,7 @@ class AiAgent extends Page
                 'key_label' => 'DEEPSEEK_API_KEY',
                 'icon_text' => 'DS',
                 'icon_path' => 'images/ai-provider-deepseek-2.svg',
-                'icon_class' => 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white',
+                'icon_class' => 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200',
             ],
             'OpenRouter' => [
                 'label' => 'OpenRouter',
@@ -481,7 +481,7 @@ class AiAgent extends Page
                 'key_label' => 'OPENROUTER_API_KEY',
                 'icon_text' => 'OR',
                 'icon_path' => 'images/ai-provider-openrouter-2.svg',
-                'icon_class' => 'bg-gradient-to-br from-slate-900 to-sky-600 text-white dark:from-sky-500 dark:to-cyan-400 dark:text-slate-950',
+                'icon_class' => 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200',
             ],
             '9Router' => [
                 'label' => '9Router',
@@ -492,7 +492,7 @@ class AiAgent extends Page
                 'key_label' => 'NINEROUTER_API_KEY',
                 'icon_text' => '9R',
                 'icon_path' => 'images/ai-provider-9router-2.svg',
-                'icon_class' => 'bg-gradient-to-br from-orange-500 to-amber-400 text-white',
+                'icon_class' => 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',
             ],
         ];
     }
@@ -530,7 +530,3 @@ class AiAgent extends Page
             ->implode(PHP_EOL);
     }
 }
-
-
-
-

@@ -217,7 +217,7 @@
                     <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.total_jobs') }}</div>
-                        <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">
+                        <div class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">
                             {{ \App\Support\LocaleFormatter::number($jobStatus['total'] ?? 0) }}</div>
                         <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.pending') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['pending'] ?? 0) }} &middot;
@@ -227,7 +227,7 @@
                     <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.processing') }}</div>
-                        <div class="mt-1 text-2xl font-semibold text-blue-600 dark:text-blue-300">
+                        <div class="mt-1 text-xl font-semibold text-blue-600 dark:text-blue-300">
                             {{ \App\Support\LocaleFormatter::number($jobStatus['reserved'] ?? 0) }}</div>
                         <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.stale_reserved') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['staleReserved'] ?? 0) }}</div>
@@ -236,7 +236,7 @@
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.failed_jobs') }}</div>
                         <div
-                            class="mt-1 text-2xl font-semibold {{ ($jobStatus['failed'] ?? 0) > 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300' }}">
+                            class="mt-1 text-xl font-semibold {{ ($jobStatus['failed'] ?? 0) > 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300' }}">
                             {{ \App\Support\LocaleFormatter::number($jobStatus['failed'] ?? 0) }}</div>
                         <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.failed_batch_jobs') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['failedBatchJobs'] ?? 0) }}</div>
@@ -244,7 +244,7 @@
                     <div class="rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
                         <div class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ __('ui.pages.log_data.active_batches') }}</div>
-                        <div class="mt-1 text-2xl font-semibold text-gray-950 dark:text-white">
+                        <div class="mt-1 text-xl font-semibold text-gray-950 dark:text-white">
                             {{ \App\Support\LocaleFormatter::number($jobStatus['activeBatches'] ?? 0) }}</div>
                         <div class="mt-1 text-xs text-gray-500">{{ __('ui.pages.log_data.pending_batch_jobs') }}
                             {{ \App\Support\LocaleFormatter::number($jobStatus['pendingBatchJobs'] ?? 0) }}</div>

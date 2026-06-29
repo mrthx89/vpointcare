@@ -1,89 +1,96 @@
-﻿# Spec Delta: VPoint Care AI Agent UI/UX
+# Spec Delta: VPoint Care Global Filament Admin UI/UX
 
 ## ADDED Requirements
 
-### Requirement: Consistent AI Agent Component System
+### Requirement: Global Filament Admin Light Outline System
 
-Halaman AI Agent SHALL memakai component style map yang seragam untuk breadcrumb, hero, card title, card body, form field, button, badge, dan preview.
+Seluruh halaman/menu Filament admin SHALL memakai visual ringan berbasis outline, background solid, radius konsisten, tanpa shadow aktif, dan tanpa gradient aktif.
 
-#### Scenario: Breadcrumb konsisten
+#### Scenario: Semua container admin konsisten
 
-- **GIVEN** breadcrumb ditampilkan pada halaman AI Agent
-- **WHEN** pengguna melihat navigasi halaman
-- **THEN** breadcrumb SHALL memakai warna muted, ukuran kecil, separator konsisten, dan hover state ringan
-- **AND** SHALL NOT memakai shadow atau gradient
+- **GIVEN** pengguna membuka halaman/menu Filament mana pun
+- **WHEN** header, breadcrumb, section, card, table, form, modal, dropdown, atau action group ditampilkan
+- **THEN** elemen tersebut SHALL memakai background solid
+- **AND** SHALL memakai border outline yang jelas
+- **AND** SHALL memakai radius konsisten sesuai token global
+- **AND** SHALL NOT memakai shadow aktif
+- **AND** SHALL NOT memakai gradient aktif
 
-#### Scenario: Hero dan card memakai sistem yang sama
+#### Scenario: Hover dan focus global tanpa shadow
 
-- **GIVEN** hero/header dan card konfigurasi ditampilkan
+- **GIVEN** pengguna berinteraksi dengan tombol, input, tab, sidebar item, table row, badge, atau action
+- **WHEN** state hover/focus/active aktif
+- **THEN** UI SHALL menunjukkan state lewat border, outline, text color, atau background solid
+- **AND** SHALL NOT memakai drop shadow, glow berat, atau gradient
+
+### Requirement: Global Filament Admin Typography Scale
+
+Seluruh halaman/menu Filament admin SHALL memakai skala font compact dan konsisten untuk breadcrumb, page title, hero title, section/card title, body, table, form label, helper text, badge, dan textarea.
+
+#### Scenario: Page title dan hero title tidak terlalu besar
+
+- **GIVEN** page header atau custom hero ditampilkan
+- **WHEN** pengguna melihat judul halaman
+- **THEN** title SHALL memakai ukuran compact `text-xl` atau maksimal `text-2xl`
+- **AND** SHALL NOT memakai `text-3xl`, `text-4xl`, atau ukuran lebih besar untuk page title normal
+- **AND** description SHALL memakai ukuran body `text-sm`
+
+#### Scenario: Card dan section title compact
+
+- **GIVEN** card, widget, section, atau panel konfigurasi ditampilkan
+- **WHEN** pengguna melihat title komponen
+- **THEN** title utama SHALL memakai ukuran `text-base`
+- **AND** nested title SHALL memakai ukuran `text-sm`
+- **AND** title SHALL NOT memakai `text-xl` atau ukuran lebih besar kecuali dashboard hero khusus yang diset maksimal `text-2xl`
+
+#### Scenario: Body, table, dan helper text konsisten
+
+- **GIVEN** isi card, table, form label, helper text, badge, dan textarea ditampilkan
 - **WHEN** halaman dirender
-- **THEN** hero/header dan card SHALL memakai background solid, border outline, radius konsisten, dan spacing yang seirama
-- **AND** card title SHALL memakai ukuran, weight, dan margin yang seragam
-- **AND** card body SHALL memakai spacing dan helper text yang seragam
+- **THEN** body/form/table content SHALL memakai `text-sm`
+- **AND** helper text, breadcrumb, badge, dan meta SHALL memakai `text-xs`
+- **AND** textarea teknis SHALL memakai `text-sm` dengan line-height nyaman
 
-#### Scenario: Action dan badge seragam
+### Requirement: Global Technical Textarea Monospace
 
-- **GIVEN** tombol, badge, atau icon provider ditampilkan
-- **WHEN** pengguna berinteraksi dengan elemen tersebut
-- **THEN** elemen SHALL memakai style solid atau outline yang konsisten
-- **AND** SHALL menunjukkan hover/focus lewat border/background solid
-- **AND** SHALL NOT memakai shadow atau gradient
+Textarea dan area teks teknis di seluruh admin SHALL memakai font monospace agar prompt, template, konfigurasi, nomor, dan payload multiline presisi.
 
-### Requirement: AI Agent Light Outline Theme
+#### Scenario: Editable textarea teknis memakai monospace
 
-Halaman AI Agent SHALL menggunakan visual ringan berbasis outline, background solid, dan radius konsisten.
-
-#### Scenario: Card AI Agent tampil ringan
-
-- **GIVEN** pengguna membuka halaman AI Agent
-- **WHEN** card, panel, atau section konfigurasi ditampilkan
-- **THEN** elemen tersebut SHALL memakai border outline yang jelas
-- **AND** SHALL memakai background solid
-- **AND** SHALL memakai radius yang konsisten antar card sejenis
-- **AND** SHALL NOT memakai shadow atau gradient
-
-#### Scenario: Hover dan focus tanpa shadow
-
-- **GIVEN** pengguna mengarahkan cursor atau fokus keyboard pada kontrol AI Agent
-- **WHEN** state hover/focus aktif
-- **THEN** UI SHALL menunjukkan state lewat border, ring, atau background solid
-- **AND** SHALL NOT menampilkan drop shadow
-- **AND** SHALL NOT menampilkan gradient
-
-### Requirement: Monospace Text Areas for Technical Text
-
-Textarea editable dan readonly pada halaman AI Agent SHALL memakai font monospace untuk menjaga presisi teks prompt/template.
-
-#### Scenario: Editable textarea memakai monospace
-
-- **GIVEN** pengguna mengedit prompt, template, instruksi, atau teks konfigurasi teknis
+- **GIVEN** pengguna mengedit prompt, template pesan, instruksi AI, nomor multiline, payload, atau teks konfigurasi teknis
 - **WHEN** textarea ditampilkan
 - **THEN** textarea SHALL memakai font monospace
-- **AND** SHALL memiliki line-height yang nyaman untuk teks multiline
-- **AND** SHALL tetap mempertahankan label dan helper text dengan font UI normal
+- **AND** SHALL memakai `text-sm`
+- **AND** SHALL memiliki line-height 1.55-1.65
 
-#### Scenario: Readonly textarea atau preview memakai monospace
+#### Scenario: Readonly preview teknis memakai monospace
 
-- **GIVEN** pengguna melihat teks prompt/template dalam mode readonly atau preview
+- **GIVEN** preview hasil test, prompt, template, payload, atau teks teknis readonly ditampilkan
 - **WHEN** area teks ditampilkan
-- **THEN** area teks SHALL memakai font monospace yang sama dengan textarea editable
-- **AND** SHALL terlihat readonly melalui background/border solid, bukan shadow
+- **THEN** area teks SHALL memakai font monospace yang sama
+- **AND** readonly state SHALL dibedakan lewat background solid muted dan border outline
 
-### Requirement: No Active Gradients or Shadows in AI Agent UI
+### Requirement: Global Component Consistency
 
-UI AI Agent SHALL bebas dari shadow dan gradient aktif.
+Breadcrumb, page header, hero, card title, card body, form field, button, badge, icon, table, tabs, modal, dropdown, and empty/help state SHALL memakai component style map global yang seragam.
 
-#### Scenario: Audit class visual selesai
+#### Scenario: Breadcrumb global konsisten
 
-- **GIVEN** source AI Agent sudah diaudit
-- **WHEN** pencarian class visual dilakukan pada Blade, CSS tema, dan metadata page
-- **THEN** tidak boleh ada `shadow-*`, `bg-gradient-*`, `from-*`, `via-*`, atau `to-*` yang aktif untuk UI AI Agent
-- **AND** `box-shadow` yang tersisa hanya boleh berupa override eksplisit `none`
+- **GIVEN** breadcrumb ditampilkan pada halaman Filament mana pun
+- **WHEN** pengguna melihat navigasi halaman
+- **THEN** breadcrumb SHALL memakai warna muted, ukuran kecil, separator konsisten, border outline ringan, dan hover state solid
+- **AND** SHALL NOT memakai shadow atau gradient
 
-#### Scenario: Provider icon tanpa gradient
+#### Scenario: Table dan form global konsisten
 
-- **GIVEN** provider AI memiliki icon atau badge visual
-- **WHEN** provider ditampilkan di AI Agent
-- **THEN** icon/badge SHALL memakai warna solid atau outline
-- **AND** SHALL NOT memakai gradient background
+- **GIVEN** resource table atau form ditampilkan
+- **WHEN** pengguna melihat table/form
+- **THEN** table container, row, field wrapper, label, helper text, and action SHALL memakai spacing, border, radius, dan font size global
+- **AND** SHALL NOT memakai shadow atau gradient aktif
 
+#### Scenario: Modal dan dropdown global konsisten
+
+- **GIVEN** modal, dropdown, select panel, atau action panel ditampilkan
+- **WHEN** overlay terbuka
+- **THEN** panel SHALL memakai background solid, border outline, radius global, dan no shadow aktif
+- **AND** focus/hover item SHALL memakai background solid muted

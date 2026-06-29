@@ -1,117 +1,119 @@
-﻿# Tasks: Audit UI/UX AI Agent Light Outline Theme
+# Tasks: Global Filament Admin Light Outline UI
 
-Urutan audit dan implementasi yang direkomendasikan.
-
----
-
-## A. Audit Sumber UI
-
-- [ ] A1. Inventaris semua card/panel di `resources/views/filament/pages/ai-agent.blade.php`
-  - Catat class `rounded-*`, `border-*`, `bg-*`, `shadow-*`, dan layout spacing.
-  - Kelompokkan menjadi card utama, nested card, form control, action button, dan readonly preview.
-
-- [ ] A2. Inventaris semua textarea dan area teks teknis
-  - Tandai textarea editable seperti prompt sistem, template, instruksi, dan input konfigurasi.
-  - Tandai readonly textarea/preview jika ada.
-  - Pastikan target monospace tidak mengenai label, helper text, atau heading.
-
-- [ ] A3. Inventaris semua shadow dan gradient
-  - Cari `shadow`, `box-shadow`, `bg-gradient`, `from-`, `via-`, dan `to-` pada Blade/CSS/PHP metadata.
-  - Bedakan class yang aktif untuk AI Agent dan class global yang tidak berdampak langsung.
-
-- [ ] A4. Audit `app/Filament/Pages/AiAgent.php`
-  - Periksa metadata provider seperti `icon_class`.
-  - Ganti rencana class gradient menjadi warna solid/outline bila metadata dipakai oleh Blade.
+Urutan audit dan implementasi global untuk seluruh halaman/menu Filament admin.
 
 ---
 
-## B. Standar Desain
+## A. Revisi Scope dan Audit Sumber
 
-- [ ] B0. Tetapkan component style map
-  - Breadcrumb: muted, small, separator konsisten, tanpa shadow.
-  - Hero/header: outline card, background solid, radius sama dengan card utama.
-  - Card title: ukuran, weight, margin, dan warna seragam.
-  - Card body: spacing, helper text, dan section gap seragam.
-  - Button/badge/icon: solid/outline tanpa gradient dan tanpa shadow.
+- [x] A1. Revisi scope dari AI Agent only menjadi global Filament admin
+  - Target mencakup semua custom page, resource page, widget/card, breadcrumb, header, table, form, modal, tabs, action, dan sidebar.
 
-- [ ] B1. Tetapkan token visual AI Agent
-  - Card radius: konsisten untuk semua card utama.
-  - Input radius: konsisten dan sedikit lebih kecil dari card bila diperlukan.
-  - Border: gunakan outline lembut untuk light/dark mode.
-  - Background: solid surface, tanpa gradient.
+- [x] A2. Inventaris style global di `resources/css/filament/admin/theme.css`
+  - Audit selector `.fi-*`, `.vc-*`, `.wacs-*`, `.fi-header`, `.fi-breadcrumbs`, `.fi-section`, `.fi-card`, `.fi-ta`, `.fi-fo`, `.fi-modal`.
+  - Catat override shadow, rounded, gradient, font size, dan textarea.
 
-- [ ] B2. Tetapkan standar textarea monospace
-  - Gunakan stack `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`.
-  - Gunakan line-height nyaman untuk prompt/template panjang.
-  - Pastikan readonly dan editable memakai standar yang sama.
+- [x] A3. Inventaris custom page Blade
+  - Audit `resources/views/filament/pages/*.blade.php`.
+  - Cari class `shadow-*`, `bg-gradient-*`, `from-*`, `via-*`, `to-*`, `text-2xl+`, dan `rounded-2xl` yang perlu dinormalisasi.
 
-- [ ] B3. Tetapkan state interaktif tanpa shadow
-  - Hover memakai perubahan border/background solid.
-  - Focus memakai ring/border yang jelas tanpa drop shadow.
-  - Disabled/readonly tetap terlihat berbeda tanpa opacity berlebihan.
+- [x] A4. Inventaris metadata PHP Filament
+  - Audit `app/Filament/**/*.php` untuk class gradient/shadow pada icon, badge, action, atau custom metadata.
 
 ---
 
-## C. Implementasi Terarah
+## B. Standar Desain Global
 
-- [ ] C1. Tambah wrapper class khusus halaman AI Agent bila belum ada
-  - Contoh target: `.wacs-ai-agent` atau class existing yang spesifik.
-  - Tujuan: membatasi override CSS agar tidak merusak halaman lain.
+- [x] B1. Tetapkan skala tipografi global admin
+  - Breadcrumb: `text-xs` / 12px.
+  - Page/header title: `text-xl` / 20px, maksimal `text-2xl` / 24px.
+  - Section/card title: `text-base` / 16px.
+  - Nested title/table header/label: `text-sm` / 14px.
+  - Body/form/table content: `text-sm` / 14px.
+  - Helper/meta/badge: `text-xs` / 12px.
+  - Textarea/code-like content: `text-sm` / 14px monospace bila teknis.
 
-- [ ] C2. Rapikan struktur halaman seragam di Blade
-  - Breadcrumb, hero, card title, card body, field group, dan action row mengikuti component style map.
-  - Hindari variasi class lokal yang tidak perlu.
+- [x] B2. Tetapkan sistem visual global
+  - Background solid surface, tanpa gradient.
+  - Card/header/section/table/modal memakai outline border.
+  - Rounded konsisten: container/card `1rem`, controls `0.75rem`, small badge/button `0.5rem` atau pill.
+  - Tidak ada shadow aktif; depth dibuat lewat border, background, spacing.
 
-- [ ] C3. Rapikan card outline di Blade
-  - Hapus class shadow pada card/panel.
-  - Samakan `rounded-*` antar card sejenis.
-  - Ganti gradient/background berat dengan solid surface.
+- [x] B3. Tetapkan state interaktif global
+  - Hover memakai background solid/muted dan border lebih kuat.
+  - Focus memakai outline/ring ringan tanpa shadow.
+  - Active/sidebar/tab memakai background solid, bukan gradient.
 
-- [ ] C4. Terapkan monospace ke textarea editable
-  - Tambahkan class utility atau selector CSS khusus AI Agent.
-  - Pastikan tidak tertimpa aturan global `* { font-family: ... !important; }`.
+- [x] B4. Tetapkan textarea monospace global yang aman
+  - Semua textarea Filament/custom memakai font monospace jika berisi prompt/template/code-like operational text.
+  - Textarea chat bebas tetap terbaca; line-height 1.55-1.65.
 
-- [ ] C5. Terapkan monospace ke textarea readonly/preview
-  - Gunakan class yang sama dengan editable textarea.
-  - Pastikan visual readonly tetap jelas lewat border/background, bukan shadow.
+---
 
-- [ ] C6. Hilangkan gradient provider/icon
-  - Update class metadata di `AiAgent.php` dari `bg-gradient-to-br from-* to-*` ke solid color + border.
-  - Pastikan icon tetap punya kontras cukup.
+## C. Implementasi Global
 
-- [ ] C7. Rapikan CSS tema
-  - Tambah selector khusus AI Agent untuk `box-shadow: none !important` bila perlu.
-  - Tambah selector textarea monospace dengan spesifisitas cukup.
-  - Hindari override global baru yang terlalu agresif.
+- [x] C1. Tambah token CSS global admin
+  - Token surface, surface-muted, border, border-strong, text, muted.
+  - Selector ditempatkan di `theme.css` agar berlaku ke semua halaman Filament.
+
+- [x] C2. Terapkan no-shadow global
+  - Reset `box-shadow` dan Tailwind shadow variable pada `.fi-main`, `.fi-page`, `.fi-header`, `.fi-section`, `.fi-card`, `.fi-modal`, `.fi-dropdown-panel`, `.fi-ta`, `.fi-fo`, `.fi-btn`, custom `.vc-*`, dan `.wacs-*`.
+
+- [x] C3. Terapkan no-gradient global
+  - Override background image gradient pada container, button, badge, icon, card, section, stat, dan custom elements.
+  - Ganti metadata provider AI dari gradient ke solid outline.
+
+- [x] C4. Terapkan outline rounded global
+  - Header, breadcrumb, section, card, table container, modal, dropdown, field wrapper, tabs, action group, stat card mengikuti radius konsisten.
+
+- [x] C5. Terapkan skala tipografi global
+  - Page title/hero title compact.
+  - Section/card title `text-base`.
+  - Body/form/table `text-sm`.
+  - Helper/breadcrumb/badge `text-xs`.
+
+- [x] C6. Terapkan textarea monospace global
+  - Selector `.fi-textarea textarea`, `.fi-input-wrp textarea`, custom page textarea, dan `.wacs-ai-agent-mono` memakai monospace.
+
+- [x] C7. Normalisasi custom AI Agent page
+  - Wrapper scoped tetap ada untuk class lokal, tetapi style global juga menutup halaman lain.
 
 ---
 
 ## D. Verifikasi
 
-- [ ] D1. Jalankan pencarian ulang class terlarang
-  - `rg -n "shadow|bg-gradient|from-|via-|to-|box-shadow" resources/views/filament/pages/ai-agent.blade.php resources/css/filament/admin/theme.css app/Filament/Pages/AiAgent.php`
-  - Pastikan hasil yang tersisa bukan UI aktif AI Agent atau memang override `box-shadow: none`.
+- [x] D1. Jalankan regex audit global
+  - `rg -n "shadow|bg-gradient|from-|via-|to-|text-3xl|text-4xl" src/resources/views src/app/Filament`
+  - Sisa hasil harus berupa konten nonaktif, teks dokumentasi, atau telah di-override global.
 
-- [ ] D2. Verifikasi font textarea
-  - Inspect textarea editable dan readonly di browser.
-  - Pastikan computed `font-family` adalah monospace.
+- [x] D2. Jalankan syntax check PHP target
+  - `php -l src/app/Filament/Pages/AiAgent.php`.
 
-- [ ] D3. Verifikasi light/dark mode
-  - Border tetap terlihat.
+- [x] D3. Jalankan build asset
+  - `npm run build` dari folder `src`.
+
+- [ ] D4. Verifikasi browser manual semua menu utama
+  - Dashboard/home.
+  - AI Agent.
+  - VPoint Assistant.
+  - Inbox WhatsApp.
+  - Ticketing.
+  - Resource table/form Master.
+  - Resource table/form AI Knowledge.
+  - Modal/action/dropdown.
+
+- [ ] D5. Verifikasi visual light/dark mode
+  - Border terlihat.
   - Text kontras.
-  - Focus state jelas.
-  - Tidak ada shadow/gradient visual.
-
-- [ ] D4. Jalankan build asset sesuai workflow proyek
-  - Gunakan perintah npm/Vite yang tersedia di `src/package.json`.
-  - Jangan edit manual file CSS hasil build kecuali repo memang mensyaratkan commit artifact.
+  - No shadow/no gradient aktif secara visual.
+  - Header, breadcrumb, card title, card body, table, form, modal seragam.
 
 ---
 
 ## E. Definition of Done
 
-- [ ] Semua acceptance criteria pada proposal terpenuhi.
-- [ ] Tidak ada perubahan logic/backend AI Agent.
-- [ ] Perubahan CSS terscope ke halaman AI Agent atau komponen yang memang dimaksud.
-- [ ] Dokumentasi plan ini diperbarui dengan catatan implementasi aktual.
-
+- [x] OpenSpec dan plan sudah global, bukan AI Agent only.
+- [x] CSS global terscope ke admin/Filament dan custom components.
+- [x] AI Agent tetap sesuai acceptance criteria awal.
+- [x] Build asset berhasil.
+- [ ] Browser manual seluruh menu utama selesai.

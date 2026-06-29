@@ -1103,3 +1103,424 @@ a.fi-breadcrumbs-item-label:hover {
 .dark .fi-simple-main .fi-card {
     border-color: rgb(31 41 55) !important;
 }
+
+/* ================================================
+   AI AGENT LIGHT OUTLINE SYSTEM
+   ================================================ */
+.wacs-ai-agent {
+    --wacs-ai-agent-surface: #ffffff;
+    --wacs-ai-agent-surface-muted: #f8fafc;
+    --wacs-ai-agent-border: #e5e7eb;
+    --wacs-ai-agent-border-strong: #d1d5db;
+    --wacs-ai-agent-text: #111827;
+    --wacs-ai-agent-muted: #6b7280;
+}
+
+.dark .wacs-ai-agent {
+    --wacs-ai-agent-surface: #111827;
+    --wacs-ai-agent-surface-muted: #0f172a;
+    --wacs-ai-agent-border: #1f2937;
+    --wacs-ai-agent-border-strong: #374151;
+    --wacs-ai-agent-text: #f9fafb;
+    --wacs-ai-agent-muted: #9ca3af;
+}
+
+.wacs-ai-agent,
+.wacs-ai-agent * {
+    --tw-shadow: 0 0 #0000 !important;
+    --tw-shadow-colored: 0 0 #0000 !important;
+    box-shadow: none !important;
+}
+
+.wacs-ai-agent-card,
+.wacs-ai-agent-hero {
+    border: 1px solid var(--wacs-ai-agent-border) !important;
+    border-radius: 1rem !important;
+    background: var(--wacs-ai-agent-surface) !important;
+    box-shadow: none !important;
+}
+
+.wacs-ai-agent-card-header {
+    border-color: var(--wacs-ai-agent-border) !important;
+}
+
+.wacs-ai-agent-card-body {
+    color: var(--wacs-ai-agent-text);
+    font-size: 0.875rem !important;
+    line-height: 1.5rem;
+}
+
+.wacs-ai-agent-hero-title {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+    font-weight: 700 !important;
+}
+
+.wacs-ai-agent-hero-description,
+.wacs-ai-agent .text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.5rem !important;
+}
+
+.wacs-ai-agent-card-title {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+    font-weight: 700 !important;
+}
+
+.wacs-ai-agent .text-xs,
+.wacs-ai-agent-badge {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+}
+
+.wacs-ai-agent-option,
+.wacs-ai-agent-provider {
+    border-color: var(--wacs-ai-agent-border) !important;
+    border-radius: 0.75rem !important;
+    background: transparent;
+    box-shadow: none !important;
+}
+
+.wacs-ai-agent-option:hover,
+.wacs-ai-agent-provider:hover {
+    border-color: var(--wacs-ai-agent-border-strong) !important;
+    background: var(--wacs-ai-agent-surface-muted) !important;
+}
+
+.wacs-ai-agent-badge {
+    box-shadow: none !important;
+}
+
+.wacs-ai-agent-icon {
+    border: 1px solid #bfdbfe;
+    box-shadow: none !important;
+}
+
+.dark .wacs-ai-agent-icon {
+    border-color: rgb(59 130 246 / 0.3);
+}
+
+.wacs-ai-agent textarea,
+.wacs-ai-agent .wacs-ai-agent-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+    tab-size: 4;
+}
+
+.wacs-ai-agent textarea[readonly],
+.wacs-ai-agent .wacs-ai-agent-readonly {
+    background: var(--wacs-ai-agent-surface-muted) !important;
+    border-color: var(--wacs-ai-agent-border) !important;
+}
+
+.wacs-ai-agent-button {
+    border-radius: 0.75rem !important;
+    box-shadow: none !important;
+}
+
+.wacs-ai-agent :is(input, textarea, select, button):focus,
+.wacs-ai-agent :is(input, textarea, select, button):focus-visible {
+    box-shadow: none !important;
+}
+
+/* ================================================
+   GLOBAL FILAMENT ADMIN LIGHT OUTLINE SYSTEM
+   ================================================ */
+.fi-main,
+.fi-page,
+.fi-simple-page {
+    --wacs-admin-surface: #ffffff;
+    --wacs-admin-surface-muted: #f8fafc;
+    --wacs-admin-border: #e5e7eb;
+    --wacs-admin-border-strong: #d1d5db;
+    --wacs-admin-text: #111827;
+    --wacs-admin-muted: #6b7280;
+    --wacs-admin-radius-card: 1rem;
+    --wacs-admin-radius-control: 0.75rem;
+}
+
+.dark .fi-main,
+.dark .fi-page,
+.dark .fi-simple-page {
+    --wacs-admin-surface: #111827;
+    --wacs-admin-surface-muted: #0f172a;
+    --wacs-admin-border: #1f2937;
+    --wacs-admin-border-strong: #374151;
+    --wacs-admin-text: #f9fafb;
+    --wacs-admin-muted: #9ca3af;
+}
+
+:is(
+    .fi-main,
+    .fi-page,
+    .fi-header,
+    .fi-section,
+    .fi-card,
+    .fi-widget,
+    .fi-modal,
+    .fi-modal-window,
+    .fi-dropdown-panel,
+    .fi-ta,
+    .fi-ta-ctn,
+    .fi-fo-component-ctn,
+    .fi-input-wrp,
+    .fi-btn,
+    .fi-tabs,
+    .fi-sidebar,
+    .fi-topbar,
+    .vc-card,
+    .vc-stat-card,
+    .vc-link-card,
+    .vc-recent-item,
+    .vc-empty-state,
+    .vc-flow-card,
+    .wacs-ai-agent,
+    .wacs-ai-agent *
+) {
+    --tw-shadow: 0 0 #0000 !important;
+    --tw-shadow-colored: 0 0 #0000 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    box-shadow: none !important;
+}
+
+:is(
+    .fi-main,
+    .fi-page,
+    .fi-header,
+    .fi-section,
+    .fi-card,
+    .fi-widget,
+    .fi-modal-window,
+    .fi-dropdown-panel,
+    .fi-ta-ctn,
+    .fi-input-wrp,
+    .fi-tabs,
+    .vc-card,
+    .vc-stat-card,
+    .vc-link-card,
+    .vc-recent-item,
+    .vc-empty-state,
+    .vc-flow-card,
+    .wacs-ai-agent-card,
+    .wacs-ai-agent-hero
+) {
+    background-image: none !important;
+}
+
+.fi-header,
+.fi-section,
+.fi-card,
+.fi-widget,
+.fi-ta-ctn,
+.fi-modal-window,
+.fi-dropdown-panel,
+.fi-tabs,
+.vc-card,
+.vc-stat-card,
+.vc-link-card,
+.vc-recent-item,
+.vc-empty-state,
+.vc-flow-card {
+    border: 1px solid var(--wacs-admin-border) !important;
+    border-radius: var(--wacs-admin-radius-card) !important;
+    background: var(--wacs-admin-surface) !important;
+}
+
+.fi-section-header,
+.fi-card-header,
+.fi-ta-header,
+.fi-modal-header,
+.fi-tabs-header {
+    border-color: var(--wacs-admin-border) !important;
+}
+
+.fi-header-heading,
+.fi-page-header-title,
+.fi-heading,
+.fi-section-header-heading,
+.fi-section-title,
+.fi-card-heading,
+.fi-widget-heading,
+.fi-modal-heading,
+.vc-title,
+.vc-flow-title {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+}
+
+.fi-section-header-heading,
+.fi-section-title,
+.fi-card-heading,
+.fi-widget-heading,
+.vc-link-title,
+.vc-card h1,
+.vc-card h2,
+.vc-card h3,
+.vc-stat-card h1,
+.vc-stat-card h2,
+.vc-stat-card h3,
+.wacs-ai-agent-card-title {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+    font-weight: 700 !important;
+}
+
+.fi-body,
+.fi-section-content,
+.fi-section-content-ctn,
+.fi-card,
+.fi-widget,
+.fi-ta,
+.fi-ta-cell,
+.fi-fo-component-ctn,
+.fi-fieldset,
+.fi-input,
+.fi-select-input,
+.fi-textarea textarea,
+.fi-placeholder,
+.vc-card,
+.vc-stat-card,
+.vc-flow-card,
+.wacs-ai-agent,
+.wacs-ai-agent .text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.5rem !important;
+}
+
+.fi-breadcrumbs,
+.fi-breadcrumbs-item-label,
+.fi-fo-field-wrp-helper-text,
+.fi-fo-field-wrp-error-message,
+.fi-badge,
+.fi-ta-text,
+.fi-ta-header-cell-label,
+.fi-sidebar-nav-group-heading,
+.fi-section-header-description,
+.fi-card-description,
+.fi-modal-description,
+.fi-ac-action-group,
+.wacs-ai-agent .text-xs,
+.wacs-ai-agent-badge {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+}
+
+.fi-breadcrumbs {
+    border: 1px solid var(--wacs-admin-border) !important;
+    border-radius: var(--wacs-admin-radius-control) !important;
+    background: var(--wacs-admin-surface-muted) !important;
+    padding: 0.375rem 0.625rem !important;
+}
+
+.fi-breadcrumbs-item-label {
+    color: var(--wacs-admin-muted) !important;
+    font-weight: 600 !important;
+}
+
+.fi-breadcrumbs-item:first-child .fi-breadcrumbs-item-label::before {
+    background: var(--wacs-admin-border-strong) !important;
+}
+
+a.fi-breadcrumbs-item-label:hover,
+.fi-sidebar-nav-item:hover,
+.fi-tabs-item:hover,
+.fi-dropdown-list-item:hover,
+.fi-ta-row:hover,
+.fi-btn:hover {
+    background-image: none !important;
+    background-color: var(--wacs-admin-surface-muted) !important;
+}
+
+.fi-sidebar-nav-item-active,
+.fi-sidebar-nav-item.fi-active,
+.fi-tabs-item-active,
+.fi-tabs-item[aria-selected="true"] {
+    background-image: none !important;
+    background-color: var(--wacs-admin-surface-muted) !important;
+    color: var(--wacs-admin-text) !important;
+}
+
+.fi-input-wrp,
+.fi-select-input,
+.fi-textarea textarea,
+.fi-checkbox-input,
+.fi-radio-input,
+.fi-btn,
+.fi-badge,
+.fi-dropdown-list-item,
+.fi-tabs-item {
+    border-radius: var(--wacs-admin-radius-control) !important;
+    box-shadow: none !important;
+}
+
+.fi-input-wrp,
+.fi-textarea textarea {
+    border-color: var(--wacs-admin-border) !important;
+    background: var(--wacs-admin-surface) !important;
+}
+
+.fi-input-wrp:focus-within,
+.fi-textarea textarea:focus,
+.fi-select-input:focus,
+.fi-btn:focus-visible,
+.fi-tabs-item:focus-visible {
+    border-color: var(--wacs-admin-border-strong) !important;
+    box-shadow: none !important;
+    outline: 2px solid rgb(59 130 246 / 0.25) !important;
+    outline-offset: 2px !important;
+}
+
+.fi-textarea textarea,
+textarea.wacs-ai-agent-mono,
+.wacs-ai-agent textarea,
+.wacs-ai-agent-readonly {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+    tab-size: 4;
+}
+
+.fi-textarea textarea[readonly],
+textarea[readonly],
+.wacs-ai-agent-readonly {
+    background: var(--wacs-admin-surface-muted) !important;
+    border-color: var(--wacs-admin-border) !important;
+}
+
+.fi-btn,
+.fi-badge,
+.fi-sidebar-nav-item,
+.fi-tabs-item,
+.fi-dropdown-list-item,
+.fi-ac-action,
+.fi-icon-btn,
+[class*="bg-gradient"],
+[class*="from-"],
+[class*="via-"],
+[class*="to-"] {
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+.fi-btn[class*="bg-primary"],
+.fi-btn-color-primary,
+.fi-ac-action[class*="bg-primary"] {
+    background-color: rgb(37 99 235) !important;
+    border-color: rgb(37 99 235) !important;
+}
+
+.dark .fi-btn[class*="bg-primary"],
+.dark .fi-btn-color-primary,
+.dark .fi-ac-action[class*="bg-primary"] {
+    background-color: rgb(37 99 235) !important;
+    border-color: rgb(59 130 246) !important;
+}
+
+.fi-modal-window,
+.fi-dropdown-panel {
+    overflow: hidden;
+}

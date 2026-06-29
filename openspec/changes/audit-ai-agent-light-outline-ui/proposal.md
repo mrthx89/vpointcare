@@ -1,30 +1,31 @@
-﻿# Proposal: Audit UI/UX AI Agent Light Outline Theme
+# Proposal: Audit UI/UX AI Agent Light Outline Theme
 
 **Status:** Draft  
 **Tanggal:** 2026-06-29  
-**Area:** Filament AI Agent UI/UX  
-**Terkait File:** `resources/views/filament/pages/ai-agent.blade.php`, `resources/css/filament/admin/theme.css`, `app/Filament/Pages/AiAgent.php`
+**Area:** Global Filament Admin UI/UX  
+**Terkait File:** `resources/css/filament/admin/theme.css`, `resources/views/filament/**/*.blade.php`, `app/Filament/**/*.php`
 
 ---
 
 ## Ringkasan
 
-Audit dan perapihan UI/UX halaman AI Agent agar tampil ringan, konsisten, presisi, dan bebas efek visual berat.
+Audit dan perapihan UI/UX seluruh halaman Filament admin agar tampil ringan, konsisten, presisi, dan bebas efek visual berat.
 
 Target utama:
 
-1. **Light outline theme** — seluruh card memakai background solid, border outline halus, radius konsisten, tanpa shadow.
-2. **Konsistensi rounded card** — radius card, panel, input, textarea, dan tombol mengikuti token yang sama.
-3. **Monospace untuk editor teks** — textarea editable dan readonly memakai font monospace agar prompt, template, dan konfigurasi teks rapi serta presisi.
-4. **Tanpa shadow dan gradient** — hapus `shadow-*`, `box-shadow`, `bg-gradient-*`, `from-*`, `via-*`, dan `to-*` dari area AI Agent.
-5. **Estetika minimal** — visual tetap indah melalui spacing, border, warna solid, hierarchy tipografi, dan state interaktif yang jelas.
-6. **Komponen seragam** — breadcrumb, hero, card title, card body, form field, action button, badge, dan empty/help state memakai token style yang sama.
+1. **Light outline theme** â€” seluruh card memakai background solid, border outline halus, radius konsisten, tanpa shadow.
+2. **Konsistensi rounded card** â€” radius card, panel, input, textarea, dan tombol mengikuti token yang sama.
+3. **Monospace untuk editor teks** â€” textarea editable dan readonly memakai font monospace agar prompt, template, dan konfigurasi teks rapi serta presisi.
+4. **Tanpa shadow dan gradient** â€” hapus/override `shadow-*`, `box-shadow`, `bg-gradient-*`, `from-*`, `via-*`, dan `to-*` dari seluruh area admin.
+5. **Estetika minimal** â€” visual tetap indah melalui spacing, border, warna solid, hierarchy tipografi, dan state interaktif yang jelas.
+6. **Komponen seragam** â€” breadcrumb, hero, card title, card body, form field, action button, badge, dan empty/help state memakai token style yang sama.
+7. **Font size konsisten** â€” hero dan card title diperkecil agar hierarchy lebih rapi dan tidak mendominasi halaman.
 
 ---
 
 ## Motivasi
 
-Halaman AI Agent berisi pengaturan prompt, template pesan, model, dan teks operasional yang membutuhkan keterbacaan tinggi. Efek shadow dan gradient membuat tampilan terasa berat dan kurang konsisten dengan kebutuhan dashboard admin yang ringan.
+Halaman admin berisi dashboard, table, form, prompt, template pesan, model, dan teks operasional yang membutuhkan keterbacaan tinggi. Efek shadow dan gradient membuat tampilan terasa berat dan kurang konsisten dengan kebutuhan dashboard admin yang ringan.
 
 Textarea yang berisi prompt/template juga lebih mudah diaudit jika memakai monospace, karena indentasi, placeholder, token, dan struktur teks menjadi lebih presisi.
 
@@ -34,17 +35,17 @@ Textarea yang berisi prompt/template juga lebih mudah diaudit jika memakai monos
 
 ### Masuk Scope
 
-- Audit UI pada `resources/views/filament/pages/ai-agent.blade.php`.
-- Audit styling global/override pada `resources/css/filament/admin/theme.css` yang memengaruhi halaman AI Agent.
-- Audit class provider di `app/Filament/Pages/AiAgent.php` yang masih menghasilkan gradient icon/provider card.
+- Audit UI pada seluruh custom page di `resources/views/filament/pages/*.blade.php`.
+- Audit styling global/override pada `resources/css/filament/admin/theme.css` yang memengaruhi seluruh halaman Filament.
+- Audit class provider/icon/badge di `app/Filament/**/*.php` yang masih menghasilkan gradient atau shadow.
 - Standarisasi class atau CSS utility untuk card outline ringan.
-- Standarisasi font monospace untuk textarea editable dan readonly di halaman AI Agent.
+- Standarisasi font monospace untuk textarea teknis editable dan readonly di seluruh admin.
 - Dokumentasi acceptance criteria sebelum implementasi.
 
 ### Di Luar Scope
 
 - Perubahan logic AI, provider, model, database, atau validasi backend.
-- Redesign seluruh Filament admin di luar dampak langsung halaman AI Agent.
+- Perubahan logic backend, query, policy, atau alur data halaman.
 - Build ulang design system besar-besaran.
 - Perubahan konten prompt atau template bisnis.
 
@@ -61,14 +62,34 @@ Textarea yang berisi prompt/template juga lebih mudah diaudit jika memakai monos
 
 ---
 
+## Skala Tipografi Target
+
+Ukuran font perlu dibuat konsisten dan lebih ringan. Hero dan card title saat ini dianggap terlalu besar, sehingga audit harus menurunkannya ke skala admin dashboard yang lebih compact.
+
+| Elemen | Target Ukuran | Weight | Catatan |
+|---|---:|---:|---|
+| Breadcrumb | `text-xs` / 12px | 500 | Muted, tidak dominan |
+| Hero eyebrow/kicker | `text-xs` / 12px | 700 | Uppercase opsional, tracking halus |
+| Hero title | `text-xl` / 20px, maksimal `text-2xl` / 24px | 700 | Jangan memakai `text-3xl` ke atas |
+| Hero description | `text-sm` / 14px | 400-500 | Line-height nyaman, muted |
+| Card title utama | `text-base` / 16px | 700 | Jangan memakai `text-xl` ke atas |
+| Nested card title | `text-sm` / 14px | 700 | Untuk sub-section |
+| Card body | `text-sm` / 14px | 400-500 | Default isi card |
+| Form label | `text-sm` / 14px | 600 | Konsisten antar field |
+| Helper text | `text-xs` / 12px | 400-500 | Muted |
+| Badge/action small | `text-xs` / 12px | 600 | Compact |
+| Textarea monospace | `text-sm` / 14px | 400 | Line-height 1.55-1.65 |
+
+---
+
 ## Sistem Komponen Target
 
 | Komponen | Standar Visual |
 |---|---|
 | Breadcrumb | Kecil, ringan, tanpa shadow, warna muted, separator konsisten, hover solid/underline halus |
-| Hero/Header | Background solid surface, border outline, radius sama dengan card utama, tanpa gradient |
+| Hero/Header | Background solid surface, border outline, radius sama dengan card utama, title compact `text-xl`/`text-2xl`, tanpa gradient |
 | Card | Background solid, border outline, radius konsisten, padding seragam, tanpa shadow |
-| Card Title | Font heading konsisten, ukuran dan weight seragam, margin bawah tetap |
+| Card Title | Font heading konsisten, compact `text-base`, weight seragam, margin bawah tetap |
 | Card Body | Font UI normal, spacing antar field konsisten, text muted untuk helper |
 | Textarea/Input | Border outline, radius input konsisten, focus border/ring tanpa shadow |
 | Editable Textarea | Monospace, line-height nyaman, resize/height konsisten |
@@ -85,7 +106,7 @@ Textarea yang berisi prompt/template juga lebih mudah diaudit jika memakai monos
 2. **Gunakan solid color, bukan gradient:** status/provider memakai warna solid lembut dan border aksen.
 3. **Radius tunggal:** card utama, hero, dan panel memakai radius besar konsisten; input/textarea memakai radius sedikit lebih kecil namun tetap selaras.
 4. **Monospace hanya untuk area teknis:** textarea, prompt preview, readonly template, dan code-like content memakai monospace; label dan heading tetap mengikuti font UI.
-5. **Scope CSS aman:** tambah class wrapper khusus halaman AI Agent bila perlu, agar override tidak merusak halaman lain.
+5. **Scope CSS aman:** gunakan selector Filament/admin dan class custom yang jelas agar override global tetap terkendali.
 
 ---
 
@@ -103,7 +124,8 @@ Textarea yang berisi prompt/template juga lebih mudah diaudit jika memakai monos
 
 ## Acceptance Criteria
 
-- Breadcrumb, hero/header, card, card title, card body, form control, button, badge, dan preview memakai style yang seragam.
+- Breadcrumb, hero/header, card, card title, card body, form control, button, badge, dan preview memakai style dan font size yang seragam.
+- Hero title tidak lebih besar dari `text-2xl`; card title utama tidak lebih besar dari `text-base`.
 - Semua card/panel AI Agent memakai outline border, background solid, dan rounded konsisten.
 - Tidak ada `shadow-*`, `box-shadow`, `bg-gradient-*`, `from-*`, `via-*`, atau `to-*` yang aktif pada UI AI Agent.
 - Textarea editable memakai font monospace, line-height nyaman, dan tabular spacing terasa presisi.
@@ -128,4 +150,3 @@ Textarea yang berisi prompt/template juga lebih mudah diaudit jika memakai monos
 ## Catatan Implementasi
 
 Implementasi sebaiknya dilakukan setelah audit class aktual pada Blade selesai. Hindari mengedit `public/css/filament/filament/app.css` secara manual karena file tersebut terlihat seperti hasil build/minified asset.
-

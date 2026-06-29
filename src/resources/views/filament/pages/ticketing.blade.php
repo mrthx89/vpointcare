@@ -5,7 +5,7 @@
                 <div
                     class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ $stat[0] }}</div>
-                    <div class="mt-2 text-2xl font-semibold {{ $stat[2] }}">{{ $stat[1] }}</div>
+                    <div class="mt-2 text-xl font-semibold {{ $stat[2] }}">{{ $stat[1] }}</div>
                 </div>
             @endforeach
         </div>

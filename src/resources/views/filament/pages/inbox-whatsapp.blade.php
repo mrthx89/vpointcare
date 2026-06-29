@@ -116,23 +116,23 @@
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
             <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.active_team') }}</div>
-                <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ $activeAgents }}</div>
+                <div class="mt-2 text-xl font-semibold text-emerald-600">{{ $activeAgents }}</div>
             </div>
             <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.total_chat') }}</div>
-                <div class="mt-2 text-2xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
+                <div class="mt-2 text-xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
             </div>
             <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unread') }}</div>
-                <div class="mt-2 text-2xl font-semibold text-amber-600">{{ $stats['belum_dibaca'] ?? 0 }}</div>
+                <div class="mt-2 text-xl font-semibold text-amber-600">{{ $stats['belum_dibaca'] ?? 0 }}</div>
             </div>
             <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.group_chat') }}</div>
-                <div class="mt-2 text-2xl font-semibold text-blue-600">{{ $stats['grup'] ?? 0 }}</div>
+                <div class="mt-2 text-xl font-semibold text-blue-600">{{ $stats['grup'] ?? 0 }}</div>
             </div>
             <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unmapped') }}</div>
-                <div class="mt-2 text-2xl font-semibold text-red-600">{{ $stats['unknown'] ?? 0 }}</div>
+                <div class="mt-2 text-xl font-semibold text-red-600">{{ $stats['unknown'] ?? 0 }}</div>
             </div>
         </div>
 
@@ -252,7 +252,7 @@
                         </button>
                     @empty
                         <div class="p-8 text-center">
-                            <div class="text-3xl mb-2">💬</div>
+                            <div class="text-xl mb-2">💬</div>
                             <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
                                 {{ __('ui.pages.inbox.no_chat') }}</div>
                             <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">

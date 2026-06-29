@@ -64,7 +64,7 @@
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.incoming_messages') }}
                 </h3>
-                <div class="mt-2 text-3xl font-semibold text-gray-950 dark:text-white">
+                <div class="mt-2 text-xl font-semibold text-gray-950 dark:text-white">
                     {{ \App\Support\LocaleFormatter::number($summary['incoming_messages'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">
                     {{ __('ui.pages.dashboard.chat_sessions', ['count' => \App\Support\LocaleFormatter::number($summary['incoming_chats'] ?? 0)]) }}
@@ -75,7 +75,7 @@
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.cs_ai_replies') }}
                 </h3>
-                <div class="mt-2 text-3xl font-semibold text-blue-600">
+                <div class="mt-2 text-xl font-semibold text-blue-600">
                     {{ \App\Support\LocaleFormatter::number($summary['outgoing_cs'] ?? 0) }} /
                     {{ \App\Support\LocaleFormatter::number($summary['outgoing_ai'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.human_ai_contribution') }}</div>
@@ -86,7 +86,7 @@
                     {{ __('ui.pages.dashboard.unanswered') }}
                 </h3>
                 <div
-                    class="mt-2 text-3xl font-semibold {{ ($summary['unanswered_chats'] ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600' }}">
+                    class="mt-2 text-xl font-semibold {{ ($summary['unanswered_chats'] ?? 0) > 0 ? 'text-red-600' : 'text-emerald-600' }}">
                     {{ \App\Support\LocaleFormatter::number($summary['unanswered_chats'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">
                     {{ __('ui.pages.dashboard.unread_total', ['count' => \App\Support\LocaleFormatter::number($summary['unread_messages'] ?? 0)]) }}
@@ -97,7 +97,7 @@
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.handling_status') }}
                 </h3>
-                <div class="mt-2 text-3xl font-semibold text-violet-600">
+                <div class="mt-2 text-xl font-semibold text-violet-600">
                     {{ \App\Support\LocaleFormatter::number($summary['active_chats'] ?? 0) }} /
                     {{ \App\Support\LocaleFormatter::number($summary['closed_chats'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.active_closed_period') }}</div>
@@ -107,7 +107,7 @@
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.avg_response_time') }}
                 </h3>
-                <div class="mt-2 text-3xl font-semibold text-amber-600">
+                <div class="mt-2 text-xl font-semibold text-amber-600">
                     {{ isset($summary['avg_response_minutes']) && $summary['avg_response_minutes'] !== null ? \App\Support\LocaleFormatter::number($summary['avg_response_minutes'], null, 1) . 'm' : '-' }}
                 </div>
                 <div class="mt-1 text-sm text-gray-500">
