@@ -327,6 +327,25 @@ PROMPT;
         ];
     }
 
+
+    private function assistantModel(object $settings): string
+    {
+        $provider = strtolower((string) $settings->ProviderAi);
+
+        if ($provider === 'openai') {
+            $configKey = 'openai';
+        } elseif (in_array($provider, ['9router', 'ninerouter'], true)) {
+            $configKey = 'ninerouter';
+        } else {
+            $configKey = $provider;
+        }
+
+        return $settings->ModelInstructAi
+            ?? $settings->ModelAi
+            ?? (string) config("services.{$configKey}.model")
+            ?? '';
+    }
+
     /** @param array<int, array{role: string, content: string}> $messages */
     private function callProvider(object $settings, array $messages): string
     {

@@ -96,6 +96,9 @@ class AiAgent extends Page
         $this->pengaturan['ProviderAi'] = $provider;
         $this->pengaturan['ModelAi'] = $preset['model'];
         $this->pengaturan['BaseUrl'] = $preset['base_url'];
+        if (($this->pengaturan['ModelInstructAi'] ?? '') === '') {
+            $this->pengaturan['ModelInstructAi'] = $preset['model'];
+        }
 
         $this->refreshApiKeyState();
         $this->testResult = '';
@@ -150,6 +153,7 @@ class AiAgent extends Page
             'pengaturan.ZonaWaktu' => ['required', 'string', 'max:100'],
             'pengaturan.ProviderAi' => ['required', 'string', 'max:50'],
             'pengaturan.ModelAi' => ['nullable', 'string', 'max:100'],
+            'pengaturan.ModelInstructAi' => ['nullable', 'string', 'max:100'],
             'pengaturan.BaseUrl' => ['nullable', 'url', 'max:255'],
             'pengaturan.PromptSistem' => ['nullable', 'string', 'max:8000'],
             'pengaturan.TemplateDiluarJamKerja' => ['nullable', 'string', 'max:4000'],
@@ -232,6 +236,7 @@ class AiAgent extends Page
             'ZonaWaktu' => $row->ZonaWaktu ?: 'Asia/Jakarta',
             'ProviderAi' => $row->ProviderAi ?: 'OpenAI',
             'ModelAi' => $row->ModelAi ?: $this->defaultModel($row->ProviderAi ?: 'OpenAI'),
+            'ModelInstructAi' => $row->ModelInstructAi ?: '',
             'BaseUrl' => $row->BaseUrl ?: $this->defaultBaseUrl($row->ProviderAi ?: 'OpenAI'),
             'PromptSistem' => $row->PromptSistem,
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,
@@ -347,6 +352,7 @@ class AiAgent extends Page
             'ProviderAi' => 'OpenAI',
             'ModelAi' => 'gpt-5',
             'BaseUrl' => 'https://api.openai.com/v1/responses',
+            'ModelInstructAi' => '',
             'PromptSistem' => 'Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan.',
             'TemplateDiluarJamKerja' => 'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
             'TemplateHariLibur' => $this->defaultHolidayTemplate(),
@@ -392,6 +398,8 @@ class AiAgent extends Page
                 $data['BaseUrl'] = config("services.{$service}.base_url");
             }
 
+            $data['ModelInstructAi'] = trim((string) ($data['ModelInstructAi'] ?? ''));
+
             if ($model === '' || str_starts_with($model, 'gpt-') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_starts_with($model, 'deepseek-')) || ($provider === 'deepseek' && str_contains($model, '/'))) {
                 $data['ModelAi'] = config("services.{$service}.model");
             }
@@ -402,6 +410,8 @@ class AiAgent extends Page
         if ($baseUrl === '' || str_contains($baseUrl, 'api.deepseek.com') || str_contains($baseUrl, 'openrouter.ai')) {
             $data['BaseUrl'] = config('services.openai.base_url');
         }
+
+        $data['ModelInstructAi'] = trim((string) ($data['ModelInstructAi'] ?? ''));
 
         if ($model === '' || str_starts_with($model, 'deepseek-') || str_contains($model, '/')) {
             $data['ModelAi'] = config('services.openai.model');
@@ -512,7 +522,3 @@ class AiAgent extends Page
             ->implode(PHP_EOL);
     }
 }
-
-
-
-

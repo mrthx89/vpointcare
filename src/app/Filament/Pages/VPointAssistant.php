@@ -182,6 +182,7 @@ class VPointAssistant extends Page
                 'HashKonten' => $hash,
                 'ProviderAi' => null,
                 'ModelAi' => null,
+                'ModelInstructAi' => null,
                 'PromptRingkas' => null,
                 'ResponseJson' => json_encode([
                     'message_id' => $message['message_id'] ?? null,

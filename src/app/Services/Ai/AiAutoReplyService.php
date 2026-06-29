@@ -106,7 +106,7 @@ class AiAutoReplyService
             'Id' => $requestId,
             'JenisPermintaan' => 'Auto Reply WhatsApp',
             'ProviderAi' => $settings->ProviderAi ?: 'OpenAI',
-            'ModelAi' => $settings->ModelAi ?: config('services.openai.model'),
+            'ModelAi' => $this->inboxReplyModel($settings, $isFirstReply),
             'IdChat' => $chatId,
             'PromptRingkas' => Str::limit($prompt, 2000, ''),
             'PromptJson' => json_encode([
@@ -119,7 +119,8 @@ class AiAutoReplyService
         ]);
 
         try {
-            $generated = $this->generateReply($settings, $prompt);
+        $isFirstReply = $this->isFirstInboxAiReply($chatId);
+        $generated = $this->generateReply($settings, $prompt, $isFirstReply);
 
             if ($generated) {
                 $reply = $generated['text'];
@@ -603,7 +604,28 @@ class AiAutoReplyService
     /**
      * @return array{text: string, payload: array<string, mixed>}|null
      */
-    private function generateReply(object $settings, string $prompt): ?array
+    private function isFirstInboxAiReply(string $chatId): bool
+    {
+        return ! DB::table('TChatD')
+            ->where('IdChat', $chatId)
+            ->where('ArahPesan', 'Keluar')
+            ->where('DihasilkanOlehAi', true)
+            ->exists();
+    }
+
+    private function inboxReplyModel(object $settings, bool $isFirstReply): string
+    {
+        if ($isFirstReply) {
+            return $settings->ModelInstructAi
+                ?? $settings->ModelAi
+                ?? config('services.openai.model');
+        }
+
+        return $settings->ModelAi
+            ?? config('services.openai.model');
+    }
+
+    private function generateReply(object $settings, string $prompt, bool $isFirstReply = false): ?array
     {
         $provider = strtolower((string) $settings->ProviderAi);
         $apiKey = $this->apiKey($settings, $provider);
@@ -634,10 +656,10 @@ class AiAutoReplyService
     /**
      * @return array{text: string, payload: array<string, mixed>}|null
      */
-    private function generateOpenAiReply(object $settings, string $prompt, string $apiKey): ?array
+    private function generateOpenAiReply(object $settings, string $prompt, string $apiKey, bool $isFirstReply = false): ?array
     {
         $baseUrl = $settings->BaseUrl ?: config('services.openai.base_url');
-        $model = $settings->ModelAi ?: config('services.openai.model');
+        $model = $this->inboxReplyModel($settings, $isFirstReply);
 
         $response = Http::withToken($apiKey)
             ->acceptJson()
@@ -670,10 +692,10 @@ class AiAutoReplyService
     /**
      * @return array{text: string, payload: array<string, mixed>}|null
      */
-    private function generateChatCompletionReply(object $settings, string $prompt, string $apiKey, string $provider): ?array
+    private function generateChatCompletionReply(object $settings, string $prompt, string $apiKey, string $provider, bool $isFirstReply = false): ?array
     {
         $baseUrl = $this->chatCompletionEndpoint((string) ($settings->BaseUrl ?: config("services.{$provider}.base_url")));
-        $model = $settings->ModelAi ?: config("services.{$provider}.model");
+        $model = $this->inboxReplyModel($settings, $isFirstReply);
         $request = Http::withToken($apiKey)
             ->acceptJson()
             ->asJson()
