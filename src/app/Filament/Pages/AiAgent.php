@@ -96,8 +96,9 @@ class AiAgent extends Page
         $this->pengaturan['ProviderAi'] = $provider;
         $this->pengaturan['ModelAi'] = $preset['model'];
         $this->pengaturan['BaseUrl'] = $preset['base_url'];
-        if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi') && ($this->pengaturan['ModelInstructAi'] ?? '') === '') {
-            $this->pengaturan['ModelInstructAi'] = $preset['model'];
+        // Only set ModelInstructAi if it's currently empty
+        if (empty($this->pengaturan['ModelInstructAi'])) {
+            $this->pengaturan['ModelInstructAi'] = $preset['instruct_model'] ?? $preset['model'];
         }
 
         $this->refreshApiKeyState();
@@ -180,13 +181,13 @@ class AiAgent extends Page
         $data['ModeKirim'] = $data['KirimKeWaha'] ? 'KirimWaha' : 'DraftLokal';
         $data['TglEdit'] = now();
 
-        // Hapus ModelInstructAi jika kolom belum ada di database
-        if (! Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
-            unset($data['ModelInstructAi']);
-        }
-
         if ($this->apiKeyBaru !== '') {
             $data[$this->providerApiKeyColumn((string) $data['ProviderAi'])] = Crypt::encryptString($this->apiKeyBaru);
+        }
+
+        // Only add ModelInstructAi to data if the column exists
+        if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
+            $data['ModelInstructAi'] = $validated['pengaturan']['ModelInstructAi'] ?? null;
         }
 
         DB::table('MPengaturanAi')
@@ -201,8 +202,6 @@ class AiAgent extends Page
             ->title(__('ui.pages.ai_agent.settings_saved'))
             ->success()
             ->send();
-
-        $this->dispatch('notificationsSent');
     }
 
     public function hapusApiKey(): void
@@ -243,7 +242,7 @@ class AiAgent extends Page
             'ZonaWaktu' => $row->ZonaWaktu ?: 'Asia/Jakarta',
             'ProviderAi' => $row->ProviderAi ?: 'OpenAI',
             'ModelAi' => $row->ModelAi ?: $this->defaultModel($row->ProviderAi ?: 'OpenAI'),
-            'ModelInstructAi' => Schema::hasColumn('MPengaturanAi', 'ModelInstructAi') ? (string) ($row->ModelInstructAi ?? '') : '',
+            'ModelInstructAi' => Schema::hasColumn('MPengaturanAi', 'ModelInstructAi') ? ($row->ModelInstructAi ?? null) : null,
             'BaseUrl' => $row->BaseUrl ?: $this->defaultBaseUrl($row->ProviderAi ?: 'OpenAI'),
             'PromptSistem' => $row->PromptSistem,
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,
@@ -379,9 +378,8 @@ class AiAgent extends Page
         if (Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
             $data['ExcludeNomorWhatsapp'] = '';
         }
-
         if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
-            $data['ModelInstructAi'] = '';
+            $data['ModelInstructAi'] = null;
         }
 
         DB::table('MPengaturanAi')->insert($data);
@@ -404,34 +402,19 @@ class AiAgent extends Page
                 default => 'deepseek',
             };
 
-            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && (str_contains($model, 'openrouter.ai') || str_contains($model, '9router')))) {
+            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && (str_contains($baseUrl, 'openrouter.ai') || str_contains($baseUrl, '9router')))) {
                 $data['BaseUrl'] = config("services.{$service}.base_url");
-            }
-
-            if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
-                $data['ModelInstructAi'] = trim((string) ($data['ModelInstructAi'] ?? ''));
-            } else {
-                unset($data['ModelInstructAi']);
             }
 
             if ($model === '' || str_starts_with($model, 'gpt-') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_starts_with($model, 'deepseek-')) || ($provider === 'deepseek' && str_contains($model, '/'))) {
                 $data['ModelAi'] = config("services.{$service}.model");
             }
 
-            // Jika ModelInstructAi kosong setelah trim, biarkan kosong (akan fallback ke ModelAi di runtime)
-            // Jangan set default dari preset agar user bisa customize
-
             return $data;
         }
 
         if ($baseUrl === '' || str_contains($baseUrl, 'api.deepseek.com') || str_contains($baseUrl, 'openrouter.ai')) {
             $data['BaseUrl'] = config('services.openai.base_url');
-        }
-
-        if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
-            $data['ModelInstructAi'] = trim((string) ($data['ModelInstructAi'] ?? ''));
-        } else {
-            unset($data['ModelInstructAi']);
         }
 
         if ($model === '' || str_starts_with($model, 'deepseek-') || str_contains($model, '/')) {
@@ -471,6 +454,7 @@ class AiAgent extends Page
                 'label' => 'OpenAI',
                 'summary' => 'Stabil untuk customer service.',
                 'model' => (string) config('services.openai.model'),
+                'instruct_model' => (string) config('services.openai.model'),
                 'base_url' => (string) config('services.openai.base_url'),
                 'key_label' => 'OPENAI_API_KEY',
                 'icon_text' => 'AI',
@@ -481,6 +465,7 @@ class AiAgent extends Page
                 'label' => 'DeepSeek',
                 'summary' => 'Alternatif hemat dengan API sendiri.',
                 'model' => (string) config('services.deepseek.model'),
+                'instruct_model' => (string) config('services.deepseek.model'),
                 'base_url' => (string) config('services.deepseek.base_url'),
                 'key_label' => 'DEEPSEEK_API_KEY',
                 'icon_text' => 'DS',
@@ -491,6 +476,7 @@ class AiAgent extends Page
                 'label' => 'OpenRouter',
                 'summary' => 'Router banyak model, termasuk opsi free.',
                 'model' => (string) config('services.openrouter.model'),
+                'instruct_model' => (string) config('services.openrouter.model'),
                 'base_url' => (string) config('services.openrouter.base_url'),
                 'key_label' => 'OPENROUTER_API_KEY',
                 'icon_text' => 'OR',
@@ -501,6 +487,7 @@ class AiAgent extends Page
                 'label' => '9Router',
                 'summary' => 'Preset 9Router dengan format chat completions.',
                 'model' => (string) config('services.ninerouter.model'),
+                'instruct_model' => (string) config('services.ninerouter.model'),
                 'base_url' => (string) config('services.ninerouter.base_url'),
                 'key_label' => 'NINEROUTER_API_KEY',
                 'icon_text' => '9R',
@@ -543,3 +530,7 @@ class AiAgent extends Page
             ->implode(PHP_EOL);
     }
 }
+
+
+
+

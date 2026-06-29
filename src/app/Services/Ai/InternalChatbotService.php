@@ -53,7 +53,7 @@ class InternalChatbotService
         ]);
 
         try {
-            $reply = $this->callProvider($settings, $messages);
+            $reply = $this->callProvider($settings, $messages, $mode);
         } catch (Throwable $exception) {
             Log::warning('VPoint Assistant AI provider failed.', [
                 'provider' => (string) ($settings->ProviderAi ?? ''),
@@ -327,27 +327,41 @@ PROMPT;
         ];
     }
 
-
-    private function assistantModel(object $settings): string
+    /** @param array<int, array{role: string, content: string}> $messages */
+    private function getInstructModel(object $settings): string
     {
-        $provider = strtolower((string) $settings->ProviderAi);
-
-        if ($provider === 'openai') {
-            $configKey = 'openai';
-        } elseif (in_array($provider, ['9router', 'ninerouter'], true)) {
-            $configKey = 'ninerouter';
-        } else {
-            $configKey = $provider;
+        if (property_exists($settings, 'ModelInstructAi') && ! empty($settings->ModelInstructAi)) {
+            return $settings->ModelInstructAi;
         }
-
-        return $settings->ModelInstructAi
-            ?? $settings->ModelAi
-            ?? (string) config("services.{$configKey}.model")
-            ?? '';
+        return $this->getPrimaryModel($settings);
     }
 
-    /** @param array<int, array{role: string, content: string}> $messages */
-    private function callProvider(object $settings, array $messages): string
+    private function getPrimaryModel(object $settings): string
+    {
+        if (property_exists($settings, 'ModelAi') && ! empty($settings->ModelAi)) {
+            return $settings->ModelAi;
+        }
+
+        $provider = strtolower((string) $settings->ProviderAi);
+        $key = in_array($provider, ['9router', 'ninerouter'], true) ? 'ninerouter' : $provider;
+        return config("services.{$key}.model");
+    }
+
+    /**
+     * Get model for assistant based on response mode:
+     * - 'light' (Ringan): uses ModelInstructAi (if available)
+     * - 'fast' (Cepat): uses ModelAi
+     */
+    private function getAssistantModel(object $settings, string $mode): string
+    {
+        if ($mode === 'light') {
+            return $this->getInstructModel($settings);
+        }
+
+        return $this->getPrimaryModel($settings);
+    }
+
+    private function callProvider(object $settings, array $messages, string $mode): string
     {
         $provider = strtolower((string) $settings->ProviderAi);
         $apiKey = $this->apiKey($settings, $provider);
@@ -355,8 +369,7 @@ PROMPT;
         if (! $apiKey) {
             throw new RuntimeException(__('ui.chatbot.error_provider_missing'));
         }
-
-        $model = $this->assistantModel($settings);
+        $model = $this->getAssistantModel($settings, $mode);
 
         if ($provider === 'openai') {
             $systemPrompt = (string) Arr::get($messages, '0.content', '');
@@ -365,7 +378,7 @@ PROMPT;
             $endpoint = str_ends_with($baseUrl, '/responses') ? $baseUrl : $baseUrl.'/responses';
 
             $response = Http::withToken($apiKey)->acceptJson()->asJson()->timeout(30)->post($endpoint, [
-                'model' => $model ?: config('services.openai.model'),
+                'model' => $model,
                 'instructions' => $systemPrompt,
                 'input' => $conversation,
                 'store' => false,
@@ -387,7 +400,7 @@ PROMPT;
             }
 
             $response = $request->post($endpoint, [
-                'model' => $model ?: config("services.{$key}.model"),
+                'model' => $model,
                 'messages' => $messages,
                 'stream' => false,
             ]);

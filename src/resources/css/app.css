@@ -30,7 +30,18 @@ code,
 kbd,
 samp,
 pre {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liber Mono', 'Courier New', monospace;
+}
+
+/* Custom AI Agent Textarea Heights */
+.ai-textarea-prompt,
+.ai-textarea-prompt textarea {
+    min-height: 400px !important;
+}
+
+.ai-textarea-template,
+.ai-textarea-template textarea {
+    min-height: 300px !important;
 }
 
 /* ChatGPT-style input area - clean borders, no shadows */

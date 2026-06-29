@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'seeders' => [
@@ -469,11 +469,10 @@ return [
             'fallback_template' => 'Template berlanjut',
             'provider_ai' => 'Provider AI',
             'provider' => 'Provider',
-            'model' => 'Model',
             'primary_model' => 'Model Utama',
             'primary_model_help' => 'Dipakai untuk auto-reply customer dan test koneksi AI.',
             'instruct_model' => 'Model Instruct',
-            'instruct_model_help' => 'Dipakai VPoint Assistant dan opsi jawaban ringan agar suggestion/draft lebih cepat. Kosongkan untuk mengikuti Model Utama.',
+            'instruct_model_help' => 'Dipakai VPoint Assistant untuk suggestion dan draft lebih cepat. Kosongkan untuk mengikuti Model Utama.',
             'preset' => 'Preset',
             'api_key_selected' => 'API key provider terpilih',
             'api_key_saved' => 'API key sudah tersimpan',
@@ -902,5 +901,4 @@ return [
         'attachment_binary_notice' => 'File :name (:mime) dilampirkan, tetapi kontennya tidak bisa diekstrak sebagai teks.',
     ],
 ];
-
 

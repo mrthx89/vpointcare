@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 return [
     'seeders' => [
@@ -469,11 +469,10 @@ return [
             'fallback_template' => 'Continuation template',
             'provider_ai' => 'AI Provider',
             'provider' => 'Provider',
-            'model' => 'Model',
             'primary_model' => 'Primary Model',
             'primary_model_help' => 'Used for customer auto-replies and AI connection tests.',
             'instruct_model' => 'Instruct Model',
-            'instruct_model_help' => 'Used by VPoint Assistant and lightweight reply options for faster suggestions/drafts. Leave empty to follow the Primary Model.',
+            'instruct_model_help' => 'Used by VPoint Assistant for faster suggestions and drafts. Leave empty to follow the Primary Model.',
             'preset' => 'Preset',
             'api_key_selected' => 'Selected provider API key',
             'api_key_saved' => 'API key is already saved',
@@ -902,5 +901,4 @@ return [
         'attachment_binary_notice' => 'File :name (:mime) was attached, but its content could not be extracted as text.',
     ],
 ];
-
 

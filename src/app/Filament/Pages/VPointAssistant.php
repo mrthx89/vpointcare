@@ -152,6 +152,7 @@ class VPointAssistant extends Page
     public function useSuggestedReply(string $reply): void
     {
         $this->userMessage = $reply;
+        $this->suggestedReplies = [];
     }
 
     public function createKnowledgeDraft(int $index): void
@@ -248,9 +249,7 @@ class VPointAssistant extends Page
             ->values()
             ->all();
 
-        $latest = collect(array_reverse($this->messages))
-            ->first(fn (array $message): bool => ($message['role'] ?? '') === 'assistant' && ! empty($message['suggested_replies']));
-        $this->suggestedReplies = is_array($latest) ? array_values((array) ($latest['suggested_replies'] ?? [])) : [];
+        $this->suggestedReplies = [];
     }
 
     /** @return array<int, array{name: string, mime: string, size: int, content: string}> */
