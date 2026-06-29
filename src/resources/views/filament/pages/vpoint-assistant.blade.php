@@ -161,11 +161,11 @@
                             maxlength="4000"
                             rows="1"
                             x-on:keydown.enter.prevent="$event.shiftKey ? ($event.target.value += '\n') : $wire.sendMessage()"
-                            x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, Math.floor(window.innerHeight * 0.6))+'px'"
-                            x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, Math.floor(window.innerHeight * 0.6))+'px'"
+                            x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 200)+'px'"
+                            x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 200)+'px'"
                             wire:loading.attr="disabled"
                             wire:target="sendMessage"
-                            class="block max-h-[60vh] min-h-10 flex-1 resize-none overflow-y-auto border-none bg-transparent px-1 py-2.5 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 disabled:cursor-wait disabled:text-gray-500 dark:text-white dark:placeholder:text-gray-500"
+                            class="block max-h-[200px] min-h-10 flex-1 resize-none overflow-y-auto border-none bg-transparent px-1 py-2.5 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 disabled:cursor-wait disabled:text-gray-500 dark:text-white dark:placeholder:text-gray-500"
                         ></textarea>
 
                         <div x-data="{ open: false }" class="relative shrink-0">
@@ -199,7 +199,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white shadow-sm transition hover:bg-primary-500 disabled:cursor-wait disabled:opacity-50">
+                        <button type="submit" wire:loading.attr="disabled" wire:target="sendMessage,attachments" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white transition hover:bg-primary-500 disabled:cursor-wait disabled:opacity-50">
                             <x-heroicon-m-paper-airplane wire:loading.remove wire:target="sendMessage,attachments" class="h-5 w-5" />
                             <svg wire:loading wire:target="sendMessage,attachments" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -223,11 +223,6 @@
     <style>
         [x-cloak]{display:none!important}
         .vpoint-ai-markdown :where(h1,h2,h3){font-weight:700;margin:.65rem 0 .35rem}.vpoint-ai-markdown h1{font-size:1.15rem}.vpoint-ai-markdown h2{font-size:1.05rem}.vpoint-ai-markdown h3{font-size:1rem}.vpoint-ai-markdown p{margin:.45rem 0}.vpoint-ai-markdown ul,.vpoint-ai-markdown ol{margin:.45rem 0 .45rem 1.25rem}.vpoint-ai-markdown ul{list-style:disc}.vpoint-ai-markdown ol{list-style:decimal}.vpoint-ai-markdown code{border-radius:.35rem;background:rgba(148,163,184,.22);padding:.1rem .3rem;font-size:.86em}.vpoint-ai-markdown pre{margin:.7rem 0;overflow:auto;border-radius:.85rem;background:#020617;color:#e2e8f0;padding:1rem}.vpoint-ai-markdown pre code{background:transparent;padding:0;color:inherit}.vpoint-ai-markdown table{margin:.7rem 0;width:100%;border-collapse:collapse;font-size:.9em}.vpoint-ai-markdown th,.vpoint-ai-markdown td{border:1px solid rgba(148,163,184,.35);padding:.45rem}.vpoint-ai-markdown blockquote{border-left:3px solid rgba(99,102,241,.65);padding-left:.8rem;color:#64748b}
-        /* Remove all shadows and rings */
-        .fi-page, .fi-page-content, .fi-section, [class*="shadow-"], [class*="ring-"] {
-            box-shadow: none !important;
-            --tw-shadow: none !important;
-            --tw-ring-shadow: none !important;
-        }
+
     </style>
 </x-filament-panels::page>

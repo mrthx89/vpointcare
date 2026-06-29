@@ -369,33 +369,7 @@ PROMPT;
         if (! $apiKey) {
             throw new RuntimeException(__('ui.chatbot.error_provider_missing'));
         }
-
-        // Get main model for response
         $model = $this->getAssistantModel($settings, $mode);
-
-        // But wait! The user said Suggested Replies should always use Model Instruct!
-        // Hmm, but the suggested replies come from the same response. So maybe first, let's get the response,
-        // but to ensure suggested replies are good, maybe we should use Instruct model for both?
-        // Wait, let's re-read the user's request:
-        // "Untuk di Menu VPoint Asisten itu kan ada Suggest yang dilemparkan oleh ai, itu memakai model Instruct saja, baru saat jawab nya sesuai Opsi yang dipilih User"
-        // Oh, okay, so the Suggested Replies should always use Model Instruct, and the main answer uses the selected mode.
-        // But how to do that? Because they come in the same response!
-        // Alternative approach: Use Instruct Model for everything, but the prompt changes based on mode?
-        // Wait, let's check what the user said again:
-        // "- di menu VPoint Asisten dan Inbox Whatsapp itu kan ada opsi RIngan dan Cepat : Ringan itu memakai model Instruct dan Cepat itu memakai model Utama."
-        // "- Untuk di Menu VPoint Asisten itu kan ada Suggest yang dilemparkan oleh ai, itu memakai model Instruct saja, baru saat jawab nya sesuai Opsi yang dipilih User"
-        // Okay, so for VPoint Assistant:
-        // - If mode is Ringan (light): use Instruct Model (response + suggested replies)
-        // - If mode is Cepat (fast): use Primary Model for response, but suggested replies use Instruct Model?
-        // But that would require two separate calls, which is more complex.
-        // Wait, let's check what the user meant. Maybe they meant:
-        // - Suggested Replies are always generated with Model Instruct
-        // - The main answer is generated with the selected mode (Ringan uses Instruct, Cepat uses Primary)
-        // But that would require two separate API calls, which might complicate things.
-        // Alternatively, maybe the user meant that the Suggested Replies come from the Instruct Model, and the main answer uses the selected model.
-        // For simplicity, let's first implement the main model selection (Ringan -> Instruct, Cepat -> Primary),
-        // and since the suggested replies are part of the same response, they'll use the same model.
-        // Let's proceed with that, and if we need to adjust, we can later.
 
         if ($provider === 'openai') {
             $systemPrompt = (string) Arr::get($messages, '0.content', '');

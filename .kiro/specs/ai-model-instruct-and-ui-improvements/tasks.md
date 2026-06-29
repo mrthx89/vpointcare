@@ -12,14 +12,14 @@ Implementasi dibagi menjadi empat kelompok berurutan:
 
 ## Tasks
 
-- [ ] 1. Kelompok A — Konfirmasi Komponen yang Sudah Ada (Read-Only)
-  - [-] 1.1 Verifikasi migrasi `2026_06_29_000001_add_model_instruct_to_ai_settings.php`
+- [x] 1. Kelompok A — Konfirmasi Komponen yang Sudah Ada (Read-Only)
+  - [x] 1.1 Verifikasi migrasi `2026_06_29_000001_add_model_instruct_to_ai_settings.php`
     - Buka file migrasi dan konfirmasi guard `COL_LENGTH` SQL Server sudah ada di `up()` dan `down()`
     - Pastikan migrasi sudah terdaftar di `database/migrations/` dan dapat dijalankan idempoten
     - Tidak ada perubahan kode — hanya konfirmasi
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [-] 1.2 Verifikasi `InternalChatbotService.php` — logika pemilihan model
+  - [x] 1.2 Verifikasi `InternalChatbotService.php` — logika pemilihan model
     - Buka `app/Services/Ai/InternalChatbotService.php` dan konfirmasi tiga method sudah benar:
       - `getInstructModel()`: gunakan `ModelInstructAi`, fallback ke `getPrimaryModel()`
       - `getPrimaryModel()`: gunakan `ModelAi`, fallback ke `config("services.{provider}.model")`
@@ -29,28 +29,28 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - Tidak ada perubahan kode — hanya konfirmasi
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 12.1, 12.2, 12.3, 12.4, 12.5_
 
-- [~] 2. Checkpoint A — Konfirmasi Kelompok A Selesai
+- [x] 2. Checkpoint A — Konfirmasi Kelompok A Selesai
   - Pastikan migrasi dan `InternalChatbotService` sudah terverifikasi. Tanyakan ke user jika ada keraguan.
 
-- [ ] 3. Kelompok B — Bug Fix: `VPointAssistant.php` — `loadHistory()` Suggested Replies
-  - [~] 3.1 Perbaiki method `loadHistory()` di `app/Filament/Pages/VPointAssistant.php`
+- [x] 3. Kelompok B — Bug Fix: `VPointAssistant.php` — `loadHistory()` Suggested Replies
+  - [x] 3.1 Perbaiki method `loadHistory()` di `app/Filament/Pages/VPointAssistant.php`
     - Temukan blok di akhir `loadHistory()` yang mencari pesan asisten terakhir dengan `suggested_replies` non-kosong dari `$this->messages`, lalu mengisi `$this->suggestedReplies` dari data tersebut
     - Hapus seluruh blok `$latest = collect(array_reverse(...))...` dan baris `$this->suggestedReplies = ...` di akhir method
     - Ganti dengan satu baris: `$this->suggestedReplies = [];`
     - Pastikan body mapping `->map(function (object $row)` tidak diubah — field `suggested_replies` di dalam array pesan tetap ada (digunakan untuk tampilan history, bukan untuk mengisi `$suggestedReplies`)
     - _Requirements: 6.1, 6.2_
 
-- [~] 4. Checkpoint B — Bug Fix PHP Selesai
+- [x] 4. Checkpoint B — Bug Fix PHP Selesai
   - Jalankan `php artisan test --filter VPointAssistantSuggestedRepliesTest` (jika test sudah ada). Pastikan tidak ada error sintaks di file PHP. Tanyakan ke user jika ada pertanyaan.
 
-- [ ] 5. Kelompok C — Perbaikan UI: `vpoint-assistant.blade.php`
-  - [~] 5.1 Hapus `shadow-sm` dari tombol submit di `resources/views/filament/pages/vpoint-assistant.blade.php`
+- [x] 5. Kelompok C — Perbaikan UI: `vpoint-assistant.blade.php`
+  - [x] 5.1 Hapus `shadow-sm` dari tombol submit di `resources/views/filament/pages/vpoint-assistant.blade.php`
     - Temukan elemen `<button type="submit" ...>` di area input bawah
     - Hapus kelas `shadow-sm` dari atribut `class` tombol tersebut
     - Jika ada blok `<style>` yang menggunakan selector agresif `[class*="shadow-"]` untuk override shadow, hapus juga blok `<style>` tersebut karena efeknya terlalu luas
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [~] 5.2 Perbaiki `max-height` textarea input pesan di `vpoint-assistant.blade.php`
+  - [x] 5.2 Perbaiki `max-height` textarea input pesan di `vpoint-assistant.blade.php`
     - Temukan `<textarea>` input pesan (yang memiliki `wire:model="userMessage"`)
     - Ganti kelas `max-h-[60vh]` menjadi `max-h-[200px]`
     - Di atribut `x-on:input`, ganti `Math.floor(window.innerHeight * 0.6)` menjadi `200`
@@ -58,8 +58,8 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - Pastikan atribut Alpine.js `x-on:input` dan `x-effect` lainnya tidak diubah
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 6. Kelompok C — Perbaikan UI: `ai-agent.blade.php`
-  - [~] 6.1 Ubah textarea `PromptSistem` menjadi auto-grow di `resources/views/filament/pages/ai-agent.blade.php`
+- [x] 6. Kelompok C — Perbaikan UI: `ai-agent.blade.php`
+  - [x] 6.1 Ubah textarea `PromptSistem` menjadi auto-grow di `resources/views/filament/pages/ai-agent.blade.php`
     - Temukan `<textarea wire:model="pengaturan.PromptSistem" ...>`
     - Hapus kelas `min-h-[220px]` dan `resize-y` dari atribut `class`
     - Tambahkan atribut `rows="1"` dan inline style `style="min-height: 120px;"`
@@ -68,14 +68,14 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - Tambahkan kelas `overflow-y-auto` agar scroll aktif saat konten melampaui batas atas
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [~] 6.2 Kompres keempat textarea template menjadi `min-h-[80px]` di `ai-agent.blade.php`
+  - [x] 6.2 Kompres keempat textarea template menjadi `min-h-[80px]` di `ai-agent.blade.php`
     - Temukan keempat `<textarea>` yang memiliki kelas `min-h-60` (yaitu: `TemplateDiluarJamKerja`, `TemplateHariLibur`, `TemplateJamKerjaSapaan`, `TemplateFallback`)
     - Ganti `min-h-60` menjadi `min-h-[80px]` pada keempat textarea tersebut
     - Pastikan atribut `resize-y` dipertahankan pada keempat textarea
     - Pastikan container grid `lg:grid-cols-2` tidak berubah
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [~] 7. Checkpoint C — UI Selesai
+- [x] 7. Checkpoint C — UI Selesai
   - Pastikan tidak ada error sintaks di kedua file Blade. Tanyakan ke user jika ada pertanyaan.
 
 - [ ] 8. Tests — Unit & Property Tests
@@ -147,7 +147,7 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - Assert keempat textarea template punya kelas `min-h-[80px]`
     - _Requirements: 9.1, 9.2, 9.3, 10.2_
 
-- [~] 9. Checkpoint Final — Semua Tests Lulus
+- [x] 9. Checkpoint Final — Semua Tests Lulus
   - Jalankan `php artisan test` dan pastikan semua test lulus. Tanyakan ke user jika ada pertanyaan.
 
 ---
