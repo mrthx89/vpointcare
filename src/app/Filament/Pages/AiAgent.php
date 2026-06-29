@@ -394,7 +394,7 @@ class AiAgent extends Page
                 default => 'deepseek',
             };
 
-            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && (str_contains($baseUrl, 'openrouter.ai') || str_contains($baseUrl, '9router')))) {
+            if ($baseUrl === '' || str_contains($baseUrl, 'api.openai.com') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_contains($baseUrl, 'api.deepseek.com')) || ($provider === 'deepseek' && (str_contains($model, 'openrouter.ai') || str_contains($model, '9router')))) {
                 $data['BaseUrl'] = config("services.{$service}.base_url");
             }
 
@@ -403,6 +403,9 @@ class AiAgent extends Page
             if ($model === '' || str_starts_with($model, 'gpt-') || (in_array($provider, ['openrouter', '9router', 'ninerouter'], true) && str_starts_with($model, 'deepseek-')) || ($provider === 'deepseek' && str_contains($model, '/'))) {
                 $data['ModelAi'] = config("services.{$service}.model");
             }
+
+            // Jika ModelInstructAi kosong setelah trim, biarkan kosong (akan fallback ke ModelAi di runtime)
+            // Jangan set default dari preset agar user bisa customize
 
             return $data;
         }
