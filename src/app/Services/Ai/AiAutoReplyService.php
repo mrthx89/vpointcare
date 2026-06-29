@@ -24,7 +24,8 @@ class AiAutoReplyService
 
     public function testProviderConnection(object $settings, string $prompt): string
     {
-        $reply = $this->generateReply($settings, $prompt);
+        // Test koneksi selalu menggunakan ModelAi (bukan ModelInstructAi) untuk validasi model utama
+        $reply = $this->generateReply($settings, $prompt, false);
 
         if (! $reply || trim($reply['text']) === '') {
             throw new RuntimeException(__('ui.ai_learning.provider_empty_answer'));
@@ -220,7 +221,7 @@ class AiAutoReplyService
 
         $error = null;
         try {
-            $generated = $this->generateReply($settings, $prompt);
+            $generated = $this->generateReply($settings, $prompt, false);
             if ($generated) {
                 $reply = $generated['text'];
             }
