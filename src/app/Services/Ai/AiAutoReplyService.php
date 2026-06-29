@@ -647,7 +647,7 @@ class AiAutoReplyService
         }
 
         if ($provider === 'openai') {
-            return $this->generateOpenAiReply($settings, $prompt, $apiKey);
+            return $this->generateOpenAiReply($settings, $prompt, $apiKey, $isFirstReply);
         }
 
         return null;

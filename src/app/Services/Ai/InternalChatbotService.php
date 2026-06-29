@@ -356,6 +356,8 @@ PROMPT;
             throw new RuntimeException(__('ui.chatbot.error_provider_missing'));
         }
 
+        $model = $this->assistantModel($settings);
+
         if ($provider === 'openai') {
             $systemPrompt = (string) Arr::get($messages, '0.content', '');
             $conversation = $this->messagesToTranscript(array_slice($messages, 1));
@@ -363,7 +365,7 @@ PROMPT;
             $endpoint = str_ends_with($baseUrl, '/responses') ? $baseUrl : $baseUrl.'/responses';
 
             $response = Http::withToken($apiKey)->acceptJson()->asJson()->timeout(30)->post($endpoint, [
-                'model' => $settings->ModelAi ?: config('services.openai.model'),
+                'model' => $model ?: config('services.openai.model'),
                 'instructions' => $systemPrompt,
                 'input' => $conversation,
                 'store' => false,
@@ -385,7 +387,7 @@ PROMPT;
             }
 
             $response = $request->post($endpoint, [
-                'model' => $settings->ModelAi ?: config("services.{$key}.model"),
+                'model' => $model ?: config("services.{$key}.model"),
                 'messages' => $messages,
                 'stream' => false,
             ]);
