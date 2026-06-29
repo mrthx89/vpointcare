@@ -32,3 +32,41 @@ samp,
 pre {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
+
+/* ChatGPT-style input area - clean borders, no shadows */
+.vpoint-chat-input-wrapper {
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: none;
+}
+
+.dark .vpoint-chat-input-wrapper {
+    border-color: #4b5563;
+    background-color: #1f2937;
+}
+
+/* Remove all shadows from chat bubbles */
+.vpoint-chat-bubble {
+    box-shadow: none !important;
+}
+
+/* Clean border for assistant messages */
+.vpoint-assistant-message {
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+}
+
+.dark .vpoint-assistant-message {
+    border-color: #374151;
+}
+
+/* Typing indicator styling */
+.vpoint-typing-indicator {
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+}
+
+.dark .vpoint-typing-indicator {
+    border-color: #374151;
+}
