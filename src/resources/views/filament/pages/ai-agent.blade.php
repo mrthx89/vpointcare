@@ -334,9 +334,7 @@
                                 class="mt-3 rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200">
                                 <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
                                     {{ __('ui.pages.ai_agent.test_result') }}</div>
-                                <div class="whitespace-pre-wrap">
-                                    {{ $testResult !== '' ? $testResult : __('ui.pages.ai_agent.test_result_empty') }}
-                                </div>
+                                <div class="whitespace-pre-wrap">{{ $testResult !== '' ? $testResult : __('ui.pages.ai_agent.test_result_empty') }}</div>
                             </div>
                         </div>
                     </div>
