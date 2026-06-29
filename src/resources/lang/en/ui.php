@@ -458,7 +458,7 @@ return [
             'end' => 'End',
             'timezone' => 'Timezone',
             'working_days' => 'Working days',
-            'days' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            'days' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
             'phrases_prompts' => 'Phrases and Prompts',
             'phrases_prompts_desc' => 'All replies are kept short and polite with the latest chat context.',
             'system_prompt' => 'System prompt',

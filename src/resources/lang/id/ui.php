@@ -458,7 +458,7 @@ return [
             'end' => 'Selesai',
             'timezone' => 'Zona waktu',
             'working_days' => 'Hari kerja',
-            'days' => ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+            'days' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
             'phrases_prompts' => 'Kalimat dan Prompt',
             'phrases_prompts_desc' => 'Semua balasan dibuat singkat dan sopan dengan konteks chat terakhir.',
             'system_prompt' => 'Prompt sistem',
