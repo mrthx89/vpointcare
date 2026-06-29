@@ -196,6 +196,8 @@ class AiAgent extends Page
             ->title(__('ui.pages.ai_agent.settings_saved'))
             ->success()
             ->send();
+
+        $this->dispatch('notificationsSent');
     }
 
     public function hapusApiKey(): void
