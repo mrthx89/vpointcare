@@ -24,7 +24,7 @@
                 target.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }"
-        class="relative flex h-[calc(100dvh-6rem)] min-h-0 flex-col overflow-hidden rounded-3xl bg-gray-50 dark:bg-gray-950"
+        class="relative flex h-[calc(100dvh-6rem)] min-h-0 flex-col overflow-hidden"
     >
         <div class="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center px-4 pt-3 sm:px-6">
             <div class="pointer-events-auto flex w-full max-w-3xl justify-end">
@@ -56,7 +56,7 @@
 
                 @foreach ($messages as $index => $message)
                     <div class="flex {{ $message['role'] === 'user' ? 'justify-end' : 'justify-start' }}">
-                        <div class="group relative max-w-[min(44rem,90%)] rounded-2xl px-4 py-3 text-sm shadow-sm {{ $message['role'] === 'user' ? 'rounded-br-md bg-primary-600 text-white' : 'rounded-bl-md border border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100' }} {{ ! empty($message['error']) ? 'border-danger-200 bg-danger-50 text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-300' : '' }}">
+                        <div class="group relative max-w-[min(44rem,90%)] rounded-2xl px-4 py-3 text-sm {{ $message['role'] === 'user' ? 'rounded-br-md bg-primary-600 text-white' : 'rounded-bl-md border border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100' }} {{ ! empty($message['error']) ? 'border-danger-200 bg-danger-50 text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-300' : '' }}">
                             @if ($message['role'] === 'assistant')
                                 <div class="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100">
                                     <button type="button" class="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200" title="{{ __('ui.chatbot.copy') }}" x-on:click="copy(@js($message['content']))">
@@ -107,7 +107,7 @@
 
                 @if ($isTyping)
                     <div class="flex justify-start">
-                        <div class="rounded-2xl rounded-bl-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+                        <div class="rounded-2xl rounded-bl-md border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
                             <div class="flex items-center gap-2">
                                 <span>{{ __('ui.chatbot.typing') }}</span>
                                 <span class="flex gap-1">
@@ -122,9 +122,9 @@
             </div>
         </main>
 
-        <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center bg-gradient-to-t from-gray-50 via-gray-50/95 to-transparent px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-14 dark:from-gray-950 dark:via-gray-950/95 sm:px-6 sm:pb-5">
+        <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-14 sm:px-6 sm:pb-5">
             <div class="pointer-events-auto w-full max-w-3xl">
-                <div class="mx-auto flex flex-col gap-2 rounded-[1.65rem] border border-gray-200/80 bg-white/95 p-2 ring-1 ring-gray-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/95 dark:ring-white/10">
+                <div class="mx-auto flex flex-col gap-2 rounded-[1.65rem] border border-gray-200/80 bg-white/95 p-2 backdrop-blur-xl dark:border-white/10 dark:bg-gray-900/95">
                     @if (! empty($attachments))
                         <div class="flex flex-wrap gap-1 px-2 pt-1 text-xs text-gray-500 dark:text-gray-400">
                             @foreach ($attachments as $attachment)
@@ -175,7 +175,7 @@
                                 <x-heroicon-m-chevron-down class="h-4 w-4" />
                             </button>
 
-                            <div x-cloak x-show="open" x-transition.origin.bottom.right class="absolute bottom-12 right-0 w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 text-sm shadow-2xl ring-1 ring-gray-950/5 dark:border-gray-700 dark:bg-gray-900 dark:ring-white/10">
+                            <div x-cloak x-show="open" x-transition.origin.bottom.right class="absolute bottom-12 right-0 w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 text-sm dark:border-gray-700 dark:bg-gray-900">
                                 <div class="px-2 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{{ __('ui.chatbot.response_mode') }}</div>
                                 <button type="button" wire:click="$set('responseMode', 'light')" x-on:click="open = false" class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800">
                                     <span><span class="font-medium">{{ __('ui.chatbot.mode_light') }}</span><span class="block text-xs text-gray-500">{{ __('ui.chatbot.mode_light_desc') }}</span></span>
@@ -223,5 +223,11 @@
     <style>
         [x-cloak]{display:none!important}
         .vpoint-ai-markdown :where(h1,h2,h3){font-weight:700;margin:.65rem 0 .35rem}.vpoint-ai-markdown h1{font-size:1.15rem}.vpoint-ai-markdown h2{font-size:1.05rem}.vpoint-ai-markdown h3{font-size:1rem}.vpoint-ai-markdown p{margin:.45rem 0}.vpoint-ai-markdown ul,.vpoint-ai-markdown ol{margin:.45rem 0 .45rem 1.25rem}.vpoint-ai-markdown ul{list-style:disc}.vpoint-ai-markdown ol{list-style:decimal}.vpoint-ai-markdown code{border-radius:.35rem;background:rgba(148,163,184,.22);padding:.1rem .3rem;font-size:.86em}.vpoint-ai-markdown pre{margin:.7rem 0;overflow:auto;border-radius:.85rem;background:#020617;color:#e2e8f0;padding:1rem}.vpoint-ai-markdown pre code{background:transparent;padding:0;color:inherit}.vpoint-ai-markdown table{margin:.7rem 0;width:100%;border-collapse:collapse;font-size:.9em}.vpoint-ai-markdown th,.vpoint-ai-markdown td{border:1px solid rgba(148,163,184,.35);padding:.45rem}.vpoint-ai-markdown blockquote{border-left:3px solid rgba(99,102,241,.65);padding-left:.8rem;color:#64748b}
+        /* Remove all shadows and rings */
+        .fi-page, .fi-page-content, .fi-section, [class*="shadow-"], [class*="ring-"] {
+            box-shadow: none !important;
+            --tw-shadow: none !important;
+            --tw-ring-shadow: none !important;
+        }
     </style>
 </x-filament-panels::page>
