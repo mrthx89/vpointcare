@@ -10,23 +10,26 @@
                 </p>
 
                 <div class="mt-6 flex flex-wrap items-center gap-2">
-                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('today')">
+                    <x-filament::button color="gray" size="sm" outlined class="wacs-dashboard-quick-filter"
+                        wire:click="setQuickRange('today')">
                         {{ __('ui.pages.dashboard.today') }}
                     </x-filament::button>
-                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('7d')">
+                    <x-filament::button color="gray" size="sm" outlined class="wacs-dashboard-quick-filter"
+                        wire:click="setQuickRange('7d')">
                         {{ __('ui.pages.dashboard.seven_days') }}
                     </x-filament::button>
-                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('30d')">
+                    <x-filament::button color="gray" size="sm" outlined class="wacs-dashboard-quick-filter"
+                        wire:click="setQuickRange('30d')">
                         {{ __('ui.pages.dashboard.thirty_days') }}
                     </x-filament::button>
-                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('month')">
+                    <x-filament::button color="gray" size="sm" outlined class="wacs-dashboard-quick-filter"
+                        wire:click="setQuickRange('month')">
                         {{ __('ui.pages.dashboard.this_month') }}
                     </x-filament::button>
 
                     <x-filament::modal id="custom-period-modal" width="2xl">
                         <x-slot name="trigger">
-                            <x-filament::button color="gray" size="sm" variant="outline"
-                                icon="heroicon-m-calendar"
+                            <x-filament::button color="gray" size="sm" outlined icon="heroicon-m-calendar"
                                 class="wacs-dashboard-period-trigger">
                                 {{ $this->filters['date_range'] ?? __('ui.pages.dashboard.custom_period') }}
                             </x-filament::button>
@@ -47,7 +50,7 @@
                                     {{ $this->getFiltersForm() }}
                                 </div>
                                 <div class="wacs-dashboard-period-actions">
-                                    <x-filament::button color="gray" variant="outline"
+                                    <x-filament::button color="gray" outlined
                                         x-on:click="$dispatch('close-modal', { id: 'custom-period-modal' })">
                                         {{ __('ui.common.cancel') }}
                                     </x-filament::button>
@@ -63,8 +66,7 @@
         </x-filament::section>
 
         <div class="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.incoming_messages') }}
                 </h3>
@@ -74,8 +76,7 @@
                     {{ __('ui.pages.dashboard.chat_sessions', ['count' => \App\Support\LocaleFormatter::number($summary['incoming_chats'] ?? 0)]) }}
                 </div>
             </section>
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.cs_ai_replies') }}
                 </h3>
@@ -84,8 +85,7 @@
                     {{ \App\Support\LocaleFormatter::number($summary['outgoing_ai'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.human_ai_contribution') }}</div>
             </section>
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.unanswered') }}
                 </h3>
@@ -96,8 +96,7 @@
                     {{ __('ui.pages.dashboard.unread_total', ['count' => \App\Support\LocaleFormatter::number($summary['unread_messages'] ?? 0)]) }}
                 </div>
             </section>
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.handling_status') }}
                 </h3>
@@ -106,8 +105,7 @@
                     {{ \App\Support\LocaleFormatter::number($summary['closed_chats'] ?? 0) }}</div>
                 <div class="mt-1 text-sm text-gray-500">{{ __('ui.pages.dashboard.active_closed_period') }}</div>
             </section>
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.avg_response_time') }}
                 </h3>
@@ -121,8 +119,7 @@
         </div>
 
         <div class="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <h3 class="text-base font-semibold leading-6 text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.dashboard.satisfaction_index') }}</h3>
                 <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -151,8 +148,7 @@
                 </div>
             </section>
 
-            <section
-                class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <h3 class="text-base font-semibold text-gray-950 dark:text-white">

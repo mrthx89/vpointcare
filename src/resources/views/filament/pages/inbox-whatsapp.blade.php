@@ -519,8 +519,7 @@
             </section>
 
             <aside class="wacs-inbox-aside min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
-                <div
-                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between gap-3">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">
                             {{ __('ui.pages.inbox.profile_mapping') }}</div>
@@ -586,14 +585,14 @@
                         </dl>
                         <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
                             @if ($this->canManageInbox())
-                                <x-filament::button color="warning" size="sm" variant="outline" class="w-full"
+                                <x-filament::button color="warning" size="sm" outlined class="w-full"
                                     x-on:click="$dispatch('open-modal', { id: 'internal-notes-modal' })"
                                     :badge="count($internalNotes) > 0 ? count($internalNotes) : null" badge-color="warning">
                                     {{ __('ui.pages.view_chat.internal_notes') }}
                                 </x-filament::button>
                             @endif
 
-                            <x-filament::button color="gray" size="sm" variant="outline" class="w-full"
+                            <x-filament::button color="gray" size="sm" outlined class="w-full"
                                 x-on:click="$dispatch('open-modal', { id: 'history-chat-modal' })">
                                 {{ __('ui.pages.inbox.previous_history') }}
                             </x-filament::button>
@@ -602,8 +601,7 @@
                         <div class="mt-3 text-sm text-gray-500">{{ __('ui.pages.inbox.no_chat_selected') }}</div>
                     @endif
                 </div>
-                <div
-                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.inbox.ai_control') }}</div>
                     @if ($selectedChat)
@@ -661,8 +659,7 @@
                         <div class="mt-3 text-sm text-gray-500">{{ __('ui.pages.inbox.select_chat_ai') }}</div>
                     @endif
                 </div>
-                <div
-                    class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-base font-semibold text-gray-950 dark:text-white">
                         {{ __('ui.pages.inbox.waha_webhook') }}</div>
                     <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
