@@ -9,11 +9,12 @@ use App\Support\LocaleFormatter;
 use App\Support\NavigationHelper;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Malzariey\FilamentDaterangepickerFilter\Enums\DropDirection;
+use Malzariey\FilamentDaterangepickerFilter\Enums\OpenDirection;
 use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
 
 class Dashboard extends BaseDashboard
@@ -95,17 +96,17 @@ class Dashboard extends BaseDashboard
     {
         return $schema
             ->components([
-                Section::make('')
-                    ->schema([
-                        DateRangePicker::make('date_range')
-                            ->label(__('ui.pages.dashboard.period_filter'))
-                            ->format(LocaleFormatter::dateInputFormat())
-                            ->rangeSeparator(' to ')
-                            ->showDropdowns()
-                            ->autoApply(),
-                    ])
-                    ->columns(1)
-                    ->compact(),
+                DateRangePicker::make('date_range')
+                    ->label(__('ui.pages.dashboard.date_range'))
+                    ->format(LocaleFormatter::dateInputFormat())
+                    ->rangeSeparator(' to ')
+                    ->showDropdowns()
+                    ->opens(OpenDirection::CENTER)
+                    ->drops(DropDirection::DOWN)
+                    ->extraAttributes(['class' => 'wacs-dashboard-period-field'])
+                    ->extraInputAttributes(['class' => 'wacs-dashboard-period-input'])
+                    ->columnSpanFull()
+                    ->autoApply(),
             ]);
     }
 

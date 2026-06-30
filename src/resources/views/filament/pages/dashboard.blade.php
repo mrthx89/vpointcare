@@ -10,26 +10,24 @@
                 </p>
 
                 <div class="mt-6 flex flex-wrap items-center gap-2">
-                    <x-filament::button color="gray" size="sm" variant="outline" wire:click="setQuickRange('today')">
+                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('today')">
                         {{ __('ui.pages.dashboard.today') }}
                     </x-filament::button>
-                    <x-filament::button color="gray" size="sm" variant="outline" wire:click="setQuickRange('7d')">
+                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('7d')">
                         {{ __('ui.pages.dashboard.seven_days') }}
                     </x-filament::button>
-                    <x-filament::button color="gray" size="sm" variant="outline"
-                        wire:click="setQuickRange('30d')">
+                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('30d')">
                         {{ __('ui.pages.dashboard.thirty_days') }}
                     </x-filament::button>
-                    <x-filament::button color="gray" size="sm" variant="outline"
-                        wire:click="setQuickRange('month')">
+                    <x-filament::button color="gray" size="sm" variant="outline" class="wacs-dashboard-quick-filter" wire:click="setQuickRange('month')">
                         {{ __('ui.pages.dashboard.this_month') }}
                     </x-filament::button>
 
-                    <x-filament::modal id="custom-period-modal" width="md">
+                    <x-filament::modal id="custom-period-modal" width="2xl">
                         <x-slot name="trigger">
                             <x-filament::button color="gray" size="sm" variant="outline"
                                 icon="heroicon-m-calendar"
-                                class="ring-1 ring-primary-600 bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400 dark:hover:bg-primary-500/20">
+                                class="wacs-dashboard-period-trigger">
                                 {{ $this->filters['date_range'] ?? __('ui.pages.dashboard.custom_period') }}
                             </x-filament::button>
                         </x-slot>
@@ -38,21 +36,27 @@
                             {{ __('ui.pages.dashboard.period_filter') }}
                         </x-slot>
 
-                        <form wire:submit.prevent="loadDashboard"
-                            x-on:submit="$dispatch('close-modal', { id: 'custom-period-modal' })">
-                            <div class="py-4 full-width">
-                                {{ $this->getFiltersForm() }}
-                            </div>
-                            <div class="mt-4 flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
-                                <x-filament::button color="gray"
-                                    x-on:click="$dispatch('close-modal', { id: 'custom-period-modal' })">
-                                    {{ __('ui.common.cancel') }}
-                                </x-filament::button>
-                                <x-filament::button type="submit" color="primary">
-                                    {{ __('ui.pages.dashboard.apply') }}
-                                </x-filament::button>
-                            </div>
-                        </form>
+                        <div class="wacs-dashboard-period-modal">
+                            <p class="wacs-dashboard-period-modal-description">
+                                {{ __('ui.pages.dashboard.period_modal_description') }}
+                            </p>
+
+                            <form wire:submit.prevent="loadDashboard"
+                                x-on:submit="$dispatch('close-modal', { id: 'custom-period-modal' })">
+                                <div class="wacs-dashboard-period-form">
+                                    {{ $this->getFiltersForm() }}
+                                </div>
+                                <div class="wacs-dashboard-period-actions">
+                                    <x-filament::button color="gray" variant="outline"
+                                        x-on:click="$dispatch('close-modal', { id: 'custom-period-modal' })">
+                                        {{ __('ui.common.cancel') }}
+                                    </x-filament::button>
+                                    <x-filament::button type="submit" color="primary">
+                                        {{ __('ui.pages.dashboard.apply') }}
+                                    </x-filament::button>
+                                </div>
+                            </form>
+                        </div>
                     </x-filament::modal>
                 </div>
             </div>

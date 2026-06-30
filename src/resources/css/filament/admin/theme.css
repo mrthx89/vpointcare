@@ -1215,6 +1215,27 @@ a.fi-breadcrumbs-item-label:hover {
     flex-shrink: 0 !important;
 }
 
+.wacs-ai-agent-provider img[src*="ai-provider-"] {
+    filter: invert(20%) sepia(14%) saturate(1127%) hue-rotate(182deg) brightness(91%) contrast(90%);
+    opacity: 0.95;
+}
+
+.wacs-ai-agent-provider img[src*="ai-provider-deepseek"] {
+    filter: invert(40%) sepia(90%) saturate(1610%) hue-rotate(199deg) brightness(92%) contrast(91%);
+}
+
+.wacs-ai-agent-provider img[src*="ai-provider-openrouter"] {
+    filter: invert(47%) sepia(81%) saturate(1026%) hue-rotate(164deg) brightness(91%) contrast(91%);
+}
+
+.wacs-ai-agent-provider img[src*="ai-provider-9router"] {
+    filter: invert(59%) sepia(75%) saturate(814%) hue-rotate(2deg) brightness(91%) contrast(88%);
+}
+
+.dark .wacs-ai-agent-provider img[src*="ai-provider-"] {
+    filter: none;
+    opacity: 1;
+}
 .dark .wacs-ai-agent-icon {
     border-color: rgb(59 130 246 / 0.3);
 }
@@ -1246,6 +1267,27 @@ a.fi-breadcrumbs-item-label:hover {
 /* ================================================
    GLOBAL FILAMENT ADMIN LIGHT OUTLINE SYSTEM
    ================================================ */
+/* Global scope ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ also defined inside .fi-main/.fi-page for cascade */
+:root {
+    --wacs-admin-surface: #ffffff;
+    --wacs-admin-surface-muted: #f8fafc;
+    --wacs-admin-border: #e5e7eb;
+    --wacs-admin-border-strong: #d1d5db;
+    --wacs-admin-text: #111827;
+    --wacs-admin-muted: #6b7280;
+    --wacs-admin-radius-card: 1rem;
+    --wacs-admin-radius-control: 0.75rem;
+}
+
+.dark {
+    --wacs-admin-surface: #111827;
+    --wacs-admin-surface-muted: #0f172a;
+    --wacs-admin-border: #1f2937;
+    --wacs-admin-border-strong: #374151;
+    --wacs-admin-text: #f9fafb;
+    --wacs-admin-muted: #9ca3af;
+}
+
 .fi-main,
 .fi-page,
 .fi-simple-page {
@@ -1538,7 +1580,270 @@ textarea[readonly],
     border-color: rgb(59 130 246) !important;
 }
 
-.fi-modal-window,
-.fi-dropdown-panel {
+
+.wacs-dashboard-quick-filter,
+.dark .wacs-dashboard-quick-filter {
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+.wacs-dashboard-quick-filter {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+.wacs-dashboard-quick-filter :is(svg, .fi-icon, .fi-btn-label, span) {
+    color: #0f172a !important;
+}
+
+.wacs-dashboard-quick-filter:hover,
+.wacs-dashboard-quick-filter:focus-visible {
+    background-color: #eff6ff !important;
+    border-color: #2563eb !important;
+    color: #1d4ed8 !important;
+}
+
+.wacs-dashboard-quick-filter:hover :is(svg, .fi-icon, .fi-btn-label, span),
+.wacs-dashboard-quick-filter:focus-visible :is(svg, .fi-icon, .fi-btn-label, span) {
+    color: #1d4ed8 !important;
+}
+
+.dark .wacs-dashboard-quick-filter {
+    background-color: #111827 !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+}
+
+.dark .wacs-dashboard-quick-filter :is(svg, .fi-icon, .fi-btn-label, span) {
+    color: #f8fafc !important;
+}
+
+.dark .wacs-dashboard-quick-filter:hover,
+.dark .wacs-dashboard-quick-filter:focus-visible {
+    background-color: #1e3a8a !important;
+    border-color: #60a5fa !important;
+    color: #ffffff !important;
+}
+
+.dark .wacs-dashboard-quick-filter:hover :is(svg, .fi-icon, .fi-btn-label, span),
+.dark .wacs-dashboard-quick-filter:focus-visible :is(svg, .fi-icon, .fi-btn-label, span) {
+    color: #ffffff !important;
+}
+.wacs-dashboard-period-trigger,
+.dark .wacs-dashboard-period-trigger {
+    background-color: rgb(37 99 235) !important;
+    border-color: rgb(37 99 235) !important;
+    color: #ffffff !important;
+}
+
+.wacs-dashboard-period-trigger:hover,
+.wacs-dashboard-period-trigger:focus-visible,
+.dark .wacs-dashboard-period-trigger:hover,
+.dark .wacs-dashboard-period-trigger:focus-visible {
+    background-color: rgb(29 78 216) !important;
+    border-color: rgb(29 78 216) !important;
+    color: #ffffff !important;
+}
+
+.wacs-dashboard-period-trigger :is(svg, .fi-icon, .fi-btn-label, span),
+.dark .wacs-dashboard-period-trigger :is(svg, .fi-icon, .fi-btn-label, span) {
+    color: #ffffff !important;
+}
+.fi-modal-window {
     overflow: hidden;
+}
+
+
+
+.fi-dropdown-panel {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 18px 45px rgb(15 23 42 / 0.18) !important;
+    opacity: 1 !important;
+}
+
+.dark .fi-dropdown-panel {
+    background-color: #111827 !important;
+    border-color: #374151 !important;
+    box-shadow: 0 18px 45px rgb(0 0 0 / 0.35) !important;
+}
+
+.fi-dropdown-panel > .fi-dropdown-list,
+.fi-dropdown-panel > .fi-dropdown-header {
+    background-color: transparent !important;
+}
+.wacs-dashboard-period-modal {
+    display: grid;
+    gap: 1rem;
+}
+
+.wacs-dashboard-period-modal-description {
+    margin: 0;
+    max-width: 44rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+}
+
+.dark .wacs-dashboard-period-modal-description {
+    color: #cbd5e1;
+}
+
+.wacs-dashboard-period-form {
+    padding: 0;
+}
+
+.wacs-dashboard-period-field,
+.wacs-dashboard-period-field .fi-fo-field-wrp,
+.wacs-dashboard-period-field .fi-fo-field-wrp-content,
+.wacs-dashboard-period-field .fi-input-wrp {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.wacs-dashboard-period-field .fi-fo-field-wrp-label {
+    margin-bottom: 0.5rem !important;
+    color: #0f172a !important;
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+}
+
+.dark .wacs-dashboard-period-field .fi-fo-field-wrp-label {
+    color: #f8fafc !important;
+}
+
+.wacs-dashboard-period-field .fi-input-wrp {
+    min-height: 3rem !important;
+    border-color: #cbd5e1 !important;
+    border-radius: 0.875rem !important;
+    background: #ffffff !important;
+}
+
+.dark .wacs-dashboard-period-field .fi-input-wrp {
+    border-color: #334155 !important;
+    background: #0f172a !important;
+}
+
+.wacs-dashboard-period-input {
+    width: 100% !important;
+    min-height: 3rem !important;
+    color: #0f172a !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+}
+
+.dark .wacs-dashboard-period-input {
+    color: #f8fafc !important;
+}
+
+.wacs-dashboard-period-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.dark .wacs-dashboard-period-actions {
+    border-color: #334155;
+}
+.fi-daterangepicker-dropdown {
+    max-width: min(calc(100vw - 2rem), 46rem) !important;
+    border-radius: 1rem !important;
+    border: 1px solid #dbeafe !important;
+    background: #ffffff !important;
+    box-shadow: 0 24px 70px rgb(15 23 42 / 0.22) !important;
+    overflow: hidden !important;
+}
+
+.dark .fi-daterangepicker-dropdown {
+    border-color: #334155 !important;
+    background: #0f172a !important;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 0.45) !important;
+}
+
+.fi-daterangepicker-content {
+    overflow-x: auto !important;
+}
+
+.fi-daterangepicker-ranges {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+.dark .fi-daterangepicker-ranges {
+    background: #111827 !important;
+    border-color: #334155 !important;
+}
+
+.fi-daterangepicker-range-btn {
+    color: #334155 !important;
+    font-weight: 600 !important;
+}
+
+.fi-daterangepicker-range-btn:hover {
+    background: #e0f2fe !important;
+    color: #075985 !important;
+}
+
+.dark .fi-daterangepicker-range-btn {
+    color: #e2e8f0 !important;
+}
+
+.dark .fi-daterangepicker-range-btn:hover {
+    background: rgb(59 130 246 / 0.18) !important;
+    color: #ffffff !important;
+}
+
+.fi-daterangepicker-range-btn.fi-active,
+.fi-daterangepicker-day.fi-selected,
+.fi-daterangepicker-month-cell.fi-selected,
+.fi-daterangepicker-year-cell.fi-selected {
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.fi-daterangepicker-day.fi-in-range,
+.fi-daterangepicker-month-cell.fi-in-range,
+.fi-daterangepicker-year-cell.fi-in-range {
+    background: #dbeafe !important;
+    color: #1e3a8a !important;
+}
+
+.dark .fi-daterangepicker-day.fi-in-range,
+.dark .fi-daterangepicker-month-cell.fi-in-range,
+.dark .fi-daterangepicker-year-cell.fi-in-range {
+    background: rgb(37 99 235 / 0.22) !important;
+    color: #bfdbfe !important;
+}
+
+.fi-daterangepicker-select {
+    border-color: #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+.dark .fi-daterangepicker-select {
+    border-color: #475569 !important;
+    background: #111827 !important;
+    color: #f8fafc !important;
+}
+
+@media (max-width: 767px) {
+    .fi-daterangepicker-top {
+        flex-direction: column !important;
+    }
+
+    .fi-daterangepicker-ranges {
+        border-inline-end: 0 !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        margin: -1rem -1rem 0 !important;
+        padding: 1rem !important;
+    }
+
+    .dark .fi-daterangepicker-ranges {
+        border-bottom-color: #334155 !important;
+    }
 }
