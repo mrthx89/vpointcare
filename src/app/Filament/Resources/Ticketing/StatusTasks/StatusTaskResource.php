@@ -6,6 +6,7 @@ use App\Filament\Resources\Ticketing\StatusTasks\Pages\ManageStatusTasks;
 use App\Models\Ticketing\StatusTask;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -19,7 +20,10 @@ class StatusTaskResource extends Resource
 {
     protected static ?string $model = StatusTask::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Ticketing';
+    public static function getNavigationGroup(): ?string
+    {
+        return NavigationHelper::groupFor(AccessPermissions::TASK_VIEW, __('ui.navigation.operasional'));
+    }
 
     public static function getNavigationLabel(): string
     {
@@ -28,7 +32,7 @@ class StatusTaskResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return FilamentAccess::can(AccessPermissions::TICKET_MANAGE);
+        return FilamentAccess::can(AccessPermissions::TASK_MANAGE);
     }
 
     public static function form(Schema $s): Schema

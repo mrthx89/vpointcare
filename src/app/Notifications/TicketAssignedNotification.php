@@ -20,6 +20,6 @@ class TicketAssignedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return ['title' => 'Ticket ditugaskan', 'body' => $this->ticket->NomorTicket.' - '.$this->ticket->JudulTicket, 'url' => TicketResource::getUrl()];
+        return ['title' => __('ui.ticketing.ticket_assigned'), 'body' => $this->ticket->NomorTicket.' - '.$this->ticket->JudulTicket, 'url' => TicketResource::getUrl()];
     }
 }

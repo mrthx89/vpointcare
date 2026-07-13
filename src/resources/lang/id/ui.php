@@ -156,6 +156,7 @@ return [
         'attachments' => 'Lampiran', 'upload_file' => 'Unggah file', 'download' => 'Unduh',
         'file_too_large' => 'Ukuran file melebihi 3 MB.', 'max_file_size' => 'Maksimal 3 MB per file.',
         'status_task' => 'Status Task', 'status_ticket' => 'Status Ticket', 'category' => 'Kategori', 'priority' => 'Prioritas',
+        'ticket_assigned' => 'Ticket ditugaskan', 'task_assigned' => 'Task ditugaskan', 'new' => 'Baru', 'in_progress' => 'Dikerjakan', 'overdue' => 'Terlambat', 'done' => 'Selesai', 'number' => 'Nomor', 'title' => 'Judul', 'pic' => 'PIC', 'target' => 'Target', 'empty' => 'Belum ada ticket.',
     ],
     'roles' => [
         'admin' => 'Admin',

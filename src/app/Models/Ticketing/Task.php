@@ -37,6 +37,7 @@ class Task extends Model
         static::created(function (self $m): void {
             if ($m->DitugaskanKepada) {
                 DB::table('TTaskDPenugasan')->insert(['Id' => (string) str()->orderedUuid(), 'IdTask' => $m->Id, 'DitugaskanDari' => null, 'DitugaskanKepada' => $m->DitugaskanKepada, 'TglPenugasan' => now(), 'TglBuat' => now(), 'DibuatOleh' => Auth::id()]);
+                self::notifyAssignee($m);
             }
         });
         static::updating(function (self $m): void {
@@ -45,14 +46,17 @@ class Task extends Model
             if ($m->isDirty('DitugaskanKepada')) {
                 $m->TglDitugaskan = $m->DitugaskanKepada ? now() : null;
             }
+            if ($m->isDirty('IdStatusTask')) {
+                $final = DB::table('MStatusTask')->where('Id', $m->IdStatusTask)->value('StatusFinal');
+                $m->TglDitutup = $final ? now() : null;
+                $m->DitutupOleh = $final ? Auth::id() : null;
+                $m->TglSelesai = $final ? ($m->TglSelesai ?: now()) : null;
+            }
         });
         static::updated(function (self $m): void {
             if ($m->wasChanged('DitugaskanKepada') && $m->DitugaskanKepada) {
                 DB::table('TTaskDPenugasan')->insert(['Id' => (string) str()->orderedUuid(), 'IdTask' => $m->Id, 'DitugaskanDari' => $m->getOriginal('DitugaskanKepada'), 'DitugaskanKepada' => $m->DitugaskanKepada, 'TglPenugasan' => now(), 'TglBuat' => now(), 'DibuatOleh' => Auth::id()]);
-                $user = Pengguna::find($m->DitugaskanKepada);
-                if ($user && in_array(AccessPermissions::TASK_VIEW, $user->permissionCodes(), true)) {
-                    $user->notify(new TaskAssignedNotification($m));
-                }
+                self::notifyAssignee($m);
             }
         });
     }
@@ -60,10 +64,28 @@ class Task extends Model
     public static function nextNumber(): string
     {
         $date = now();
-        $prefix = 'TSK-'.$date->format('Ymd').'-';
-        $last = (string) DB::table('TTask')->where('NomorTask', 'like', $prefix.'%')->max('NomorTask');
+        $key = 'TSK-'.$date->format('Ymd');
+        $sequence = DB::transaction(function () use ($key): int {
+            if (DB::getDriverName() === 'sqlsrv') {
+                DB::statement("EXEC sp_getapplock @Resource = ?, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000", [$key]);
+            }
+            DB::table('MNomorDokumen')->updateOrInsert(['Kode' => $key], ['TglEdit' => now()]);
+            $counter = DB::table('MNomorDokumen')->where('Kode', $key)->lockForUpdate()->first();
+            $next = ((int) $counter->Nilai) + 1;
+            DB::table('MNomorDokumen')->where('Kode', $key)->update(['Nilai' => $next, 'TglEdit' => now()]);
 
-        return TicketTaskSupport::number('TSK', $date, $last ? ((int) substr($last, -3)) + 1 : 1);
+            return $next;
+        }, 3);
+
+        return TicketTaskSupport::number('TSK', $date, $sequence);
+    }
+
+    private static function notifyAssignee(self $task): void
+    {
+        $user = Pengguna::find($task->DitugaskanKepada);
+        if ($user && in_array(AccessPermissions::TASK_VIEW, $user->permissionCodes(), true)) {
+            $user->notify(new TaskAssignedNotification($task));
+        }
     }
 
     public function checklist(): HasMany
@@ -79,5 +101,10 @@ class Task extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(TaskAttachment::class, 'IdTask', 'Id');
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignment::class, 'IdTask', 'Id')->orderByDesc('TglPenugasan');
     }
 }

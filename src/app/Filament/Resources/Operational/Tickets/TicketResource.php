@@ -10,6 +10,7 @@ use App\Support\NavigationHelper;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -23,6 +24,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 
 class TicketResource extends Resource
 {
@@ -80,17 +83,27 @@ class TicketResource extends Resource
             Select::make('IdStatusTicket')->options(fn () => self::options('MStatusTicket', 'NamaStatusTicket'))->required()->searchable(), Select::make('IdKategoriTicket')->options(fn () => self::options('MKategoriTicket', 'NamaKategori'))->searchable(), Select::make('IdPrioritasTicket')->options(fn () => self::options('MPrioritasTicket', 'NamaPrioritas'))->searchable(),
             Select::make('DitugaskanKepada')->options(fn () => self::options('MPengguna', 'NamaPengguna'))->searchable(), DateTimePicker::make('TglTargetSelesai')->native(false), Select::make('IdCustomer')->options(fn () => self::options('MCustomer', 'NamaCustomer'))->searchable(), Select::make('IdInstansi')->options(fn () => self::options('MInstansi', 'NamaInstansi'))->searchable(),
             Repeater::make('activities')->relationship()->label(__('ui.ticketing.progress_note'))->schema([Select::make('JenisAktivitas')->options(['Catatan' => 'Catatan'])->default('Catatan')->required(), Textarea::make('IsiAktivitas')->required()])->columnSpanFull(),
-            Repeater::make('attachments')->relationship()->label(__('ui.ticketing.attachments'))->schema([FileUpload::make('PathFile')->disk('attachments')->directory('tickets')->maxSize(3072)->required(), TextInput::make('NamaFile')->required(), TextInput::make('TipeFile'), TextInput::make('UkuranFile')->numeric()])->columnSpanFull(),
+            Repeater::make('assignments')->relationship()->label(__('ui.ticketing.assignment_history'))->schema([Select::make('DitugaskanDari')->options(fn () => self::options('MPengguna', 'NamaPengguna'))->disabled(), Select::make('DitugaskanKepada')->options(fn () => self::options('MPengguna', 'NamaPengguna'))->disabled(), TextInput::make('AlasanPenugasan')->disabled(), DateTimePicker::make('TglPenugasan')->disabled()])->addable(false)->deletable(false)->reorderable(false)->columnSpanFull(),
+            Repeater::make('attachments')->relationship()->label(__('ui.ticketing.attachments'))->schema([FileUpload::make('PathFile')->disk('attachments')->directory('tickets')->maxSize(3072)->acceptedFileTypes(['image/*', 'application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])->storeFileNamesIn('NamaFile')->required(), Placeholder::make('download')->content(fn ($record) => $record ? new HtmlString('<a href="'.route('admin.attachments.tickets.download', $record->Id).'">'.e(__('ui.ticketing.download')).'</a>') : '')])->mutateRelationshipDataBeforeCreateUsing(fn (array $data) => self::attachmentMetadata($data))->columnSpanFull(),
         ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('NomorTicket')->searchable()->sortable(), TextColumn::make('JudulTicket')->searchable()->limit(50), TextColumn::make('status')->state(fn ($r) => DB::table('MStatusTicket')->where('Id', $r->IdStatusTicket)->value('NamaStatusTicket') ?: '-')->badge(), TextColumn::make('assignee')->label(__('ui.ticketing.assigned_to'))->state(fn ($r) => DB::table('MPengguna')->where('Id', $r->DitugaskanKepada)->value('NamaPengguna') ?: '-'), TextColumn::make('TglTargetSelesai')->dateTime()->color(fn ($r) => $r->TglTargetSelesai?->isPast() ? 'danger' : null)->sortable()])->filters([SelectFilter::make('IdStatusTicket')->options(fn () => self::options('MStatusTicket', 'NamaStatusTicket')), Filter::make('mine')->label(__('ui.ticketing.my_tickets'))->query(fn (Builder $q) => $q->where('DitugaskanKepada', Auth::id()))])->recordActions([EditAction::make()])->defaultSort('TglBuat', 'desc');
+        return $table->columns([TextColumn::make('NomorTicket')->searchable()->sortable(), TextColumn::make('JudulTicket')->searchable()->limit(50), TextColumn::make('status')->state(fn ($r) => DB::table('MStatusTicket')->where('Id', $r->IdStatusTicket)->value('NamaStatusTicket') ?: '-')->badge(), TextColumn::make('assignee')->label(__('ui.ticketing.assigned_to'))->state(fn ($r) => DB::table('MPengguna')->where('Id', $r->DitugaskanKepada)->value('NamaPengguna') ?: '-'), TextColumn::make('TglTargetSelesai')->dateTime()->color(fn ($r) => $r->TglTargetSelesai?->isPast() && ! DB::table('MStatusTicket')->where('Id', $r->IdStatusTicket)->value('StatusFinal') ? 'danger' : null)->sortable()])->filters([SelectFilter::make('IdStatusTicket')->options(fn () => self::options('MStatusTicket', 'NamaStatusTicket')), Filter::make('mine')->label(__('ui.ticketing.my_tickets'))->query(fn (Builder $q) => $q->where('DitugaskanKepada', Auth::id()))])->recordActions([EditAction::make()])->defaultSort('TglBuat', 'desc');
     }
 
     public static function getPages(): array
     {
         return ['index' => ManageTickets::route('/')];
+    }
+
+    private static function attachmentMetadata(array $data): array
+    {
+        $path = $data['PathFile'];
+        $data['TipeFile'] = Storage::disk('attachments')->mimeType($path);
+        $data['UkuranFile'] = Storage::disk('attachments')->size($path);
+
+        return $data;
     }
 }

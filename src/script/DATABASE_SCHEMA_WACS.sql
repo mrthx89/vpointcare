@@ -937,3 +937,11 @@ GO
 IF OBJECT_ID('TTaskDLampiran', 'U') IS NULL
 CREATE TABLE TTaskDLampiran (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, IdTask uniqueidentifier NOT NULL REFERENCES TTask(Id), NamaFile varchar(255) NOT NULL, PathFile varchar(1000) NOT NULL, TipeFile varchar(100) NULL, UkuranFile bigint NULL, TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL);
 GO
+IF OBJECT_ID('notifications', 'U') IS NULL
+CREATE TABLE notifications (id uniqueidentifier NOT NULL PRIMARY KEY, type nvarchar(255) NOT NULL, notifiable_type nvarchar(255) NOT NULL, notifiable_id uniqueidentifier NOT NULL, data nvarchar(max) NOT NULL, read_at datetime2 NULL, created_at datetime2 NULL, updated_at datetime2 NULL);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'notifications_notifiable_type_notifiable_id_index') CREATE INDEX notifications_notifiable_type_notifiable_id_index ON notifications(notifiable_type, notifiable_id);
+GO
+IF OBJECT_ID('MNomorDokumen', 'U') IS NULL
+CREATE TABLE MNomorDokumen (Kode varchar(32) NOT NULL PRIMARY KEY, Nilai int NOT NULL DEFAULT 0, TglEdit datetime2 NULL);
+GO

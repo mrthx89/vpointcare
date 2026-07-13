@@ -156,6 +156,7 @@ return [
         'attachments' => 'Attachments', 'upload_file' => 'Upload file', 'download' => 'Download',
         'file_too_large' => 'File size exceeds 3 MB.', 'max_file_size' => 'Maximum 3 MB per file.',
         'status_task' => 'Task Status', 'status_ticket' => 'Ticket Status', 'category' => 'Category', 'priority' => 'Priority',
+        'ticket_assigned' => 'Ticket assigned', 'task_assigned' => 'Task assigned', 'new' => 'New', 'in_progress' => 'In Progress', 'overdue' => 'Overdue', 'done' => 'Completed', 'number' => 'Number', 'title' => 'Title', 'pic' => 'PIC', 'target' => 'Target', 'empty' => 'No tickets yet.',
     ],
     'roles' => [
         'admin' => 'Admin',

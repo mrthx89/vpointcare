@@ -35,8 +35,10 @@ class Ticket extends Model
             }
         });
         static::created(function (self $m): void {
+            DB::table('TTicketD')->insert(['Id' => (string) str()->orderedUuid(), 'IdTicket' => $m->Id, 'JenisAktivitas' => 'Pembuatan', 'IsiAktivitas' => $m->JudulTicket, 'TglAktivitas' => now(), 'TglBuat' => now(), 'DibuatOleh' => Auth::id()]);
             if ($m->DitugaskanKepada) {
                 DB::table('TTicketDPenugasan')->insert(['Id' => (string) str()->orderedUuid(), 'IdTicket' => $m->Id, 'DitugaskanDari' => null, 'DitugaskanKepada' => $m->DitugaskanKepada, 'TglPenugasan' => now(), 'TglBuat' => now(), 'DibuatOleh' => Auth::id()]);
+                self::notifyAssignee($m);
             }
         });
         static::updating(function (self $m): void {
@@ -45,14 +47,17 @@ class Ticket extends Model
             if ($m->isDirty('DitugaskanKepada')) {
                 $m->TglDitugaskan = $m->DitugaskanKepada ? now() : null;
             }
+            if ($m->isDirty('IdStatusTicket')) {
+                $final = DB::table('MStatusTicket')->where('Id', $m->IdStatusTicket)->value('StatusFinal');
+                $m->TglDitutup = $final ? now() : null;
+                $m->DitutupOleh = $final ? Auth::id() : null;
+                $m->TglSelesai = $final ? ($m->TglSelesai ?: now()) : null;
+            }
         });
         static::updated(function (self $m): void {
             if ($m->wasChanged('DitugaskanKepada') && $m->DitugaskanKepada) {
                 DB::table('TTicketDPenugasan')->insert(['Id' => (string) str()->orderedUuid(), 'IdTicket' => $m->Id, 'DitugaskanDari' => $m->getOriginal('DitugaskanKepada'), 'DitugaskanKepada' => $m->DitugaskanKepada, 'TglPenugasan' => now(), 'TglBuat' => now(), 'DibuatOleh' => Auth::id()]);
-                $user = Pengguna::find($m->DitugaskanKepada);
-                if ($user && in_array(AccessPermissions::TICKET_VIEW, $user->permissionCodes(), true)) {
-                    $user->notify(new TicketAssignedNotification($m));
-                }
+                self::notifyAssignee($m);
             } if ($m->wasChanged('IdStatusTicket')) {
                 DB::table('TTicketD')->insert(['Id' => (string) str()->orderedUuid(), 'IdTicket' => $m->Id, 'JenisAktivitas' => 'PerubahanStatus', 'StatusSebelum' => (string) $m->getOriginal('IdStatusTicket'), 'StatusSesudah' => (string) $m->IdStatusTicket, 'TglAktivitas' => now(), 'TglBuat' => now(), 'DibuatOleh' => Auth::id()]);
             }
@@ -62,10 +67,28 @@ class Ticket extends Model
     public static function nextNumber(): string
     {
         $date = now();
-        $prefix = 'TCK-'.$date->format('Ymd').'-';
-        $last = (string) DB::table('TTicket')->where('NomorTicket', 'like', $prefix.'%')->max('NomorTicket');
+        $key = 'TCK-'.$date->format('Ymd');
+        $sequence = DB::transaction(function () use ($key): int {
+            if (DB::getDriverName() === 'sqlsrv') {
+                DB::statement("EXEC sp_getapplock @Resource = ?, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000", [$key]);
+            }
+            DB::table('MNomorDokumen')->updateOrInsert(['Kode' => $key], ['TglEdit' => now()]);
+            $counter = DB::table('MNomorDokumen')->where('Kode', $key)->lockForUpdate()->first();
+            $next = ((int) $counter->Nilai) + 1;
+            DB::table('MNomorDokumen')->where('Kode', $key)->update(['Nilai' => $next, 'TglEdit' => now()]);
 
-        return TicketTaskSupport::number('TCK', $date, $last ? ((int) substr($last, -3)) + 1 : 1);
+            return $next;
+        }, 3);
+
+        return TicketTaskSupport::number('TCK', $date, $sequence);
+    }
+
+    private static function notifyAssignee(self $ticket): void
+    {
+        $user = Pengguna::find($ticket->DitugaskanKepada);
+        if ($user && in_array(AccessPermissions::TICKET_VIEW, $user->permissionCodes(), true)) {
+            $user->notify(new TicketAssignedNotification($ticket));
+        }
     }
 
     public function activities(): HasMany
@@ -76,5 +99,10 @@ class Ticket extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(TicketAttachment::class, 'IdTicket', 'Id');
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(TicketAssignment::class, 'IdTicket', 'Id')->orderByDesc('TglPenugasan');
     }
 }

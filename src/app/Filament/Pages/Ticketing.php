@@ -50,7 +50,7 @@ class Ticketing extends Page
 
     public function getTitle(): string | \Illuminate\Contracts\Support\Htmlable
     {
-        return 'Ticketing';
+        return __('ui.permissions.ticket_module');
     }
 
     public static function getNavigationLabel(): string

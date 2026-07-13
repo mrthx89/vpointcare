@@ -20,6 +20,6 @@ class TaskAssignedNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return ['title' => 'Task ditugaskan', 'body' => $this->task->NomorTask.' - '.$this->task->JudulTask, 'url' => TaskResource::getUrl()];
+        return ['title' => __('ui.ticketing.task_assigned'), 'body' => $this->task->NomorTask.' - '.$this->task->JudulTask, 'url' => TaskResource::getUrl()];
     }
 }

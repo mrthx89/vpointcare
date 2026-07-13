@@ -25,4 +25,12 @@ class TicketTaskSupportTest extends TestCase
         $this->assertFalse(TicketTaskSupport::isOverdue($now->subMinute(), true, $now));
         $this->assertFalse(TicketTaskSupport::isOverdue(null, false, $now));
     }
+
+    public function test_notifications_schema_migration_exists(): void
+    {
+        $migration = file_get_contents(dirname(__DIR__, 2).'/database/migrations/2026_07_13_000002_create_notifications_table.php');
+
+        $this->assertStringContainsString("Schema::create('notifications'", $migration);
+        $this->assertStringContainsString("uuidMorphs('notifiable')", $migration);
+    }
 }

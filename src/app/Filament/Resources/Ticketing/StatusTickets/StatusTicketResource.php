@@ -6,6 +6,7 @@ use App\Filament\Resources\Ticketing\StatusTickets\Pages\ManageStatusTickets;
 use App\Models\Ticketing\StatusTicket;
 use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
+use App\Support\NavigationHelper;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -19,7 +20,10 @@ class StatusTicketResource extends Resource
 {
     protected static ?string $model = StatusTicket::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Ticketing';
+    public static function getNavigationGroup(): ?string
+    {
+        return NavigationHelper::groupFor(AccessPermissions::TICKET_VIEW, __('ui.navigation.operasional'));
+    }
 
     public static function getNavigationLabel(): string
     {
