@@ -16,6 +16,10 @@ class AccessPermissions
 
     public const TICKET_MANAGE = 'ticket.manage';
 
+    public const TASK_VIEW = 'task.view';
+
+    public const TASK_MANAGE = 'task.manage';
+
     public const AI_AGENT_VIEW = 'ai_agent.view';
 
     public const AI_AGENT_MANAGE = 'ai_agent.manage';
@@ -163,6 +167,7 @@ class AccessPermissions
             self::CHATBOT_ACCESS => self::sidebarPermissionMenu($definitions, self::CHATBOT_ACCESS, 'operasional', 15, 'heroicon-o-chat-bubble-bottom-center-text'),
             self::CHAT_HISTORY_VIEW => self::sidebarPermissionMenu($definitions, self::CHAT_HISTORY_VIEW, 'operasional', 11, 'heroicon-o-clock'),
             self::TICKET_VIEW => self::sidebarPermissionMenu($definitions, self::TICKET_VIEW, 'operasional', 20, 'heroicon-o-ticket'),
+            self::TASK_VIEW => self::sidebarPermissionMenu($definitions, self::TASK_VIEW, 'operasional', 21, 'heroicon-o-check-circle'),
             self::AI_AGENT_VIEW => self::sidebarPermissionMenu($definitions, self::AI_AGENT_VIEW, 'assistant', 10, 'heroicon-o-sparkles'),
             self::KNOWLEDGE_VIEW => self::sidebarPermissionMenu($definitions, self::KNOWLEDGE_VIEW, 'assistant', 20, 'heroicon-o-book-open'),
             self::MASTER_CUSTOMER_VIEW => self::sidebarPermissionMenu($definitions, self::MASTER_CUSTOMER_VIEW, 'master_data', 10, 'heroicon-o-squares-2x2'),
@@ -188,6 +193,7 @@ class AccessPermissions
             self::INBOX_REPLY => 'operasional',
             self::INBOX_MANAGE => 'operasional',
             self::TICKET_MANAGE => 'operasional',
+            self::TASK_MANAGE => 'operasional',
             self::AI_AGENT_MANAGE => 'assistant',
             self::MASTER_CUSTOMER_MANAGE => 'master_data',
             self::KNOWLEDGE_MANAGE => 'assistant',
@@ -290,6 +296,16 @@ class AccessPermissions
                 'label' => 'ui.permissions.ticket_manage',
                 'module' => 'ui.permissions.ticket_module',
                 'description' => 'ui.permissions.ticket_manage_desc',
+            ],
+            self::TASK_VIEW => [
+                'label' => 'ui.permissions.task_view',
+                'module' => 'ui.permissions.task_module',
+                'description' => 'ui.permissions.task_view_desc',
+            ],
+            self::TASK_MANAGE => [
+                'label' => 'ui.permissions.task_manage',
+                'module' => 'ui.permissions.task_module',
+                'description' => 'ui.permissions.task_manage_desc',
             ],
             self::AI_AGENT_VIEW => [
                 'label' => 'ui.permissions.ai_agent_view',
@@ -396,6 +412,8 @@ class AccessPermissions
                 self::INBOX_MANAGE,
                 self::TICKET_VIEW,
                 self::TICKET_MANAGE,
+                self::TASK_VIEW,
+                self::TASK_MANAGE,
                 self::AI_AGENT_VIEW,
                 self::AI_AGENT_MANAGE,
                 self::LOG_DATA_VIEW,
@@ -417,6 +435,8 @@ class AccessPermissions
                 self::INBOX_REPLY,
                 self::TICKET_VIEW,
                 self::TICKET_MANAGE,
+                self::TASK_VIEW,
+                self::TASK_MANAGE,
                 self::MASTER_CUSTOMER_VIEW,
                 self::CHAT_HISTORY_VIEW,
                 self::CHATBOT_ACCESS,
@@ -425,6 +445,8 @@ class AccessPermissions
                 self::DASHBOARD_VIEW,
                 self::TICKET_VIEW,
                 self::TICKET_MANAGE,
+                self::TASK_VIEW,
+                self::TASK_MANAGE,
                 self::LOG_DATA_VIEW,
                 self::CHAT_HISTORY_VIEW,
                 self::CHATBOT_ACCESS,
@@ -432,6 +454,8 @@ class AccessPermissions
             'VIEWER' => [
                 self::DASHBOARD_VIEW,
                 self::CHAT_HISTORY_VIEW,
+                self::TICKET_VIEW,
+                self::TASK_VIEW,
             ],
         ];
     }

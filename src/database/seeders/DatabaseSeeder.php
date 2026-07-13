@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
 
         $this->seedRoles();
         $this->seedPermissions();
+        $this->seedTicketingMasters();
         $this->seedJobSchedules();
 
         NavigationHelper::flush();
@@ -58,6 +59,43 @@ class DatabaseSeeder extends Seeder
                 'NonAktif' => false,
                 'TglEdit' => now(),
             ]);
+        }
+    }
+
+    private function seedTicketingMasters(): void
+    {
+        $masters = [
+            'MStatusTicket' => ['KodeStatusTicket', [
+                ['BARU', 'Baru', 10, false, 'info'], ['ANALISA', 'Analisa', 20, false, 'warning'],
+                ['DIKERJAKAN', 'Dikerjakan', 30, false, 'primary'], ['SELESAI', 'Selesai', 90, true, 'success'],
+                ['DITUTUP', 'Ditutup', 100, true, 'gray'],
+            ]],
+            'MStatusTask' => ['KodeStatusTask', [
+                ['BARU', 'Baru', 10, false, 'info'], ['DIKERJAKAN', 'Dikerjakan', 30, false, 'primary'],
+                ['TERTUNDA', 'Tertunda', 40, false, 'warning'], ['SELESAI', 'Selesai', 90, true, 'success'],
+                ['DITUTUP', 'Ditutup', 100, true, 'gray'],
+            ]],
+        ];
+
+        foreach ($masters as $table => [$codeColumn, $rows]) {
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+            $nameColumn = $table === 'MStatusTask' ? 'NamaStatusTask' : 'NamaStatusTicket';
+            foreach ($rows as [$code, $name, $order, $final, $color]) {
+                DB::table($table)->updateOrInsert([$codeColumn => $code], [$nameColumn => $name, 'Urutan' => $order, 'StatusFinal' => $final, 'Warna' => $color, 'NonAktif' => false, 'TglEdit' => now()]);
+            }
+        }
+
+        if (Schema::hasTable('MKategoriTicket')) {
+            foreach ([['UMUM', 'Umum'], ['TEKNIS', 'Teknis'], ['LAYANAN', 'Layanan']] as [$code, $name]) {
+                DB::table('MKategoriTicket')->updateOrInsert(['KodeKategori' => $code], ['NamaKategori' => $name, 'NonAktif' => false, 'TglEdit' => now()]);
+            }
+        }
+        if (Schema::hasTable('MPrioritasTicket')) {
+            foreach ([['RENDAH', 'Rendah', 10, 2880, 'gray'], ['NORMAL', 'Normal', 20, 1440, 'info'], ['TINGGI', 'Tinggi', 30, 480, 'warning'], ['KRITIS', 'Kritis', 40, 120, 'danger']] as [$code, $name, $order, $sla, $color]) {
+                DB::table('MPrioritasTicket')->updateOrInsert(['KodePrioritas' => $code], ['NamaPrioritas' => $name, 'Urutan' => $order, 'BatasSlaMenit' => $sla, 'Warna' => $color, 'NonAktif' => false, 'TglEdit' => now()]);
+            }
         }
     }
 

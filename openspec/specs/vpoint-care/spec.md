@@ -159,6 +159,32 @@ The system SHALL support creating and tracking tickets from customer-service iss
 - WHEN a ticket is created or updated
 - THEN authorized users SHALL be able to view its latest status from the Ticketing module
 
+### Requirement: Ticket and Task Operations
+
+The system SHALL provide database-backed ticket and task resources with permission-gated management, assignment history, progress records, private attachments, and user-specific filters.
+
+#### Scenario: Authorized user manages tickets and tasks
+
+- GIVEN the user has the matching `ticket.manage` or `task.manage` permission
+- WHEN the user creates or updates a record
+- THEN the system SHALL persist the record with a generated daily sequence number
+- AND assignment changes SHALL be recorded in the matching assignment-history table
+- AND the new assignee SHALL receive a database notification only when they have view permission
+
+#### Scenario: User manages progress and private files
+
+- GIVEN the user has manage permission
+- WHEN the user adds a ticket note, task comment, task checklist item, or attachment
+- THEN the system SHALL persist the related record
+- AND each attachment SHALL be stored outside the public disk with a maximum size of 3 MB
+- AND downloads SHALL require authentication and the matching view permission
+
+#### Scenario: User filters assigned work
+
+- GIVEN the user has view permission
+- WHEN the user enables the "mine" filter
+- THEN only tickets or tasks assigned to the authenticated `MPengguna` SHALL be displayed
+
 ### Requirement: Master Data Management
 
 The system SHALL provide CRUD-style administration for master data needed by customer-service operations.

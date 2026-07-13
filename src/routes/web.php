@@ -5,6 +5,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PublicStorageController;
 use App\Http\Controllers\WahaMediaController;
 use App\Http\Controllers\Webhook\WahaWebhookController;
+use App\Http\Controllers\Ticketing\AttachmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -34,3 +35,8 @@ Route::get('/admin/waha-media/{message}', WahaMediaController::class)
 Route::get('/profile-storage/{path}', PublicStorageController::class)
     ->where('path', '.*')
     ->name('public-storage.show');
+
+Route::middleware('auth')->prefix('admin/attachments')->name('admin.attachments.')->group(function (): void {
+    Route::get('tickets/{attachment}', [AttachmentController::class, 'ticket'])->name('tickets.download');
+    Route::get('tasks/{attachment}', [AttachmentController::class, 'task'])->name('tasks.download');
+});

@@ -918,3 +918,22 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_TglPesan_Arah_Status' AND object_id = OBJECT_ID('TChatD'))
     CREATE INDEX IX_TChatD_TglPesan_Arah_Status ON TChatD (TglPesan) INCLUDE (IdChat, ArahPesan, DihasilkanOlehAi, StatusKirim);
 GO
+-- Task module additions (2026-07-13). The Laravel migration contains guards for existing databases.
+IF OBJECT_ID('MStatusTask', 'U') IS NULL
+CREATE TABLE MStatusTask (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, KodeStatusTask varchar(50) NOT NULL UNIQUE, NamaStatusTask varchar(100) NOT NULL, Urutan int NOT NULL DEFAULT 0, StatusFinal bit NOT NULL DEFAULT 0, Warna varchar(30) NULL, NonAktif bit NOT NULL DEFAULT 0, TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL);
+GO
+IF OBJECT_ID('TTask', 'U') IS NULL
+CREATE TABLE TTask (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, NomorTask varchar(50) NOT NULL UNIQUE, IdTicket uniqueidentifier NULL REFERENCES TTicket(Id), IdChat uniqueidentifier NULL REFERENCES TChat(Id), IdCustomer uniqueidentifier NULL REFERENCES MCustomer(Id), IdInstansi uniqueidentifier NULL REFERENCES MInstansi(Id), IdTugasInduk uniqueidentifier NULL, IdKategoriTicket uniqueidentifier NULL REFERENCES MKategoriTicket(Id), IdPrioritasTicket uniqueidentifier NULL REFERENCES MPrioritasTicket(Id), IdStatusTask uniqueidentifier NOT NULL REFERENCES MStatusTask(Id), JudulTask varchar(255) NOT NULL, DeskripsiTask nvarchar(max) NULL, DitugaskanKepada uniqueidentifier NULL REFERENCES MPengguna(Id), TglDitugaskan datetime2 NULL, TglTargetSelesai datetime2 NULL, TglSelesai datetime2 NULL, TglDitutup datetime2 NULL, DitutupOleh uniqueidentifier NULL, EstimasiMenit int NULL, TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL, CONSTRAINT FK_TTask_TTask_Induk FOREIGN KEY (IdTugasInduk) REFERENCES TTask(Id));
+GO
+IF OBJECT_ID('TTaskDPenugasan', 'U') IS NULL
+CREATE TABLE TTaskDPenugasan (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, IdTask uniqueidentifier NOT NULL REFERENCES TTask(Id), DitugaskanDari uniqueidentifier NULL REFERENCES MPengguna(Id), DitugaskanKepada uniqueidentifier NOT NULL REFERENCES MPengguna(Id), AlasanPenugasan varchar(500) NULL, TglPenugasan datetime2 NOT NULL DEFAULT SYSDATETIME(), TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL);
+GO
+IF OBJECT_ID('TTaskDChecklist', 'U') IS NULL
+CREATE TABLE TTaskDChecklist (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, IdTask uniqueidentifier NOT NULL REFERENCES TTask(Id), JudulItem varchar(500) NOT NULL, Selesai bit NOT NULL DEFAULT 0, Urutan int NOT NULL DEFAULT 0, TglSelesai datetime2 NULL, DiselesaikanOleh uniqueidentifier NULL, TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL);
+GO
+IF OBJECT_ID('TTaskDKomentar', 'U') IS NULL
+CREATE TABLE TTaskDKomentar (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, IdTask uniqueidentifier NOT NULL REFERENCES TTask(Id), IsiKomentar nvarchar(max) NOT NULL, TglKomentar datetime2 NOT NULL DEFAULT SYSDATETIME(), TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL);
+GO
+IF OBJECT_ID('TTaskDLampiran', 'U') IS NULL
+CREATE TABLE TTaskDLampiran (Id uniqueidentifier NOT NULL DEFAULT NEWSEQUENTIALID() PRIMARY KEY, IdTask uniqueidentifier NOT NULL REFERENCES TTask(Id), NamaFile varchar(255) NOT NULL, PathFile varchar(1000) NOT NULL, TipeFile varchar(100) NULL, UkuranFile bigint NULL, TglBuat datetime2 NOT NULL DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL);
+GO

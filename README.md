@@ -83,9 +83,17 @@ Fokus utama aplikasi:
 
 ### Ticketing
 
-- Modul ticketing digunakan untuk eskalasi dan tindak lanjut percakapan customer.
-- Struktur tabel mendukung ticket header, detail, penugasan, lampiran, kategori, prioritas, dan status ticket.
-- Ticketing terhubung dengan histori percakapan agar agent dapat melihat konteks masalah.
+- Dashboard `/admin/ticketing` menampilkan statistik ticket baru, aktif, overdue, selesai, ticket pengguna aktif, dan antrean terbaru dari database.
+- Resource Ticket mendukung CRUD, status, kategori, prioritas/SLA, customer, instansi, target selesai, penugasan, filter "Ticket Saya", catatan progres, dan lampiran privat.
+- Perubahan status dicatat ke `TTicketD`; perubahan assignee dicatat ke `TTicketDPenugasan` dan mengirim notifikasi database kepada pengguna yang memiliki `ticket.view`.
+- Lampiran disimpan pada disk privat `attachments`, maksimal 3 MB per file, dan hanya dapat diunduh melalui route terautentikasi.
+
+### Task
+
+- Resource Task menyediakan action item mandiri atau terkait ticket dengan nomor `TSK-YYYYMMDD-NNN`.
+- Task mendukung status, prioritas, assignee, target selesai, estimasi, filter "Task Saya", checklist, komentar progres, dan lampiran privat.
+- Perubahan assignee dicatat ke `TTaskDPenugasan` dan mengirim notifikasi database kepada pengguna yang memiliki `task.view`.
+- Master status ticket/task, kategori, dan prioritas dikelola melalui resource Filament khusus pengguna dengan `ticket.manage`.
 
 ### Master Data
 

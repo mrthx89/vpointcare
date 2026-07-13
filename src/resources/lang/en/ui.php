@@ -102,6 +102,11 @@ return [
         'ticket_module' => 'Ticketing',
         'ticket_manage' => 'Manage Ticketing',
         'ticket_manage_desc' => 'Create, update, and handle tickets.',
+        'task_view' => 'Tasks',
+        'task_view_desc' => 'View task lists and details.',
+        'task_module' => 'Tasks',
+        'task_manage' => 'Manage Tasks',
+        'task_manage_desc' => 'Create, assign, and complete tasks.',
         'ai_agent_view' => 'AI Agent',
         'ai_agent_view_desc' => 'View AI Agent settings.',
         'ai_agent_module' => 'AI Agent',
@@ -143,6 +148,14 @@ return [
         'job_schedule_view' => 'Job Scheduling',
         'job_schedule_view_desc' => 'View and configure background job execution schedules (interval & active/inactive).',
         'settings_module' => 'Settings',
+    ],
+    'ticketing' => [
+        'tickets' => 'Tickets', 'tasks' => 'Tasks', 'assigned_to' => 'Assigned to',
+        'my_tickets' => 'My Tickets', 'my_tasks' => 'My Tasks', 'assignment_history' => 'Assignment History',
+        'reassign_reason' => 'Assignment reason', 'progress_note' => 'Progress note', 'add_note' => 'Add note',
+        'attachments' => 'Attachments', 'upload_file' => 'Upload file', 'download' => 'Download',
+        'file_too_large' => 'File size exceeds 3 MB.', 'max_file_size' => 'Maximum 3 MB per file.',
+        'status_task' => 'Task Status', 'status_ticket' => 'Ticket Status', 'category' => 'Category', 'priority' => 'Priority',
     ],
     'roles' => [
         'admin' => 'Admin',
@@ -904,4 +917,3 @@ return [
         'attachment_binary_notice' => 'File :name (:mime) was attached, but its content could not be extracted as text.',
     ],
 ];
-

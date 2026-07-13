@@ -102,6 +102,11 @@ return [
         'ticket_module' => 'Ticketing',
         'ticket_manage' => 'Kelola Ticketing',
         'ticket_manage_desc' => 'Membuat, memperbarui, dan menangani ticket.',
+        'task_view' => 'Task',
+        'task_view_desc' => 'Melihat daftar dan detail task.',
+        'task_module' => 'Task',
+        'task_manage' => 'Kelola Task',
+        'task_manage_desc' => 'Membuat, menugaskan, dan menyelesaikan task.',
         'ai_agent_view' => 'AI Agent',
         'ai_agent_view_desc' => 'Melihat pengaturan AI Agent.',
         'ai_agent_module' => 'AI Agent',
@@ -143,6 +148,14 @@ return [
         'job_schedule_view' => 'Penjadwalan Job',
         'job_schedule_view_desc' => 'Melihat dan mengatur jadwal eksekusi background job (interval & aktif/nonaktif).',
         'settings_module' => 'Pengaturan',
+    ],
+    'ticketing' => [
+        'tickets' => 'Ticket', 'tasks' => 'Task', 'assigned_to' => 'Ditugaskan kepada',
+        'my_tickets' => 'Ticket Saya', 'my_tasks' => 'Task Saya', 'assignment_history' => 'Riwayat Penugasan',
+        'reassign_reason' => 'Alasan penugasan', 'progress_note' => 'Catatan progres', 'add_note' => 'Tambah catatan',
+        'attachments' => 'Lampiran', 'upload_file' => 'Unggah file', 'download' => 'Unduh',
+        'file_too_large' => 'Ukuran file melebihi 3 MB.', 'max_file_size' => 'Maksimal 3 MB per file.',
+        'status_task' => 'Status Task', 'status_ticket' => 'Status Ticket', 'category' => 'Kategori', 'priority' => 'Prioritas',
     ],
     'roles' => [
         'admin' => 'Admin',
@@ -904,4 +917,3 @@ return [
         'attachment_binary_notice' => 'File :name (:mime) dilampirkan, tetapi kontennya tidak bisa diekstrak sebagai teks.',
     ],
 ];
-
