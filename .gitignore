@@ -170,3 +170,5 @@ app.publish/
 
 # Docker local overrides
 docker-compose.override.yml
+
+[Gg]raphify-out/
