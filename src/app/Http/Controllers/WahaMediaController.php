@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\WahaMediaPayload;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -9,85 +11,203 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Throwable;
 
 class WahaMediaController extends Controller
 {
-    public function __invoke(string $message): Response
+    public function __invoke(Request $request, string $message): Response
     {
         $row = DB::table('TChatD')
             ->where('Id', $message)
             ->select(
+                'Id',
                 'UrlMedia',
+                'PayloadJson',
+                'JenisPesan',
                 Schema::hasColumn('TChatD', 'NamaFileMedia') ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
-                Schema::hasColumn('TChatD', 'TipeMime') ? 'TipeMime' : DB::raw('NULL as TipeMime')
+                Schema::hasColumn('TChatD', 'TipeMime') ? 'TipeMime' : DB::raw('NULL as TipeMime'),
             )
             ->first();
 
-        abort_if(! $row || ! $row->UrlMedia, 404);
+        abort_if(! $row, 404);
+
+        $media = $this->mediaFromUrl($row, $message)
+            ?? WahaMediaPayload::fromPayloadJson(
+                $row->PayloadJson,
+                $row->TipeMime,
+                $row->NamaFileMedia,
+                $row->JenisPesan,
+            );
+
+        if (! $media) {
+            if (filled($row->PayloadJson)) {
+                $this->logUnavailable($message, 'payload', 'embedded_invalid');
+            }
+
+            return $this->errorResponse();
+        }
+
+        return $this->mediaResponse($media, $request->boolean('download'));
+    }
+
+    /**
+     * @return array{source: string, contents: string, mime_type: string, file_name: ?string, category: string, inline: bool}|null
+     */
+    private function mediaFromUrl(object $row, string $message): ?array
+    {
+        if (! filled($row->UrlMedia)) {
+            return null;
+        }
 
         $url = $this->mediaUrl((string) $row->UrlMedia);
 
         if (Str::startsWith($url, 'data:')) {
-            return $this->dataUrlResponse($url, $row);
+            $media = WahaMediaPayload::fromDataUri($url, $row->TipeMime, $row->NamaFileMedia, $row->JenisPesan);
+
+            if (! $media) {
+                $this->logUnavailable($message, 'url', 'invalid_data_uri');
+            }
+
+            return $media;
         }
 
         $localPath = $this->localPublicStoragePath($url);
 
-        if ($localPath) {
-            return $this->localStorageResponse($localPath, $row);
+        if ($localPath !== null) {
+            if (! Storage::disk('public')->exists($localPath)) {
+                $this->logUnavailable($message, 'url', 'storage_missing');
+
+                return null;
+            }
+
+            return WahaMediaPayload::fromBinary(
+                Storage::disk('public')->get($localPath),
+                $row->TipeMime,
+                Storage::disk('public')->mimeType($localPath),
+                $row->NamaFileMedia,
+                null,
+                $row->JenisPesan,
+                'storage',
+            );
         }
 
-        $request = Http::timeout(45);
+        $http = Http::timeout(45);
 
-        if (config('services.waha.api_key')) {
-            $request = $request->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
+        if (filled(config('services.waha.api_key'))) {
+            $http = $http->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
         }
 
         try {
-            $response = $request->get($url);
-        } catch (Throwable $exception) {
-            Log::warning('WAHA media proxy failed to reach media URL.', [
-                'message_id' => $message,
-                'url' => $url,
-                'error' => $exception->getMessage(),
-            ]);
+            $response = $http->get($url);
+        } catch (Throwable) {
+            $this->logUnavailable($message, 'url', 'upstream_exception');
 
-            return $this->errorResponse(__('ui.controllers.waha_media.proxy_failed').$exception->getMessage());
+            return null;
         }
 
         if (! $response->successful()) {
-            Log::warning('WAHA media proxy received unsuccessful response.', [
-                'message_id' => $message,
-                'url' => $url,
-                'status' => $response->status(),
-                'body' => Str::limit($response->body(), 500),
-            ]);
+            $this->logUnavailable($message, 'url', 'upstream_status', $response->status());
 
-            return $this->errorResponse(__('ui.controllers.waha_media.proxy_unsuccessful').$response->status().'.');
+            return null;
         }
 
-        $mimeType = (string) ($row->TipeMime ?: $response->header('Content-Type', 'application/octet-stream'));
-        $body = $response->body();
+        $contents = $response->body();
 
-        if ($this->looksLikeJson($mimeType, $body)) {
-            $decoded = json_decode($body, true);
-            $jsonResponse = $this->jsonMediaResponse(is_array($decoded) ? $decoded : [], $row);
+        if ($contents === '') {
+            $this->logUnavailable($message, 'url', 'upstream_empty');
 
-            if ($jsonResponse) {
-                return $jsonResponse;
+            return null;
+        }
+
+        if ($this->looksLikeJson((string) $response->header('Content-Type'), $contents)) {
+            $media = WahaMediaPayload::fromPayloadJson($contents, $row->TipeMime, $row->NamaFileMedia, $row->JenisPesan);
+
+            if (! $media) {
+                $this->logUnavailable($message, 'url', 'invalid_json_media');
             }
+
+            return $media;
         }
 
-        if ($body === '') {
-            return $this->errorResponse(__('ui.controllers.waha_media.proxy_empty'));
-        }
+        return WahaMediaPayload::fromBinary(
+            $contents,
+            $row->TipeMime,
+            $response->header('Content-Type'),
+            $row->NamaFileMedia,
+            null,
+            $row->JenisPesan,
+            'url',
+        );
+    }
 
-        return response($body, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="'.$this->fileName($row, $mimeType).'"',
+    /**
+     * @param  array{contents: string, mime_type: string, file_name: ?string, inline: bool}  $media
+     */
+    private function mediaResponse(array $media, bool $download): Response
+    {
+        $disposition = $download || ! $media['inline']
+            ? ResponseHeaderBag::DISPOSITION_ATTACHMENT
+            : ResponseHeaderBag::DISPOSITION_INLINE;
+
+        return response($media['contents'], 200, [
+            'Content-Type' => $media['mime_type'],
+            'Content-Disposition' => (new ResponseHeaderBag)->makeDisposition(
+                $disposition,
+                $this->safeFileName($media['file_name'] ?? null),
+                $this->safeAsciiFileName($media['file_name'] ?? null),
+            ),
             'Cache-Control' => 'private, max-age=300',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    private function errorResponse(): Response
+    {
+        return response(__('ui.controllers.waha_media.unavailable'), 424, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Cache-Control' => 'no-store',
+        ]);
+    }
+
+    private function safeFileName(?string $fileName): string
+    {
+        $fileName = trim((string) preg_replace('/[:\\x00-\\x1F\\x7F].*$/', '', (string) $fileName));
+        $fileName = (string) preg_replace('/[A-Z][A-Za-z]*(?:-[A-Za-z]+)+$/', '', $fileName);
+
+        return $fileName !== '' ? $fileName : 'whatsapp-media';
+    }
+
+    private function safeAsciiFileName(?string $fileName): string
+    {
+        $fileName = $this->safeFileName($fileName);
+        $fallback = preg_replace('/[^\x20-\x7E]/', '', $fileName) ?? '';
+        $fallback = str_replace(['%', '/', '\\'], '-', $fallback);
+        $fallback = trim($fallback, ' .-');
+
+        if ($fallback === '') {
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+
+            return $extension !== '' ? 'whatsapp-media.'.$extension : 'whatsapp-media';
+        }
+
+        return $fallback;
+    }
+
+    private function logUnavailable(string $message, string $source, string $reasonCode, ?int $status = null): void
+    {
+        $context = [
+            'message_id' => $message,
+            'source' => $source,
+        ];
+
+        if ($status !== null) {
+            $context['status'] = $status;
+        }
+
+        $context['reason_code'] = $reasonCode;
+
+        Log::warning('WAHA media source unavailable.', $context);
     }
 
     private function mediaUrl(string $url): string
@@ -138,126 +258,7 @@ class WahaMediaController extends Controller
 
     private function looksLikeJson(string $mimeType, string $body): bool
     {
-        $trimmed = ltrim($body);
-
         return str_contains(strtolower($mimeType), 'json')
-            || Str::startsWith($trimmed, ['{', '[']);
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     */
-    private function jsonMediaResponse(array $payload, object $row): ?Response
-    {
-        $dataUrl = $this->firstString($payload, [
-            'dataUrl',
-            'data_url',
-            'media.dataUrl',
-            'media.data_url',
-        ]);
-
-        if ($dataUrl && Str::startsWith($dataUrl, 'data:')) {
-            return $this->dataUrlResponse($dataUrl, $row);
-        }
-
-        $base64 = $this->firstString($payload, [
-            'base64',
-            'data',
-            'file',
-            'body',
-            'media.base64',
-            'media.data',
-            'media.file',
-        ]);
-
-        if ($base64) {
-            $contents = base64_decode(preg_replace('/^data:[^,]+,/', '', $base64) ?: $base64, true);
-
-            if ($contents !== false && $contents !== '') {
-                $mimeType = $row->TipeMime ?: $this->firstString($payload, ['mimetype', 'mimeType', 'media.mimetype', 'media.mimeType']) ?: 'application/octet-stream';
-
-                return response($contents, 200, [
-                    'Content-Type' => $mimeType,
-                    'Content-Disposition' => 'inline; filename="'.$this->fileName($row, $mimeType).'"',
-                    'Cache-Control' => 'private, max-age=300',
-                ]);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     * @param  array<int, string>  $keys
-     */
-    private function firstString(array $payload, array $keys): ?string
-    {
-        foreach ($keys as $key) {
-            $value = data_get($payload, $key);
-
-            if (is_string($value) && trim($value) !== '') {
-                return trim($value);
-            }
-        }
-
-        return null;
-    }
-
-    private function errorResponse(string $message): Response
-    {
-        return response($message, 424, [
-            'Content-Type' => 'text/plain; charset=UTF-8',
-            'Cache-Control' => 'no-store',
-        ]);
-    }
-
-    private function localStorageResponse(string $path, object $row): Response
-    {
-        abort_if(! Storage::disk('public')->exists($path), 404);
-
-        $mimeType = $row->TipeMime ?: (Storage::disk('public')->mimeType($path) ?: 'application/octet-stream');
-
-        return response(Storage::disk('public')->get($path), 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="'.$this->fileName($row, $mimeType).'"',
-            'Cache-Control' => 'private, max-age=300',
-        ]);
-    }
-
-    private function dataUrlResponse(string $url, object $row): Response
-    {
-        if (! preg_match('/^data:([^;,]+)?(;base64)?,(.*)$/', $url, $matches)) {
-            abort(404);
-        }
-
-        $mimeType = $row->TipeMime ?: ($matches[1] ?: 'application/octet-stream');
-        $contents = isset($matches[2]) && $matches[2] === ';base64'
-            ? base64_decode($matches[3], true)
-            : rawurldecode($matches[3]);
-
-        abort_if($contents === false, 404);
-
-        return response($contents, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="'.$this->fileName($row, $mimeType).'"',
-            'Cache-Control' => 'private, max-age=300',
-        ]);
-    }
-
-    private function fileName(object $row, string $mimeType): string
-    {
-        $fileName = trim((string) ($row->NamaFileMedia ?? ''));
-
-        if ($fileName !== '') {
-            return str_replace('"', '', $fileName);
-        }
-
-        return match (true) {
-            str_starts_with($mimeType, 'image/') => 'whatsapp-image',
-            str_starts_with($mimeType, 'video/') => 'whatsapp-video',
-            str_starts_with($mimeType, 'audio/') => 'whatsapp-audio',
-            default => 'whatsapp-media',
-        };
+            || Str::startsWith(ltrim($body), ['{', '[']);
     }
 }

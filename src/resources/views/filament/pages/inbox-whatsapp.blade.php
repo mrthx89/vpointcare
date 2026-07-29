@@ -166,12 +166,28 @@
                     </div>
                     <div class="mt-3 space-y-3">
                         {{ $this->form }}
+                        <div role="group" aria-label="{{ __('ui.pages.inbox.identity_mode') }}"
+                            class="grid grid-cols-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+                            <button type="button" wire:click="$set('identityDisplayMode', 'whatsapp')"
+                                aria-pressed="{{ $identityDisplayMode === 'whatsapp' ? 'true' : 'false' }}"
+                                class="rounded-md px-2 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {{ $identityDisplayMode === 'whatsapp' ? 'bg-white text-primary-700 shadow-sm dark:bg-gray-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400' }}">
+                                {{ __('ui.pages.inbox.identity_whatsapp') }}
+                            </button>
+                            <button type="button" wire:click="$set('identityDisplayMode', 'internal')"
+                                aria-pressed="{{ $identityDisplayMode === 'internal' ? 'true' : 'false' }}"
+                                class="rounded-md px-2 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {{ $identityDisplayMode === 'internal' ? 'bg-white text-primary-700 shadow-sm dark:bg-gray-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400' }}">
+                                {{ __('ui.pages.inbox.identity_internal') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
                 {{-- List Chat: Scrollable --}}
                 <div
                     class="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto overflow-x-hidden dark:divide-gray-800">
                     @forelse ($chatRows as $chat)
+                        @php
+                            $identity = $chat['Identity'][$identityDisplayMode] ?? $chat['Identity']['whatsapp'];
+                        @endphp
                         <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
                             class="block w-full p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60
                                     {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30 border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-transparent' }}">
@@ -185,14 +201,14 @@
                                     <div
                                         class="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold
                                             {{ $chat['BelumDibaca'] > 0 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }}">
-                                        {{ mb_strtoupper(mb_substr($chat['NamaInstansi'] ?: $chat['NamaKontak'] ?: '?', 0, 2)) }}
+                                        {{ mb_strtoupper(mb_substr($identity['PrimaryName'] ?: '?', 0, 2)) }}
                                     </div>
                                 @endif
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-start justify-between gap-1">
                                         <div
                                             class="truncate text-sm font-semibold text-gray-950 dark:text-white leading-tight">
-                                            {{ $chat['NamaInstansi'] }}
+                                            {{ $identity['PrimaryName'] ?: '-' }}
                                         </div>
                                         @if ($chat['BelumDibaca'] > 0)
                                             <div
@@ -202,14 +218,10 @@
                                         @endif
                                     </div>
                                     <div class="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        @if ($chat['JenisChat'] === 'Grup')
-                                            📋 {{ $chat['NamaGrupWhatsapp'] ?: 'Grup belum dikenal' }}
-                                        @else
-                                            {{ $chat['NamaKontak'] !== '-' ? $chat['NamaKontak'] : $chat['NomorWhatsapp'] }}
-                                        @endif
+                                        {{ $chat['JenisChat'] === 'Grup' ? __('ui.pages.inbox.whatsapp_group') : __('ui.pages.inbox.personal_chat') }}
                                     </div>
                                     <div class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
-                                        {{ $chat['NomorWhatsapp'] ?: ($chat['IdWaha'] ?: '-') }}
+                                        {{ $chat['JenisChat'] === 'Grup' ? ($identity['GroupId'] ?: '-') : ($identity['ContactNumber'] ?: $identity['ChatId'] ?: '-') }}
                                     </div>
                                     <div class="mt-1 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
                                         {{ $chat['PesanTerakhir'] }}
@@ -274,6 +286,9 @@
             <section
                 class="wacs-inbox-conversation flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 @if ($selectedChat)
+                    @php
+                        $selectedIdentity = $selectedChat['Identity'][$identityDisplayMode] ?? $selectedChat['Identity']['whatsapp'];
+                    @endphp
                     {{-- Header Chat: Tidak Ikut Scroll --}}
                     <div
                         class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
@@ -284,22 +299,22 @@
                             @else
                                 <div
                                     class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                    {{ mb_strtoupper(mb_substr($selectedChat['NamaKontak'] ?: $selectedChat['NamaInstansi'] ?: '?', 0, 2)) }}
+                                    {{ mb_strtoupper(mb_substr($selectedIdentity['PrimaryName'] ?: '?', 0, 2)) }}
                                 </div>
                             @endif
                             <div class="min-w-0">
                                 <div class="truncate text-base font-semibold text-gray-950 dark:text-white">
-                                    {{ $selectedChat['NamaInstansi'] }}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $selectedIdentity['PrimaryName'] ?: '-' }}</div>
+                                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="rounded bg-gray-100 px-1.5 py-0.5 font-semibold dark:bg-gray-800">
+                                        {{ $selectedChat['JenisChat'] === 'Grup' ? __('ui.pages.inbox.whatsapp_group') : __('ui.pages.inbox.personal_chat') }}
+                                    </span>
                                     @if ($selectedChat['JenisChat'] === 'Grup')
-                                        {{ $selectedChat['NamaGrupWhatsapp'] ?: 'Grup belum dipetakan' }} &middot;
-                                        {{ $selectedChat['NomorWhatsapp'] }}
+                                        <span>{{ __('ui.pages.inbox.group_name') }}: {{ $selectedIdentity['GroupName'] ?: '-' }}</span>
+                                        <span class="break-all font-mono">{{ __('ui.pages.inbox.group_id') }}: {{ $selectedIdentity['GroupId'] ?: '-' }}</span>
                                     @else
-                                        {{ $selectedChat['NamaKontak'] }} &middot;
-                                        {{ $selectedChat['NomorWhatsapp'] }}
-                                    @endif
-                                    @if ($selectedChat['IdWaha'])
-                                        &middot; ID WAHA: {{ $selectedChat['IdWaha'] }}
+                                        <span>{{ $selectedIdentity['ContactName'] ?: '-' }}</span>
+                                        <span class="break-all font-mono">{{ $selectedIdentity['ContactNumber'] ?: $selectedIdentity['ChatId'] ?: '-' }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -363,6 +378,9 @@
                                 <div
                                     class="{{ $isOut ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm">
                                     <div class="{{ $isOut ? 'text-blue-100' : 'text-gray-500' }} text-xs font-medium">
+                                        @if (!$isOut && $selectedChat['JenisChat'] === 'Grup')
+                                            <span class="sr-only">{{ __('ui.pages.inbox.sender_name') }}:</span>
+                                        @endif
                                         {{ $message['SenderName'] }}
                                         &middot;
                                         {{ \App\Support\LocaleFormatter::shortDate($message['TglPesan']) }}
@@ -371,6 +389,12 @@
                                             &middot; {{ $message['StatusKirim'] }}
                                         @endif
                                     </div>
+                                    @if (!$isOut && $selectedChat['JenisChat'] === 'Grup' && ($message['SenderNumber'] ?? null))
+                                        <div class="mt-0.5 font-mono text-[11px] text-gray-400 dark:text-gray-500">
+                                            <span class="sr-only">{{ __('ui.pages.inbox.sender_number') }}:</span>
+                                            {{ $message['SenderNumber'] }}
+                                        </div>
+                                    @endif
                                     @if ($hasMedia)
                                         <div
                                             class="mt-2 overflow-hidden rounded-md {{ $isOut ? 'bg-blue-700/40' : 'bg-gray-100 dark:bg-gray-950' }}">
@@ -393,17 +417,31 @@
                                                             @if ($message['TipeMime']) type="{{ $message['TipeMime'] }}" @endif>
                                                     </audio>
                                                 </div>
+                                            @elseif ($message['MediaUrl'] && $message['MediaCategory'] === 'pdf')
+                                                <object data="{{ $message['MediaUrl'] }}" type="application/pdf"
+                                                    title="{{ __('ui.pages.inbox.preview_media') }}" class="h-80 w-full">
+                                                    <a href="{{ $message['MediaUrl'] }}" target="_blank" rel="noopener"
+                                                        class="block px-3 py-2 text-sm font-medium underline underline-offset-2">
+                                                        {{ __('ui.pages.inbox.preview_media') }}
+                                                    </a>
+                                                </object>
                                             @elseif ($message['MediaUrl'])
                                                 <a href="{{ $message['MediaUrl'] }}" target="_blank" rel="noopener"
                                                     class="{{ $isOut ? 'text-blue-50 hover:text-white' : 'text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100' }} block px-3 py-2 text-sm font-medium underline underline-offset-2">
-                                                    {{ $message['MediaLabel'] }}
+                                                    {{ $message['MediaLabel'] ?: __('ui.pages.inbox.unknown_media') }}
                                                 </a>
                                             @else
                                                 <div
                                                     class="px-3 py-2 text-sm {{ $isOut ? 'text-blue-50' : 'text-gray-600 dark:text-gray-300' }}">
-                                                    {{ $message['MediaLabel'] }}
-                                                    {{ __('ui.pages.inbox.media_received_unavailable') }}
+                                                    {{ $message['MediaLabel'] ?: __('ui.pages.inbox.unknown_media') }}
+                                                    {{ __('ui.pages.inbox.media_unavailable') }}
                                                 </div>
+                                            @endif
+                                            @if ($message['MediaDownloadUrl'])
+                                                <a href="{{ $message['MediaDownloadUrl'] }}" target="_blank" rel="noopener"
+                                                    class="block border-t border-gray-200 px-3 py-2 text-xs font-semibold underline underline-offset-2 dark:border-gray-800">
+                                                    {{ __('ui.pages.inbox.download_media') }}
+                                                </a>
                                             @endif
                                         </div>
                                     @endif
@@ -541,35 +579,35 @@
                             <div>
                                 <dt class="text-gray-500">{{ __('ui.pages.inbox.client') }}</dt>
                                 <dd class="font-medium text-gray-900 dark:text-white">
-                                    {{ $selectedChat['NamaInstansi'] }}</dd>
+                                    {{ $selectedIdentity['Instansi'] ?: '-' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500">{{ __('ui.pages.inbox.chat_type') }}</dt>
                                 <dd class="font-medium text-gray-900 dark:text-white">
-                                    {{ $selectedChat['JenisChat'] }}
+                                    {{ $selectedChat['JenisChat'] === 'Grup' ? __('ui.pages.inbox.whatsapp_group') : __('ui.pages.inbox.personal_chat') }}
                                 </dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500">{{ __('ui.pages.inbox.contact') }}</dt>
                                 <dd class="font-medium text-gray-900 dark:text-white">
-                                    {{ $selectedChat['NamaKontak'] }}
+                                    {{ $selectedIdentity['ContactName'] ?: '-' }}
                                 </dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500">{{ __('ui.pages.inbox.wa_number') }}</dt>
                                 <dd class="break-all font-mono text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ $selectedChat['NomorWhatsapp'] ?: '-' }}
+                                    {{ $selectedIdentity['ContactNumber'] ?: ($selectedChat['JenisChat'] === 'Pribadi' ? ($selectedIdentity['ChatId'] ?: '-') : '-') }}
                                 </dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500">{{ __('ui.pages.inbox.group') }}</dt>
+                                <dt class="text-gray-500">{{ __('ui.pages.inbox.group_name') }}</dt>
                                 <dd class="font-medium text-gray-900 dark:text-white">
-                                    {{ $selectedChat['NamaGrupWhatsapp'] ?: '-' }}</dd>
+                                    {{ $selectedIdentity['GroupName'] ?: '-' }}</dd>
                             </div>
                             <div>
-                                <dt class="text-gray-500">{{ __('ui.pages.inbox.waha_id') }}</dt>
-                                <dd class="break-all font-medium text-gray-900 dark:text-white">
-                                    {{ $selectedChat['IdWaha'] ?: '-' }}</dd>
+                                <dt class="text-gray-500">{{ __('ui.pages.inbox.group_id') }}</dt>
+                                <dd class="break-all font-mono font-medium text-gray-900 dark:text-white">
+                                    {{ $selectedIdentity['GroupId'] ?: '-' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500">{{ __('ui.pages.inbox.detected_id') }}</dt>
