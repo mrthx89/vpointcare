@@ -4,11 +4,11 @@ namespace App\Models\Concerns;
 
 trait UsesSqlServerUuid
 {
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
-    public $timestamps = false;
-
-    protected $primaryKey = 'Id';
+    public function initializeUsesSqlServerUuid(): void
+    {
+        $this->incrementing = false;
+        $this->keyType = 'string';
+        $this->timestamps = false;
+        $this->primaryKey = 'Id';
+    }
 }
