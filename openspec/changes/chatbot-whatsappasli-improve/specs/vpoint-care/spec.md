@@ -57,6 +57,15 @@ The system SHALL provide an admin inbox for reading, filtering, mapping, replyin
 - AND the system SHALL display the group JID ending in @g.us or the available raw group number
 - AND the group identity SHALL NOT be replaced by a participant, author, or sender identifier
 
+#### Scenario: Group conversation profile photo uses group JID
+
+- GIVEN TChat.JenisChat is Grup
+- AND the chat has a raw group JID ending in @g.us in TChat or the latest WAHA payload
+- WHEN the system refreshes the conversation profile photo
+- THEN the WAHA profile-picture request SHALL use that raw group JID as the contactId
+- AND the system SHALL NOT request or persist a participant, sender, @lid, @c.us, @s.whatsapp.net, or personal-number photo as TChat.UrlFotoProfil
+- AND if no valid group JID is available, the system SHALL keep the last valid group photo snapshot and render a localized fallback avatar
+
 #### Scenario: Internally mapped group identity is displayed
 
 - GIVEN TChat.JenisChat is Grup
@@ -260,3 +269,22 @@ The system SHALL prefer rendered media preview/download over base64 text. Base64
 - THEN the Inbox SHALL render a localized, bounded diagnostic base64 fallback
 - AND the fallback SHALL NOT expose PayloadJson, raw HTML, API keys, webhook tokens, or stack traces
 - AND the message bubble SHALL remain usable in light mode, dark mode, and keyboard navigation
+
+### Requirement: Ticketing Breadcrumb Navigation
+
+The system SHALL render menu-based, localized Filament breadcrumbs for the ticketing resource pages used by customer-service administrators without changing their routes, permissions, or sidebar configuration.
+
+#### Scenario: Operational tickets breadcrumb is rendered
+
+- GIVEN an authenticated user has `ticket.view` access
+- WHEN the user opens `/admin/operational/tickets`
+- THEN the page SHALL render breadcrumbs derived from the `ticket.view` menu group and menu label
+- AND the breadcrumb SHALL not duplicate the same ticket label twice
+
+#### Scenario: Ticketing master breadcrumbs are rendered
+
+- GIVEN an authenticated user has `ticket.manage` access
+- WHEN the user opens `/admin/ticketing/status-tickets`, `/admin/ticketing/prioritas/prioritas-tickets`, or `/admin/ticketing/kategoris/kategori-tickets`
+- THEN each page SHALL render breadcrumbs derived from the `ticket.view` parent menu and its own localized resource label
+- AND the breadcrumb labels SHALL follow the active locale `id` or `en`
+- AND the implementation SHALL not change the existing route names, resource visibility, or `ticket.view`/`ticket.manage` permission checks

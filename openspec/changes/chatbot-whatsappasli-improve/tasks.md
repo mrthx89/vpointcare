@@ -42,13 +42,13 @@
 
 ## 6. Validasi dan Deployment
 
-- [ ] 6.1 Jalankan `cd src; php -l app/Services/Waha/WahaSender.php`, `php -l app/Jobs/SyncWahaChatIdentityJob.php`, `php -l app/Services/Waha/WahaWebhookProcessor.php`, dan `php -l app/Filament/Pages/InboxWhatsapp.php`; hasil yang diharapkan tidak ada syntax error.
-- [ ] 6.2 Jalankan targeted test adapter/job dan `cd src; php artisan test --filter=InboxWhatsappTest`; hasil yang diharapkan seluruh test relevan lulus.
+- [ ] 6.1 Jalankan syntax check pada adapter/job/webhook/Inbox dan empat page breadcrumb (`ManageStatusTickets`, `ManagePrioritasTickets`, `ManageKategoriTickets`, `ManageTickets`); hasil yang diharapkan tidak ada syntax error.
+- [ ] 6.2 Jalankan targeted test adapter/job, `InboxWhatsappTest`, dan regression test breadcrumb ticketing; hasil yang diharapkan seluruh test relevan lulus.
 - [ ] 6.3 Jalankan `cd src; vendor/bin/pint --test`; hasil yang diharapkan file PHP yang berubah memenuhi formatter.
 - [ ] 6.4 Jalankan `cd src; npm run build`; hasil yang diharapkan asset produksi berhasil dibuat tanpa error.
 - [ ] 6.5 Jalankan `openspec validate chatbot-whatsappasli-improve --strict`; hasil yang diharapkan valid tanpa error/warning.
 - [ ] 6.6 Sebelum production: backup SQL Server, deploy migration/schema/code/asset, jalankan `php artisan migrate --force`, `php artisan optimize:clear`, `php artisan optimize`, dan restart worker queue `webhooks`.
-- [ ] 6.7 Verifikasi manual dengan WAHA aktif: grup mapped/unmapped `@g.us`, personal mapped/unmapped, `@lid` dengan/tanpa phone mapping, WAHA timeout, refresh identitas, dark mode, serta locale Indonesia/Inggris.
+- [ ] 6.7 Verifikasi manual dengan WAHA aktif: grup mapped/unmapped `@g.us` termasuk mapping JID yang stale, avatar group versus avatar participant, personal mapped/unmapped, `@lid` dengan/tanpa phone mapping, WAHA timeout, refresh identitas, empat route breadcrumb ticketing, dark mode, serta locale Indonesia/Inggris.
 - [ ] 6.8 Dokumentasikan hasil validasi, migration/deployment action, dan rollback yang benar-benar dijalankan sebelum menandai change selesai.
 
 ## 7. Koreksi Ingestion GroupWhatsApp dan Foto Participant
@@ -76,3 +76,18 @@
 - [ ] 9.2 Perbarui state/renderer agar base64 tidak ditampilkan ketika preview/download berhasil, termasuk image, sticker, audio, video, PDF, dan dokumen.
 - [ ] 9.3 Tambahkan fallback localized untuk base64 yang gagal dikonversi dalam panel diagnostik terbatas; jangan tampilkan `PayloadJson`, raw HTML, API key, webhook token, atau stack trace.
 - [ ] 9.4 Tambahkan regression/security test untuk base64 valid, base64 rusak, data URI, media URL valid, dan payload yang berisi string mirip base64.
+
+## 10. Koreksi Foto Profil GroupWhatsApp
+
+- [ ] 10.1 Reproduksi foto grup salah ambil dengan fixture `JenisChat=Grup` yang memiliki raw group JID `@g.us`, participant, dan `MGrupWhatsapp.IdGrupWaha` yang berbeda atau stale; catat contactId yang dipakai resolver saat ini.
+- [ ] 10.2 Perbaiki resolver di `src/app/Filament/Pages/InboxWhatsapp.php` agar raw group JID dari payload/TChat menjadi prioritas, tervalidasi berakhiran `@g.us`, dan participant/sender/personal identifier tidak pernah menjadi contactId avatar grup.
+- [ ] 10.3 Pastikan fallback mapping `MGrupWhatsapp.IdGrupWaha` hanya dipakai jika valid dan tidak menggantikan identitas raw chat; jangan melakukan update otomatis ke mapping master dan jangan menghapus foto snapshot terakhir saat WAHA gagal.
+- [ ] 10.4 Tambahkan regression test pada `src/tests/Feature/Filament/Pages/InboxWhatsappTest.php` untuk raw group JID, mapping stale, participant berbeda, fallback inisial, dan preservasi foto terakhir.
+
+## 11. Koreksi Breadcrumb Halaman Ticketing
+
+- [ ] 11.1 Pasang `HasMenuBreadcrumbs` dan `AccessPermissions::TICKET_VIEW` pada `ManageTickets`, `ManageStatusTickets`, `ManagePrioritasTickets`, dan `ManageKategoriTickets` sesuai pola page resource yang sudah ada.
+- [ ] 11.2 Jika diperlukan, perluas minimal `src/app/Support/FilamentBreadcrumbs.php` atau `src/app/Filament/Concerns/HasMenuBreadcrumbs.php` agar tiga halaman master menampilkan parent `Ticket` dan label resource aktif tanpa duplikasi; jangan mengubah route/permission/sidebar.
+- [ ] 11.3 Pastikan label memakai `NavigationHelper` dan localization existing untuk Bahasa Indonesia/Inggris, termasuk `Status Ticket`, `Prioritas`, dan `Kategori`.
+- [ ] 11.4 Tambahkan feature/page test untuk `/admin/ticketing/status-tickets`, `/admin/ticketing/prioritas/prioritas-tickets`, `/admin/ticketing/kategoris/kategori-tickets`, dan `/admin/operational/tickets`, termasuk permission denied dan locale `id`/`en`.
+- [ ] 11.5 Jalankan `cd src; php -l app/Support/FilamentBreadcrumbs.php; php -l app/Filament/Concerns/HasMenuBreadcrumbs.php` serta targeted test ticketing; hasil yang diharapkan semua breadcrumb tampil dan tidak ada perubahan akses.

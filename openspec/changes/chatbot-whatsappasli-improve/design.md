@@ -4,6 +4,8 @@ Inbox WhatsApp WACS sudah mempunyai mode `whatsapp` dan `internal`. Mode `whatsa
 
 CS memerlukan daftar percakapan yang cepat dipindai. Referensi WAHA Hub menunjukkan pola chat list, header, preview pesan, refresh, dan load more. Perubahan ini mengadaptasi hirarki visual tersebut ke Blade/Filament yang ada, tanpa menyalin komponen Vue atau menambah dependency frontend.
 
+Audit tambahan menemukan dua ketidakkonsistenan. Pertama, foto profil header grup dapat meminta WAHA memakai `MGrupWhatsapp.IdGrupWaha` sebelum raw group JID milik chat aktif sehingga mapping yang stale/salah dapat menghasilkan foto grup lain. Kedua, empat halaman `ManageRecords` ticketing yang dilaporkan belum memakai `HasMenuBreadcrumbs`, walaupun pola tersebut sudah dipakai resource admin lain.
+
 Kendala utama: PHP 8.3+, Laravel 13, Filament 5, Livewire, Tailwind/Vite, dan Microsoft SQL Server harus tetap kompatibel; webhook harus cepat; normalisasi `@c.us`, `@s.whatsapp.net`, `@g.us`, dan `@lid` harus dipertahankan; secret WAHA tidak boleh masuk UI atau log user-facing.
 
 ## Goals / Non-Goals
@@ -15,12 +17,15 @@ Kendala utama: PHP 8.3+, Laravel 13, Filament 5, Livewire, Tailwind/Vite, dan Mi
 - Menampilkan metadata snapshot yang jelas di mode WhatsApp asli, termasuk badge jenis chat dan identifier yang dapat disalin.
 - Menjaga mode internal dan mapping master tetap independen dari sinkronisasi WAHA.
 - Memproses sinkronisasi metadata melalui queue `webhooks` dengan deduplikasi dan retry terbatas.
+- Memastikan avatar percakapan grup selalu berasal dari raw group JID `@g.us` milik chat aktif dan tidak tertukar dengan avatar participant.
+- Menyediakan breadcrumb terlokalisasi pada empat route ticketing yang dilaporkan tanpa mengubah permission atau route.
 
 **Non-Goals:**
 
 - Mengganti UI Inbox seluruhnya, mengimpor source WAHA Hub, atau menambah framework frontend.
 - Menyinkronkan anggota grup, presence, chat history, atau membuat master contact/group otomatis.
 - Menyimpan respons WAHA lengkap, payload mentah, token, atau API key sebagai snapshot identitas.
+- Mengubah struktur menu sidebar, permission ticketing, route, atau label navigasi di luar empat halaman yang dilaporkan.
 
 ## Decisions
 
@@ -60,6 +65,8 @@ Blade menggunakan komponen Filament dan class Tailwind yang sudah ada. Semua tex
 - **Job duplikat pada chat ramai** -> deduplikasi per `IdChat` dan broadcast debounce yang sudah ada.
 - **Migration SQL Server gagal** -> gunakan `COL_LENGTH`, nullable columns, dan backup wajib sebelum production.
 - **Identitas internal tertukar** -> field snapshot terpisah dan mode internal tidak melakukan write dari job metadata.
+- **Mapping grup stale menghasilkan foto salah** -> raw group JID `@g.us` pada payload/TChat menjadi sumber utama; mapping master hanya fallback tervalidasi dan tidak ditulis otomatis.
+- **Breadcrumb menduplikasi label** -> helper/halaman hanya menambahkan label resource saat berbeda dari label menu parent dan seluruh label berasal dari localization/navigation helper.
 
 ## Migration Plan
 
@@ -68,8 +75,9 @@ Blade menggunakan komponen Filament dan class Tailwind yang sudah ada. Semua tex
 3. Jalankan `php artisan migrate --force`, lalu `php artisan optimize:clear` dan `php artisan optimize`.
 4. Restart worker queue `webhooks` agar `SyncWahaChatIdentityJob` tersedia.
 5. Verifikasi manual satu chat personal, satu `@lid`, dan satu grup `@g.us`.
+6. Verifikasi empat route ticketing setelah deploy; koreksi breadcrumb dan pemilihan JID foto grup tidak memerlukan migration tambahan.
 
-Rollback: hentikan worker `webhooks`, deploy code sebelumnya, restart worker, rollback migration bila snapshot tidak dibutuhkan, lalu verifikasi Inbox memakai field legacy.
+Rollback: hentikan worker `webhooks`, deploy code sebelumnya, restart worker, rollback migration bila snapshot tidak dibutuhkan, lalu verifikasi Inbox memakai field legacy. Koreksi breadcrumb dan prioritas JID foto grup dapat di-rollback dengan mengembalikan file PHP terkait tanpa perubahan data.
 
 ## Additional Decisions
 
@@ -92,6 +100,18 @@ Flow wajib menghitung `$isFirstReply` sebelum mencatat `TAiPermintaan` atau memi
 ### 9. Base64 hanya menjadi fallback tampilan
 
 Renderer menentukan `mediaRenderable` dari `UrlMedia`, data URI, atau `WahaMediaPayload` sebelum menampilkan `IsiPesan`. Jika renderable, base64/data URI tidak boleh masuk state tampilan maupun markup. Jika tidak renderable, Inbox menampilkan panel diagnostik localized berisi base64 yang dibatasi panjangnya dan diberi aksi copy/download teks, tanpa menampilkan `PayloadJson` mentah.
+
+### 10. Foto profil grup memakai raw group JID milik chat
+
+Untuk `JenisChat=Grup`, resolver foto profil harus memilih raw group JID berakhiran `@g.us` dari payload chat aktif, `TChat.NomorWhatsapp`, atau `TChat.IdWahaTerdeteksi` sebelum mempertimbangkan `MGrupWhatsapp.IdGrupWaha`. Identifier participant/sender, `@lid`, `@c.us`, `@s.whatsapp.net`, dan nomor personal tidak boleh dikirim ke endpoint profile picture untuk avatar percakapan grup.
+
+Jika mapping `MGrupWhatsapp.IdGrupWaha` berbeda dari raw group JID chat, resolver mempertahankan identitas chat dan tidak memperbarui master mapping secara otomatis. Jika tidak ada group JID valid, refresh menyimpan waktu/status percobaan tanpa mengganti snapshot foto terakhir; UI memakai fallback inisial. Foto participant pada `TChatD` tetap diproses oleh keputusan 7 dan tidak boleh ditulis ke `TChat.UrlFotoProfil`.
+
+### 11. Breadcrumb ticketing mengikuti menu dan halaman aktif
+
+`ManageTickets` menggunakan `HasMenuBreadcrumbs` dengan `AccessPermissions::TICKET_VIEW` sehingga breadcrumb berasal dari group dan label menu yang sama dengan sidebar. `ManageStatusTickets`, `ManagePrioritasTickets`, dan `ManageKategoriTickets` memakai parent menu `ticket.view` serta menambahkan label resource aktif yang terlokalisasi ketika berbeda dari label parent, menghasilkan hirarki `Operasional > Ticket > Halaman Aktif` tanpa hardcode Bahasa Indonesia.
+
+Implementasi boleh memperluas helper breadcrumb existing secara minimal atau melakukan komposisi pada empat page tersebut, tetapi tidak boleh mengubah route, permission `ticket.view`/`ticket.manage`, visibility resource, atau urutan sidebar. Test harus memastikan label tidak duplikat dan locale `id`/`en` mengikuti `NavigationHelper` serta key `ui.ticketing.*` yang sudah ada.
 
 ## Open Questions
 
