@@ -55,6 +55,7 @@ Mode WhatsApp asli masih bergantung pada payload terakhir dan field TChat. Nama 
 - **AI tidak membalas:** tambahkan observability reason/status dari dispatch sampai delivery, perbaiki urutan perhitungan `$isFirstReply` sebelum pemilihan model, dan definisikan ulang session: All Session aktif menjawab setiap incoming eligible; All Session tidak aktif hanya menjawab pesan pertama atau pesan setelah idle minimal 60 menit, dengan aturan jam kerja/hari libur/excluded number tetap berlaku.
 - **Base64 media:** jika base64/data URI berhasil dikonversi menjadi preview atau download, teks base64 tidak boleh ditampilkan. Jika konversi gagal, tampilkan fallback base64 dalam panel diagnostik terkontrol tanpa menampilkan payload JSON atau secret.
 - **Breadcrumb ticketing:** route `/admin/ticketing/status-tickets`, `/admin/ticketing/prioritas/prioritas-tickets`, `/admin/ticketing/kategoris/kategori-tickets`, dan `/admin/operational/tickets` harus menampilkan breadcrumb berbasis menu seperti halaman admin lain.
+- **Sanitasi log WAHA:** `TLogIntegrasi.ResponseJson` dan `PesanError` tidak boleh menyimpan body HTTP mentah. Log hanya menyimpan status dan metadata respons terbatas, sedangkan body return tetap tersedia di memori untuk parser adapter.
 
 ## Capabilities
 
@@ -93,6 +94,7 @@ Mode WhatsApp asli masih bergantung pada payload terakhir dan field TChat. Nama 
 - Job test untuk deduplikasi, retry, gagal, dan preservasi snapshot.
 - Livewire test untuk Grup/Pribadi, @g.us, @lid, fallback, refresh, locale, dan accessibility markup.
 - Regression test untuk avatar grup yang memakai `@g.us`, bukan participant, serta breadcrumb empat route ticketing yang dilaporkan.
+- Regression test respons profile-picture yang mengandung secret untuk memastikan body mentah tidak tersimpan di `TLogIntegrasi`.
 - Jalankan syntax check, targeted PHPUnit, Pint, Vite build, dan OpenSpec strict validation.
 - Verifikasi manual dengan WAHA aktif dan unavailable.
 

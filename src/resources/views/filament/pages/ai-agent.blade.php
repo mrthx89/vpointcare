@@ -107,6 +107,18 @@
                                     class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.continue_all_sessions_desc') }}</span>
                             </span>
                         </label>
+                        <div class="wacs-ai-agent-option rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                            <label class="text-sm font-semibold text-gray-950 dark:text-white">
+                                {{ __('ui.pages.ai_agent.session_idle_limit') }}
+                            </label>
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="number" min="1" max="1440"
+                                    wire:model="pengaturan.BatasSesiAutoReplyMenit" />
+                            </x-filament::input.wrapper>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('ui.pages.ai_agent.session_idle_limit_desc') }}
+                            </p>
+                        </div>
                     </div>
                 </div>
 

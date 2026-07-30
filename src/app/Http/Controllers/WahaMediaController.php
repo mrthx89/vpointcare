@@ -24,6 +24,7 @@ class WahaMediaController extends Controller
                 'Id',
                 'UrlMedia',
                 'PayloadJson',
+                'IsiPesan',
                 'JenisPesan',
                 Schema::hasColumn('TChatD', 'NamaFileMedia') ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
                 Schema::hasColumn('TChatD', 'TipeMime') ? 'TipeMime' : DB::raw('NULL as TipeMime'),
@@ -35,6 +36,12 @@ class WahaMediaController extends Controller
         $media = $this->mediaFromUrl($row, $message)
             ?? WahaMediaPayload::fromPayloadJson(
                 $row->PayloadJson,
+                $row->TipeMime,
+                $row->NamaFileMedia,
+                $row->JenisPesan,
+            )
+            ?? WahaMediaPayload::fromPayloadJson(
+                $this->base64TextPayload($row),
                 $row->TipeMime,
                 $row->NamaFileMedia,
                 $row->JenisPesan,
@@ -92,9 +99,15 @@ class WahaMediaController extends Controller
             );
         }
 
+        if (! $this->shouldSendWahaApiKey($url)) {
+            $this->logUnavailable($message, 'url', 'untrusted_host');
+
+            return null;
+        }
+
         $http = Http::timeout(45);
 
-        if (filled(config('services.waha.api_key'))) {
+        if ($this->shouldSendWahaApiKey($url) && filled(config('services.waha.api_key'))) {
             $http = $http->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
         }
 
@@ -260,5 +273,70 @@ class WahaMediaController extends Controller
     {
         return str_contains(strtolower($mimeType), 'json')
             || Str::startsWith(ltrim($body), ['{', '[']);
+    }
+
+    private function base64TextPayload(object $row): ?string
+    {
+        $body = trim((string) ($row->IsiPesan ?? ''));
+
+        if (Str::startsWith(strtolower($body), 'data:')) {
+            return json_encode(['media' => [
+                'data' => $body,
+                'mimetype' => $row->TipeMime,
+                'filename' => $row->NamaFileMedia,
+            ]], JSON_UNESCAPED_SLASHES);
+        }
+
+        $body = preg_replace('/\s+/', '', $body);
+
+        if (! is_string($body)
+            || ! $this->hasRawBase64MediaContext($row)
+            || strlen($body) < 64
+            || preg_match('/^[A-Za-z0-9+/]+={0,2}$/', $body) !== 1
+            || base64_decode($body, true) === false) {
+            return null;
+        }
+
+        return json_encode(['media' => [
+            'data' => $body,
+            'mimetype' => $row->TipeMime,
+            'filename' => $row->NamaFileMedia,
+        ]], JSON_UNESCAPED_SLASHES);
+    }
+
+    private function shouldSendWahaApiKey(string $url): bool
+    {
+        $targetHost = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $targetScheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $targetPort = (int) (parse_url($url, PHP_URL_PORT) ?: ($targetScheme === 'https' ? 443 : 80));
+
+        if ($targetHost === '' || ! in_array($targetScheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        foreach ([config('services.waha.media_base_url'), config('services.waha.base_url')] as $baseUrl) {
+            $allowedHost = strtolower((string) parse_url((string) $baseUrl, PHP_URL_HOST));
+            $allowedScheme = strtolower((string) parse_url((string) $baseUrl, PHP_URL_SCHEME));
+            $allowedPort = (int) (parse_url((string) $baseUrl, PHP_URL_PORT) ?: ($allowedScheme === 'https' ? 443 : 80));
+
+            if ($allowedHost !== ''
+                && $targetScheme === $allowedScheme
+                && $targetHost === $allowedHost
+                && $targetPort === $allowedPort) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hasRawBase64MediaContext(object $row): bool
+    {
+        $messageType = strtolower((string) ($row->JenisPesan ?? ''));
+        $mimeType = strtolower((string) ($row->TipeMime ?? ''));
+
+        return filled($row->NamaFileMedia ?? null)
+            || ($mimeType !== '' && $mimeType !== 'text/plain')
+            || in_array($messageType, ['gambar', 'image', 'photo', 'picture', 'stiker', 'sticker', 'video', 'audio', 'voice', 'ptt', 'dokumen', 'document', 'file'], true);
     }
 }

@@ -1,0 +1,306 @@
+﻿# Task 3 Review
+
+## Diff
+diff --git a/openspec/changes/chatbot-whatsappasli-improve/tasks.md b/openspec/changes/chatbot-whatsappasli-improve/tasks.md
+index 2c95a86..a9630db 100644
+--- a/openspec/changes/chatbot-whatsappasli-improve/tasks.md
++++ b/openspec/changes/chatbot-whatsappasli-improve/tasks.md
+@@ -1,31 +1,31 @@
+ ## 1. Kontrak Data dan Migration SQL Server
+ 
+-- [ ] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
+-- [ ] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
+-- [ ] 1.3 Tambahkan index SQL Server yang diperlukan untuk query status/waktu snapshot tanpa mengubah index JID yang sudah ada.
+-- [ ] 1.4 Sinkronkan definisi fresh-install di `src/script/DATABASE_SCHEMA_WACS.sql` dengan kolom snapshot yang sama.
+-- [ ] 1.5 Siapkan langkah backup database dan rollback migration yang hanya menghapus kolom snapshot baru, tanpa menghapus chat, pesan, atau mapping master.
++- [x] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
++- [x] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
++- [x] 1.3 Tambahkan index SQL Server yang diperlukan untuk query status/waktu snapshot tanpa mengubah index JID yang sudah ada.
++- [x] 1.4 Sinkronkan definisi fresh-install di `src/script/DATABASE_SCHEMA_WACS.sql` dengan kolom snapshot yang sama.
++- [x] 1.5 Siapkan langkah backup database dan rollback migration yang hanya menghapus kolom snapshot baru, tanpa menghapus chat, pesan, atau mapping master.
+ 
+ ## 2. Adapter Metadata WAHA dan Snapshot
+ 
+-- [ ] 2.1 Tambahkan method metadata kontak dan grup pada `src/app/Services/Waha/WahaSender.php` menggunakan `getJson()`, timeout, API key, circuit breaker, dan `TLogIntegrasi` yang sudah ada.
+-- [ ] 2.2 Buat parser/helper teruji untuk mengambil nama kontak/grup tervalidasi dari variasi respons WAHA serta membatasi panjang field sesuai kolom SQL Server.
+-- [ ] 2.3 Perluas `src/app/Support/WahaChatHelper.php` bila diperlukan untuk memilih JID grup `@g.us`, mempertahankan JID `@lid`, dan membuat fallback phone JID tanpa mengubah normalisasi yang ada.
+-- [ ] 2.4 Pastikan respons WAHA mentah, token, API key, dan payload tidak disimpan ke kolom snapshot maupun diekspos ke UI/Livewire.
+-- [ ] 2.5 Tambahkan unit test untuk metadata kontak, metadata grup, respons kosong/tidak dikenal, dan resolusi `@lid` yang berhasil maupun gagal.
++- [x] 2.1 Tambahkan method metadata kontak dan grup pada `src/app/Services/Waha/WahaSender.php` menggunakan `getJson()`, timeout, API key, circuit breaker, dan `TLogIntegrasi` yang sudah ada.
++- [x] 2.2 Buat parser/helper teruji untuk mengambil nama kontak/grup tervalidasi dari variasi respons WAHA serta membatasi panjang field sesuai kolom SQL Server.
++- [x] 2.3 Verifikasi `src/app/Support/WahaChatHelper.php`: normalisasi yang ada sudah mempertahankan raw JID `@g.us` dan `@lid` serta fallback phone; tidak diperlukan perubahan helper.
++- [x] 2.4 Pastikan respons WAHA mentah, token, API key, dan payload tidak disimpan ke kolom snapshot maupun diekspos ke UI/Livewire.
++- [ ] 2.5 Tambahkan unit test untuk metadata kontak, metadata grup, respons kosong/tidak dikenal, dan resolusi `@lid` yang berhasil maupun gagal. (Terimplementasi di `src/tests/Feature/Waha/WahaChatIdentitySyncTest.php`; eksekusi terblokir karena PHPUnit dev dependency tidak tersedia.)
+ 
+ ## 3. Queue, Idempotensi, dan Observability
+ 
+-- [ ] 3.1 Buat `src/app/Jobs/SyncWahaChatIdentityJob.php` pada queue `webhooks` dengan `tries=3`, `timeout=30`, backoff 30/120 detik, dan deduplikasi per `IdChat` selama 60 detik.
+-- [ ] 3.2 Implementasikan update atomik snapshot `TChat`: simpan nama valid, JID/raw identifier, nomor hasil resolusi bila tersedia, status, waktu sinkronisasi, dan error tersanitasi; jangan ubah mapping master.
+-- [ ] 3.3 Perbarui `src/app/Services/Waha/WahaWebhookProcessor.php` atau post-processing webhook terkait untuk dispatch job setelah transaksi chat berhasil tanpa menunggu request metadata.
+-- [ ] 3.4 Dispatch `SendBroadcastDebouncedJob` hanya ketika snapshot identitas benar-benar berubah agar Inbox realtime diperbarui tanpa broadcast storm.
+-- [ ] 3.5 Tambahkan feature test job untuk after-commit dispatch, deduplikasi, retry/final failure, preservasi snapshot lama, dan broadcast setelah update.
++- [x] 3.1 Buat `src/app/Jobs/SyncWahaChatIdentityJob.php` pada queue `webhooks` dengan `tries=3`, `timeout=30`, backoff 30/120 detik, dan deduplikasi per `IdChat` selama 60 detik.
++- [x] 3.2 Implementasikan update atomik snapshot `TChat`: simpan nama valid, JID/raw identifier, nomor hasil resolusi bila tersedia, status, waktu sinkronisasi, dan error tersanitasi; jangan ubah mapping master.
++- [x] 3.3 Perbarui `src/app/Services/Waha/WahaWebhookProcessor.php` atau post-processing webhook terkait untuk dispatch job setelah transaksi chat berhasil tanpa menunggu request metadata.
++- [x] 3.4 Dispatch `SendBroadcastDebouncedJob` hanya ketika snapshot identitas benar-benar berubah agar Inbox realtime diperbarui tanpa broadcast storm.
++- [x] 3.5 Tambahkan feature test job untuk after-commit dispatch, deduplikasi, retry/final failure, preservasi snapshot lama, dan broadcast setelah update.
+ 
+ ## 4. Tampilan WhatsAppAsli pada Inbox
+ 
+ - [ ] 4.1 Refactor minimal proyeksi `Identity.whatsapp` di `src/app/Filament/Pages/InboxWhatsapp.php` agar prioritas nama memakai snapshot database, lalu payload/raw fallback deterministik.
+ - [ ] 4.2 Pastikan chat grup menampilkan badge Grup WhatsApp, nama snapshot, dan JID `@g.us`; pengirim pesan grup tetap terpisah dari identitas grup.
+ - [ ] 4.3 Pastikan chat pribadi menampilkan badge Chat Pribadi, nama snapshot kontak, JID `@lid` bila ada, dan nomor hasil resolusi secara terpisah bila tersedia.
+ - [ ] 4.4 Tambahkan status dan waktu sinkronisasi ringkas pada header/detail chat tanpa mengungkapkan body/error teknis WAHA.
+ - [ ] 4.5 Tambahkan aksi refresh metadata WAHA pada chat aktif yang mengantre job deduplicated dan tetap mempertahankan snapshot saat refresh berjalan.
+diff --git a/src/app/Jobs/ProcessWebhookJob.php b/src/app/Jobs/ProcessWebhookJob.php
+index 5633e4d..6ddd447 100644
+--- a/src/app/Jobs/ProcessWebhookJob.php
++++ b/src/app/Jobs/ProcessWebhookJob.php
+@@ -24,23 +24,24 @@ public function __construct(public array $payload)
+     {
+         $this->onQueue('webhooks');
+     }
+ 
+     public function handle(WahaWebhookProcessor $processor): void
+     {
+         $result = $processor->process($this->payload);
+ 
+-        if (! (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id']))) {
++        if (! (($result['ok'] ?? false) && empty($result['duplicate']) && empty($result['ignored']) && ! empty($result['chat_id']))) {
+             return;
+         }
+ 
+         $chatId = (string) $result['chat_id'];
+ 
+         SendBroadcastDebouncedJob::dispatchDebounced($chatId);
++        SyncWahaChatIdentityJob::dispatchDebounced($chatId);
+         ProcessAiAutoReplyJob::dispatch($chatId, now()->toDateTimeString());
+     }
+ 
+     public function failed(Throwable $exception): void
+     {
+         Log::error('WAHA webhook processing job failed.', [
+             'message' => $exception->getMessage(),
+         ]);
+diff --git a/src/app/Jobs/SyncWahaChatIdentityJob.php b/src/app/Jobs/SyncWahaChatIdentityJob.php
+new file mode 100644
+index 0000000..c08556b
+--- /dev/null
++++ b/src/app/Jobs/SyncWahaChatIdentityJob.php
+@@ -0,0 +1,216 @@
++<?php
++
++namespace App\Jobs;
++
++use App\Services\Waha\WahaSender;
++use Illuminate\Bus\Queueable;
++use Illuminate\Contracts\Queue\ShouldQueue;
++use Illuminate\Foundation\Bus\Dispatchable;
++use Illuminate\Queue\InteractsWithQueue;
++use Illuminate\Queue\SerializesModels;
++use Illuminate\Support\Arr;
++use Illuminate\Support\Facades\Cache;
++use Illuminate\Support\Facades\DB;
++use RuntimeException;
++use Throwable;
++
++class SyncWahaChatIdentityJob implements ShouldQueue
++{
++    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
++
++    public int $tries = 3;
++
++    public int $timeout = 30;
++
++    public function __construct(public string $chatId)
++    {
++        $this->onQueue('webhooks');
++    }
++
++    /** @return array<int, int> */
++    public function backoff(): array
++    {
++        return [30, 120];
++    }
++
++    public static function dispatchDebounced(string $chatId): void
++    {
++        if (! Cache::add(self::cacheKey($chatId), true, now()->addSeconds(60))) {
++            return;
++        }
++
++        self::dispatch($chatId);
++    }
++
++    public function handle(WahaSender $wahaSender): void
++    {
++        $chat = DB::table('TChat')->where('Id', $this->chatId)->first();
++
++        if (! $chat) {
++            return;
++        }
++
++        $session = DB::table('MSesiWhatsapp')->where('Id', $chat->IdSesiWhatsapp)->first();
++
++        if (! $session || ! is_string($session->KodeSesi) || $session->KodeSesi === '') {
++            $this->markFailed();
++
++            throw new RuntimeException('WAHA identity metadata synchronization failed.');
++        }
++
++        $isGroup = $chat->JenisChat === 'Grup';
++        $identityId = $isGroup
++            ? $this->groupIdentityId($chat)
++            : $this->personalIdentityId($chat);
++
++        if ($identityId === null) {
++            $this->markFailed();
++
++            throw new RuntimeException('WAHA identity metadata synchronization failed.');
++        }
++
++        $metadata = $isGroup
++            ? $wahaSender->getGroupInfo($session->KodeSesi, $identityId)
++            : $wahaSender->getContactInfo($session->KodeSesi, $identityId);
++
++        if (! ($metadata['ok'] ?? false)) {
++            $this->markFailed();
++
++            throw new RuntimeException('WAHA identity metadata synchronization failed.');
++        }
++
++        $profile = $wahaSender->getContactProfilePictureUrl(
++            $session->KodeSesi,
++            (string) ($metadata['id'] ?? $identityId)
++        );
++
++        if (! ($profile['ok'] ?? false)) {
++            $this->markFailed();
++
++            throw new RuntimeException('WAHA identity metadata synchronization failed.');
++        }
++
++        $updates = [
++            'IdWahaTerdeteksi' => (string) ($metadata['id'] ?? $identityId),
++            'StatusIdentitasWaha' => 'success',
++            'TglIdentitasWahaDiambil' => now(),
++            'PesanErrorIdentitasWaha' => null,
++            'TglEdit' => now(),
++        ];
++
++        if ($isGroup) {
++            $updates['NamaGrupWaha'] = $metadata['name'];
++        } else {
++            $name = $metadata['name'] ?? $metadata['pushname'];
++
++            if (is_string($name) && $name !== '') {
++                $updates['NamaKontakWaha'] = $name;
++            }
++
++            if (! empty($metadata['phone'])) {
++                $updates['NomorWhatsappTerdeteksi'] = $metadata['phone'];
++            }
++        }
++
++        if (! empty($profile['url'])) {
++            $updates['UrlFotoProfil'] = $profile['url'];
++            $updates['TglFotoProfilDiambil'] = now();
++        }
++
++        $snapshotChanged = $this->snapshotChanged($chat, $updates);
++
++        DB::transaction(function () use ($updates): void {
++            DB::table('TChat')->where('Id', $this->chatId)->update($updates);
++        });
++
++        if ($snapshotChanged) {
++            SendBroadcastDebouncedJob::dispatchDebounced($this->chatId);
++        }
++    }
++
++    public function failed(Throwable $exception): void
++    {
++        $this->markFailed();
++    }
++
++    private function markFailed(): void
++    {
++        DB::table('TChat')->where('Id', $this->chatId)->update([
++            'StatusIdentitasWaha' => 'failed',
++            'TglIdentitasWahaDiambil' => now(),
++            'PesanErrorIdentitasWaha' => 'WAHA identity metadata synchronization failed.',
++            'TglEdit' => now(),
++        ]);
++    }
++
++    private function groupIdentityId(object $chat): ?string
++    {
++        foreach ([$chat->NomorWhatsapp, $chat->IdWahaTerdeteksi, $this->rawGroupIdFromPayload()] as $candidate) {
++            if ($this->isGroupJid($candidate)) {
++                return trim((string) $candidate);
++            }
++        }
++
++        $mappedGroupId = $chat->IdGrupWhatsapp
++            ? DB::table('MGrupWhatsapp')->where('Id', $chat->IdGrupWhatsapp)->value('IdGrupWaha')
++            : null;
++
++        return $this->isGroupJid($mappedGroupId) ? trim((string) $mappedGroupId) : null;
++    }
++
++    private function personalIdentityId(object $chat): ?string
++    {
++        foreach ([$chat->IdWahaTerdeteksi, $chat->NomorWhatsappTerdeteksi, $chat->NomorWhatsapp] as $candidate) {
++            if (is_string($candidate) && trim($candidate) !== '') {
++                return trim($candidate);
++            }
++        }
++
++        return null;
++    }
++
++    private function rawGroupIdFromPayload(): ?string
++    {
++        $payload = DB::table('TChatD')
++            ->where('IdChat', $this->chatId)
++            ->orderByDesc('TglPesan')
++            ->value('PayloadJson');
++        $decoded = is_string($payload) ? json_decode($payload, true) : null;
++
++        if (! is_array($decoded)) {
++            return null;
++        }
++
++        foreach (['chatId', 'from', 'to', 'id.remote', 'id._serialized', 'key.remoteJid', 'chat.id', 'chat.id._serialized'] as $path) {
++            $candidate = Arr::get($decoded, $path);
++
++            if ($this->isGroupJid($candidate)) {
++                return trim((string) $candidate);
++            }
++        }
++
++        return null;
++    }
++
++    private function isGroupJid(mixed $value): bool
++    {
++        return is_string($value) && str_ends_with(strtolower(trim($value)), '@g.us');
++    }
++
++    /** @param array<string, mixed> $updates */
++    private function snapshotChanged(object $chat, array $updates): bool
++    {
++        foreach (['IdWahaTerdeteksi', 'NamaKontakWaha', 'NamaGrupWaha', 'NomorWhatsappTerdeteksi', 'UrlFotoProfil'] as $column) {
++            if (array_key_exists($column, $updates) && $chat->{$column} !== $updates[$column]) {
++                return true;
++            }
++        }
++
++        return false;
++    }
++
++    private static function cacheKey(string $chatId): string
++    {
++        return 'waha:identity-sync:'.$chatId;
++    }
++}

@@ -21,6 +21,7 @@ class WahaMediaControllerTest extends TestCase
 
         Schema::create('TChatD', function (Blueprint $table): void {
             $table->string('Id')->primary();
+            $table->text('IsiPesan')->nullable();
             $table->string('UrlMedia')->nullable();
             $table->text('PayloadJson')->nullable();
             $table->string('NamaFileMedia')->nullable();
@@ -158,6 +159,23 @@ class WahaMediaControllerTest extends TestCase
         self::assertStringNotContainsString($payload, $response->getContent());
     }
 
+    public function test_external_media_host_is_rejected_without_sending_waha_api_key(): void
+    {
+        $this->insertMessage('message-external-host', [
+            'UrlMedia' => 'https://evil.test/private.pdf',
+            'JenisPesan' => 'Dokumen',
+        ]);
+        Http::fake();
+        $warningEntries = [];
+        $this->captureSingleWarning($warningEntries);
+
+        $response = $this->actingAgent()->get(route('admin.waha-media.show', ['message' => 'message-external-host']));
+
+        $response->assertStatus(424);
+        Http::assertNothingSent();
+        $this->assertSafeWarning($warningEntries, 'message-external-host', 'untrusted_host');
+    }
+
     public function test_connection_exception_logs_only_safe_context(): void
     {
         $this->insertMessage('message-url-exception', [
@@ -281,6 +299,25 @@ class WahaMediaControllerTest extends TestCase
         foreach ([$mediaUrl, 'signed-url-token', 'upstream failure detail', $encoded, $payload, 'payload', 'base64', 'exception', 'internal', 'error'] as $forbidden) {
             self::assertStringNotContainsString(strtolower($forbidden), strtolower($response->getContent()));
         }
+    }
+
+    public function test_serves_raw_base64_text_body_as_media(): void
+    {
+        $contents = str_repeat('image-bytes-', 10);
+
+        $this->insertMessage('message-raw-body-base64', [
+            'IsiPesan' => base64_encode($contents),
+            'JenisPesan' => 'Gambar',
+            'NamaFileMedia' => 'photo.png',
+            'TipeMime' => 'image/png',
+        ]);
+
+        $response = $this->actingAgent()->get(route('admin.waha-media.show', ['message' => 'message-raw-body-base64']));
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'image/png')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+        self::assertSame($contents, $response->getContent());
     }
 
     #[DataProvider('unsafeInlineMimeProvider')]

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament\Pages;
 
 use App\Filament\Pages\InboxWhatsapp;
+use App\Jobs\SyncWahaChatIdentityJob;
 use App\Models\Master\Pengguna;
 use App\Services\Ai\AiAutoReplyService;
 use App\Services\Waha\WahaSender;
@@ -11,6 +12,7 @@ use Filament\Facades\Filament;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
@@ -62,6 +64,13 @@ class InboxWhatsappTest extends TestCase
             ->assertSet('identityDisplayMode', 'whatsapp');
     }
 
+    public function test_inbox_requires_view_permission(): void
+    {
+        $this->actingAs($this->agent([]));
+
+        self::assertFalse(InboxWhatsapp::canAccess());
+    }
+
     public function test_group_identity_keeps_group_chat_separate_from_member_sender_and_exposes_media_routes(): void
     {
         $component = Livewire::actingAs($this->agent())->test(InboxWhatsapp::class);
@@ -77,17 +86,21 @@ class InboxWhatsappTest extends TestCase
         self::assertArrayHasKey('Identity', $chatRows[0]);
         self::assertSame('120363999999999999@g.us', $chatRows[0]['Identity']['whatsapp']['ChatId']);
         self::assertSame('120363999999999999@g.us', $chatRows[0]['Identity']['whatsapp']['GroupId']);
+        self::assertSame('WAHA Support Group', $chatRows[0]['Identity']['whatsapp']['GroupName']);
+        self::assertSame('WAHA Support Group', $chatRows[0]['Identity']['whatsapp']['PrimaryName']);
         self::assertSame('Internal Support Group', $chatRows[0]['Identity']['internal']['GroupName']);
         self::assertIsArray($selectedChat);
         self::assertArrayHasKey('Identity', $selectedChat);
         self::assertSame('120363999999999999@g.us', $selectedChat['Identity']['whatsapp']['ChatId']);
-        self::assertSame('Fallback Group', $selectedChat['Identity']['whatsapp']['GroupName']);
+        self::assertSame('WAHA Support Group', $selectedChat['Identity']['whatsapp']['GroupName']);
         self::assertSame('120363999999999999@g.us', $selectedChat['Identity']['whatsapp']['GroupId']);
         self::assertSame('Internal Support Group', $selectedChat['Identity']['internal']['GroupName']);
         self::assertNotSame('628222222222@c.us', $selectedChat['Identity']['whatsapp']['ChatId']);
         self::assertNotSame('628222222222@c.us', $selectedChat['Identity']['whatsapp']['GroupId']);
         self::assertSame('Alice Raw', $messages[0]['SenderName']);
         self::assertSame('628222222222', $messages[0]['SenderNumber']);
+        self::assertSame('https://waha.test/profiles/alice.jpg', $messages[0]['SenderAvatarUrl']);
+        self::assertNull($messages[0]['UrlMedia']);
         self::assertStringContainsString('/admin/waha-media/message-group-1', $messages[0]['MediaUrl']);
         self::assertStringContainsString('download=1', $messages[0]['MediaDownloadUrl']);
         self::assertStringNotContainsString($encodedMedia, json_encode([
@@ -105,10 +118,15 @@ class InboxWhatsappTest extends TestCase
             ->assertSee('Data internal')
             ->assertSee('Grup WhatsApp')
             ->assertSee('Chat Pribadi')
+            ->assertSee('WAHA Support Group')
             ->assertSee('Unduh media')
             ->assertSee('120363999999999999@g.us')
             ->assertSee('Alice Raw')
             ->assertSee('628222222222')
+            ->assertSeeHtml('role=')
+            ->assertSeeHtml('aria-pressed=')
+            ->assertSeeHtml('focus-visible:ring-2')
+            ->assertSeeHtml('aria-label=')
             ->assertSeeHtml('wire:click="$set(\'identityDisplayMode\', \'whatsapp\')"')
             ->assertSeeHtml('wire:click="$set(\'identityDisplayMode\', \'internal\')"')
             ->assertSeeHtml('download=1');
@@ -119,7 +137,112 @@ class InboxWhatsappTest extends TestCase
             ->test(InboxWhatsapp::class)
             ->assertSee('Original WhatsApp')
             ->assertSee('Internal data')
+            ->assertSee('WAHA Support Group')
             ->assertSee('Download media');
+    }
+
+    public function test_whatsapp_identity_uses_snapshot_lid_and_resolved_number_before_internal_mapping(): void
+    {
+        DB::table('TChat')->where('Id', 'chat-personal-1')->update([
+            'NomorWhatsapp' => '199999999999999@lid',
+            'IdWahaTerdeteksi' => '199999999999999@lid',
+            'NomorWhatsappTerdeteksi' => '628333333333',
+        ]);
+
+        $component = Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
+            ->set('filterType', 'pribadi');
+        $chatRows = $component->getData()['chatRows'] ?? [];
+
+        self::assertCount(1, $chatRows);
+        self::assertSame('WAHA Personal Contact', $chatRows[0]['Identity']['whatsapp']['PrimaryName']);
+        self::assertSame('WAHA Personal Contact', $chatRows[0]['Identity']['whatsapp']['ContactName']);
+        self::assertSame('199999999999999@lid', $chatRows[0]['Identity']['whatsapp']['ChatId']);
+        self::assertSame('628333333333', $chatRows[0]['Identity']['whatsapp']['ContactNumber']);
+        self::assertSame('Mapped Personal Contact', $chatRows[0]['Identity']['internal']['ContactName']);
+        self::assertSame('628444444444', $chatRows[0]['Identity']['internal']['ContactNumber']);
+    }
+
+    public function test_refresh_identity_requires_manage_permission_and_dispatches_async_without_waha_call(): void
+    {
+        Queue::fake();
+        DB::table('TChat')->where('Id', 'chat-group-1')->update([
+            'TglFotoProfilDiambil' => now(),
+        ]);
+
+        $wahaSender = \Mockery::mock(WahaSender::class);
+        $wahaSender->shouldNotReceive('getContactProfilePictureUrl');
+        $this->app->instance(WahaSender::class, $wahaSender);
+
+        Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
+            ->call('refreshProfilWaha')
+            ->assertForbidden();
+
+        Queue::assertNotPushed(SyncWahaChatIdentityJob::class);
+
+        Livewire::actingAs($this->agent([
+            AccessPermissions::INBOX_VIEW,
+            AccessPermissions::INBOX_MANAGE,
+        ]))
+            ->test(InboxWhatsapp::class)
+            ->call('refreshProfilWaha')
+            ->assertStatus(200);
+
+        Queue::assertPushed(SyncWahaChatIdentityJob::class, function (SyncWahaChatIdentityJob $job): bool {
+            return $job->chatId === 'chat-group-1';
+        });
+    }
+
+    public function test_selecting_group_chat_keeps_last_snapshot_and_never_calls_waha_synchronously(): void
+    {
+        DB::table('TChat')->where('Id', 'chat-group-1')->update([
+            'IdWahaTerdeteksi' => '120363000000000000@g.us',
+            'UrlFotoProfil' => 'https://waha.test/profiles/group-last.jpg',
+            'TglFotoProfilDiambil' => now()->subDays(2),
+        ]);
+
+        $wahaSender = \Mockery::mock(WahaSender::class);
+        $wahaSender->shouldNotReceive('getContactProfilePictureUrl');
+        $this->app->instance(WahaSender::class, $wahaSender);
+
+        $component = Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
+            ->call('selectChat', 'chat-group-1')
+            ->assertStatus(200);
+
+        self::assertSame(
+            'https://waha.test/profiles/group-last.jpg',
+            DB::table('TChat')->where('Id', 'chat-group-1')->value('UrlFotoProfil')
+        );
+        self::assertSame(
+            '120363999999999999@g.us',
+            $component->getData()['selectedChat']['Identity']['whatsapp']['GroupId']
+        );
+    }
+
+    public function test_group_message_without_participant_avatar_uses_initial_fallback(): void
+    {
+        $this->insertChatDetail([
+            'Id' => 'message-no-participant-avatar',
+            'JenisPesan' => 'Teks',
+            'IsiPesan' => 'Pesan dari peserta tanpa foto.',
+            'PengirimNamaKontak' => 'Zed Participant',
+            'PengirimNomorWhatsapp' => '628999999999',
+            'PengirimIdWaha' => '628999999999@c.us',
+            'UrlFotoProfilPengirim' => null,
+            'TglFotoProfilPengirimDiambil' => null,
+        ]);
+
+        $component = Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class);
+        $message = collect($component->getData()['messages'] ?? [])->firstWhere('Id', 'message-no-participant-avatar');
+
+        self::assertIsArray($message);
+        self::assertSame('Zed Participant', $message['SenderName']);
+        self::assertNull($message['SenderAvatarUrl']);
+        $component->assertSee('Zed Participant')
+            ->assertSee('Z');
     }
 
     public function test_personal_identity_switches_between_raw_and_mapped_values_without_resetting_selection_filter_or_messages(): void
@@ -136,7 +259,7 @@ class InboxWhatsappTest extends TestCase
         self::assertIsArray($chatRowsBeforeToggle);
         self::assertCount(1, $chatRowsBeforeToggle);
         self::assertArrayHasKey('Identity', $chatRowsBeforeToggle[0]);
-        self::assertSame('Raw Personal Contact', $chatRowsBeforeToggle[0]['Identity']['whatsapp']['ContactName']);
+        self::assertSame('WAHA Personal Contact', $chatRowsBeforeToggle[0]['Identity']['whatsapp']['ContactName']);
         self::assertSame('628333333333@c.us', $chatRowsBeforeToggle[0]['Identity']['whatsapp']['ChatId']);
         self::assertSame('Mapped Personal Contact', $chatRowsBeforeToggle[0]['Identity']['internal']['ContactName']);
         self::assertSame('Mapped Clinic', $chatRowsBeforeToggle[0]['Identity']['internal']['Instansi']);
@@ -306,6 +429,61 @@ class InboxWhatsappTest extends TestCase
         self::assertStringNotContainsString($encoded, $stateJson);
     }
 
+    public function test_raw_base64_message_renders_media_route_without_text_body(): void
+    {
+        $encoded = base64_encode(str_repeat('image-bytes-', 10));
+
+        $this->insertChatDetail([
+            'Id' => 'message-raw-base64',
+            'JenisPesan' => 'Gambar',
+            'IsiPesan' => $encoded,
+            'UrlMedia' => null,
+            'PayloadJson' => null,
+            'NamaFileMedia' => 'photo.png',
+            'TipeMime' => 'image/png',
+        ]);
+
+        $state = Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
+            ->getData();
+        $message = collect($state['messages'] ?? [])->firstWhere('Id', 'message-raw-base64');
+        $stateJson = json_encode($state, JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($message);
+        self::assertSame('image', $message['MediaCategory']);
+        self::assertFalse($message['ShowTextBody']);
+        self::assertFalse($message['Base64Fallback']);
+        self::assertStringContainsString('/admin/waha-media/message-raw-base64', $message['MediaUrl']);
+        self::assertStringNotContainsString($encoded, $stateJson);
+    }
+
+    public function test_base64_like_text_message_stays_text_when_not_media_context(): void
+    {
+        $encoded = base64_encode(str_repeat('ordinary-text-', 10));
+
+        $this->insertChatDetail([
+            'Id' => 'message-base64-like-text',
+            'JenisPesan' => 'Teks',
+            'IsiPesan' => $encoded,
+            'UrlMedia' => null,
+            'PayloadJson' => null,
+            'NamaFileMedia' => null,
+            'TipeMime' => null,
+        ]);
+
+        $state = Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
+            ->getData();
+        $message = collect($state['messages'] ?? [])->firstWhere('Id', 'message-base64-like-text');
+
+        self::assertIsArray($message);
+        self::assertSame('text', $message['MediaCategory']);
+        self::assertTrue($message['ShowTextBody']);
+        self::assertFalse($message['Base64Fallback']);
+        self::assertNull($message['MediaUrl']);
+        self::assertSame($encoded, $message['IsiPesan']);
+    }
+
     public function test_malformed_embedded_base64_does_not_create_media_routes_in_inbox_state(): void
     {
         $payload = json_encode([
@@ -326,9 +504,9 @@ class InboxWhatsappTest extends TestCase
             'TipeMime' => 'application/pdf',
         ]);
 
-        $state = Livewire::actingAs($this->agent())
-            ->test(InboxWhatsapp::class)
-            ->getData();
+        $component = Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class);
+        $state = $component->getData();
         $messages = $state['messages'] ?? [];
         $message = collect($messages)->firstWhere('Id', 'message-malformed-embedded');
         $stateJson = json_encode($messages, JSON_THROW_ON_ERROR);
@@ -336,6 +514,8 @@ class InboxWhatsappTest extends TestCase
         self::assertIsArray($message);
         self::assertNull($message['MediaUrl']);
         self::assertNull($message['MediaDownloadUrl']);
+        self::assertTrue($message['Base64Fallback']);
+        $component->assertSee(__('ui.pages.inbox.base64_media_unavailable'));
         self::assertStringNotContainsString('%%%not-base64%%%', $stateJson);
         self::assertStringNotContainsString($payload, $stateJson);
     }
@@ -470,8 +650,17 @@ class InboxWhatsappTest extends TestCase
             $table->string('IdGrupWhatsapp')->nullable();
             $table->string('JenisChat');
             $table->string('NomorWhatsapp');
+            $table->string('IdWahaTerdeteksi', 200)->nullable();
+            $table->string('NomorWhatsappTerdeteksi')->nullable();
             $table->string('NamaKontak')->nullable();
             $table->string('NamaGrupWhatsapp')->nullable();
+            $table->string('NamaKontakWaha', 150)->nullable();
+            $table->string('NamaGrupWaha', 200)->nullable();
+            $table->dateTime('TglIdentitasWahaDiambil')->nullable();
+            $table->string('StatusIdentitasWaha', 30)->nullable();
+            $table->string('PesanErrorIdentitasWaha', 500)->nullable();
+            $table->string('UrlFotoProfil', 1000)->nullable();
+            $table->dateTime('TglFotoProfilDiambil')->nullable();
             $table->integer('JumlahPesanBelumDibaca')->default(0);
             $table->dateTime('TglChatTerakhir')->nullable();
             $table->boolean('AutoReplyAiAktif')->default(false);
@@ -497,6 +686,9 @@ class InboxWhatsappTest extends TestCase
             $table->dateTime('TglDikirim')->nullable();
             $table->string('PengirimNomorWhatsapp')->nullable();
             $table->string('PengirimNamaKontak')->nullable();
+            $table->string('PengirimIdWaha', 200)->nullable();
+            $table->string('UrlFotoProfilPengirim', 1000)->nullable();
+            $table->dateTime('TglFotoProfilPengirimDiambil')->nullable();
             $table->dateTime('TglPesan');
             $table->string('StatusKirim')->nullable();
             $table->text('PesanError')->nullable();
@@ -558,6 +750,11 @@ class InboxWhatsappTest extends TestCase
                 'NomorWhatsapp' => '628111111111',
                 'NamaKontak' => null,
                 'NamaGrupWhatsapp' => 'Fallback Group',
+                'NamaKontakWaha' => null,
+                'NamaGrupWaha' => 'WAHA Support Group',
+                'TglIdentitasWahaDiambil' => $now,
+                'StatusIdentitasWaha' => 'synced',
+                'PesanErrorIdentitasWaha' => null,
                 'JumlahPesanBelumDibaca' => 1,
                 'TglChatTerakhir' => $now,
                 'AutoReplyAiAktif' => false,
@@ -580,6 +777,11 @@ class InboxWhatsappTest extends TestCase
                 'NomorWhatsapp' => '628333333333',
                 'NamaKontak' => 'Raw Personal Contact',
                 'NamaGrupWhatsapp' => null,
+                'NamaKontakWaha' => 'WAHA Personal Contact',
+                'NamaGrupWaha' => null,
+                'TglIdentitasWahaDiambil' => $now,
+                'StatusIdentitasWaha' => 'synced',
+                'PesanErrorIdentitasWaha' => null,
                 'JumlahPesanBelumDibaca' => 0,
                 'TglChatTerakhir' => $now->copy()->subMinute(),
                 'AutoReplyAiAktif' => false,
@@ -613,6 +815,9 @@ class InboxWhatsappTest extends TestCase
                 ], JSON_THROW_ON_ERROR),
                 'PengirimNomorWhatsapp' => '628222222222',
                 'PengirimNamaKontak' => 'Alice Raw',
+                'PengirimIdWaha' => '628222222222@c.us',
+                'UrlFotoProfilPengirim' => 'https://waha.test/profiles/alice.jpg',
+                'TglFotoProfilPengirimDiambil' => $now,
                 'TglPesan' => $now,
                 'StatusKirim' => 'Diterima',
                 'PesanError' => null,
@@ -630,6 +835,9 @@ class InboxWhatsappTest extends TestCase
                 'PayloadJson' => json_encode(['chatId' => '628333333333@c.us'], JSON_THROW_ON_ERROR),
                 'PengirimNomorWhatsapp' => '628333333333',
                 'PengirimNamaKontak' => 'Raw Personal Contact',
+                'PengirimIdWaha' => '628333333333@c.us',
+                'UrlFotoProfilPengirim' => null,
+                'TglFotoProfilPengirimDiambil' => null,
                 'TglPesan' => $now->copy()->subMinutes(2),
                 'StatusKirim' => 'Diterima',
                 'PesanError' => null,
@@ -647,6 +855,9 @@ class InboxWhatsappTest extends TestCase
                 'PayloadJson' => null,
                 'PengirimNomorWhatsapp' => null,
                 'PengirimNamaKontak' => null,
+                'PengirimIdWaha' => null,
+                'UrlFotoProfilPengirim' => null,
+                'TglFotoProfilPengirimDiambil' => null,
                 'TglPesan' => $now->copy()->subMinute(),
                 'StatusKirim' => 'Terkirim',
                 'PesanError' => null,

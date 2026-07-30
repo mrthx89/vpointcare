@@ -29,13 +29,14 @@ class ProcessWebhookJob implements ShouldQueue
     {
         $result = $processor->process($this->payload);
 
-        if (! (($result['ok'] ?? false) && empty($result['duplicate']) && ! empty($result['chat_id']))) {
+        if (! (($result['ok'] ?? false) && empty($result['duplicate']) && empty($result['ignored']) && ! empty($result['chat_id']))) {
             return;
         }
 
         $chatId = (string) $result['chat_id'];
 
         SendBroadcastDebouncedJob::dispatchDebounced($chatId);
+        SyncWahaChatIdentityJob::dispatchDebounced($chatId);
         ProcessAiAutoReplyJob::dispatch($chatId, now()->toDateTimeString());
     }
 

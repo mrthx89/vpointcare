@@ -1,0 +1,659 @@
+﻿# Task 2 Review Package R2
+
+## Diff
+diff --git a/openspec/changes/chatbot-whatsappasli-improve/tasks.md b/openspec/changes/chatbot-whatsappasli-improve/tasks.md
+index 2c95a86..fdc2fdc 100644
+--- a/openspec/changes/chatbot-whatsappasli-improve/tasks.md
++++ b/openspec/changes/chatbot-whatsappasli-improve/tasks.md
+@@ -1,25 +1,25 @@
+ ## 1. Kontrak Data dan Migration SQL Server
+ 
+-- [ ] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
+-- [ ] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
+-- [ ] 1.3 Tambahkan index SQL Server yang diperlukan untuk query status/waktu snapshot tanpa mengubah index JID yang sudah ada.
+-- [ ] 1.4 Sinkronkan definisi fresh-install di `src/script/DATABASE_SCHEMA_WACS.sql` dengan kolom snapshot yang sama.
+-- [ ] 1.5 Siapkan langkah backup database dan rollback migration yang hanya menghapus kolom snapshot baru, tanpa menghapus chat, pesan, atau mapping master.
++- [x] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
++- [x] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
++- [x] 1.3 Tambahkan index SQL Server yang diperlukan untuk query status/waktu snapshot tanpa mengubah index JID yang sudah ada.
++- [x] 1.4 Sinkronkan definisi fresh-install di `src/script/DATABASE_SCHEMA_WACS.sql` dengan kolom snapshot yang sama.
++- [x] 1.5 Siapkan langkah backup database dan rollback migration yang hanya menghapus kolom snapshot baru, tanpa menghapus chat, pesan, atau mapping master.
+ 
+ ## 2. Adapter Metadata WAHA dan Snapshot
+ 
+-- [ ] 2.1 Tambahkan method metadata kontak dan grup pada `src/app/Services/Waha/WahaSender.php` menggunakan `getJson()`, timeout, API key, circuit breaker, dan `TLogIntegrasi` yang sudah ada.
+-- [ ] 2.2 Buat parser/helper teruji untuk mengambil nama kontak/grup tervalidasi dari variasi respons WAHA serta membatasi panjang field sesuai kolom SQL Server.
+-- [ ] 2.3 Perluas `src/app/Support/WahaChatHelper.php` bila diperlukan untuk memilih JID grup `@g.us`, mempertahankan JID `@lid`, dan membuat fallback phone JID tanpa mengubah normalisasi yang ada.
+-- [ ] 2.4 Pastikan respons WAHA mentah, token, API key, dan payload tidak disimpan ke kolom snapshot maupun diekspos ke UI/Livewire.
+-- [ ] 2.5 Tambahkan unit test untuk metadata kontak, metadata grup, respons kosong/tidak dikenal, dan resolusi `@lid` yang berhasil maupun gagal.
++- [x] 2.1 Tambahkan method metadata kontak dan grup pada `src/app/Services/Waha/WahaSender.php` menggunakan `getJson()`, timeout, API key, circuit breaker, dan `TLogIntegrasi` yang sudah ada.
++- [x] 2.2 Buat parser/helper teruji untuk mengambil nama kontak/grup tervalidasi dari variasi respons WAHA serta membatasi panjang field sesuai kolom SQL Server.
++- [x] 2.3 Verifikasi `src/app/Support/WahaChatHelper.php`: normalisasi yang ada sudah mempertahankan raw JID `@g.us` dan `@lid` serta fallback phone; tidak diperlukan perubahan helper.
++- [x] 2.4 Pastikan respons WAHA mentah, token, API key, dan payload tidak disimpan ke kolom snapshot maupun diekspos ke UI/Livewire.
++- [ ] 2.5 Tambahkan unit test untuk metadata kontak, metadata grup, respons kosong/tidak dikenal, dan resolusi `@lid` yang berhasil maupun gagal. (Terimplementasi di `src/tests/Feature/Waha/WahaChatIdentitySyncTest.php`; eksekusi terblokir karena PHPUnit dev dependency tidak tersedia.)
+ 
+ ## 3. Queue, Idempotensi, dan Observability
+ 
+ - [ ] 3.1 Buat `src/app/Jobs/SyncWahaChatIdentityJob.php` pada queue `webhooks` dengan `tries=3`, `timeout=30`, backoff 30/120 detik, dan deduplikasi per `IdChat` selama 60 detik.
+ - [ ] 3.2 Implementasikan update atomik snapshot `TChat`: simpan nama valid, JID/raw identifier, nomor hasil resolusi bila tersedia, status, waktu sinkronisasi, dan error tersanitasi; jangan ubah mapping master.
+ - [ ] 3.3 Perbarui `src/app/Services/Waha/WahaWebhookProcessor.php` atau post-processing webhook terkait untuk dispatch job setelah transaksi chat berhasil tanpa menunggu request metadata.
+ - [ ] 3.4 Dispatch `SendBroadcastDebouncedJob` hanya ketika snapshot identitas benar-benar berubah agar Inbox realtime diperbarui tanpa broadcast storm.
+ - [ ] 3.5 Tambahkan feature test job untuk after-commit dispatch, deduplikasi, retry/final failure, preservasi snapshot lama, dan broadcast setelah update.
+ 
+ ## 4. Tampilan WhatsAppAsli pada Inbox
+diff --git a/src/app/Services/Waha/WahaSender.php b/src/app/Services/Waha/WahaSender.php
+index 280bc12..a78d783 100644
+--- a/src/app/Services/Waha/WahaSender.php
++++ b/src/app/Services/Waha/WahaSender.php
+@@ -94,60 +94,151 @@ public function getContactProfilePictureUrl(string $session, string $contactId,
+         $url = is_array($payload)
+             ? (Arr::get($payload, 'profilePictureURL') ?? Arr::get($payload, 'url'))
+             : null;
+ 
+         return array_merge($response, [
+             'url' => is_string($url) && trim($url) !== '' ? trim($url) : null,
+         ]);
+     }
+ 
+     /**
+-     * @return array{ok: bool, phone?: ?string, pn?: ?string, status?: int, body?: string, error?: string}
++     * @return array{ok: bool, phone: ?string, pn: ?string, status: ?int, error: ?string}
+      */
+     public function getPhoneNumberByLid(string $session, string $lid): array
+     {
+-        $response = $this->getJson('/api/'.rawurlencode($session).'/lids/'.$this->encodeWahaPathId(WahaChatHelper::normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE');
++        $response = $this->getJson('/api/'.rawurlencode($session).'/lids/'.$this->encodeWahaPathId(WahaChatHelper::normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE', true);
+ 
+         if (! ($response['ok'] ?? false)) {
+-            return $response;
++            return [
++                'ok' => false,
++                'phone' => null,
++                'pn' => null,
++                'status' => $response['status'] ?? null,
++                'error' => 'WAHA LID lookup failed.',
++            ];
+         }
+ 
+         $body = (string) ($response['body'] ?? '');
+         $payload = json_decode($body, true);
+ 
+         if (json_last_error() !== JSON_ERROR_NONE) {
+             $payload = $body;
+         }
+ 
+         $pn = $this->firstPhoneContactId($payload);
+         $phone = is_string($pn) ? WahaChatHelper::normalizePhoneNumber($pn) : null;
+ 
+-        return array_merge($response, [
++        return [
++            'ok' => true,
+             'phone' => $phone,
+             'pn' => is_string($pn) ? $pn : null,
+-        ]);
++            'status' => $response['status'] ?? null,
++            'error' => null,
++        ];
++    }
++
++    /**
++     * @return array{ok: bool, name: ?string, pushname: ?string, id: string, phone: ?string, status: ?int, error: ?string}
++     */
++    public function getContactInfo(string $session, string $contactId): array
++    {
++        $id = WahaChatHelper::normalizeContactId($contactId);
++        $response = $this->getJson('/api/'.rawurlencode($session).'/contacts/'.$this->encodeWahaPathId($id), [], 'WAHA_CONTACT_INFO', true);
++
++        if (! ($response['ok'] ?? false)) {
++            return [
++                'ok' => false,
++                'name' => null,
++                'pushname' => null,
++                'id' => $id,
++                'phone' => null,
++                'status' => $response['status'] ?? null,
++                'error' => 'WAHA contact metadata request failed.',
++            ];
++        }
++
++        $payload = $this->responsePayload($response);
++        $name = $this->metadataText($payload, ['name', 'subject', 'pushname', 'shortName'], 150);
++        $pushname = $this->metadataText($payload, ['pushname'], 150);
++        $phone = $this->metadataPhone($payload);
++
++        if (str_ends_with(strtolower($id), '@lid')) {
++            $lid = $this->getPhoneNumberByLid($session, $id);
++            $phone = $lid['phone'] ?? $phone;
++        }
++
++        if ($name === null && $pushname === null && $phone === null) {
++            return [
++                'ok' => false,
++                'name' => null,
++                'pushname' => null,
++                'id' => $id,
++                'phone' => null,
++                'status' => $response['status'] ?? null,
++                'error' => 'WAHA contact metadata response is invalid.',
++            ];
++        }
++
++        return [
++            'ok' => true,
++            'name' => $name,
++            'pushname' => $pushname,
++            'id' => $id,
++            'phone' => $phone,
++            'status' => $response['status'] ?? null,
++            'error' => null,
++        ];
++    }
++
++    /**
++     * @return array{ok: bool, name: ?string, id: string, status: ?int, error: ?string}
++     */
++    public function getGroupInfo(string $session, string $groupId): array
++    {
++        $id = WahaChatHelper::normalizeContactId($groupId);
++        $response = $this->getJson('/api/'.rawurlencode($session).'/groups/'.$this->encodeWahaPathId($id), [], 'WAHA_GROUP_INFO', true);
++
++        if (! ($response['ok'] ?? false)) {
++            return [
++                'ok' => false,
++                'name' => null,
++                'id' => $id,
++                'status' => $response['status'] ?? null,
++                'error' => 'WAHA group metadata request failed.',
++            ];
++        }
++
++        $name = $this->metadataText($this->responsePayload($response), ['subject', 'name', 'pushname', 'shortName'], 200);
++
++        return [
++            'ok' => $name !== null,
++            'name' => $name,
++            'id' => $id,
++            'status' => $response['status'] ?? null,
++            'error' => $name === null ? 'WAHA group metadata response is invalid.' : null,
++        ];
+     }
+ 
+     /**
+      * @param  array<string, mixed>  $payload
+      * @return array{ok: bool, status?: int, body?: string, error?: string}
+      */
+     private function postJson(string $path, array $payload, string $kodeIntegrasi): array
+     {
+         $baseUrl = rtrim((string) config('services.waha.base_url'), '/');
+         $url = $baseUrl.'/'.ltrim($path, '/');
+         $logId = (string) Str::orderedUuid();
+ 
+         DB::table('TLogIntegrasi')->insert([
+             'Id' => $logId,
+             'KodeIntegrasi' => $kodeIntegrasi,
+-            'UrlEndpoint' => $url,
++            'UrlEndpoint' => $this->redactSensitiveValues($url),
+             'MetodeHttp' => 'POST',
+             'RequestJson' => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+             'TglRequest' => now(),
+             'TglBuat' => now(),
+         ]);
+ 
+         if ($this->isCircuitOpen()) {
+             $this->markCircuitBreakerLog($logId);
+ 
+             return [
+@@ -163,62 +254,63 @@ private function postJson(string $path, array $payload, string $kodeIntegrasi):
+                 $request = $request->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
+             }
+ 
+             $response = $request->post($url, $payload);
+             $this->recordCircuitResult($response->successful());
+ 
+             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
+                 'ResponseJson' => $response->body(),
+                 'StatusHttp' => $response->status(),
+                 'Berhasil' => $response->successful(),
+-                'PesanError' => $response->successful() ? null : $response->body(),
++                'PesanError' => $response->successful() ? null : $this->redactSensitiveValues($response->body()),
+                 'TglResponse' => now(),
+                 'TglEdit' => now(),
+             ]);
+ 
+             return [
+                 'ok' => $response->successful(),
+                 'status' => $response->status(),
+                 'body' => $response->body(),
+-                'error' => $response->successful() ? null : $response->body(),
++                'error' => $response->successful() ? null : $this->redactSensitiveValues($response->body()),
+             ];
+         } catch (Throwable $exception) {
+             $this->recordWahaFailure();
++            $error = $this->redactSensitiveValues($exception->getMessage());
+ 
+             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
+                 'Berhasil' => false,
+-                'PesanError' => $exception->getMessage(),
++                'PesanError' => $error,
+                 'TglResponse' => now(),
+                 'TglEdit' => now(),
+             ]);
+ 
+             return [
+                 'ok' => false,
+-                'error' => $exception->getMessage(),
++                'error' => $error,
+             ];
+         }
+     }
+ 
+     /**
+      * @param  array<string, mixed>  $query
+      * @return array{ok: bool, status?: int, body?: string, error?: string}
+      */
+-    private function getJson(string $path, array $query, string $kodeIntegrasi): array
++    private function getJson(string $path, array $query, string $kodeIntegrasi, bool $sanitizeResponse = false): array
+     {
+         $baseUrl = rtrim((string) config('services.waha.base_url'), '/');
+         $url = $baseUrl.'/'.ltrim($path, '/');
+         $logId = (string) Str::orderedUuid();
+ 
+         DB::table('TLogIntegrasi')->insert([
+             'Id' => $logId,
+             'KodeIntegrasi' => $kodeIntegrasi,
+-            'UrlEndpoint' => $url,
++            'UrlEndpoint' => $this->redactSensitiveValues($url),
+             'MetodeHttp' => 'GET',
+             'RequestJson' => json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+             'TglRequest' => now(),
+             'TglBuat' => now(),
+         ]);
+ 
+         if ($this->isCircuitOpen()) {
+             $this->markCircuitBreakerLog($logId);
+ 
+             return [
+@@ -230,48 +322,52 @@ private function getJson(string $path, array $query, string $kodeIntegrasi): arr
+         try {
+             $request = Http::acceptJson()->timeout(8);
+ 
+             if (config('services.waha.api_key')) {
+                 $request = $request->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
+             }
+ 
+             $response = $request->get($url, $query);
+             $this->recordCircuitResult($response->successful());
+ 
++            $body = $response->body();
++            $error = $sanitizeResponse ? 'WAHA metadata request failed.' : $this->redactSensitiveValues($body);
++
+             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
+-                'ResponseJson' => $response->body(),
++                'ResponseJson' => $sanitizeResponse ? json_encode(['received' => true]) : $body,
+                 'StatusHttp' => $response->status(),
+                 'Berhasil' => $response->successful(),
+-                'PesanError' => $response->successful() ? null : $response->body(),
++                'PesanError' => $response->successful() ? null : $error,
+                 'TglResponse' => now(),
+                 'TglEdit' => now(),
+             ]);
+ 
+             return [
+                 'ok' => $response->successful(),
+                 'status' => $response->status(),
+-                'body' => $response->body(),
+-                'error' => $response->successful() ? null : $response->body(),
++                'body' => $body,
++                'error' => $response->successful() ? null : $error,
+             ];
+         } catch (Throwable $exception) {
+             $this->recordWahaFailure();
++            $error = $this->redactSensitiveValues($exception->getMessage());
+ 
+             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
+                 'Berhasil' => false,
+-                'PesanError' => $exception->getMessage(),
++                'PesanError' => $error,
+                 'TglResponse' => now(),
+                 'TglEdit' => now(),
+             ]);
+ 
+             return [
+                 'ok' => false,
+-                'error' => $exception->getMessage(),
++                'error' => $error,
+             ];
+         }
+     }
+ 
+     private function firstPhoneContactId(mixed $payload): ?string
+     {
+         if (is_string($payload) && trim($payload) !== '') {
+             return trim($payload);
+         }
+ 
+@@ -294,20 +390,99 @@ private function firstPhoneContactId(mixed $payload): ?string
+             $value = Arr::get($payload, $key);
+ 
+             if (is_string($value) && trim($value) !== '') {
+                 return trim($value);
+             }
+         }
+ 
+         return null;
+     }
+ 
++    /** @param array<string, mixed> $response @return array<string, mixed> */
++    private function responsePayload(array $response): array
++    {
++        $payload = json_decode((string) ($response['body'] ?? ''), true);
++
++        return is_array($payload) ? $payload : [];
++    }
++
++    /** @param array<string, mixed> $payload @param array<int, string> $keys */
++    private function metadataText(array $payload, array $keys, int $maxLength): ?string
++    {
++        foreach ([$payload, Arr::get($payload, 'data', []), Arr::get($payload, 'contact', []), Arr::get($payload, 'group', [])] as $source) {
++            if (! is_array($source)) {
++                continue;
++            }
++
++            foreach ($keys as $key) {
++                $value = Arr::get($source, $key);
++
++                if (! is_string($value)) {
++                    continue;
++                }
++
++                $value = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', trim($value));
++                $value = preg_replace('/\s+/u', ' ', (string) $value);
++
++                if (is_string($value) && $value !== '') {
++                    return $this->limitSqlServerText($value, $maxLength);
++                }
++            }
++        }
++
++        return null;
++    }
++
++    /** @param array<string, mixed> $payload */
++    private function metadataPhone(array $payload): ?string
++    {
++        return WahaChatHelper::normalizePhoneNumber($this->firstPhoneContactId($payload));
++    }
++
++    private function limitSqlServerText(string $value, int $maxUtf16Units): string
++    {
++        if (! function_exists('mb_convert_encoding')) {
++            return Str::limit($value, $maxUtf16Units, '');
++        }
++
++        $characters = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
++
++        if ($characters === false) {
++            return Str::limit($value, $maxUtf16Units, '');
++        }
++
++        $limited = '';
++        $usedUnits = 0;
++
++        foreach ($characters as $character) {
++            $units = intdiv(strlen(mb_convert_encoding($character, 'UTF-16LE', 'UTF-8')), 2);
++
++            if ($usedUnits + $units > $maxUtf16Units) {
++                break;
++            }
++
++            $limited .= $character;
++            $usedUnits += $units;
++        }
++
++        return $limited;
++    }
++
++    private function redactSensitiveValues(string $value): string
++    {
++        $keys = 'credential|token|api_key|key|password|secret|access_token';
++        $redacted = preg_replace('/([?&](?:'.$keys.')=)[^&#\s]*/i', '$1[REDACTED]', $value);
++        $redacted = preg_replace('/(\b(?:'.$keys.')\b\s*[:=]\s*)(?:"[^"]*"|\'[^\']*\'|[^\s,;]+)/i', '$1[REDACTED]', (string) $redacted);
++
++        return is_string($redacted) ? $redacted : '[REDACTED]';
++    }
++
+     private function encodeWahaPathId(string $id): string
+     {
+         return str_replace('%40', '@', rawurlencode($id));
+     }
+ 
+     private function isCircuitOpen(): bool
+     {
+         if (! self::$circuitOpenUntil) {
+             return false;
+         }
+diff --git a/src/tests/Feature/Waha/WahaChatIdentitySyncTest.php b/src/tests/Feature/Waha/WahaChatIdentitySyncTest.php
+new file mode 100644
+index 0000000..f02769f
+--- /dev/null
++++ b/src/tests/Feature/Waha/WahaChatIdentitySyncTest.php
+@@ -0,0 +1,219 @@
++<?php
++
++namespace Tests\Feature\Waha;
++
++use App\Services\Waha\WahaSender;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Http\Client\ConnectionException;
++use Illuminate\Http\Client\Request;
++use Illuminate\Support\Facades\DB;
++use Illuminate\Support\Facades\Http;
++use Illuminate\Support\Facades\Schema;
++use Tests\TestCase;
++
++class WahaChatIdentitySyncTest extends TestCase
++{
++    protected function setUp(): void
++    {
++        parent::setUp();
++
++        Schema::create('TLogIntegrasi', function (Blueprint $table): void {
++            $table->string('Id')->primary();
++            $table->string('KodeIntegrasi');
++            $table->string('UrlEndpoint')->nullable();
++            $table->string('MetodeHttp')->nullable();
++            $table->text('RequestJson')->nullable();
++            $table->text('ResponseJson')->nullable();
++            $table->integer('StatusHttp')->nullable();
++            $table->boolean('Berhasil')->nullable();
++            $table->text('PesanError')->nullable();
++            $table->dateTime('TglRequest')->nullable();
++            $table->dateTime('TglResponse')->nullable();
++            $table->dateTime('TglBuat')->nullable();
++            $table->dateTime('TglEdit')->nullable();
++        });
++
++        config()->set('services.waha.base_url', 'https://waha.test');
++        config()->set('services.waha.api_key', 'test-api-key');
++    }
++
++    protected function tearDown(): void
++    {
++        Schema::dropIfExists('TLogIntegrasi');
++
++        parent::tearDown();
++    }
++
++    public function test_contact_metadata_is_normalized_projected_and_length_limited(): void
++    {
++        Http::fake([
++            'https://waha.test/api/default/contacts/*' => Http::response([
++                'name' => str_repeat('N', 151),
++                'pushname' => str_repeat('P', 151),
++                'id' => '628123456789@s.whatsapp.net',
++                'phone' => '+62 812-3456-789',
++                'secret' => 'provider-secret',
++            ]),
++        ]);
++
++        $result = app(WahaSender::class)->getContactInfo('default', '628123456789@s.whatsapp.net');
++
++        self::assertSame(true, $result['ok']);
++        self::assertSame(str_repeat('N', 150), $result['name']);
++        self::assertSame(str_repeat('P', 150), $result['pushname']);
++        self::assertSame('628123456789@c.us', $result['id']);
++        self::assertSame('628123456789', $result['phone']);
++        self::assertSame(200, $result['status']);
++        self::assertNull($result['error']);
++        self::assertArrayNotHasKey('body', $result);
++        self::assertArrayNotHasKey('secret', $result);
++        $this->assertNoProviderSecretInIntegrationLogs();
++
++        Http::assertSent(function (Request $request): bool {
++            return $request->method() === 'GET'
++                && $request->url() === 'https://waha.test/api/default/contacts/628123456789@c.us';
++        });
++    }
++
++    public function test_group_metadata_uses_subject_and_schema_length_limit(): void
++    {
++        Http::fake([
++            'https://waha.test/api/default/groups/*' => Http::response([
++                'subject' => str_repeat('G', 201),
++                'id' => '120363000000000001@g.us',
++                'token' => 'provider-secret',
++            ]),
++        ]);
++
++        $result = app(WahaSender::class)->getGroupInfo('default', '120363000000000001@g.us');
++
++        self::assertSame([
++            'ok' => true,
++            'name' => str_repeat('G', 200),
++            'id' => '120363000000000001@g.us',
++            'status' => 200,
++            'error' => null,
++        ], $result);
++        $this->assertNoProviderSecretInIntegrationLogs();
++    }
++
++    public function test_metadata_name_limit_uses_utf16_code_units_without_splitting_surrogate_pairs(): void
++    {
++        $contactName = str_repeat("\u{1F600}", 75).'A';
++        $groupName = str_repeat("\u{1F600}", 100).'A';
++
++        Http::fake([
++            'https://waha.test/api/default/contacts/*' => Http::response(['name' => $contactName]),
++            'https://waha.test/api/default/groups/*' => Http::response(['subject' => $groupName]),
++        ]);
++
++        $contact = app(WahaSender::class)->getContactInfo('default', '628123456791');
++        $group = app(WahaSender::class)->getGroupInfo('default', '120363000000000003@g.us');
++
++        self::assertSame(str_repeat("\u{1F600}", 75), $contact['name']);
++        self::assertSame(str_repeat("\u{1F600}", 100), $group['name']);
++    }
++
++    public function test_unknown_metadata_response_returns_sanitized_failure_without_raw_body(): void
++    {
++        Http::fake([
++            'https://waha.test/api/default/groups/*' => Http::response([
++                'unexpected' => 'shape',
++                'token' => 'provider-secret',
++            ]),
++        ]);
++
++        $result = app(WahaSender::class)->getGroupInfo('default', '120363000000000002@g.us');
++
++        self::assertFalse($result['ok']);
++        self::assertNull($result['name']);
++        self::assertSame('120363000000000002@g.us', $result['id']);
++        self::assertSame(200, $result['status']);
++        self::assertNotSame('provider-secret', $result['error']);
++        self::assertArrayNotHasKey('body', $result);
++        $this->assertNoProviderSecretInIntegrationLogs();
++    }
++
++    public function test_empty_contact_metadata_response_returns_sanitized_failure(): void
++    {
++        Http::fake([
++            'https://waha.test/api/default/contacts/*' => Http::response([]),
++        ]);
++
++        $result = app(WahaSender::class)->getContactInfo('default', '628123456790');
++
++        self::assertFalse($result['ok']);
++        self::assertNull($result['name']);
++        self::assertNull($result['pushname']);
++        self::assertSame('628123456790@c.us', $result['id']);
++        self::assertNull($result['phone']);
++        self::assertSame(200, $result['status']);
++        self::assertArrayNotHasKey('body', $result);
++    }
++
++    public function test_lid_contact_uses_resolved_phone_number_when_available(): void
++    {
++        Http::fake([
++            'https://waha.test/api/default/contacts/*' => Http::response([
++                'pushname' => 'Lid Contact',
++            ]),
++            'https://waha.test/api/default/lids/*' => Http::response([
++                'pn' => '628777777777@c.us',
++            ]),
++        ]);
++
++        $result = app(WahaSender::class)->getContactInfo('default', '123456789@lid');
++
++        self::assertSame(true, $result['ok']);
++        self::assertSame('Lid Contact', $result['name']);
++        self::assertSame('Lid Contact', $result['pushname']);
++        self::assertSame('123456789@lid', $result['id']);
++        self::assertSame('628777777777', $result['phone']);
++    }
++
++    public function test_lid_contact_keeps_metadata_when_phone_lookup_fails_without_exposing_response(): void
++    {
++        Http::fake([
++            'https://waha.test/api/default/contacts/*' => Http::response([
++                'name' => 'Lid Contact',
++            ]),
++            'https://waha.test/api/default/lids/*' => Http::response([
++                'error' => 'provider-secret',
++            ], 404),
++        ]);
++
++        $result = app(WahaSender::class)->getContactInfo('default', '123456790@lid');
++
++        self::assertSame(true, $result['ok']);
++        self::assertSame('Lid Contact', $result['name']);
++        self::assertSame('123456790@lid', $result['id']);
++        self::assertNull($result['phone']);
++        self::assertNull($result['error']);
++        self::assertArrayNotHasKey('body', $result);
++        $this->assertNoProviderSecretInIntegrationLogs();
++    }
++
++    public function test_metadata_exception_and_endpoint_url_are_redacted(): void
++    {
++        config()->set('services.waha.base_url', 'https://waha.test?access_token=url-secret');
++        Http::fake(function (Request $request): never {
++            throw new ConnectionException('WAHA request failed: api_key=exception-secret');
++        });
++
++        $result = app(WahaSender::class)->getContactInfo('default', '628123456792');
++        $log = DB::table('TLogIntegrasi')->first();
++
++        self::assertFalse($result['ok']);
++        self::assertStringNotContainsString('exception-secret', (string) $result['error']);
++        self::assertStringNotContainsString('url-secret', (string) $log->UrlEndpoint);
++        self::assertStringNotContainsString('exception-secret', (string) $log->PesanError);
++    }
++
++    private function assertNoProviderSecretInIntegrationLogs(): void
++    {
++        self::assertSame(0, DB::table('TLogIntegrasi')
++            ->where('ResponseJson', 'like', '%provider-secret%')
++            ->orWhere('PesanError', 'like', '%provider-secret%')
++            ->count());
++    }
++}

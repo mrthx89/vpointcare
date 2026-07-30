@@ -1,0 +1,520 @@
+﻿# Task 1 Review Package R2
+
+## Git status
+ M openspec/changes/chatbot-whatsappasli-improve/tasks.md
+ M src/script/DATABASE_SCHEMA_WACS.sql
+ M src/tests/Feature/Filament/Pages/InboxWhatsappTest.php
+?? .superpowers/sdd/chatbot-whatsapp-improve/
+?? docs/superpowers/plans/2026-07-30-chatbot-whatsapp-improve.md
+?? src/database/migrations/2026_07_30_000001_add_waha_identity_snapshot_to_chat.php
+
+## Diff tracked
+diff --git a/openspec/changes/chatbot-whatsappasli-improve/tasks.md b/openspec/changes/chatbot-whatsappasli-improve/tasks.md
+index 2c95a86..796a41f 100644
+--- a/openspec/changes/chatbot-whatsappasli-improve/tasks.md
++++ b/openspec/changes/chatbot-whatsappasli-improve/tasks.md
+@@ -1,17 +1,17 @@
+ ## 1. Kontrak Data dan Migration SQL Server
+ 
+-- [ ] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
+-- [ ] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
+-- [ ] 1.3 Tambahkan index SQL Server yang diperlukan untuk query status/waktu snapshot tanpa mengubah index JID yang sudah ada.
+-- [ ] 1.4 Sinkronkan definisi fresh-install di `src/script/DATABASE_SCHEMA_WACS.sql` dengan kolom snapshot yang sama.
+-- [ ] 1.5 Siapkan langkah backup database dan rollback migration yang hanya menghapus kolom snapshot baru, tanpa menghapus chat, pesan, atau mapping master.
++- [x] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
++- [x] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
++- [x] 1.3 Tambahkan index SQL Server yang diperlukan untuk query status/waktu snapshot tanpa mengubah index JID yang sudah ada.
++- [x] 1.4 Sinkronkan definisi fresh-install di `src/script/DATABASE_SCHEMA_WACS.sql` dengan kolom snapshot yang sama.
++- [x] 1.5 Siapkan langkah backup database dan rollback migration yang hanya menghapus kolom snapshot baru, tanpa menghapus chat, pesan, atau mapping master.
+ 
+ ## 2. Adapter Metadata WAHA dan Snapshot
+ 
+ - [ ] 2.1 Tambahkan method metadata kontak dan grup pada `src/app/Services/Waha/WahaSender.php` menggunakan `getJson()`, timeout, API key, circuit breaker, dan `TLogIntegrasi` yang sudah ada.
+ - [ ] 2.2 Buat parser/helper teruji untuk mengambil nama kontak/grup tervalidasi dari variasi respons WAHA serta membatasi panjang field sesuai kolom SQL Server.
+ - [ ] 2.3 Perluas `src/app/Support/WahaChatHelper.php` bila diperlukan untuk memilih JID grup `@g.us`, mempertahankan JID `@lid`, dan membuat fallback phone JID tanpa mengubah normalisasi yang ada.
+ - [ ] 2.4 Pastikan respons WAHA mentah, token, API key, dan payload tidak disimpan ke kolom snapshot maupun diekspos ke UI/Livewire.
+ - [ ] 2.5 Tambahkan unit test untuk metadata kontak, metadata grup, respons kosong/tidak dikenal, dan resolusi `@lid` yang berhasil maupun gagal.
+ 
+ ## 3. Queue, Idempotensi, dan Observability
+diff --git a/src/script/DATABASE_SCHEMA_WACS.sql b/src/script/DATABASE_SCHEMA_WACS.sql
+index 805961d..4d1c7b4 100644
+--- a/src/script/DATABASE_SCHEMA_WACS.sql
++++ b/src/script/DATABASE_SCHEMA_WACS.sql
+@@ -377,35 +377,37 @@ CREATE TABLE MPengaturanAi (
+     ZonaWaktu varchar(100) NOT NULL CONSTRAINT DF_MPengaturanAi_ZonaWaktu DEFAULT 'Asia/Jakarta',
+     ProviderAi varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ProviderAi DEFAULT 'OpenAI',
+     ModelAi varchar(100) NULL,
+     BaseUrl varchar(255) NULL,
+     ApiKeyTerenkripsi nvarchar(max) NULL,
+     PromptSistem nvarchar(max) NULL,
+     TemplateDiluarJamKerja nvarchar(max) NULL,
+     TemplateHariLibur nvarchar(max) NULL,
+     TemplateJamKerjaSapaan nvarchar(max) NULL,
+     TemplateFallback nvarchar(max) NULL,
++    BatasSesiAutoReplyMenit int NOT NULL CONSTRAINT DF_MPengaturanAi_BatasSesiAutoReplyMenit DEFAULT 60,
+     NotifikasiChatBelumTerbalasAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NotifikasiChatBelumTerbalasAktif DEFAULT 1,
+     MenitTungguNotifikasi int NOT NULL CONSTRAINT DF_MPengaturanAi_MenitTungguNotifikasi DEFAULT 10,
+     JedaNotifikasiMenit int NOT NULL CONSTRAINT DF_MPengaturanAi_JedaNotifikasiMenit DEFAULT 30,
+     KodePeranPenerimaNotifikasi varchar(200) NOT NULL CONSTRAINT DF_MPengaturanAi_KodePeranPenerimaNotifikasi DEFAULT 'ADMIN,SUPERVISOR_CS,CS',
+     TemplateNotifikasiChatBelumTerbalas nvarchar(max) NULL,
+     BatasRiwayatPesan int NOT NULL CONSTRAINT DF_MPengaturanAi_BatasRiwayatPesan DEFAULT 8,
+     KirimKeWaha bit NOT NULL CONSTRAINT DF_MPengaturanAi_KirimKeWaha DEFAULT 0,
+     ModeKirim varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ModeKirim DEFAULT 'DraftLokal',
+     NonAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NonAktif DEFAULT 0,
+     TglBuat datetime2 NOT NULL CONSTRAINT DF_MPengaturanAi_TglBuat DEFAULT SYSDATETIME(),
+     DibuatOleh uniqueidentifier NULL,
+     TglEdit datetime2 NULL,
+     DieditOleh uniqueidentifier NULL,
+     CONSTRAINT PK_MPengaturanAi PRIMARY KEY (Id),
+-    CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan)
++    CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan),
++    CONSTRAINT CK_MPengaturanAi_BatasSesiAutoReplyMenit CHECK (BatasSesiAutoReplyMenit BETWEEN 1 AND 1440)
+ );
+ GO
+ 
+ CREATE TABLE MPengetahuan (
+     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengetahuan_Id DEFAULT NEWSEQUENTIALID(),
+     KodePengetahuan varchar(50) NOT NULL,
+     JudulPengetahuan varchar(200) NOT NULL,
+     IsiPengetahuan nvarchar(max) NOT NULL,
+     Tag varchar(500) NULL,
+     NonAktif bit NOT NULL CONSTRAINT DF_MPengetahuan_NonAktif DEFAULT 0,
+@@ -501,20 +503,25 @@ CREATE TABLE TChat (
+     IdCustomer uniqueidentifier NULL,
+     IdInstansi uniqueidentifier NULL,
+     IdNomorWhatsapp uniqueidentifier NULL,
+     IdGrupWhatsapp uniqueidentifier NULL,
+     JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChat_JenisChat DEFAULT 'Pribadi',
+     NomorWhatsapp varchar(30) NOT NULL,
+     NamaKontak varchar(150) NULL,
+     NamaGrupWhatsapp varchar(200) NULL,
+     IdWahaTerdeteksi varchar(200) NULL,
+     NomorWhatsappTerdeteksi varchar(30) NULL,
++    NamaKontakWaha nvarchar(150) NULL,
++    NamaGrupWaha nvarchar(200) NULL,
++    TglIdentitasWahaDiambil datetime2 NULL,
++    StatusIdentitasWaha varchar(30) NULL,
++    PesanErrorIdentitasWaha nvarchar(500) NULL,
+     UrlFotoProfil nvarchar(1000) NULL,
+     TglFotoProfilDiambil datetime2 NULL,
+     Prioritas varchar(50) NOT NULL CONSTRAINT DF_TChat_Prioritas DEFAULT 'Normal',
+     DitugaskanKepada uniqueidentifier NULL,
+     DiambilOleh uniqueidentifier NULL,
+     TglDiambil datetime2 NULL,
+     TglChatTerakhir datetime2 NULL,
+     TglDibalasTerakhir datetime2 NULL,
+     JumlahPesanBelumDibaca int NOT NULL CONSTRAINT DF_TChat_JumlahPesanBelumDibaca DEFAULT 0,
+     DitutupOleh uniqueidentifier NULL,
+@@ -547,20 +554,23 @@ CREATE TABLE TChatD (
+     IdPesanWaha varchar(200) NULL,
+     ArahPesan varchar(20) NOT NULL,
+     JenisPesan varchar(50) NOT NULL CONSTRAINT DF_TChatD_JenisPesan DEFAULT 'Teks',
+     IsiPesan nvarchar(max) NULL,
+     UrlMedia varchar(1000) NULL,
+     NamaFileMedia varchar(255) NULL,
+     TipeMime varchar(100) NULL,
+     PayloadJson nvarchar(max) NULL,
+     PengirimNomorWhatsapp varchar(30) NULL,
+     PengirimNamaKontak varchar(150) NULL,
++    PengirimIdWaha varchar(200) NULL,
++    UrlFotoProfilPengirim nvarchar(1000) NULL,
++    TglFotoProfilPengirimDiambil datetime2 NULL,
+     DikirimOlehCustomer bit NOT NULL CONSTRAINT DF_TChatD_DikirimOlehCustomer DEFAULT 0,
+     DihasilkanOlehAi bit NOT NULL CONSTRAINT DF_TChatD_DihasilkanOlehAi DEFAULT 0,
+     IdAiRespon uniqueidentifier NULL,
+     DibalasOleh uniqueidentifier NULL,
+     TglPesan datetime2 NOT NULL,
+     TglDikirim datetime2 NULL,
+     TglDibaca datetime2 NULL,
+     StatusKirim varchar(50) NULL,
+     PesanError nvarchar(max) NULL,
+     TglBuat datetime2 NOT NULL CONSTRAINT DF_TChatD_TglBuat DEFAULT SYSDATETIME(),
+@@ -745,20 +755,21 @@ CREATE INDEX IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp ON MAnggotaGrupWhatsapp (IdG
+ CREATE INDEX IX_MProdukCustomer_IdCustomer ON MProdukCustomer (IdCustomer);
+ CREATE INDEX IX_MHariLibur_TanggalLibur ON MHariLibur (TanggalLibur, NonAktif);
+ CREATE INDEX IX_TLogAktivitas_TglAktivitas ON TLogAktivitas (TglAktivitas);
+ CREATE INDEX IX_TLogError_TglError ON TLogError (TglError);
+ CREATE INDEX IX_TLogIntegrasi_TglRequest ON TLogIntegrasi (TglRequest);
+ CREATE INDEX IX_TLogWebhookWaha_TglDiterima ON TLogWebhookWaha (TglDiterima);
+ CREATE INDEX IX_TLogWebhookWaha_SudahDiproses ON TLogWebhookWaha (SudahDiproses);
+ CREATE INDEX IX_TChat_NomorWhatsapp ON TChat (NomorWhatsapp);
+ CREATE INDEX IX_TChat_IdWahaTerdeteksi ON TChat (IdWahaTerdeteksi);
+ CREATE INDEX IX_TChat_NomorWhatsappTerdeteksi ON TChat (NomorWhatsappTerdeteksi);
++CREATE INDEX IX_TChat_StatusIdentitasWaha_TglIdentitasWahaDiambil ON TChat (StatusIdentitasWaha, TglIdentitasWahaDiambil);
+ CREATE INDEX IX_TChat_IdCustomer ON TChat (IdCustomer);
+ CREATE INDEX IX_TChat_IdInstansi ON TChat (IdInstansi);
+ CREATE INDEX IX_TChat_IdGrupWhatsapp ON TChat (IdGrupWhatsapp);
+ CREATE INDEX IX_TChat_IdStatusChat ON TChat (IdStatusChat);
+ CREATE INDEX IX_TChat_DitugaskanKepada ON TChat (DitugaskanKepada);
+ CREATE INDEX IX_TChat_TglChatTerakhir ON TChat (TglChatTerakhir);
+ CREATE INDEX IX_TChatD_IdChat_TglPesan ON TChatD (IdChat, TglPesan);
+ CREATE INDEX IX_TChatD_IdPesanWaha ON TChatD (IdPesanWaha);
+ CREATE INDEX IX_TTicket_IdCustomer ON TTicket (IdCustomer);
+ CREATE INDEX IX_TTicket_IdInstansi ON TTicket (IdInstansi);
+diff --git a/src/tests/Feature/Filament/Pages/InboxWhatsappTest.php b/src/tests/Feature/Filament/Pages/InboxWhatsappTest.php
+index 481ac29..2786433 100644
+--- a/src/tests/Feature/Filament/Pages/InboxWhatsappTest.php
++++ b/src/tests/Feature/Filament/Pages/InboxWhatsappTest.php
+@@ -465,20 +465,25 @@ private function createSchema(): void
+             $table->string('IdStatusChat')->nullable();
+             $table->string('IdCustomer')->nullable();
+             $table->string('IdInstansi')->nullable();
+             $table->string('IdSesiWhatsapp')->nullable();
+             $table->string('IdNomorWhatsapp')->nullable();
+             $table->string('IdGrupWhatsapp')->nullable();
+             $table->string('JenisChat');
+             $table->string('NomorWhatsapp');
+             $table->string('NamaKontak')->nullable();
+             $table->string('NamaGrupWhatsapp')->nullable();
++            $table->string('NamaKontakWaha', 150)->nullable();
++            $table->string('NamaGrupWaha', 200)->nullable();
++            $table->dateTime('TglIdentitasWahaDiambil')->nullable();
++            $table->string('StatusIdentitasWaha', 30)->nullable();
++            $table->string('PesanErrorIdentitasWaha', 500)->nullable();
+             $table->integer('JumlahPesanBelumDibaca')->default(0);
+             $table->dateTime('TglChatTerakhir')->nullable();
+             $table->boolean('AutoReplyAiAktif')->default(false);
+             $table->boolean('AiSudahMenyapa')->default(false);
+             $table->dateTime('TglAutoReplyAiTerakhir')->nullable();
+             $table->dateTime('TglDibalasTerakhir')->nullable();
+             $table->string('DiambilOleh')->nullable();
+             $table->dateTime('TglBuat');
+             $table->dateTime('TglEdit')->nullable();
+         });
+@@ -490,20 +495,23 @@ private function createSchema(): void
+             $table->string('JenisPesan');
+             $table->text('IsiPesan')->nullable();
+             $table->string('UrlMedia')->nullable();
+             $table->text('PayloadJson')->nullable();
+             $table->string('NamaFileMedia')->nullable();
+             $table->string('TipeMime')->nullable();
+             $table->boolean('DikirimOlehCustomer')->default(false);
+             $table->dateTime('TglDikirim')->nullable();
+             $table->string('PengirimNomorWhatsapp')->nullable();
+             $table->string('PengirimNamaKontak')->nullable();
++            $table->string('PengirimIdWaha', 200)->nullable();
++            $table->string('UrlFotoProfilPengirim', 1000)->nullable();
++            $table->dateTime('TglFotoProfilPengirimDiambil')->nullable();
+             $table->dateTime('TglPesan');
+             $table->string('StatusKirim')->nullable();
+             $table->text('PesanError')->nullable();
+             $table->boolean('DihasilkanOlehAi')->default(false);
+             $table->string('DibalasOleh')->nullable();
+             $table->dateTime('TglBuat');
+         });
+ 
+         Schema::create('TChatDCatatanInternal', function (Blueprint $table): void {
+             $table->string('Id')->primary();
+@@ -551,20 +559,25 @@ private function seedFixtures(): void
+                 'IdStatusChat' => 'status-open',
+                 'IdCustomer' => null,
+                 'IdInstansi' => null,
+                 'IdSesiWhatsapp' => 'session-1',
+                 'IdNomorWhatsapp' => null,
+                 'IdGrupWhatsapp' => 'group-map-1',
+                 'JenisChat' => 'Grup',
+                 'NomorWhatsapp' => '628111111111',
+                 'NamaKontak' => null,
+                 'NamaGrupWhatsapp' => 'Fallback Group',
++                'NamaKontakWaha' => null,
++                'NamaGrupWaha' => 'WAHA Support Group',
++                'TglIdentitasWahaDiambil' => $now,
++                'StatusIdentitasWaha' => 'synced',
++                'PesanErrorIdentitasWaha' => null,
+                 'JumlahPesanBelumDibaca' => 1,
+                 'TglChatTerakhir' => $now,
+                 'AutoReplyAiAktif' => false,
+                 'AiSudahMenyapa' => false,
+                 'TglAutoReplyAiTerakhir' => null,
+                 'TglDibalasTerakhir' => null,
+                 'DiambilOleh' => 'agent-existing',
+                 'TglBuat' => $now,
+                 'TglEdit' => null,
+             ],
+@@ -573,20 +586,25 @@ private function seedFixtures(): void
+                 'IdStatusChat' => 'status-open',
+                 'IdCustomer' => 'customer-personal-1',
+                 'IdInstansi' => 'instansi-personal-1',
+                 'IdSesiWhatsapp' => 'session-1',
+                 'IdNomorWhatsapp' => 'number-personal-1',
+                 'IdGrupWhatsapp' => null,
+                 'JenisChat' => 'Pribadi',
+                 'NomorWhatsapp' => '628333333333',
+                 'NamaKontak' => 'Raw Personal Contact',
+                 'NamaGrupWhatsapp' => null,
++                'NamaKontakWaha' => 'WAHA Personal Contact',
++                'NamaGrupWaha' => null,
++                'TglIdentitasWahaDiambil' => $now,
++                'StatusIdentitasWaha' => 'synced',
++                'PesanErrorIdentitasWaha' => null,
+                 'JumlahPesanBelumDibaca' => 0,
+                 'TglChatTerakhir' => $now->copy()->subMinute(),
+                 'AutoReplyAiAktif' => false,
+                 'AiSudahMenyapa' => false,
+                 'TglAutoReplyAiTerakhir' => null,
+                 'TglDibalasTerakhir' => null,
+                 'DiambilOleh' => 'agent-existing',
+                 'TglBuat' => $now,
+                 'TglEdit' => null,
+             ],
+@@ -606,54 +624,63 @@ private function seedFixtures(): void
+                     'sender' => ['pushname' => 'Alice Raw'],
+                     'hasMedia' => true,
+                     'media' => [
+                         'data' => base64_encode("%PDF-1.4\n%%EOF"),
+                         'mimetype' => 'application/pdf',
+                         'filename' => 'group-document.pdf',
+                     ],
+                 ], JSON_THROW_ON_ERROR),
+                 'PengirimNomorWhatsapp' => '628222222222',
+                 'PengirimNamaKontak' => 'Alice Raw',
++                'PengirimIdWaha' => '628222222222@c.us',
++                'UrlFotoProfilPengirim' => 'https://waha.test/profiles/alice.jpg',
++                'TglFotoProfilPengirimDiambil' => $now,
+                 'TglPesan' => $now,
+                 'StatusKirim' => 'Diterima',
+                 'PesanError' => null,
+                 'DihasilkanOlehAi' => false,
+                 'DibalasOleh' => null,
+                 'TglBuat' => $now,
+             ],
+             [
+                 'Id' => 'message-personal-1',
+                 'IdChat' => 'chat-personal-1',
+                 'ArahPesan' => 'Masuk',
+                 'JenisPesan' => 'Teks',
+                 'IsiPesan' => 'First personal message',
+                 'UrlMedia' => null,
+                 'PayloadJson' => json_encode(['chatId' => '628333333333@c.us'], JSON_THROW_ON_ERROR),
+                 'PengirimNomorWhatsapp' => '628333333333',
+                 'PengirimNamaKontak' => 'Raw Personal Contact',
++                'PengirimIdWaha' => '628333333333@c.us',
++                'UrlFotoProfilPengirim' => null,
++                'TglFotoProfilPengirimDiambil' => null,
+                 'TglPesan' => $now->copy()->subMinutes(2),
+                 'StatusKirim' => 'Diterima',
+                 'PesanError' => null,
+                 'DihasilkanOlehAi' => false,
+                 'DibalasOleh' => null,
+                 'TglBuat' => $now,
+             ],
+             [
+                 'Id' => 'message-personal-2',
+                 'IdChat' => 'chat-personal-1',
+                 'ArahPesan' => 'Keluar',
+                 'JenisPesan' => 'Teks',
+                 'IsiPesan' => 'Second personal message',
+                 'UrlMedia' => null,
+                 'PayloadJson' => null,
+                 'PengirimNomorWhatsapp' => null,
+                 'PengirimNamaKontak' => null,
++                'PengirimIdWaha' => null,
++                'UrlFotoProfilPengirim' => null,
++                'TglFotoProfilPengirimDiambil' => null,
+                 'TglPesan' => $now->copy()->subMinute(),
+                 'StatusKirim' => 'Terkirim',
+                 'PesanError' => null,
+                 'DihasilkanOlehAi' => false,
+                 'DibalasOleh' => 'agent-1',
+                 'TglBuat' => $now,
+             ],
+         ]);
+     }
+ 
+
+## New migration
+diff --git a/src/database/migrations/2026_07_30_000001_add_waha_identity_snapshot_to_chat.php b/src/database/migrations/2026_07_30_000001_add_waha_identity_snapshot_to_chat.php
+new file mode 100644
+index 0000000..a339934
+--- /dev/null
++++ b/src/database/migrations/2026_07_30_000001_add_waha_identity_snapshot_to_chat.php
+@@ -0,0 +1,189 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Support\Facades\DB;
++
++return new class extends Migration
++{
++    public function up(): void
++    {
++        if (DB::getDriverName() !== 'sqlsrv') {
++            throw new RuntimeException('The WAHA identity snapshot migration requires the sqlsrv database connection.');
++        }
++
++        DB::unprepared(<<<'SQL'
++IF OBJECT_ID(N'TChat', 'U') IS NOT NULL
++BEGIN
++    IF COL_LENGTH('TChat', 'NamaKontakWaha') IS NULL
++    BEGIN
++        ALTER TABLE TChat ADD NamaKontakWaha nvarchar(150) NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'NamaKontakWaha';
++    END
++
++    IF COL_LENGTH('TChat', 'NamaGrupWaha') IS NULL
++    BEGIN
++        ALTER TABLE TChat ADD NamaGrupWaha nvarchar(200) NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'NamaGrupWaha';
++    END
++
++    IF COL_LENGTH('TChat', 'TglIdentitasWahaDiambil') IS NULL
++    BEGIN
++        ALTER TABLE TChat ADD TglIdentitasWahaDiambil datetime2 NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'TglIdentitasWahaDiambil';
++    END
++
++    IF COL_LENGTH('TChat', 'StatusIdentitasWaha') IS NULL
++    BEGIN
++        ALTER TABLE TChat ADD StatusIdentitasWaha varchar(30) NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'StatusIdentitasWaha';
++    END
++
++    IF COL_LENGTH('TChat', 'PesanErrorIdentitasWaha') IS NULL
++    BEGIN
++        ALTER TABLE TChat ADD PesanErrorIdentitasWaha nvarchar(500) NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'PesanErrorIdentitasWaha';
++    END
++END
++
++IF OBJECT_ID(N'TChatD', 'U') IS NOT NULL
++BEGIN
++    IF COL_LENGTH('TChatD', 'PengirimIdWaha') IS NULL
++    BEGIN
++        ALTER TABLE TChatD ADD PengirimIdWaha varchar(200) NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChatD', @level2type = N'COLUMN', @level2name = N'PengirimIdWaha';
++    END
++
++    IF COL_LENGTH('TChatD', 'UrlFotoProfilPengirim') IS NULL
++    BEGIN
++        ALTER TABLE TChatD ADD UrlFotoProfilPengirim nvarchar(1000) NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChatD', @level2type = N'COLUMN', @level2name = N'UrlFotoProfilPengirim';
++    END
++
++    IF COL_LENGTH('TChatD', 'TglFotoProfilPengirimDiambil') IS NULL
++    BEGIN
++        ALTER TABLE TChatD ADD TglFotoProfilPengirimDiambil datetime2 NULL;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChatD', @level2type = N'COLUMN', @level2name = N'TglFotoProfilPengirimDiambil';
++    END
++END
++
++IF OBJECT_ID(N'MPengaturanAi', 'U') IS NOT NULL
++BEGIN
++    IF COL_LENGTH('MPengaturanAi', 'BatasSesiAutoReplyMenit') IS NULL
++    BEGIN
++        ALTER TABLE MPengaturanAi ADD BatasSesiAutoReplyMenit int NOT NULL CONSTRAINT DF_MPengaturanAi_BatasSesiAutoReplyMenit DEFAULT 60;
++        EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'MPengaturanAi', @level2type = N'COLUMN', @level2name = N'BatasSesiAutoReplyMenit';
++    END
++
++    IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'MPengaturanAi') AND c.name = N'BatasSesiAutoReplyMenit')
++        AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_MPengaturanAi_BatasSesiAutoReplyMenit' AND parent_object_id = OBJECT_ID('MPengaturanAi'))
++        ALTER TABLE MPengaturanAi ADD CONSTRAINT CK_MPengaturanAi_BatasSesiAutoReplyMenit CHECK (BatasSesiAutoReplyMenit BETWEEN 1 AND 1440);
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'StatusIdentitasWaha')
++    AND EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'TglIdentitasWahaDiambil')
++    AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChat_StatusIdentitasWaha_TglIdentitasWahaDiambil' AND object_id = OBJECT_ID('TChat'))
++    CREATE INDEX IX_TChat_StatusIdentitasWaha_TglIdentitasWahaDiambil ON TChat (StatusIdentitasWaha, TglIdentitasWahaDiambil);
++SQL);
++    }
++
++    public function down(): void
++    {
++        if (DB::getDriverName() !== 'sqlsrv') {
++            return;
++        }
++
++        DB::unprepared(<<<'SQL'
++IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChat_StatusIdentitasWaha_TglIdentitasWahaDiambil' AND object_id = OBJECT_ID('TChat'))
++    AND EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'StatusIdentitasWaha')
++    AND EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'TglIdentitasWahaDiambil')
++    DROP INDEX IX_TChat_StatusIdentitasWaha_TglIdentitasWahaDiambil ON TChat;
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'MPengaturanAi') AND c.name = N'BatasSesiAutoReplyMenit')
++BEGIN
++    IF OBJECT_ID(N'CK_MPengaturanAi_BatasSesiAutoReplyMenit', 'C') IS NOT NULL
++        ALTER TABLE MPengaturanAi DROP CONSTRAINT CK_MPengaturanAi_BatasSesiAutoReplyMenit;
++
++    IF OBJECT_ID(N'DF_MPengaturanAi_BatasSesiAutoReplyMenit', 'D') IS NOT NULL
++        ALTER TABLE MPengaturanAi DROP CONSTRAINT DF_MPengaturanAi_BatasSesiAutoReplyMenit;
++
++    IF COL_LENGTH('MPengaturanAi', 'BatasSesiAutoReplyMenit') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'MPengaturanAi', @level2type = N'COLUMN', @level2name = N'BatasSesiAutoReplyMenit';
++        ALTER TABLE MPengaturanAi DROP COLUMN BatasSesiAutoReplyMenit;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChatD') AND c.name = N'TglFotoProfilPengirimDiambil')
++BEGIN
++    IF COL_LENGTH('TChatD', 'TglFotoProfilPengirimDiambil') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChatD', @level2type = N'COLUMN', @level2name = N'TglFotoProfilPengirimDiambil';
++        ALTER TABLE TChatD DROP COLUMN TglFotoProfilPengirimDiambil;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChatD') AND c.name = N'UrlFotoProfilPengirim')
++BEGIN
++    IF COL_LENGTH('TChatD', 'UrlFotoProfilPengirim') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChatD', @level2type = N'COLUMN', @level2name = N'UrlFotoProfilPengirim';
++        ALTER TABLE TChatD DROP COLUMN UrlFotoProfilPengirim;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChatD') AND c.name = N'PengirimIdWaha')
++BEGIN
++    IF COL_LENGTH('TChatD', 'PengirimIdWaha') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChatD', @level2type = N'COLUMN', @level2name = N'PengirimIdWaha';
++        ALTER TABLE TChatD DROP COLUMN PengirimIdWaha;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'PesanErrorIdentitasWaha')
++BEGIN
++    IF COL_LENGTH('TChat', 'PesanErrorIdentitasWaha') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'PesanErrorIdentitasWaha';
++        ALTER TABLE TChat DROP COLUMN PesanErrorIdentitasWaha;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'StatusIdentitasWaha')
++BEGIN
++    IF COL_LENGTH('TChat', 'StatusIdentitasWaha') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'StatusIdentitasWaha';
++        ALTER TABLE TChat DROP COLUMN StatusIdentitasWaha;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'TglIdentitasWahaDiambil')
++BEGIN
++    IF COL_LENGTH('TChat', 'TglIdentitasWahaDiambil') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'TglIdentitasWahaDiambil';
++        ALTER TABLE TChat DROP COLUMN TglIdentitasWahaDiambil;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'NamaGrupWaha')
++BEGIN
++    IF COL_LENGTH('TChat', 'NamaGrupWaha') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'NamaGrupWaha';
++        ALTER TABLE TChat DROP COLUMN NamaGrupWaha;
++    END
++END
++
++IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'TChat') AND c.name = N'NamaKontakWaha')
++BEGIN
++    IF COL_LENGTH('TChat', 'NamaKontakWaha') IS NOT NULL
++    BEGIN
++        EXEC sys.sp_dropextendedproperty @name = N'WACS_Migration_20260730_000001', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'TChat', @level2type = N'COLUMN', @level2name = N'NamaKontakWaha';
++        ALTER TABLE TChat DROP COLUMN NamaKontakWaha;
++    END
++END
++SQL);
++    }
++};

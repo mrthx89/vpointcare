@@ -101,14 +101,20 @@ class WahaSender
     }
 
     /**
-     * @return array{ok: bool, phone?: ?string, pn?: ?string, status?: int, body?: string, error?: string}
+     * @return array{ok: bool, phone: ?string, pn: ?string, status: ?int, error: ?string}
      */
     public function getPhoneNumberByLid(string $session, string $lid): array
     {
         $response = $this->getJson('/api/'.rawurlencode($session).'/lids/'.$this->encodeWahaPathId(WahaChatHelper::normalizeContactId($lid)), [], 'WAHA_LID_TO_PHONE');
 
         if (! ($response['ok'] ?? false)) {
-            return $response;
+            return [
+                'ok' => false,
+                'phone' => null,
+                'pn' => null,
+                'status' => $response['status'] ?? null,
+                'error' => 'WAHA LID lookup failed.',
+            ];
         }
 
         $body = (string) ($response['body'] ?? '');
@@ -121,10 +127,95 @@ class WahaSender
         $pn = $this->firstPhoneContactId($payload);
         $phone = is_string($pn) ? WahaChatHelper::normalizePhoneNumber($pn) : null;
 
-        return array_merge($response, [
+        return [
+            'ok' => true,
             'phone' => $phone,
             'pn' => is_string($pn) ? $pn : null,
-        ]);
+            'status' => $response['status'] ?? null,
+            'error' => null,
+        ];
+    }
+
+    /**
+     * @return array{ok: bool, name: ?string, pushname: ?string, id: string, phone: ?string, status: ?int, error: ?string}
+     */
+    public function getContactInfo(string $session, string $contactId): array
+    {
+        $id = WahaChatHelper::normalizeContactId($contactId);
+        $response = $this->getJson('/api/'.rawurlencode($session).'/contacts/'.$this->encodeWahaPathId($id), [], 'WAHA_CONTACT_INFO');
+
+        if (! ($response['ok'] ?? false)) {
+            return [
+                'ok' => false,
+                'name' => null,
+                'pushname' => null,
+                'id' => $id,
+                'phone' => null,
+                'status' => $response['status'] ?? null,
+                'error' => 'WAHA contact metadata request failed.',
+            ];
+        }
+
+        $payload = $this->responsePayload($response);
+        $name = $this->metadataText($payload, ['name', 'subject', 'pushname', 'shortName'], 150);
+        $pushname = $this->metadataText($payload, ['pushname'], 150);
+        $phone = $this->metadataPhone($payload);
+
+        if (str_ends_with(strtolower($id), '@lid')) {
+            $lid = $this->getPhoneNumberByLid($session, $id);
+            $phone = $lid['phone'] ?? $phone;
+        }
+
+        if ($name === null && $pushname === null && $phone === null) {
+            return [
+                'ok' => false,
+                'name' => null,
+                'pushname' => null,
+                'id' => $id,
+                'phone' => null,
+                'status' => $response['status'] ?? null,
+                'error' => 'WAHA contact metadata response is invalid.',
+            ];
+        }
+
+        return [
+            'ok' => true,
+            'name' => $name,
+            'pushname' => $pushname,
+            'id' => $id,
+            'phone' => $phone,
+            'status' => $response['status'] ?? null,
+            'error' => null,
+        ];
+    }
+
+    /**
+     * @return array{ok: bool, name: ?string, id: string, status: ?int, error: ?string}
+     */
+    public function getGroupInfo(string $session, string $groupId): array
+    {
+        $id = WahaChatHelper::normalizeContactId($groupId);
+        $response = $this->getJson('/api/'.rawurlencode($session).'/groups/'.$this->encodeWahaPathId($id), [], 'WAHA_GROUP_INFO');
+
+        if (! ($response['ok'] ?? false)) {
+            return [
+                'ok' => false,
+                'name' => null,
+                'id' => $id,
+                'status' => $response['status'] ?? null,
+                'error' => 'WAHA group metadata request failed.',
+            ];
+        }
+
+        $name = $this->metadataText($this->responsePayload($response), ['subject', 'name', 'pushname', 'shortName'], 200);
+
+        return [
+            'ok' => $name !== null,
+            'name' => $name,
+            'id' => $id,
+            'status' => $response['status'] ?? null,
+            'error' => $name === null ? 'WAHA group metadata response is invalid.' : null,
+        ];
     }
 
     /**
@@ -140,7 +231,7 @@ class WahaSender
         DB::table('TLogIntegrasi')->insert([
             'Id' => $logId,
             'KodeIntegrasi' => $kodeIntegrasi,
-            'UrlEndpoint' => $url,
+            'UrlEndpoint' => $this->redactSensitiveValues($url),
             'MetodeHttp' => 'POST',
             'RequestJson' => json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglRequest' => now(),
@@ -166,11 +257,14 @@ class WahaSender
             $response = $request->post($url, $payload);
             $this->recordCircuitResult($response->successful());
 
+            $body = $response->body();
+            $error = $response->successful() ? null : $this->sanitizeLogError($response->status(), 'http_error');
+
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
-                'ResponseJson' => $response->body(),
+                'ResponseJson' => $this->sanitizeLogResponse($body, $response->status()),
                 'StatusHttp' => $response->status(),
                 'Berhasil' => $response->successful(),
-                'PesanError' => $response->successful() ? null : $response->body(),
+                'PesanError' => $error,
                 'TglResponse' => now(),
                 'TglEdit' => now(),
             ]);
@@ -178,22 +272,23 @@ class WahaSender
             return [
                 'ok' => $response->successful(),
                 'status' => $response->status(),
-                'body' => $response->body(),
-                'error' => $response->successful() ? null : $response->body(),
+                'body' => $body,
+                'error' => $error,
             ];
         } catch (Throwable $exception) {
             $this->recordWahaFailure();
+            $error = $this->sanitizeLogError(null, 'request_exception');
 
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
                 'Berhasil' => false,
-                'PesanError' => $exception->getMessage(),
+                'PesanError' => $error,
                 'TglResponse' => now(),
                 'TglEdit' => now(),
             ]);
 
             return [
                 'ok' => false,
-                'error' => $exception->getMessage(),
+                'error' => $error,
             ];
         }
     }
@@ -211,7 +306,7 @@ class WahaSender
         DB::table('TLogIntegrasi')->insert([
             'Id' => $logId,
             'KodeIntegrasi' => $kodeIntegrasi,
-            'UrlEndpoint' => $url,
+            'UrlEndpoint' => $this->redactSensitiveValues($url),
             'MetodeHttp' => 'GET',
             'RequestJson' => json_encode($query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglRequest' => now(),
@@ -237,11 +332,14 @@ class WahaSender
             $response = $request->get($url, $query);
             $this->recordCircuitResult($response->successful());
 
+            $body = $response->body();
+            $error = $response->successful() ? null : $this->sanitizeLogError($response->status(), 'http_error');
+
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
-                'ResponseJson' => $response->body(),
+                'ResponseJson' => $this->sanitizeLogResponse($body, $response->status()),
                 'StatusHttp' => $response->status(),
                 'Berhasil' => $response->successful(),
-                'PesanError' => $response->successful() ? null : $response->body(),
+                'PesanError' => $error,
                 'TglResponse' => now(),
                 'TglEdit' => now(),
             ]);
@@ -249,22 +347,23 @@ class WahaSender
             return [
                 'ok' => $response->successful(),
                 'status' => $response->status(),
-                'body' => $response->body(),
-                'error' => $response->successful() ? null : $response->body(),
+                'body' => $body,
+                'error' => $response->successful() ? null : $error,
             ];
         } catch (Throwable $exception) {
             $this->recordWahaFailure();
+            $error = $this->sanitizeLogError(null, 'request_exception');
 
             DB::table('TLogIntegrasi')->where('Id', $logId)->update([
                 'Berhasil' => false,
-                'PesanError' => $exception->getMessage(),
+                'PesanError' => $error,
                 'TglResponse' => now(),
                 'TglEdit' => now(),
             ]);
 
             return [
                 'ok' => false,
-                'error' => $exception->getMessage(),
+                'error' => $error,
             ];
         }
     }
@@ -299,6 +398,102 @@ class WahaSender
         }
 
         return null;
+    }
+
+    /** @param array<string, mixed> $response @return array<string, mixed> */
+    private function responsePayload(array $response): array
+    {
+        $payload = json_decode((string) ($response['body'] ?? ''), true);
+
+        return is_array($payload) ? $payload : [];
+    }
+
+    /** @param array<string, mixed> $payload @param array<int, string> $keys */
+    private function metadataText(array $payload, array $keys, int $maxLength): ?string
+    {
+        foreach ([$payload, Arr::get($payload, 'data', []), Arr::get($payload, 'contact', []), Arr::get($payload, 'group', [])] as $source) {
+            if (! is_array($source)) {
+                continue;
+            }
+
+            foreach ($keys as $key) {
+                $value = Arr::get($source, $key);
+
+                if (! is_string($value)) {
+                    continue;
+                }
+
+                $value = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', trim($value));
+                $value = preg_replace('/\s+/u', ' ', (string) $value);
+
+                if (is_string($value) && $value !== '') {
+                    return $this->limitSqlServerText($value, $maxLength);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function metadataPhone(array $payload): ?string
+    {
+        return WahaChatHelper::normalizePhoneNumber($this->firstPhoneContactId($payload));
+    }
+
+    private function limitSqlServerText(string $value, int $maxUtf16Units): string
+    {
+        if (! function_exists('mb_convert_encoding')) {
+            return Str::limit($value, $maxUtf16Units, '');
+        }
+
+        $characters = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+
+        if ($characters === false) {
+            return Str::limit($value, $maxUtf16Units, '');
+        }
+
+        $limited = '';
+        $usedUnits = 0;
+
+        foreach ($characters as $character) {
+            $units = intdiv(strlen(mb_convert_encoding($character, 'UTF-16LE', 'UTF-8')), 2);
+
+            if ($usedUnits + $units > $maxUtf16Units) {
+                break;
+            }
+
+            $limited .= $character;
+            $usedUnits += $units;
+        }
+
+        return $limited;
+    }
+
+    private function redactSensitiveValues(string $value): string
+    {
+        $keys = 'credential|token|api_key|key|password|secret|access_token';
+        $redacted = preg_replace('/([?&](?:'.$keys.')=)[^&#\s]*/i', '$1[REDACTED]', $value);
+        $redacted = preg_replace('/(\b(?:'.$keys.')\b\s*[:=]\s*)(?:"[^"]*"|\'[^\']*\'|[^\s,;]+)/i', '$1[REDACTED]', (string) $redacted);
+
+        return is_string($redacted) ? $redacted : '[REDACTED]';
+    }
+
+    private function sanitizeLogResponse(string $body, int $status): string
+    {
+        return json_encode([
+            'received' => true,
+            'status' => $status,
+            'bytes' => min(strlen($body), 1048576),
+        ], JSON_UNESCAPED_SLASHES) ?: '{"received":true}';
+    }
+
+    private function sanitizeLogError(?int $status, string $type): string
+    {
+        return json_encode(array_filter([
+            'error' => $this->redactSensitiveValues($type),
+            'status' => $status,
+        ], static fn (mixed $value): bool => $value !== null), JSON_UNESCAPED_SLASHES) ?: '{"error":"request_failed"}';
     }
 
     private function encodeWahaPathId(string $id): string

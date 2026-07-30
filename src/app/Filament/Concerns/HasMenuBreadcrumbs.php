@@ -16,9 +16,17 @@ trait HasMenuBreadcrumbs
      */
     public function getBreadcrumbs(): array
     {
-        return FilamentBreadcrumbs::forMenu(
+        $breadcrumbs = FilamentBreadcrumbs::forMenu(
             static::$breadcrumbMenuCode,
             static::getResource()::getNavigationLabel()
         );
+
+        $resourceLabel = static::getResource()::getNavigationLabel();
+
+        if (($breadcrumbs[array_key_last($breadcrumbs)] ?? null) !== $resourceLabel) {
+            $breadcrumbs[] = $resourceLabel;
+        }
+
+        return $breadcrumbs;
     }
 }

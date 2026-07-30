@@ -170,6 +170,18 @@ The system SHALL synchronize external WAHA group and contact metadata into a per
 - AND after the final failure the system SHALL store only a sanitized failure status/message
 - AND the last valid snapshot, if any, SHALL remain available to Inbox WhatsApp
 
+### Requirement: WAHA Integration Log Sanitization
+
+The system SHALL retain only bounded response metadata and sanitized error metadata in `TLogIntegrasi` for WAHA requests. The raw HTTP response body SHALL remain available only in the in-memory adapter return value required by its parser and SHALL NOT be persisted to integration logs.
+
+#### Scenario: WAHA profile response contains a secret
+
+- GIVEN a WAHA profile-picture response includes a URL and a field named `secret`, `token`, `api_key`, `password`, or `access_token`
+- WHEN `WahaSender` records the integration result
+- THEN `ResponseJson` SHALL contain only bounded metadata about the response
+- AND `PesanError` and `UrlEndpoint` SHALL redact credential values and URL query credentials
+- AND the adapter SHALL still return the unmodified response body internally so the profile URL parser can resolve the URL
+
 ### Requirement: WhatsApp Group Message Intake
 
 The system SHALL persist every valid WAHA group message under the conversation identified by the session and group JID ending in `@g.us`. A participant, author, or sender JID SHALL identify only the message sender and SHALL NOT determine the group conversation key.

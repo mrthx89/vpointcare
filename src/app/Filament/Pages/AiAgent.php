@@ -148,6 +148,7 @@ class AiAgent extends Page
             'pengaturan.AutoReplyHariLibur' => ['boolean'],
             'pengaturan.AutoReplyJamKerjaSapaan' => ['boolean'],
             'pengaturan.AutoReplyJamKerjaBerlanjut' => ['boolean'],
+            'pengaturan.BatasSesiAutoReplyMenit' => ['required', 'integer', 'min:1', 'max:1440'],
             'pengaturan.JamKerjaMulai' => ['required', 'date_format:H:i'],
             'pengaturan.JamKerjaSelesai' => ['required', 'date_format:H:i'],
             'pengaturan.HariKerja' => ['required', 'array', 'min:1'],
@@ -180,6 +181,10 @@ class AiAgent extends Page
         $data['KirimKeWaha'] = (bool) $data['KirimKeWaha'] || $data['ModeKirim'] === 'KirimWaha';
         $data['ModeKirim'] = $data['KirimKeWaha'] ? 'KirimWaha' : 'DraftLokal';
         $data['TglEdit'] = now();
+
+        if (! Schema::hasColumn('MPengaturanAi', 'BatasSesiAutoReplyMenit')) {
+            unset($data['BatasSesiAutoReplyMenit']);
+        }
 
         if ($this->apiKeyBaru !== '') {
             $data[$this->providerApiKeyColumn((string) $data['ProviderAi'])] = Crypt::encryptString($this->apiKeyBaru);
@@ -236,6 +241,7 @@ class AiAgent extends Page
             'AutoReplyHariLibur' => (bool) ($row->AutoReplyHariLibur ?? true),
             'AutoReplyJamKerjaSapaan' => (bool) $row->AutoReplyJamKerjaSapaan,
             'AutoReplyJamKerjaBerlanjut' => (bool) $row->AutoReplyJamKerjaBerlanjut,
+            'BatasSesiAutoReplyMenit' => max(1, min(1440, (int) ($row->BatasSesiAutoReplyMenit ?? 60))),
             'JamKerjaMulai' => substr((string) $row->JamKerjaMulai, 0, 5),
             'JamKerjaSelesai' => substr((string) $row->JamKerjaSelesai, 0, 5),
             'HariKerja' => array_values(array_filter(explode(',', (string) $row->HariKerja))),
@@ -377,6 +383,9 @@ class AiAgent extends Page
 
         if (Schema::hasColumn('MPengaturanAi', 'ExcludeNomorWhatsapp')) {
             $data['ExcludeNomorWhatsapp'] = '';
+        }
+        if (Schema::hasColumn('MPengaturanAi', 'BatasSesiAutoReplyMenit')) {
+            $data['BatasSesiAutoReplyMenit'] = 60;
         }
         if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
             $data['ModelInstructAi'] = null;

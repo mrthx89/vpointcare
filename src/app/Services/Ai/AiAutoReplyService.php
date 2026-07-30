@@ -74,24 +74,59 @@ class AiAutoReplyService
             ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Keluar')
             ->where('DihasilkanOlehAi', true)
+            ->where(function ($query): void {
+                $query->whereNull('StatusKirim')
+                    ->orWhere('StatusKirim', '<>', 'Gagal WAHA');
+            })
             ->where('TglPesan', '>=', $latestIncoming->TglPesan)
             ->exists();
 
         if ($alreadyAnswered) {
+            $this->recordSkippedRequest($settings, $chatId, 'already_answered', 'Pesan terakhir sudah dijawab AI.');
+
             return [
                 'ok' => true,
                 'skipped' => true,
                 'reason' => 'Pesan terakhir sudah dijawab AI.',
+                'reason_code' => 'already_answered',
             ];
         }
 
-        $decision = $this->replyDecision($settings, $chat);
+        $sessionPolicy = $this->sessionPolicy($settings, $chatId, $latestIncoming);
+
+        if (! $sessionPolicy['boleh']) {
+            $this->recordSkippedRequest($settings, $chatId, $sessionPolicy['reason_code'], $sessionPolicy['alasan']);
+
+            return [
+                'ok' => true,
+                'skipped' => true,
+                'reason' => $sessionPolicy['alasan'],
+                'reason_code' => $sessionPolicy['reason_code'],
+            ];
+        }
+
+        if (! (bool) ($chat->AutoReplyAiAktif ?? false)
+            && ! (bool) ($settings->AutoReplyJamKerjaBerlanjut ?? false)) {
+            $this->recordSkippedRequest($settings, $chatId, 'chat_auto_reply_disabled', 'Auto reply chat belum aktif untuk sesi ini.');
+
+            return [
+                'ok' => true,
+                'skipped' => true,
+                'reason' => 'Auto reply chat belum aktif untuk sesi ini.',
+                'reason_code' => 'chat_auto_reply_disabled',
+            ];
+        }
+
+        $decision = $this->replyDecision($settings, $chat, $sessionPolicy);
 
         if (! $decision['boleh']) {
+            $this->recordSkippedRequest($settings, $chatId, 'decision_skip', $decision['alasan']);
+
             return [
                 'ok' => true,
                 'skipped' => true,
                 'reason' => $decision['alasan'],
+                'reason_code' => 'decision_skip',
             ];
         }
 
@@ -102,6 +137,7 @@ class AiAutoReplyService
         $status = 'Selesai';
         $error = null;
         $usedAi = false;
+        $isFirstReply = $this->isFirstInboxAiReply($chatId);
 
         DB::table('TAiPermintaan')->insert([
             'Id' => $requestId,
@@ -112,6 +148,7 @@ class AiAutoReplyService
             'PromptRingkas' => Str::limit($prompt, 2000, ''),
             'PromptJson' => json_encode([
                 'keputusan' => $decision,
+                'reason_code' => $decision['reason_code'] ?? $sessionPolicy['reason_code'],
                 'prompt' => $prompt,
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'StatusPermintaan' => 'Diproses',
@@ -120,8 +157,7 @@ class AiAutoReplyService
         ]);
 
         try {
-        $isFirstReply = $this->isFirstInboxAiReply($chatId);
-        $generated = $this->generateReply($settings, $prompt, $isFirstReply);
+            $generated = $this->generateReply($settings, $prompt, $isFirstReply);
 
             if ($generated) {
                 $reply = $generated['text'];
@@ -130,7 +166,7 @@ class AiAutoReplyService
             }
         } catch (Throwable $exception) {
             $status = 'Gagal Fallback';
-            $error = $exception->getMessage();
+            $error = $this->sanitizeReason($exception->getMessage());
         }
 
         if (! $usedAi && ! $error) {
@@ -140,7 +176,7 @@ class AiAutoReplyService
         DB::table('TAiPermintaan')->where('Id', $requestId)->update([
             'StatusPermintaan' => $status,
             'TglSelesai' => now(),
-            'PesanError' => $error,
+            'PesanError' => $error ? $this->sanitizeReason($error) : null,
             'TglEdit' => now(),
         ]);
 
@@ -152,27 +188,33 @@ class AiAutoReplyService
             'ResponRingkas' => $reply,
             'ResponJson' => json_encode($responsePayload ?? [
                 'fallback' => true,
-                'reason' => $error,
+                'reason_code' => $error ? 'provider_failure_fallback' : 'provider_empty_fallback',
+                'reason' => $error ? $this->sanitizeReason($error) : null,
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             'TglBuat' => now(),
         ]);
 
         $delivery = $this->storeReply($settings, $chat, $reply, $responseId, $decision['mode']);
+        $deliveryOk = $delivery['status'] !== 'Gagal WAHA';
 
-        DB::table('TChat')->where('Id', $chatId)->update([
-            'AiSudahMenyapa' => $decision['mode'] === 'Sapaan Jam Kerja' ? true : (bool) $chat->AiSudahMenyapa,
-            'TglAutoReplyAiTerakhir' => now(),
-            'TglDibalasTerakhir' => now(),
-            'TglChatTerakhir' => now(),
-            'JumlahPesanBelumDibaca' => 0,
-            'TglEdit' => now(),
-        ]);
+        if ($deliveryOk) {
+            DB::table('TChat')->where('Id', $chatId)->update([
+                'AiSudahMenyapa' => $decision['mode'] === 'Sapaan Jam Kerja' ? true : (bool) $chat->AiSudahMenyapa,
+                'TglAutoReplyAiTerakhir' => now(),
+                'TglDibalasTerakhir' => now(),
+                'TglChatTerakhir' => now(),
+                'JumlahPesanBelumDibaca' => 0,
+                'TglEdit' => now(),
+            ]);
+        }
 
         return [
-            'ok' => true,
+            'ok' => $deliveryOk,
             'mode' => $decision['mode'],
             'delivery' => $delivery,
+            'delivery_failed' => ! $deliveryOk,
             'id_ai_respon' => $responseId,
+            'reason_code' => $decision['reason_code'] ?? $sessionPolicy['reason_code'],
         ];
     }
 
@@ -252,7 +294,7 @@ class AiAutoReplyService
     /**
      * @return array{boleh: bool, alasan: string, mode: string, template: string}
      */
-    private function replyDecision(object $settings, object $chat): array
+    private function replyDecision(object $settings, object $chat, array $sessionPolicy): array
     {
         $holiday = $this->activeHoliday($settings);
 
@@ -260,6 +302,7 @@ class AiAutoReplyService
             return [
                 'boleh' => true,
                 'alasan' => 'Hari libur: ' . $holiday['name'] . '.',
+                'reason_code' => $sessionPolicy['reason_code'],
                 'mode' => 'Hari Libur',
                 'template' => $this->formatHolidayTemplate($settings, $holiday),
             ];
@@ -271,15 +314,17 @@ class AiAutoReplyService
             return [
                 'boleh' => true,
                 'alasan' => 'Di luar jam kerja.',
+                'reason_code' => $sessionPolicy['reason_code'],
                 'mode' => 'Luar Jam Kerja',
                 'template' => $settings->TemplateDiluarJamKerja ?: $this->defaultOutsideTemplate(),
             ];
         }
 
-        if ((bool) $chat->AutoReplyAiAktif || (bool) $settings->AutoReplyJamKerjaBerlanjut) {
+        if ($sessionPolicy['reason_code'] !== 'first_message' || ! (bool) $settings->AutoReplyJamKerjaSapaan) {
             return [
                 'boleh' => true,
-                'alasan' => 'Auto reply sesi aktif.',
+                'alasan' => $sessionPolicy['alasan'],
+                'reason_code' => $sessionPolicy['reason_code'],
                 'mode' => 'Berlanjut',
                 'template' => $settings->TemplateFallback ?: $this->defaultFallbackTemplate(),
             ];
@@ -289,6 +334,7 @@ class AiAutoReplyService
             return [
                 'boleh' => true,
                 'alasan' => 'Sapaan awal jam kerja.',
+                'reason_code' => $sessionPolicy['reason_code'],
                 'mode' => 'Sapaan Jam Kerja',
                 'template' => $settings->TemplateJamKerjaSapaan ?: $this->defaultGreetingTemplate(),
             ];
@@ -297,9 +343,74 @@ class AiAutoReplyService
         return [
             'boleh' => false,
             'alasan' => 'Jam kerja aktif dan sesi tidak diset auto reply berlanjut.',
+            'reason_code' => 'decision_skip',
             'mode' => 'Skip',
             'template' => '',
         ];
+    }
+
+    /** @return array{boleh: bool, alasan: string, reason_code: string} */
+    private function sessionPolicy(object $settings, string $chatId, object $latestIncoming): array
+    {
+        if ((bool) ($settings->AutoReplyJamKerjaBerlanjut ?? false)) {
+            return [
+                'boleh' => true,
+                'alasan' => 'All Session aktif.',
+                'reason_code' => 'all_session',
+            ];
+        }
+
+        $previousIncomingAt = DB::table('TChatD')
+            ->where('IdChat', $chatId)
+            ->where('ArahPesan', 'Masuk')
+            ->where('DikirimOlehCustomer', true)
+            ->whereNotNull('IsiPesan')
+            ->where('Id', '<>', $latestIncoming->Id)
+            ->orderByDesc('TglPesan')
+            ->value('TglPesan');
+
+        if (! $previousIncomingAt) {
+            return [
+                'boleh' => true,
+                'alasan' => 'Pesan pertama pada sesi AI.',
+                'reason_code' => 'first_message',
+            ];
+        }
+
+        $idleMinutes = max(1, min(1440, (int) ($settings->BatasSesiAutoReplyMenit ?? 60)));
+        $idleDuration = Carbon::parse($previousIncomingAt)->diffInMinutes(Carbon::parse($latestIncoming->TglPesan));
+
+        if ($idleDuration >= $idleMinutes) {
+            return [
+                'boleh' => true,
+                'alasan' => 'Batas idle sesi AI tercapai.',
+                'reason_code' => 'idle_session',
+            ];
+        }
+
+        return [
+            'boleh' => false,
+            'alasan' => 'Pesan masih berada dalam sesi AI aktif.',
+            'reason_code' => 'active_session_skip',
+        ];
+    }
+
+    private function recordSkippedRequest(object $settings, string $chatId, string $reasonCode, string $reason): void
+    {
+        DB::table('TAiPermintaan')->insert([
+            'Id' => (string) Str::orderedUuid(),
+            'JenisPermintaan' => 'Auto Reply WhatsApp',
+            'ProviderAi' => $settings->ProviderAi ?: 'OpenAI',
+            'ModelAi' => $settings->ModelAi ?? config('services.openai.model'),
+            'IdChat' => $chatId,
+            'PromptRingkas' => $reasonCode,
+            'PromptJson' => json_encode(['reason_code' => $reasonCode], JSON_UNESCAPED_SLASHES),
+            'StatusPermintaan' => 'Dilewati',
+            'PesanError' => $this->sanitizeReason($reason),
+            'TglMulai' => now(),
+            'TglSelesai' => now(),
+            'TglBuat' => now(),
+        ]);
     }
 
     /**
@@ -611,6 +722,10 @@ class AiAutoReplyService
             ->where('IdChat', $chatId)
             ->where('ArahPesan', 'Keluar')
             ->where('DihasilkanOlehAi', true)
+            ->where(function ($query): void {
+                $query->whereNull('StatusKirim')
+                    ->orWhere('StatusKirim', '<>', 'Gagal WAHA');
+            })
             ->exists();
     }
 
@@ -636,15 +751,15 @@ class AiAutoReplyService
         }
 
         if ($provider === 'deepseek') {
-            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'deepseek');
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'deepseek', $isFirstReply);
         }
 
         if ($provider === 'openrouter') {
-            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'openrouter');
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'openrouter', $isFirstReply);
         }
 
         if (in_array($provider, ['9router', 'ninerouter'], true)) {
-            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'ninerouter');
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'ninerouter', $isFirstReply);
         }
 
         if ($provider === 'openai') {
@@ -674,7 +789,7 @@ class AiAutoReplyService
             ]);
 
         if (! $response->successful()) {
-            throw new RuntimeException('OpenAI API gagal: HTTP ' . $response->status() . ' - ' . $response->body());
+            throw new RuntimeException('OpenAI API gagal: HTTP ' . $response->status());
         }
 
         $payload = $response->json();
@@ -725,7 +840,7 @@ class AiAutoReplyService
         ]);
 
         if (! $response->successful()) {
-            throw new RuntimeException(ucfirst($provider) . ' API gagal: HTTP ' . $response->status() . ' - ' . $response->body());
+            throw new RuntimeException(ucfirst($provider) . ' API gagal: HTTP ' . $response->status());
         }
 
         $payload = $response->json();
@@ -834,7 +949,7 @@ class AiAutoReplyService
             $sent = $this->sendToWaha($chat, $reply);
             $status = $sent['ok'] ? 'Terkirim WAHA' : 'Gagal WAHA';
             $sentAt = $sent['ok'] ? now() : null;
-            $error = $sent['error'] ?? null;
+            $error = isset($sent['error']) ? $this->sanitizeReason((string) $sent['error']) : null;
         }
 
         DB::table('TChatD')->insert([
@@ -889,6 +1004,15 @@ class AiAutoReplyService
         }
 
         return WahaChatHelper::normalizeChatId((string) $chat->NomorWhatsapp);
+    }
+
+    private function sanitizeReason(string $reason): string
+    {
+        if (preg_match('/api[_-]?key|access[_-]?token|token|password|secret/i', $reason) === 1) {
+            return 'AI operation failed.';
+        }
+
+        return Str::limit(trim($reason), 500, '');
     }
 
     private function latestIncomingWahaChatId(string $chatId): ?string
@@ -961,4 +1085,3 @@ class AiAutoReplyService
         return 'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.';
     }
 }
-

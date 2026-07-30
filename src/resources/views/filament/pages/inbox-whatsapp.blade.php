@@ -85,11 +85,11 @@
         }" x-show="shown" x-cloak
             class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <span>🔔</span>
+                <x-heroicon-o-bell class="h-4 w-4" aria-hidden="true" />
                 <span>{{ __('ui.pages.inbox.sound_permission') }}</span>
             </div>
             <button type="button" x-on:click="allowAudio()"
-                class="rounded-2xl border border-gray-400 bg-white px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                class="min-h-11 rounded-2xl border border-gray-400 bg-white px-4 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 active:scale-95 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                 {{ __('ui.pages.inbox.allow_sound') }}
             </button>
         </div>
@@ -109,7 +109,7 @@
                 </div>
             </div>
             <a href="{{ route('filament.admin.pages.log-data') }}"
-                class="rounded-2xl border border-current px-3 py-1.5 text-xs font-semibold hover:bg-white/40 dark:hover:bg-white/10">
+                class="inline-flex min-h-11 items-center rounded-2xl border border-current px-3 py-1.5 text-xs font-semibold hover:bg-white/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current dark:hover:bg-white/10">
                 {{ __('ui.pages.inbox.open_log_data') }}
             </a>
         </div>
@@ -157,10 +157,11 @@
                             </div>
                         </div>
                         <button @click="toggleSound()" type="button" title="{{ __('ui.pages.inbox.sound_toggle') }}"
-                            class="shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors"
+                            class="min-h-11 shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                             :class="soundOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' :
                                 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
-                            <span x-text="soundOn ? '🔔' : '🔕'"></span>
+                            <x-heroicon-o-speaker-wave x-show="soundOn" class="h-4 w-4" aria-hidden="true" />
+                            <x-heroicon-o-speaker-x-mark x-show="!soundOn" class="h-4 w-4" aria-hidden="true" />
                             <span x-text="soundOn ? @js(__('ui.pages.inbox.sound_on')) : @js(__('ui.pages.inbox.sound_off'))"></span>
                         </button>
                     </div>
@@ -170,12 +171,12 @@
                             class="grid grid-cols-2 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
                             <button type="button" wire:click="$set('identityDisplayMode', 'whatsapp')"
                                 aria-pressed="{{ $identityDisplayMode === 'whatsapp' ? 'true' : 'false' }}"
-                                class="rounded-md px-2 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {{ $identityDisplayMode === 'whatsapp' ? 'bg-white text-primary-700 shadow-sm dark:bg-gray-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400' }}">
+                                class="min-h-11 rounded-md px-2 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {{ $identityDisplayMode === 'whatsapp' ? 'bg-white text-primary-700 shadow-sm dark:bg-gray-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400' }}">
                                 {{ __('ui.pages.inbox.identity_whatsapp') }}
                             </button>
                             <button type="button" wire:click="$set('identityDisplayMode', 'internal')"
                                 aria-pressed="{{ $identityDisplayMode === 'internal' ? 'true' : 'false' }}"
-                                class="rounded-md px-2 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {{ $identityDisplayMode === 'internal' ? 'bg-white text-primary-700 shadow-sm dark:bg-gray-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400' }}">
+                                class="min-h-11 rounded-md px-2 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 {{ $identityDisplayMode === 'internal' ? 'bg-white text-primary-700 shadow-sm dark:bg-gray-700 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400' }}">
                                 {{ __('ui.pages.inbox.identity_internal') }}
                             </button>
                         </div>
@@ -187,15 +188,25 @@
                     @forelse ($chatRows as $chat)
                         @php
                             $identity = $chat['Identity'][$identityDisplayMode] ?? $chat['Identity']['whatsapp'];
+                            $identityTypeLabel = $chat['JenisChat'] === 'Grup'
+                                ? __('ui.pages.inbox.whatsapp_group')
+                                : __('ui.pages.inbox.personal_chat');
+                            $syncStatusLabel = match ($identity['SyncStatus'] ?? null) {
+                                'success', 'synced' => __('ui.pages.inbox.identity_sync_success'),
+                                'pending' => __('ui.pages.inbox.identity_sync_pending'),
+                                'failed' => __('ui.pages.inbox.identity_sync_failed'),
+                                default => null,
+                            };
                         @endphp
                         <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
-                            class="block w-full p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60
+                            class="block min-h-11 w-full p-3 text-left transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 dark:hover:bg-gray-800/60
                                     {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30 border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-transparent' }}">
                             {{-- Layout item chat: Avatar + Info --}}
                             <div class="flex items-start gap-3">
                                 {{-- Avatar inisial --}}
                                 @if ($chat['FotoProfilUrl'] ?? null)
-                                    <img src="{{ $chat['FotoProfilUrl'] }}" alt=""
+                                    <img src="{{ $chat['FotoProfilUrl'] }}"
+                                        alt="{{ __('ui.pages.inbox.identity_avatar_alt', ['name' => $identity['PrimaryName'] ?: '-']) }}"
                                         class="shrink-0 h-9 w-9 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700">
                                 @else
                                     <div
@@ -206,8 +217,7 @@
                                 @endif
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-start justify-between gap-1">
-                                        <div
-                                            class="truncate text-sm font-semibold text-gray-950 dark:text-white leading-tight">
+                                        <div class="break-words text-sm font-semibold leading-tight text-gray-950 dark:text-white">
                                             {{ $identity['PrimaryName'] ?: '-' }}
                                         </div>
                                         @if ($chat['BelumDibaca'] > 0)
@@ -217,12 +227,29 @@
                                             </div>
                                         @endif
                                     </div>
-                                    <div class="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        {{ $chat['JenisChat'] === 'Grup' ? __('ui.pages.inbox.whatsapp_group') : __('ui.pages.inbox.personal_chat') }}
+                                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                                        <span class="rounded-md bg-gray-100 px-1.5 py-0.5 font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                                            {{ $identityTypeLabel }}
+                                        </span>
+                                        @if ($syncStatusLabel)
+                                            <span>{{ __('ui.pages.inbox.identity_sync_status') }}: {{ $syncStatusLabel }}</span>
+                                        @endif
                                     </div>
-                                    <div class="truncate font-mono text-[11px] text-gray-400 dark:text-gray-500">
-                                        {{ $chat['JenisChat'] === 'Grup' ? ($identity['GroupId'] ?: '-') : ($identity['ContactNumber'] ?: $identity['ChatId'] ?: '-') }}
+                                    <div class="break-all font-mono text-[11px] text-gray-400 dark:text-gray-500">
+                                        {{ $chat['JenisChat'] === 'Grup' ? ($identity['GroupId'] ?: '-') : ($identity['ChatId'] ?: $identity['ContactNumber'] ?: '-') }}
                                     </div>
+                                    @if ($chat['JenisChat'] !== 'Grup' && ($identity['ContactNumber'] ?? null) && $identity['ContactNumber'] !== ($identity['ChatId'] ?? null))
+                                        <div class="break-all font-mono text-[11px] text-gray-400 dark:text-gray-500">
+                                            {{ __('ui.pages.inbox.resolved_number') }}: {{ $identity['ContactNumber'] }}
+                                        </div>
+                                    @endif
+                                    @if ($identity['SyncAt'] ?? null)
+                                        <div class="text-[11px] text-gray-400 dark:text-gray-500">
+                                            {{ __('ui.pages.inbox.identity_synced_at') }}:
+                                            {{ \App\Support\LocaleFormatter::shortDate($identity['SyncAt']) }}
+                                            {{ \App\Support\LocaleFormatter::time($identity['SyncAt']) }}
+                                        </div>
+                                    @endif
                                     <div class="mt-1 line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
                                         {{ $chat['PesanTerakhir'] }}
                                     </div>
@@ -248,15 +275,13 @@
                                             <span
                                                 class="rounded px-1.5 py-0.5 text-[10px] font-semibold
                                                     {{ $chat['DiambilOlehSaya'] ?? false ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' }}">
-                                                👤
                                                 {{ $chat['DiambilOlehSaya'] ?? false ? 'Anda' : $chat['DiambilNamaCS'] }}
                                             </span>
                                         @endif
                                         {{-- AI badge --}}
                                         @if ($chat['AutoReplyAiAktif'])
                                             <span
-                                                class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">✨
-                                                AI</span>
+                                                class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">AI</span>
                                         @endif
                                     </div>
                                 </div>
@@ -264,7 +289,7 @@
                         </button>
                     @empty
                         <div class="p-8 text-center">
-                            <div class="text-xl mb-2">💬</div>
+                            <x-heroicon-o-chat-bubble-left-right class="mx-auto mb-2 h-6 w-6 text-gray-400" aria-hidden="true" />
                             <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
                                 {{ __('ui.pages.inbox.no_chat') }}</div>
                             <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -288,13 +313,20 @@
                 @if ($selectedChat)
                     @php
                         $selectedIdentity = $selectedChat['Identity'][$identityDisplayMode] ?? $selectedChat['Identity']['whatsapp'];
+                        $selectedSyncStatusLabel = match ($selectedIdentity['SyncStatus'] ?? null) {
+                            'success', 'synced' => __('ui.pages.inbox.identity_sync_success'),
+                            'pending' => __('ui.pages.inbox.identity_sync_pending'),
+                            'failed' => __('ui.pages.inbox.identity_sync_failed'),
+                            default => null,
+                        };
                     @endphp
                     {{-- Header Chat: Tidak Ikut Scroll --}}
                     <div
                         class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="flex min-w-0 items-center gap-3">
                             @if ($selectedChat['FotoProfilUrl'] ?? null)
-                                <img src="{{ $selectedChat['FotoProfilUrl'] }}" alt=""
+                                <img src="{{ $selectedChat['FotoProfilUrl'] }}"
+                                    alt="{{ __('ui.pages.inbox.identity_avatar_alt', ['name' => $selectedIdentity['PrimaryName'] ?: '-']) }}"
                                     class="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700">
                             @else
                                 <div
@@ -314,7 +346,18 @@
                                         <span class="break-all font-mono">{{ __('ui.pages.inbox.group_id') }}: {{ $selectedIdentity['GroupId'] ?: '-' }}</span>
                                     @else
                                         <span>{{ $selectedIdentity['ContactName'] ?: '-' }}</span>
-                                        <span class="break-all font-mono">{{ $selectedIdentity['ContactNumber'] ?: $selectedIdentity['ChatId'] ?: '-' }}</span>
+                                        <span class="break-all font-mono">{{ $selectedIdentity['ChatId'] ?: $selectedIdentity['ContactNumber'] ?: '-' }}</span>
+                                        @if (($selectedIdentity['ContactNumber'] ?? null) && $selectedIdentity['ContactNumber'] !== ($selectedIdentity['ChatId'] ?? null))
+                                            <span class="break-all font-mono">{{ __('ui.pages.inbox.resolved_number') }}: {{ $selectedIdentity['ContactNumber'] }}</span>
+                                        @endif
+                                    @endif
+                                    @if ($selectedSyncStatusLabel)
+                                        <span>{{ __('ui.pages.inbox.identity_sync_status') }}: {{ $selectedSyncStatusLabel }}</span>
+                                    @endif
+                                    @if ($selectedIdentity['SyncAt'] ?? null)
+                                        <span>{{ __('ui.pages.inbox.identity_synced_at') }}:
+                                            {{ \App\Support\LocaleFormatter::shortDate($selectedIdentity['SyncAt']) }}
+                                            {{ \App\Support\LocaleFormatter::time($selectedIdentity['SyncAt']) }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -370,10 +413,16 @@
                             @php($senderAvatar = $message['SenderAvatarUrl'] ?? null)
                             <div class="flex items-end gap-2 {{ $isOut ? 'justify-end' : 'justify-start' }}">
                                 @if (!$isOut)
-                                    <div
-                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                                        {{ mb_strtoupper(mb_substr($message['SenderName'] ?: 'C', 0, 1)) }}
-                                    </div>
+                                    @if ($senderAvatar)
+                                        <img src="{{ $senderAvatar }}"
+                                            alt="{{ __('ui.pages.inbox.sender_avatar_alt', ['name' => $message['SenderName'] ?: '-']) }}"
+                                            class="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700">
+                                    @else
+                                        <div
+                                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                            {{ mb_strtoupper(mb_substr($message['SenderName'] ?: 'C', 0, 1)) }}
+                                        </div>
+                                    @endif
                                 @endif
                                 <div
                                     class="{{ $isOut ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-100 dark:ring-gray-800' }} max-w-[86%] rounded-lg p-3 text-sm">
@@ -445,7 +494,11 @@
                                             @endif
                                         </div>
                                     @endif
-                                    @if ($message['IsiPesan'])
+                                    @if ($message['Base64Fallback'] ?? false)
+                                        <p class="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-200">
+                                            {{ __('ui.pages.inbox.base64_media_unavailable') }}
+                                        </p>
+                                    @elseif (($message['ShowTextBody'] ?? true) && $message['IsiPesan'])
                                         <p class="mt-2 whitespace-pre-line">{{ $message['IsiPesan'] }}</p>
                                     @elseif (!$hasMedia)
                                         <p class="mt-1 whitespace-pre-line">
@@ -460,7 +513,8 @@
                                 </div>
                                 @if ($isOut)
                                     @if ($senderAvatar)
-                                        <img src="{{ $senderAvatar }}" alt=""
+                                        <img src="{{ $senderAvatar }}"
+                                            alt="{{ __('ui.pages.inbox.sender_avatar_alt', ['name' => $message['SenderName'] ?: '-']) }}"
                                             class="h-8 w-8 shrink-0 rounded-full bg-white object-cover ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-700">
                                     @else
                                         <div
@@ -564,11 +618,11 @@
                         @if ($selectedChat && $this->canManageInbox())
                             <div class="flex flex-wrap justify-end gap-2">
                                 <x-filament::button type="button" color="info" size="xs" outlined
-                                    wire:click="refreshProfilWaha">
-                                    {{ __('ui.pages.inbox.fetch_profile') }}
+                                    wire:click="refreshProfilWaha" class="min-h-11">
+                                    {{ __('ui.pages.inbox.refresh_identity') }}
                                 </x-filament::button>
                                 <x-filament::button type="button" color="gray" size="xs" outlined
-                                    wire:click="refreshMappingChat">
+                                    wire:click="refreshMappingChat" class="min-h-11">
                                     {{ __('ui.common.refresh') }}
                                 </x-filament::button>
                             </div>
@@ -609,6 +663,26 @@
                                 <dd class="break-all font-mono font-medium text-gray-900 dark:text-white">
                                     {{ $selectedIdentity['GroupId'] ?: '-' }}</dd>
                             </div>
+                            @if ($selectedIdentity['SyncStatus'] ?? null)
+                                <div>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.identity_sync_status') }}</dt>
+                                    <dd class="font-medium text-gray-900 dark:text-white">
+                                        {{ match ($selectedIdentity['SyncStatus']) {
+                                            'success', 'synced' => __('ui.pages.inbox.identity_sync_success'),
+                                            'pending' => __('ui.pages.inbox.identity_sync_pending'),
+                                            'failed' => __('ui.pages.inbox.identity_sync_failed'),
+                                            default => __('ui.pages.inbox.identity_sync_unknown'),
+                                        } }}
+                                    </dd>
+                                </div>
+                            @endif
+                            @if ($selectedIdentity['SyncAt'] ?? null)
+                                <div>
+                                    <dt class="text-gray-500">{{ __('ui.pages.inbox.identity_synced_at') }}</dt>
+                                    <dd class="font-medium text-gray-900 dark:text-white">
+                                        {{ \App\Support\LocaleFormatter::dateTime($selectedIdentity['SyncAt']) }}</dd>
+                                </div>
+                            @endif
                             <div>
                                 <dt class="text-gray-500">{{ __('ui.pages.inbox.detected_id') }}</dt>
                                 <dd class="space-y-1 font-mono text-xs text-gray-700 dark:text-gray-200">

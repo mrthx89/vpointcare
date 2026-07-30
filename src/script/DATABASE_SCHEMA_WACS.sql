@@ -384,6 +384,7 @@ CREATE TABLE MPengaturanAi (
     TemplateHariLibur nvarchar(max) NULL,
     TemplateJamKerjaSapaan nvarchar(max) NULL,
     TemplateFallback nvarchar(max) NULL,
+    BatasSesiAutoReplyMenit int NOT NULL CONSTRAINT DF_MPengaturanAi_BatasSesiAutoReplyMenit DEFAULT 60,
     NotifikasiChatBelumTerbalasAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NotifikasiChatBelumTerbalasAktif DEFAULT 1,
     MenitTungguNotifikasi int NOT NULL CONSTRAINT DF_MPengaturanAi_MenitTungguNotifikasi DEFAULT 10,
     JedaNotifikasiMenit int NOT NULL CONSTRAINT DF_MPengaturanAi_JedaNotifikasiMenit DEFAULT 30,
@@ -398,7 +399,8 @@ CREATE TABLE MPengaturanAi (
     TglEdit datetime2 NULL,
     DieditOleh uniqueidentifier NULL,
     CONSTRAINT PK_MPengaturanAi PRIMARY KEY (Id),
-    CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan)
+    CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan),
+    CONSTRAINT CK_MPengaturanAi_BatasSesiAutoReplyMenit CHECK (BatasSesiAutoReplyMenit BETWEEN 1 AND 1440)
 );
 GO
 
@@ -508,6 +510,11 @@ CREATE TABLE TChat (
     NamaGrupWhatsapp varchar(200) NULL,
     IdWahaTerdeteksi varchar(200) NULL,
     NomorWhatsappTerdeteksi varchar(30) NULL,
+    NamaKontakWaha nvarchar(150) NULL,
+    NamaGrupWaha nvarchar(200) NULL,
+    TglIdentitasWahaDiambil datetime2 NULL,
+    StatusIdentitasWaha varchar(30) NULL,
+    PesanErrorIdentitasWaha nvarchar(500) NULL,
     UrlFotoProfil nvarchar(1000) NULL,
     TglFotoProfilDiambil datetime2 NULL,
     Prioritas varchar(50) NOT NULL CONSTRAINT DF_TChat_Prioritas DEFAULT 'Normal',
@@ -554,6 +561,9 @@ CREATE TABLE TChatD (
     PayloadJson nvarchar(max) NULL,
     PengirimNomorWhatsapp varchar(30) NULL,
     PengirimNamaKontak varchar(150) NULL,
+    PengirimIdWaha varchar(200) NULL,
+    UrlFotoProfilPengirim nvarchar(1000) NULL,
+    TglFotoProfilPengirimDiambil datetime2 NULL,
     DikirimOlehCustomer bit NOT NULL CONSTRAINT DF_TChatD_DikirimOlehCustomer DEFAULT 0,
     DihasilkanOlehAi bit NOT NULL CONSTRAINT DF_TChatD_DihasilkanOlehAi DEFAULT 0,
     IdAiRespon uniqueidentifier NULL,
@@ -752,6 +762,8 @@ CREATE INDEX IX_TLogWebhookWaha_SudahDiproses ON TLogWebhookWaha (SudahDiproses)
 CREATE INDEX IX_TChat_NomorWhatsapp ON TChat (NomorWhatsapp);
 CREATE INDEX IX_TChat_IdWahaTerdeteksi ON TChat (IdWahaTerdeteksi);
 CREATE INDEX IX_TChat_NomorWhatsappTerdeteksi ON TChat (NomorWhatsappTerdeteksi);
+CREATE INDEX IX_TChat_StatusIdentitasWaha_TglIdentitasWahaDiambil ON TChat (StatusIdentitasWaha, TglIdentitasWahaDiambil);
+CREATE INDEX IX_TChat_SesiJenisNomorWhatsapp ON TChat (IdSesiWhatsapp, JenisChat, NomorWhatsapp);
 CREATE INDEX IX_TChat_IdCustomer ON TChat (IdCustomer);
 CREATE INDEX IX_TChat_IdInstansi ON TChat (IdInstansi);
 CREATE INDEX IX_TChat_IdGrupWhatsapp ON TChat (IdGrupWhatsapp);

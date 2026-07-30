@@ -40,15 +40,25 @@ class ProcessAiAutoReplyJob implements ShouldQueue
         if (($result['ok'] ?? false) && empty($result['skipped'])) {
             SendBroadcastDebouncedJob::dispatchDebounced($this->chatId);
         }
+
+        if (! empty($result['delivery_failed'])) {
+            Log::warning('AI auto reply WAHA delivery failed.', [
+                'chat_id' => $this->chatId,
+                'reason_code' => 'waha_delivery_failed',
+            ]);
+
+            throw new \RuntimeException('AI auto reply WAHA delivery failed.');
+        }
     }
 
     public function failed(Throwable $exception): void
     {
         Log::error('AI auto reply job failed.', [
             'chat_id' => $this->chatId,
-            'message' => $exception->getMessage(),
+            'reason_code' => 'queue_job_failed',
         ]);
     }
+
     private function csAlreadyReplied(): bool
     {
         $latestIncomingAt = DB::table('TChatD')
