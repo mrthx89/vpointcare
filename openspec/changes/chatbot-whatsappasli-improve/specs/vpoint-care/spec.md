@@ -160,3 +160,103 @@ The system SHALL synchronize external WAHA group and contact metadata into a per
 - THEN the system SHALL retry using the defined backoff schedule
 - AND after the final failure the system SHALL store only a sanitized failure status/message
 - AND the last valid snapshot, if any, SHALL remain available to Inbox WhatsApp
+
+### Requirement: WhatsApp Group Message Intake
+
+The system SHALL persist every valid WAHA group message under the conversation identified by the session and group JID ending in `@g.us`. A participant, author, or sender JID SHALL identify only the message sender and SHALL NOT determine the group conversation key.
+
+#### Scenario: Unmapped group receives messages from multiple participants
+
+- GIVEN a WAHA group JID ending in `@g.us` has no MGrupWhatsapp mapping
+- AND two different participants send messages to that group
+- WHEN the webhook processor persists both messages
+- THEN the system SHALL create or reuse one TChat record for the session and group JID
+- AND the system SHALL persist each participant separately in TChatD.PengirimNomorWhatsapp and TChatD.PengirimNamaKontak
+- AND the system SHALL NOT split the group chat by participant or store the participant as the group JID
+
+#### Scenario: Mapped group receives messages from multiple participants
+
+- GIVEN a WAHA group JID ending in `@g.us` is mapped to MGrupWhatsapp
+- WHEN multiple participants send messages to that group
+- THEN the system SHALL reuse the mapped group TChat record
+- AND the raw group JID SHALL remain available for the WhatsApp asli mode
+- AND message sender identity SHALL remain separate from the group identity
+
+### Requirement: Group Participant Profile Snapshot
+
+The system SHALL retrieve and persist the WAHA profile photo snapshot for an incoming group-message participant when the participant JID is available. Retrieval SHALL run asynchronously, be deduplicated per session and participant JID, and SHALL NOT delay webhook processing.
+
+#### Scenario: Participant profile photo is available
+
+- GIVEN an incoming group message has a participant JID
+- WHEN background profile synchronization receives a valid WAHA profile photo URL
+- THEN the system SHALL persist the URL and retrieval timestamp on the related TChatD record
+- AND the group message bubble SHALL render the participant photo with descriptive alternative text
+- AND the sender name and number SHALL remain visible even when the image cannot load
+
+#### Scenario: Participant profile photo cannot be retrieved
+
+- GIVEN a group participant has no profile photo or WAHA profile retrieval fails
+- WHEN Inbox WhatsApp renders the message
+- THEN the system SHALL display a localized initials/avatar fallback
+- AND the system SHALL retain the last valid photo snapshot when one exists
+- AND the failure SHALL NOT prevent the group message from rendering
+
+### Requirement: AI Auto Reply Session Policy
+
+The system SHALL make auto-reply decisions for eligible incoming WhatsApp messages using global AI activation, working-hour/holiday/exclusion rules, delivery mode, and a configurable idle session boundary. `AutoReplyJamKerjaBerlanjut` SHALL be labeled as All Session.
+
+#### Scenario: All Session is enabled
+
+- GIVEN AutoReplyAktif is enabled
+- AND All Session is enabled
+- AND an incoming customer message is eligible after duplicate, manual-reply, working-hour, holiday, and exclusion checks
+- WHEN the AI auto-reply job handles the message
+- THEN the system SHALL generate or fall back to a reply for every eligible incoming message
+- AND the system SHALL follow KirimKeWaha to send the reply or store it as a local draft
+
+#### Scenario: All Session is disabled after an idle period
+
+- GIVEN AutoReplyAktif is enabled
+- AND All Session is disabled
+- AND the previous incoming customer message for the chat is at least BatasSesiAutoReplyMenit minutes before the current incoming message
+- WHEN the AI auto-reply job handles the current message
+- THEN the system SHALL treat the current message as a new auto-reply session
+- AND the system SHALL generate or fall back to a reply when all other eligibility checks pass
+
+#### Scenario: All Session is disabled within an active session
+
+- GIVEN AutoReplyAktif is enabled
+- AND All Session is disabled
+- AND the previous incoming customer message is less than BatasSesiAutoReplyMenit minutes before the current incoming message
+- WHEN the AI auto-reply job handles the current message
+- THEN the system SHALL skip the reply as part of the active session
+- AND the system SHALL record a sanitized session-policy reason code
+
+#### Scenario: AI reply processing fails
+
+- GIVEN the AI auto-reply job receives an eligible message
+- WHEN provider generation, queue processing, or WAHA delivery fails
+- THEN the system SHALL record a sanitized reason and status in the applicable AI request/response/message log
+- AND the system SHALL NOT mark the message as successfully delivered when WAHA delivery fails
+- AND the system SHALL NOT expose an API key, prompt secret, provider response body, or stack trace to the user interface
+
+### Requirement: Base64 Media Presentation
+
+The system SHALL prefer rendered media preview/download over base64 text. Base64 or data URI text SHALL be shown only when the system cannot convert the candidate into valid media.
+
+#### Scenario: Base64 media renders successfully
+
+- GIVEN TChatD contains a valid base64 or data URI media candidate
+- WHEN the Inbox media route can decode and classify the candidate
+- THEN the Inbox SHALL render the applicable preview or download action
+- AND the message bubble SHALL NOT render the base64 or data URI text as IsiPesan
+- AND the Livewire state SHALL NOT include the decoded binary or full payload JSON
+
+#### Scenario: Base64 media conversion fails
+
+- GIVEN TChatD contains text identified as a base64 or data URI media candidate
+- WHEN strict decoding or media classification fails
+- THEN the Inbox SHALL render a localized, bounded diagnostic base64 fallback
+- AND the fallback SHALL NOT expose PayloadJson, raw HTML, API keys, webhook tokens, or stack traces
+- AND the message bubble SHALL remain usable in light mode, dark mode, and keyboard navigation

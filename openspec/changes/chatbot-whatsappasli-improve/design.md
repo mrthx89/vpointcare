@@ -71,6 +71,28 @@ Blade menggunakan komponen Filament dan class Tailwind yang sudah ada. Semua tex
 
 Rollback: hentikan worker `webhooks`, deploy code sebelumnya, restart worker, rollback migration bila snapshot tidak dibutuhkan, lalu verifikasi Inbox memakai field legacy.
 
+## Additional Decisions
+
+### 6. Kunci chat grup dengan `group_jid`, bukan participant
+
+Parser harus memisahkan tiga identitas: `group_jid` untuk `TChat`, `participant` untuk `TChatD.PengirimNomorWhatsapp`/`PengirimNamaKontak`, dan `message_id` untuk idempotensi. Untuk chat Grup, `findOrCreateChat()` wajib mencari berdasarkan sesi + `group_jid` meskipun `MGrupWhatsapp` belum memiliki mapping. `TChat.NomorWhatsapp` dan `IdWahaTerdeteksi` untuk grup menyimpan group JID; participant tidak boleh menjadi key chat.
+
+Ini menjelaskan gejala chat grup yang hanya tampak berasal dari satu orang: bila participant dipakai sebagai key, pesan dari peserta lain bisa masuk ke chat yang salah atau membuat percakapan terpisah. Test harus mencakup satu grup dengan minimal dua participant, mapped dan unmapped.
+
+### 7. Foto profil participant disimpan per detail pesan
+
+Tambahkan field nullable pada `TChatD` untuk URL foto participant dan waktu snapshot. Job metadata menerima raw participant JID, memakai `WahaSender::getContactProfilePictureUrl()`, dan menulis hasil hanya ke detail pesan terkait. Request perlu dideduplikasi per session + participant JID agar satu participant tidak memicu request untuk setiap pesan. Jika WAHA gagal, avatar memakai fallback inisial dan snapshot lama tidak dihapus.
+
+### 8. Session AI memiliki aturan eksplisit dan audit reason
+
+`AutoReplyJamKerjaBerlanjut` adalah label **All Session**. Saat aktif, setiap incoming customer yang eligible dapat diproses setelah pengecekan duplicate/manual reply, jam kerja, hari libur, dan excluded number. Saat tidak aktif, AI hanya boleh menjawab incoming pertama atau incoming yang datang setelah idle minimal 60 menit dari incoming customer sebelumnya; nilai 60 menit dibuat sebagai setting terverifikasi, bukan asumsi tersembunyi di service.
+
+Flow wajib menghitung `$isFirstReply` sebelum mencatat `TAiPermintaan` atau memilih model. Setiap skip/failure/success/delivery harus memiliki reason code yang dapat dilihat operator tanpa API key, prompt penuh, atau response secret. `KirimKeWaha=false` tetap menghasilkan draft lokal yang jelas statusnya; `KirimKeWaha=true` harus mencatat kegagalan HTTP WAHA secara terpisah.
+
+### 9. Base64 hanya menjadi fallback tampilan
+
+Renderer menentukan `mediaRenderable` dari `UrlMedia`, data URI, atau `WahaMediaPayload` sebelum menampilkan `IsiPesan`. Jika renderable, base64/data URI tidak boleh masuk state tampilan maupun markup. Jika tidak renderable, Inbox menampilkan panel diagnostik localized berisi base64 yang dibatasi panjangnya dan diberi aksi copy/download teks, tanpa menampilkan `PayloadJson` mentah.
+
 ## Open Questions
 
 - Endpoint metadata grup WAHA pada session production harus dikonfirmasi dengan respons tersanitasi sebelum implementasi adapter final.

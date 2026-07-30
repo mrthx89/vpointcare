@@ -50,3 +50,29 @@
 - [ ] 6.6 Sebelum production: backup SQL Server, deploy migration/schema/code/asset, jalankan `php artisan migrate --force`, `php artisan optimize:clear`, `php artisan optimize`, dan restart worker queue `webhooks`.
 - [ ] 6.7 Verifikasi manual dengan WAHA aktif: grup mapped/unmapped `@g.us`, personal mapped/unmapped, `@lid` dengan/tanpa phone mapping, WAHA timeout, refresh identitas, dark mode, serta locale Indonesia/Inggris.
 - [ ] 6.8 Dokumentasikan hasil validasi, migration/deployment action, dan rollback yang benar-benar dijalankan sebelum menandai change selesai.
+
+## 7. Koreksi Ingestion GroupWhatsApp dan Foto Participant
+
+- [ ] 7.1 Reproduksi dengan fixture dua participant dalam satu group `@g.us`, baik mapped maupun unmapped, lalu buktikan apakah chat hilang, terpecah, atau salah key.
+- [ ] 7.2 Perbaiki `src/app/Services/Waha/WahaWebhookProcessor.php` agar `TChat` grup selalu dicari berdasarkan `IdSesiWhatsapp + group_jid`, sedangkan participant hanya mengisi `TChatD.PengirimNomorWhatsapp` dan `PengirimNamaKontak`.
+- [ ] 7.3 Tambahkan guard idempotensi/index SQL Server yang relevan untuk group JID dan test bahwa semua participant masuk ke satu chat grup yang benar.
+- [ ] 7.4 Tambahkan kolom `TChatD.UrlFotoProfilPengirim` dan `TChatD.TglFotoProfilPengirimDiambil` pada migration SQL Server serta `src/script/DATABASE_SCHEMA_WACS.sql`.
+- [ ] 7.5 Buat job atau perluasan job metadata yang mengambil foto participant via WAHA, deduplicated per session + participant JID, dengan timeout/retry/failure behavior terdokumentasi.
+- [ ] 7.6 Perbarui `InboxWhatsapp` dan `inbox-whatsapp.blade.php` agar bubble pesan masuk grup menampilkan foto participant, nama/nomor, fallback inisial, alt text, dan dark-mode-safe layout.
+
+## 8. Koreksi Aturan AI Agent dan Session
+
+- [ ] 8.1 Reproduksi AI no-reply dengan fixture settings aktif, All Session aktif/nonaktif, chat pertama, chat beruntun, idle 60 menit, manual reply, dan queue failure; gunakan `TAiPermintaan`, `TAiRespon`, `TChatD`, dan log sebagai bukti.
+- [ ] 8.2 Perbaiki `src/app/Services/Ai/AiAutoReplyService.php` agar `$isFirstReply` dihitung sebelum dipakai pada pemilihan model dan pencatatan `TAiPermintaan`.
+- [ ] 8.3 Tambahkan setting `BatasSesiAutoReplyMenit` default 60 pada `MPengaturanAi`, validasi `1..1440`, localization, dan UI AI Agent sebagai batas idle saat All Session tidak aktif.
+- [ ] 8.4 Implementasikan policy: All Session aktif memproses setiap incoming eligible; All Session nonaktif memproses hanya incoming pertama atau setelah idle >= batas sesi; semua guard jam kerja, hari libur, excluded number, duplicate, dan manual reply tetap berjalan.
+- [ ] 8.5 Tambahkan reason code/status audit untuk skip, provider failure, fallback, draft lokal, WAHA send failure, dan sukses pada service/job/log tanpa secret.
+- [ ] 8.6 Perbarui `src/app/Jobs/ProcessAiAutoReplyJob.php` dan broadcast/error flow bila diperlukan agar job failure/retry terlihat operator serta tidak menandai chat seolah sudah dibalas ketika delivery gagal.
+- [ ] 8.7 Tambahkan test service/job/UI untuk All Session on/off, idle 60 menit, boundary waktu, manual reply, provider kosong/gagal, `KirimKeWaha` on/off, dan retry queue.
+
+## 9. Koreksi Tampilan Base64 Media
+
+- [ ] 9.1 Audit `src/app/Support/WahaMediaPayload.php`, `src/app/Filament/Pages/InboxWhatsapp.php`, `src/app/Http/Controllers/WahaMediaController.php`, dan Blade untuk membedakan media valid versus base64 mentah.
+- [ ] 9.2 Perbarui state/renderer agar base64 tidak ditampilkan ketika preview/download berhasil, termasuk image, sticker, audio, video, PDF, dan dokumen.
+- [ ] 9.3 Tambahkan fallback localized untuk base64 yang gagal dikonversi dalam panel diagnostik terbatas; jangan tampilkan `PayloadJson`, raw HTML, API key, webhook token, atau stack trace.
+- [ ] 9.4 Tambahkan regression/security test untuk base64 valid, base64 rusak, data URI, media URL valid, dan payload yang berisi string mirip base64.

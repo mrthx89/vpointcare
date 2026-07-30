@@ -41,6 +41,13 @@ Mode WhatsApp asli masih bergantung pada payload terakhir dan field TChat. Nama 
 5. Prioritaskan snapshot database pada Inbox WhatsAppAsli dan sediakan refresh metadata untuk chat aktif.
 6. Tambahkan localization, test, validasi SQL Server, dan instruksi deployment/rollback.
 
+## Additional Requested Corrections
+
+- **Pesan grup tidak lengkap:** audit source menunjukkan `findOrCreateChat()` dapat memakai JID/nama pengirim ketika grup belum mapped, padahal identitas chat harus selalu memakai `group_jid` `@g.us`. Perbaikan akan mengunci satu `TChat` per sesi + group JID dan menyimpan setiap peserta sebagai `TChatD.Pengirim*`.
+- **Foto profil anggota grup:** ambil foto profil setiap pengirim grup dari WAHA secara asynchronous, simpan snapshot URL dan waktu pengambilan pada detail pesan, lalu tampilkan avatar pada bubble/group participant dengan fallback inisial.
+- **AI tidak membalas:** tambahkan observability reason/status dari dispatch sampai delivery, perbaiki urutan perhitungan `$isFirstReply` sebelum pemilihan model, dan definisikan ulang session: All Session aktif menjawab setiap incoming eligible; All Session tidak aktif hanya menjawab pesan pertama atau pesan setelah idle minimal 60 menit, dengan aturan jam kerja/hari libur/excluded number tetap berlaku.
+- **Base64 media:** jika base64/data URI berhasil dikonversi menjadi preview atau download, teks base64 tidak boleh ditampilkan. Jika konversi gagal, tampilkan fallback base64 dalam panel diagnostik terkontrol tanpa menampilkan payload JSON atau secret.
+
 ## Capabilities
 
 ### New Capabilities
