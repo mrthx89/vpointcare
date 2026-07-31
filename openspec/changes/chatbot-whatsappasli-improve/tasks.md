@@ -1,4 +1,4 @@
-## 1. Kontrak Data dan Migration SQL Server
+﻿## 1. Kontrak Data dan Migration SQL Server
 
 - [x] 1.1 Audit schema `TChat` di `src/script/DATABASE_SCHEMA_WACS.sql` serta migration identitas/profil yang ada, lalu dokumentasikan kolom snapshot WAHA yang belum tersedia.
 - [x] 1.2 Buat migration SQL Server di `src/database/migrations/` yang aman untuk database existing: tambah `NamaKontakWaha`, `NamaGrupWaha`, `TglIdentitasWahaDiambil`, `StatusIdentitasWaha`, dan `PesanErrorIdentitasWaha` hanya bila belum ada.
@@ -92,3 +92,15 @@
 - [x] 11.3 Pastikan label memakai `NavigationHelper` dan localization existing untuk Bahasa Indonesia/Inggris, termasuk `Status Ticket`, `Prioritas`, dan `Kategori`.
 - [x] 11.4 Tambahkan feature/page test untuk `/admin/ticketing/status-tickets`, `/admin/ticketing/prioritas/prioritas-tickets`, `/admin/ticketing/kategoris/kategori-tickets`, dan `/admin/operational/tickets`, termasuk permission denied dan locale `id`/`en`.
 - [x] 11.5 Jalankan `cd src; php -l app/Support/FilamentBreadcrumbs.php; php -l app/Filament/Concerns/HasMenuBreadcrumbs.php` serta targeted test ticketing; hasil yang diharapkan semua breadcrumb tampil dan tidak ada perubahan akses. (Syntax check dan runtime harness lulus; `php artisan test --filter=TicketingBreadcrumbTest` terblokir karena command `test` tidak tersedia.)
+
+
+## 11. Validasi Terpadu dan Deployment
+
+- [x] 11.1 Jalankan PHP lint seluruh file berubah (12/12 file clean).
+- [ ] 11.2 Jalankan targeted test — **BLOCKED**: PHPUnit/Pest tidak tersedia di environment ini (endor/bin/phpunit.bat dan endor/bin/pint.bat tidak ada). Test harus dijalankan di environment dev/staging yang memiliki dependency terinstall.
+- [ ] 11.3 Jalankan broader validation (full test, Pint, Vite build) — **PARTIAL**: Vite build ✅ sukses (12.9s). Full test dan Pint ❌ terblokir karena tool tidak tersedia.
+- [x] 11.4 Validasi OpenSpec dan diff — OpenSpec valid ✅, git diff --check exit code 0 ✅.
+- [ ] 11.5 Verifikasi migration SQL Server — **REQUIRES STAGING**: Migration siap deploy (2026_07_30_000001_add_waha_identity_snapshot_to_chat.php). Perlu backup database staging dan jalankan php artisan migrate --force pada environment sqlsrv.
+- [ ] 11.6 Restart runtime — **DEPLOYMENT STEP**: Setelah deploy, jalankan php artisan config:cache, oute:cache, iew:cache, queue:restart. Pastikan queue worker webhooks, roadcasts, dan AI running.
+- [ ] 11.7 Manual browser verification — **REQUIRES LIVE WAHA**: Verifikasi 6 poin (badge grup/pribadi, participant avatar, All Session policy, base64 media, breadcrumb ticketing) perlu WAHA aktif dan browser access.
+- [x] 11.8 Final task sync — Semua task sebelumnya (1-10) sudah dicentang berdasarkan source review dan syntax check. Task 11 ini mendokumentasikan validasi yang bisa dilakukan di environment ini vs yang perlu staging/production.

@@ -78,7 +78,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM sys.extended_properties AS p INNER JOIN sys.columns AS c ON c.object_id = p.major_id AND c.column_id = p.minor_id WHERE p.name = N'WACS_Migration_20260730_000001' AND c.object_id = OBJECT_ID(N'MPengaturanAi') AND c.name = N'BatasSesiAutoReplyMenit')
         AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_MPengaturanAi_BatasSesiAutoReplyMenit' AND parent_object_id = OBJECT_ID('MPengaturanAi'))
     BEGIN
-        ALTER TABLE MPengaturanAi ADD CONSTRAINT CK_MPengaturanAi_BatasSesiAutoReplyMenit CHECK (BatasSesiAutoReplyMenit BETWEEN 1 AND 1440);
+        EXEC('ALTER TABLE MPengaturanAi ADD CONSTRAINT CK_MPengaturanAi_BatasSesiAutoReplyMenit CHECK (BatasSesiAutoReplyMenit BETWEEN 1 AND 1440)');
         EXEC sys.sp_addextendedproperty @name = N'WACS_Migration_20260730_000001', @value = N'waha-identity-snapshot', @level0type = N'SCHEMA', @level0name = N'dbo', @level1type = N'TABLE', @level1name = N'MPengaturanAi', @level2type = N'CONSTRAINT', @level2name = N'CK_MPengaturanAi_BatasSesiAutoReplyMenit';
     END
 END

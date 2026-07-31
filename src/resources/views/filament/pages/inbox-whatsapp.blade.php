@@ -1,4 +1,4 @@
-<x-filament-panels::page>
+﻿<x-filament-panels::page>
     {{-- Komponen utama: mengelola sound notifikasi + WS status --}}
     <div x-data="{
         soundOn: localStorage.getItem('wacs_sound') !== 'false',
@@ -153,7 +153,7 @@
                                 <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full"
                                     :class="reverbDotClass()"></span>
                                 <span class="text-xs text-gray-400"
-                                    x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} · ${@js(__('ui.pages.inbox.polling'))}`"></span>
+                                    x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} '· ${@js(__('ui.pages.inbox.polling'))}`"></span>
                             </div>
                         </div>
                         <button @click="toggleSound()" type="button" title="{{ __('ui.pages.inbox.sound_toggle') }}"
@@ -216,17 +216,38 @@
                                     </div>
                                 @endif
                                 <div class="min-w-0 flex-1">
-                                    <div class="flex items-start justify-between gap-1">
-                                        <div class="break-words text-sm font-semibold leading-tight text-gray-950 dark:text-white">
-                                            {{ $identity['PrimaryName'] ?: '-' }}
-                                        </div>
-                                        @if ($chat['BelumDibaca'] > 0)
-                                            <div
-                                                class="shrink-0 min-w-[1.2rem] h-5 rounded-full bg-emerald-500 px-1.5 flex items-center justify-center text-xs font-bold text-white">
-                                                {{ min($chat['BelumDibaca'], 99) }}
-                                            </div>
-                                        @endif
-                                    </div>
+                                        <div class="flex items-start justify-between gap-1">
+        <div class="flex items-center gap-1.5 min-w-0">
+            @if($chat['JenisChat'] === 'Grup')
+                <x-heroicon-o-user-group class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+            @else
+                <x-heroicon-o-user class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+            @endif
+            <div class="break-words text-sm font-semibold leading-tight text-gray-950 dark:text-white">
+                {{ $identity['PrimaryName'] ?: '-' }}
+            </div>
+            @if (isset($identity['IdentitySource']) && $identity['IdentitySource'] !== 'jid')
+                <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium
+                    @if($identity['IdentitySource'] === 'waha')
+                        bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300
+                    @elseif($identity['IdentitySource'] === 'payload')
+                        bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300
+                    @elseif($identity['IdentitySource'] === 'internal')
+                        bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300
+                    @else
+                        bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300
+                    @endif"
+                    title="@if($identity['IdentitySource'] === 'waha'){{ __('ui.pages.inbox.identity_source_waha') }}@elseif($identity['IdentitySource'] === 'payload'){{ __('ui.pages.inbox.identity_source_payload') }}@elseif($identity['IdentitySource'] === 'internal'){{ __('ui.pages.inbox.identity_source_internal') }}@else{{ __('ui.pages.inbox.identity_source_jid') }}@endif">
+                    {{ Str::upper($identity['IdentitySource']) }}
+                </span>
+            @endif
+        </div>
+        @if ($chat['BelumDibaca'] > 0)
+            <div class="shrink-0 min-w-[1.2rem] h-5 rounded-full bg-emerald-500 px-1.5 flex items-center justify-center text-xs font-bold text-white">
+                {{ min($chat['BelumDibaca'], 99) }}
+            </div>
+        @endif
+    </div>
                                     <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                                         <span class="rounded-md bg-gray-100 px-1.5 py-0.5 font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-200">
                                             {{ $identityTypeLabel }}

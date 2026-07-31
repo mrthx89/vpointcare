@@ -539,10 +539,10 @@ class InboxWhatsapp extends Page implements HasForms
         $rawGroupId = $isGroup ? $this->groupChatId($row, $payload) : null;
         $snapshotContactName = trim((string) ($row->NamaKontakWaha ?? '')) ?: null;
         $snapshotGroupName = trim((string) ($row->NamaGrupWaha ?? '')) ?: null;
-        $groupName = $row->NamaGrupMaster ?: $row->NamaGrupWhatsapp;
+        $groupName = $snapshotGroupName ?: $row->NamaGrupMaster ?: $row->NamaGrupWhatsapp;
         $groupWahaId = $row->IdGrupWaha ?? null;
         $groupNumber = $row->NomorGrupWhatsapp ?: ($groupWahaId ?: $row->NomorWhatsapp);
-        $contactName = $row->NamaKontakMaster ?: $row->NamaKontak;
+        $contactName = $snapshotContactName ?: $row->NamaKontakMaster ?: $row->NamaKontak;
         $mappingIdentifiers = $this->mappingIdentifiers((object) [
             'Id' => $row->Id,
             'Payload' => $payload,
@@ -623,6 +623,7 @@ class InboxWhatsapp extends Page implements HasForms
                     'ChatId' => $rawChatId,
                     'SyncStatus' => $row->StatusIdentitasWaha ?? null,
                     'SyncAt' => $row->TglIdentitasWahaDiambil ?? null,
+                    'IdentitySource' => $this->determineIdentitySource($isGroup, $snapshotGroupName, $snapshotContactName, $rawGroupName, $rawContactName),
                 ],
                 'internal' => [
                     'PrimaryName' => $internalPrimaryName,
@@ -2038,7 +2039,32 @@ class InboxWhatsapp extends Page implements HasForms
         return null;
     }
 
-    private function payloadGroupName(?array $payload): ?string
+        private function determineIdentitySource(bool $isGroup, ?string $snapshotGroupName, ?string $snapshotContactName, ?string $rawGroupName, ?string $rawContactName): string
+    {
+        if ($isGroup) {
+            if ($snapshotGroupName) {
+                return 'waha';
+            }
+
+            if ($rawGroupName) {
+                return 'payload';
+            }
+
+            return 'jid';
+        }
+
+        if ($snapshotContactName) {
+            return 'waha';
+        }
+
+        if ($rawContactName) {
+            return 'payload';
+        }
+
+        return 'internal';
+    }
+
+private function payloadGroupName(?array $payload): ?string
     {
         foreach (['group.subject', 'group.name', 'chat.name', '_data.chat.name'] as $key) {
             $value = Arr::get($payload ?? [], $key);
