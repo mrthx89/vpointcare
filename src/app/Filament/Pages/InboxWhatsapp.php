@@ -31,7 +31,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Throwable;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class InboxWhatsapp extends Page implements HasForms
 {
@@ -493,6 +496,42 @@ class InboxWhatsapp extends Page implements HasForms
             return $this->formatChatRow($row, $this->messagePreview($lastMessage));
         })->all();
 
+        $dedupedRows = [];
+        $seenGroupJids = [];
+
+        foreach ($this->chatRows as $row) {
+            if (($row['JenisChat'] ?? null) !== 'Grup') {
+                $dedupedRows[] = $row;
+
+                continue;
+            }
+
+            $groupJid = $this->groupJidForChatRow($row);
+
+            if (! $groupJid) {
+                $dedupedRows[] = $row;
+
+                continue;
+            }
+
+            if (! array_key_exists($groupJid, $seenGroupJids)) {
+                $seenGroupJids[$groupJid] = count($dedupedRows);
+                $dedupedRows[] = $row;
+
+                continue;
+            }
+
+            $existingIndex = $seenGroupJids[$groupJid];
+            $dedupedRows[$existingIndex]['BelumDibaca'] += (int) ($row['BelumDibaca'] ?? 0);
+
+            if (($row['TglChatTerakhir'] ?? null) && ($dedupedRows[$existingIndex]['TglChatTerakhir'] ?? null) && $row['TglChatTerakhir'] > $dedupedRows[$existingIndex]['TglChatTerakhir']) {
+                $dedupedRows[$existingIndex]['PesanTerakhir'] = $row['PesanTerakhir'];
+                $dedupedRows[$existingIndex]['TglChatTerakhir'] = $row['TglChatTerakhir'];
+            }
+        }
+
+        $this->chatRows = $dedupedRows;
+
         $selectedExists = $this->selectedChatId
             && collect($this->chatRows)->contains('Id', $this->selectedChatId);
 
@@ -551,20 +590,29 @@ class InboxWhatsapp extends Page implements HasForms
         $rawGroupId ??= $isGroup && str_ends_with((string) $row->NomorWhatsapp, '@g.us') ? $row->NomorWhatsapp : null;
         $rawGroupId ??= $isGroup && str_ends_with((string) ($row->IdWahaTerdeteksi ?? ''), '@g.us') ? $row->IdWahaTerdeteksi : null;
         $rawGroupId ??= $isGroup && str_ends_with((string) ($row->NomorWhatsappTerdeteksi ?? ''), '@g.us') ? $row->NomorWhatsappTerdeteksi : null;
-        $rawGroupName = $isGroup ? $this->payloadGroupName($payload) ?: $row->NamaGrupWhatsapp : null;
+        $rawGroupName = $isGroup
+            ? ($this->payloadGroupName($payload) ?: $row->NamaGrupWhatsapp)
+            : null;
         $rawChatId = $isGroup
             ? $rawGroupId
             : ($this->payloadPersonalChatId($payload) ?: WahaChatHelper::normalizeChatId((string) $row->NomorWhatsapp));
-        $rawContactName = $isGroup ? null : ($row->NamaKontak ?: null);
+        $rawContactName = $isGroup
+            ? null
+            : ($row->NamaKontak ?: $this->payloadContactName($payload));
         $rawContactNumber = $isGroup ? null : ($row->NomorWhatsapp ?: null);
         $mappedInstansi = $displayInstansi ?: null;
         $mappedContactName = $isGroup ? null : ($row->NamaKontakMaster ?: $row->NamaCustomer ?: null);
         $mappedContactNumber = $isGroup ? null : ($row->NomorWhatsappMaster ?: null);
         $mappedGroupName = $isGroup ? ($row->NamaGrupMaster ?: null) : null;
         $mappedGroupId = $isGroup ? $this->groupJid($row->IdGrupWaha ?: $row->NomorGrupWhatsapp ?: null) : null;
-        $whatsappPrimaryName = $isGroup ? ($rawGroupName ?: $rawGroupId) : ($rawContactName ?: $rawContactNumber);
+
+        $wahaGroupName = $isGroup && $rawGroupId ? $this->wahaGroupName($rawGroupId) : null;
+
+        $whatsappPrimaryName = $isGroup
+            ? ($wahaGroupName ?: $rawGroupName ?: $rawGroupId)
+            : ($rawContactName ?: $rawContactNumber);
         $internalPrimaryName = $isGroup
-            ? ($mappedGroupName ?: $rawGroupName ?: $rawGroupId)
+            ? ($mappedGroupName ?: $wahaGroupName ?: $rawGroupName ?: $rawGroupId)
             : ($mappedContactName ?: $rawContactName ?: $mappedContactNumber ?: $rawContactNumber);
 
         return [
@@ -690,9 +738,11 @@ class InboxWhatsapp extends Page implements HasForms
 
         $penggunaHasFotoProfil = Schema::hasColumn('MPengguna', 'FotoProfilPath');
 
+        $roomChatIds = $this->groupSiblingIds($chatId);
+
         $this->messages = DB::table('TChatD as d')
             ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
-            ->where('d.IdChat', $chatId)
+            ->whereIn('d.IdChat', $roomChatIds)
             ->orderBy('d.TglPesan')
             ->limit(200)
             ->select(
@@ -941,11 +991,39 @@ class InboxWhatsapp extends Page implements HasForms
         $mapping = $this->resolveMappingForChat($chat);
 
         if (! ($mapping['IdInstansi'] ?? null)) {
-            $ids = $this->mappingIdentifiers($chat);
+            $nameUpdated = false;
+
+            if ($chat->JenisChat === 'Grup') {
+                $groupJid = $this->groupJidForChatRow([
+                    'JenisChat' => $chat->JenisChat,
+                    'IdWaha' => $chat->IdWahaTerdeteksi ?? null,
+                    'NomorWhatsapp' => $chat->NomorWhatsapp,
+                    'NomorWhatsappRaw' => $chat->NomorWhatsapp,
+                    'Identity' => ['whatsapp' => ['GroupId' => $chat->NomorWhatsapp]],
+                ]);
+
+                if ($groupJid) {
+                    $groupName = $this->wahaGroupName($groupJid);
+
+                    if ($groupName && $groupName !== ($chat->NamaGrupWhatsapp ?? '')) {
+                        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
+                            'NamaGrupWhatsapp' => $groupName,
+                            'TglEdit' => now(),
+                        ]);
+
+                        $nameUpdated = true;
+
+                        $this->loadInbox();
+                    }
+                }
+            }
 
             Notification::make()
                 ->title(__('ui.pages.inbox.mapping_not_found'))
-                ->body(__('ui.pages.inbox.detected_id_hint', ['ids' => implode(', ', array_slice($ids, 0, 8)) ?: '-']))
+                ->body(
+                    ($nameUpdated ? __('ui.pages.inbox.group_name_updated').' ' : '')
+                    . __('ui.pages.inbox.detected_id_hint', ['ids' => implode(', ', array_slice($this->mappingIdentifiers($chat), 0, 8)) ?: '-'])
+                )
                 ->warning()
                 ->send();
 
@@ -1493,9 +1571,11 @@ class InboxWhatsapp extends Page implements HasForms
         $payload = $this->decodePayload($message->PayloadJson ?? null);
 
         return (string) ($message->PengirimNamaKontak
+            ?: Arr::get($payload, '_data.notifyName')
             ?: Arr::get($payload, 'sender.pushname')
             ?: Arr::get($payload, 'notifyName')
             ?: Arr::get($payload, 'pushName')
+            ?: $this->payloadContactName($payload)
             ?: $message->PengirimNomorWhatsapp
             ?: 'Customer');
     }
@@ -2023,6 +2103,72 @@ class InboxWhatsapp extends Page implements HasForms
         return array_values(array_unique($values));
     }
 
+    private function payloadContactName(?array $payload): ?string
+    {
+        foreach ([
+            '_data.notifyName',
+            'sender.pushname',
+            'sender.pushName',
+            'notifyName',
+            'pushName',
+            'pushname',
+            '_data.pushName',
+            '_data.contact.pushname',
+            '_data.contact.name',
+        ] as $key) {
+            $value = Arr::get($payload ?? [], $key);
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        return null;
+    }
+
+    private function wahaGroupName(string $groupId): ?string
+    {
+        $cacheKey = 'waha:group-name:' . md5($groupId);
+
+        return Cache::remember($cacheKey, now()->addHours(6), function () use ($groupId): ?string {
+            $session = (string) (config('services.waha.notification_session') ?: 'default');
+
+            try {
+                $request = Http::acceptJson()->timeout(5);
+
+                if (config('services.waha.api_key')) {
+                    $request = $request->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
+                }
+
+                $response = $request->get(rtrim((string) config('services.waha.base_url'), '/') . '/api/' . rawurlencode($session) . '/groups/' . str_replace('%40', '@', rawurlencode($groupId)));
+
+                if (! $response->successful()) {
+                    return null;
+                }
+
+                $payload = $response->json();
+
+                if (! is_array($payload)) {
+                    return null;
+                }
+
+                $name = Arr::get($payload, 'groupMetadata.subject')
+                    ?? Arr::get($payload, 'subject')
+                    ?? Arr::get($payload, 'name')
+                    ?? Arr::get($payload, 'group.subject');
+
+                return is_string($name) && trim($name) !== '' ? trim($name) : null;
+            } catch (Throwable $exception) {
+                Log::warning('WAHA group name lookup failed.', [
+                    'group_id' => $groupId,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return null;
+            }
+        });
+    }
+
     /**
      * @return array<string, mixed>|null
      */
@@ -2070,6 +2216,80 @@ class InboxWhatsapp extends Page implements HasForms
         return null;
     }
 
+    
+    private function groupJidForChatRow(array $chatRow): ?string
+    {
+        foreach (['IdWaha', 'NomorWhatsapp', 'NomorWhatsappRaw'] as $key) {
+            $value = $chatRow[$key] ?? null;
+
+            if (is_string($value) && str_ends_with($value, '@g.us')) {
+                return $value;
+            }
+        }
+
+        $groupId = $chatRow['Identity']['whatsapp']['GroupId'] ?? null;
+
+        if (is_string($groupId) && str_ends_with($groupId, '@g.us')) {
+            return $groupId;
+        }
+
+        return null;
+    }
+
+    private function groupSiblingIds(string $chatId): array
+    {
+        $chat = DB::table('TChat')
+            ->where('Id', $chatId)
+            ->select('Id', 'JenisChat', 'IdGrupWhatsapp', 'IdWahaTerdeteksi', 'NomorWhatsapp')
+            ->first();
+
+        if (! $chat || $chat->JenisChat !== 'Grup' || $chat->IdGrupWhatsapp) {
+            return [$chatId];
+        }
+
+        $groupJid = null;
+
+        foreach ([$chat->IdWahaTerdeteksi, $chat->NomorWhatsapp] as $value) {
+            if (is_string($value) && str_ends_with($value, '@g.us')) {
+                $groupJid = $value;
+
+                break;
+            }
+        }
+
+        if (! $groupJid) {
+            $payload = $this->latestIncomingPayload($chatId);
+
+            if ($payload) {
+                $groupJid = $this->payloadGroupId($payload);
+            }
+        }
+
+        if (! $groupJid) {
+            return [$chatId];
+        }
+
+        $directIds = DB::table('TChat')
+            ->where('JenisChat', 'Grup')
+            ->whereNull('IdGrupWhatsapp')
+            ->where(function ($query) use ($groupJid): void {
+                $query->where('IdWahaTerdeteksi', $groupJid)
+                    ->orWhere('NomorWhatsapp', $groupJid);
+            })
+            ->pluck('Id')
+            ->toArray();
+
+        $payloadIds = DB::table('TChatD as d')
+            ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
+            ->where('c.JenisChat', 'Grup')
+            ->whereNull('c.IdGrupWhatsapp')
+            ->where('d.PayloadJson', 'like', '%' . $groupJid . '%')
+            ->distinct()
+            ->pluck('c.Id')
+            ->toArray();
+
+        return array_values(array_unique(array_merge($directIds, $payloadIds, [$chatId])));
+    }
     private function normalizeWahaChatId(string $chatIdOrNumber): string
     {
         return WahaChatHelper::normalizeChatId($chatIdOrNumber);

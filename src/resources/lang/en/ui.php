@@ -781,6 +781,7 @@ return [
             'conversation_closed' => 'Conversation has been closed.',
             'ai_greeting_reset' => 'AI greeting status has been reset.',
             'mapping_not_found' => 'Mapping was not found.',
+              'group_name_updated' => 'Group name updated.',
             'detected_id_hint' => 'Detected ID: :ids. Make sure one of these IDs matches the master data.',
             'mapping_updated' => 'Chat mapping updated.',
             'waha_profile_column_missing' => 'WAHA profile column is not available.',

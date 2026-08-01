@@ -264,7 +264,7 @@ class WahaWebhookProcessor
             'group_jid' => $isGroup ? $remoteId : null,
             'pengirim_jid' => $senderJid,
             'pengirim_nomor' => WahaChatHelper::normalizePhoneNumber($senderJid),
-            'pengirim_nama' => $this->stringValue(Arr::get($message, 'sender.pushname') ?? Arr::get($message, 'notifyName') ?? Arr::get($message, 'pushName') ?? ''),
+            'pengirim_nama' => $this->stringValue(Arr::get($message, '_data.notifyName') ?? Arr::get($message, 'sender.pushname') ?? Arr::get($message, 'notifyName') ?? Arr::get($message, 'pushName') ?? ''),
             'isi_pesan' => $this->messageBody($message),
             'jenis_pesan' => $this->messageType($message, $mimeType, $mediaUrl),
             'url_media' => $mediaUrl,
@@ -532,8 +532,14 @@ class WahaWebhookProcessor
     {
         $query = DB::table('TChat')->where('JenisChat', $parsed['jenis_chat']);
 
-        if ($parsed['jenis_chat'] === 'Grup' && $mapping['IdGrupWhatsapp']) {
-            $query->where('IdGrupWhatsapp', $mapping['IdGrupWhatsapp']);
+        if ($parsed['jenis_chat'] === 'Grup') {
+            if ($mapping['IdGrupWhatsapp']) {
+                $query->where('IdGrupWhatsapp', $mapping['IdGrupWhatsapp']);
+            } elseif (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi') && ($parsed['group_jid'] ?? null)) {
+                $query->where('IdWahaTerdeteksi', $parsed['group_jid']);
+            } elseif (SchemaCache::hasColumn('TChat', 'NomorWhatsapp') && ($parsed['group_jid'] ?? null)) {
+                $query->where('NomorWhatsapp', $parsed['group_jid']);
+            }
         } else {
             $query->where(function ($query) use ($parsed): void {
                 if ($parsed['pengirim_nomor']) {
@@ -555,6 +561,34 @@ class WahaWebhookProcessor
         }
 
         $chat = $query->orderByDesc('TglChatTerakhir')->first();
+
+        // Fallback: cari chat grup lama via payload TChatD yang mengandung group_jid
+        if (! $chat
+            && $parsed['jenis_chat'] === 'Grup'
+            && ! $mapping['IdGrupWhatsapp']
+            && ($parsed['group_jid'] ?? null)
+            && SchemaCache::hasColumn('TChatD', 'PayloadJson')
+        ) {
+            $existingId = DB::table('TChatD as d')
+                ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
+                ->where('c.JenisChat', 'Grup')
+                ->whereNull('c.IdGrupWhatsapp')
+                ->where('d.PayloadJson', 'like', '%' . $parsed['group_jid'] . '%')
+                ->select('c.Id')
+                ->orderByDesc('d.TglPesan')
+                ->first();
+
+            if ($existingId) {
+                $chat = DB::table('TChat')->where('Id', $existingId->Id)->first();
+
+                if ($chat && SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
+                    DB::table('TChat')
+                        ->where('Id', $chat->Id)
+                        ->update(['IdWahaTerdeteksi' => $parsed['group_jid'], 'TglEdit' => now()]);
+                }
+            }
+        }
+
         $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
 
         if ($chat && strtoupper((string) $chat->IdStatusChat) !== strtoupper((string) $statusDitutupId)) {
@@ -569,7 +603,9 @@ class WahaWebhookProcessor
             ];
 
             if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
-                $update['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
+                $update['IdWahaTerdeteksi'] = $parsed['jenis_chat'] === 'Grup'
+                    ? ($parsed['group_jid'] ?: null)
+                    : ($parsed['pengirim_jid'] ?: null);
             }
 
             if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
@@ -595,7 +631,9 @@ class WahaWebhookProcessor
             'IdNomorWhatsapp' => $mapping['IdNomorWhatsapp'],
             'IdGrupWhatsapp' => $mapping['IdGrupWhatsapp'],
             'JenisChat' => $parsed['jenis_chat'],
-            'NomorWhatsapp' => $parsed['pengirim_nomor'] ?: ($parsed['pengirim_jid'] ?? '-'),
+            'NomorWhatsapp' => $parsed['jenis_chat'] === 'Grup'
+                ? ($parsed['group_jid'] ?: '-')
+                : ($parsed['pengirim_nomor'] ?: ($parsed['pengirim_jid'] ?? '-')),
             'NamaKontak' => $mapping['NamaKontak'],
             'NamaGrupWhatsapp' => $mapping['NamaGrupWhatsapp'],
             'Prioritas' => 'Normal',
@@ -605,7 +643,9 @@ class WahaWebhookProcessor
         ];
 
         if (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
-            $chat['IdWahaTerdeteksi'] = $parsed['pengirim_jid'] ?: $parsed['group_jid'];
+            $chat['IdWahaTerdeteksi'] = $parsed['jenis_chat'] === 'Grup'
+                ? ($parsed['group_jid'] ?: null)
+                : ($parsed['pengirim_jid'] ?: null);
         }
 
         if (SchemaCache::hasColumn('TChat', 'NomorWhatsappTerdeteksi') && $parsed['pengirim_nomor']) {
@@ -616,7 +656,6 @@ class WahaWebhookProcessor
 
         return $id;
     }
-
     private function normalisasiNomorWhatsapp(?string $nomor): ?string
     {
         if (! $nomor) {

@@ -12,7 +12,7 @@ REM Usage OpenSSH key: deploy-update-server.bat "PASSWORD_SUDO" "C:\Users\nama\.
 REM ==========================================================
 
 set "REMOTE_USER=it"
-set "REMOTE_HOST=172.22.46.111"
+set "REMOTE_HOST=192.168.88.250"
 set "REMOTE_APP_DIR=/home/it/GIT_VPOINT/2026-vpoint-care"
 set "LOCAL_SRC=%~dp0src"
 set "ARCHIVE=%TEMP%\vpoint-care-update.tar.gz"

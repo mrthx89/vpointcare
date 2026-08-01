@@ -781,6 +781,7 @@ return [
             'conversation_closed' => 'Percakapan telah ditutup.',
             'ai_greeting_reset' => 'Status sapaan AI direset.',
             'mapping_not_found' => 'Mapping belum ditemukan.',
+              'group_name_updated' => 'Nama grup diperbarui.',
             'detected_id_hint' => 'ID terdeteksi: :ids. Pastikan salah satu ID ini sama dengan master.',
             'mapping_updated' => 'Mapping chat berhasil diperbarui.',
             'waha_profile_column_missing' => 'Kolom profil WAHA belum tersedia.',
