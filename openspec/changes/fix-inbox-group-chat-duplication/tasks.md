@@ -1,4 +1,4 @@
-﻿## 1. WahaWebhookProcessor
+## 1. WahaWebhookProcessor
 
 - [x] 1.1 Di `parseMessage()`: tambah `_data.notifyName` sebagai fallback pertama `pengirim_nama`
 - [x] 1.2 Di `findOrCreateChat()`: tambah cabang `jenis_chat === "Grup"` tanpa `IdGrupWhatsapp` → lookup via `IdWahaTerdeteksi = group_jid`
@@ -32,3 +32,13 @@
 - [ ] 4.5 Grup termapping → tampilan tidak regresi
 - [ ] 4.6 Pesan grup dari semua anggota → 1 room, semua pesan tampil
 - [ ] 4.7 Legacy grup lama → 1 room per grup, pesan tergabung
+
+## 5. Realtime Group Room Consistency
+
+- [x] 5.1 Perbarui `WahaWebhookProcessor::parseMessage()` agar kandidat `@g.us` diprioritaskan sebelum kandidat participant/private
+- [x] 5.2 Perbarui `InboxWhatsapp::groupSiblingIds()` agar grup termapping, unmapped, dan legacy memakai canonical group JID yang sama
+- [x] 5.3 Perbarui `InboxWhatsapp::handleInboxUpdate()` agar `chatId` event mempertahankan room grup aktif saat reload
+- [x] 5.4 Tambahkan regresi test payload participant `@c.us` + group JID `@g.us`
+- [x] 5.5 Tambahkan regresi test agregasi pesan sibling untuk grup termapping dan unmapped
+- [x] 5.6 Jalankan lint PHP, `php vendor/bin/phpunit --filter "(InboxWhatsappTest|WahaWebhookProcessorTest)"`, `php vendor/bin/phpunit`, dan Pint targeted; seluruh test lulus, sedangkan Pint global masih menemukan pelanggaran formatting legacy di repository
+- [ ] 5.7 Setelah deployment, restart worker queue `webhooks` dan `broadcasts`; tidak ada migration database

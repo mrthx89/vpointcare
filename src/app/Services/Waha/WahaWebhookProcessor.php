@@ -223,29 +223,50 @@ class WahaWebhookProcessor
      */
     private function parseMessage(array $payload, array $message): array
     {
-        $remoteId = $this->stringValue(
-            Arr::get($message, 'chatId')
-            ?? Arr::get($message, 'from')
-            ?? Arr::get($message, 'from.id')
-            ?? Arr::get($message, 'id.remote')
-            ?? Arr::get($message, 'id._serialized')
-            ?? Arr::get($message, '_data.id._serialized')
-            ?? Arr::get($message, '_data.id.remote')
-            ?? Arr::get($message, '_data.Info.Chat')
-            ?? Arr::get($message, '_data.chatId')
-            ?? Arr::get($message, 'key.remoteJid')
-            ?? Arr::get($message, 'chat.id')
-            ?? Arr::get($message, 'chat.id._serialized')
-            ?? Arr::get($message, 'to')
-            ?? Arr::get($message, 'to.id')
-            ?? Arr::get($message, 'groupId')
-            ?? Arr::get($message, 'group.id')
-            ?? Arr::get($payload, 'chatId')
-            ?? ''
-        );
+        $remoteIdCandidates = [
+            Arr::get($message, 'chatId'),
+            Arr::get($message, 'from'),
+            Arr::get($message, 'from.id'),
+            Arr::get($message, 'id.remote'),
+            Arr::get($message, 'id._serialized'),
+            Arr::get($message, '_data.id._serialized'),
+            Arr::get($message, '_data.id.remote'),
+            Arr::get($message, '_data.Info.Chat'),
+            Arr::get($message, '_data.chatId'),
+            Arr::get($message, 'key.remoteJid'),
+            Arr::get($message, 'chat.id'),
+            Arr::get($message, 'chat.id._serialized'),
+            Arr::get($message, 'to'),
+            Arr::get($message, 'to.id'),
+            Arr::get($message, 'groupId'),
+            Arr::get($message, 'group.id'),
+            Arr::get($payload, 'chatId'),
+        ];
+        $remoteId = '';
+        $groupJid = null;
+
+        foreach ($remoteIdCandidates as $candidate) {
+            $candidate = $this->stringValue($candidate);
+
+            if ($candidate === '') {
+                continue;
+            }
+
+            if ($remoteId === '') {
+                $remoteId = $candidate;
+            }
+
+            if (str_ends_with($candidate, '@g.us')) {
+                $groupJid = $candidate;
+
+                break;
+            }
+        }
+
+        $remoteId = $groupJid ?: $remoteId;
 
         $fromMe = (bool) (Arr::get($message, 'fromMe') ?? Arr::get($message, '_data.id.fromMe') ?? false);
-        $isGroup = str_contains($remoteId, '@g.us') || (bool) (Arr::get($message, 'isGroup') ?? false);
+        $isGroup = $groupJid !== null || str_contains($remoteId, '@g.us') || (bool) (Arr::get($message, 'isGroup') ?? false);
         $participant = $this->stringValue(
             Arr::get($message, 'participant')
             ?? Arr::get($message, 'author')
@@ -261,7 +282,7 @@ class WahaWebhookProcessor
         return [
             'id_pesan' => $messageId,
             'jenis_chat' => $isGroup ? 'Grup' : 'Pribadi',
-            'group_jid' => $isGroup ? $remoteId : null,
+            'group_jid' => $isGroup ? ($groupJid ?: $remoteId) : null,
             'pengirim_jid' => $senderJid,
             'pengirim_nomor' => WahaChatHelper::normalizePhoneNumber($senderJid),
             'pengirim_nama' => $this->stringValue(Arr::get($message, '_data.notifyName') ?? Arr::get($message, 'sender.pushname') ?? Arr::get($message, 'notifyName') ?? Arr::get($message, 'pushName') ?? ''),

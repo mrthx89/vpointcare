@@ -150,9 +150,26 @@ class InboxWhatsapp extends Page implements HasForms
      * Ini yang membuat halaman ini real-time seperti SignalR.
      */
     #[On('waha-inbox-updated')]
-    public function handleInboxUpdate(): void
+    public function handleInboxUpdate(?string $chatId = null): void
     {
+        $selectedGroupJid = $this->selectedChatId
+            ? $this->groupJidForChatId($this->selectedChatId)
+            : null;
+        $updatedGroupJid = $chatId ? $this->groupJidForChatId($chatId) : null;
+
         $this->loadInbox();
+
+        if (! $selectedGroupJid || $selectedGroupJid !== $updatedGroupJid) {
+            return;
+        }
+
+        $activeGroupRoom = collect($this->chatRows)->first(
+            fn (array $chatRow): bool => $this->groupJidForChatRow($chatRow) === $selectedGroupJid
+        );
+
+        if ($activeGroupRoom) {
+            $this->selectChat($activeGroupRoom['Id']);
+        }
     }
 
     public function updatedFilterText(): void
@@ -2219,6 +2236,12 @@ class InboxWhatsapp extends Page implements HasForms
     
     private function groupJidForChatRow(array $chatRow): ?string
     {
+        $groupId = $chatRow['Identity']['whatsapp']['GroupId'] ?? null;
+
+        if (is_string($groupId) && str_ends_with($groupId, '@g.us')) {
+            return $groupId;
+        }
+
         foreach (['IdWaha', 'NomorWhatsapp', 'NomorWhatsappRaw'] as $key) {
             $value = $chatRow[$key] ?? null;
 
@@ -2227,68 +2250,106 @@ class InboxWhatsapp extends Page implements HasForms
             }
         }
 
-        $groupId = $chatRow['Identity']['whatsapp']['GroupId'] ?? null;
-
-        if (is_string($groupId) && str_ends_with($groupId, '@g.us')) {
-            return $groupId;
-        }
-
         return null;
     }
 
     private function groupSiblingIds(string $chatId): array
     {
-        $chat = DB::table('TChat')
-            ->where('Id', $chatId)
-            ->select('Id', 'JenisChat', 'IdGrupWhatsapp', 'IdWahaTerdeteksi', 'NomorWhatsapp')
+        $chat = DB::table('TChat as c')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->where('c.Id', $chatId)
+            ->select(
+                'c.Id',
+                'c.IdSesiWhatsapp',
+                'c.JenisChat',
+                'c.IdGrupWhatsapp',
+                'c.IdWahaTerdeteksi',
+                'c.NomorWhatsapp',
+                'c.NomorWhatsappTerdeteksi',
+                'g.IdGrupWaha'
+            )
             ->first();
 
-        if (! $chat || $chat->JenisChat !== 'Grup' || $chat->IdGrupWhatsapp) {
+        if (! $chat || $chat->JenisChat !== 'Grup') {
             return [$chatId];
         }
 
-        $groupJid = null;
+        $groupJid = $this->groupJidForChat($chat);
 
-        foreach ([$chat->IdWahaTerdeteksi, $chat->NomorWhatsapp] as $value) {
-            if (is_string($value) && str_ends_with($value, '@g.us')) {
-                $groupJid = $value;
-
-                break;
-            }
-        }
-
-        if (! $groupJid) {
-            $payload = $this->latestIncomingPayload($chatId);
-
-            if ($payload) {
-                $groupJid = $this->payloadGroupId($payload);
-            }
-        }
-
-        if (! $groupJid) {
+        if (! $groupJid && ! $chat->IdGrupWhatsapp) {
             return [$chatId];
         }
 
         $directIds = DB::table('TChat')
             ->where('JenisChat', 'Grup')
-            ->whereNull('IdGrupWhatsapp')
-            ->where(function ($query) use ($groupJid): void {
-                $query->where('IdWahaTerdeteksi', $groupJid)
-                    ->orWhere('NomorWhatsapp', $groupJid);
+            ->when($chat->IdSesiWhatsapp, fn ($query, string $sessionId) => $query->where('IdSesiWhatsapp', $sessionId))
+            ->where(function ($query) use ($chat, $groupJid): void {
+                if ($chat->IdGrupWhatsapp) {
+                    $query->where('IdGrupWhatsapp', $chat->IdGrupWhatsapp);
+                }
+
+                if (! $groupJid) {
+                    return;
+                }
+
+                $method = $chat->IdGrupWhatsapp ? 'orWhere' : 'where';
+                $query->{$method}(function ($identityQuery) use ($groupJid): void {
+                    $identityQuery->where('IdWahaTerdeteksi', $groupJid)
+                        ->orWhere('NomorWhatsapp', $groupJid)
+                        ->orWhere('NomorWhatsappTerdeteksi', $groupJid);
+                });
             })
             ->pluck('Id')
             ->toArray();
 
-        $payloadIds = DB::table('TChatD as d')
-            ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
-            ->where('c.JenisChat', 'Grup')
-            ->whereNull('c.IdGrupWhatsapp')
-            ->where('d.PayloadJson', 'like', '%' . $groupJid . '%')
-            ->distinct()
-            ->pluck('c.Id')
-            ->toArray();
+        $payloadIds = $groupJid
+            ? DB::table('TChatD as d')
+                ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
+                ->where('c.JenisChat', 'Grup')
+                ->when($chat->IdSesiWhatsapp, fn ($query, string $sessionId) => $query->where('c.IdSesiWhatsapp', $sessionId))
+                ->where('d.PayloadJson', 'like', '%' . $groupJid . '%')
+                ->distinct()
+                ->pluck('c.Id')
+                ->toArray()
+            : [];
 
         return array_values(array_unique(array_merge($directIds, $payloadIds, [$chatId])));
+    }
+
+    private function groupJidForChatId(string $chatId): ?string
+    {
+        $chat = DB::table('TChat as c')
+            ->leftJoin('MGrupWhatsapp as g', 'g.Id', '=', 'c.IdGrupWhatsapp')
+            ->where('c.Id', $chatId)
+            ->select(
+                'c.Id',
+                'c.JenisChat',
+                'c.IdWahaTerdeteksi',
+                'c.NomorWhatsapp',
+                'c.NomorWhatsappTerdeteksi',
+                'g.IdGrupWaha'
+            )
+            ->first();
+
+        return $chat ? $this->groupJidForChat($chat) : null;
+    }
+
+    private function groupJidForChat(object $chat): ?string
+    {
+        if (($chat->JenisChat ?? null) !== 'Grup') {
+            return null;
+        }
+
+        foreach ([$chat->IdWahaTerdeteksi ?? null, $chat->NomorWhatsapp ?? null, $chat->NomorWhatsappTerdeteksi ?? null] as $value) {
+            $groupJid = $this->groupJid(is_string($value) ? $value : null);
+
+            if ($groupJid) {
+                return $groupJid;
+            }
+        }
+
+        return $this->payloadGroupId($this->latestIncomingPayload((string) $chat->Id))
+            ?: $this->groupJid(is_string($chat->IdGrupWaha ?? null) ? $chat->IdGrupWaha : null);
     }
     private function normalizeWahaChatId(string $chatIdOrNumber): string
     {

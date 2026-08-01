@@ -97,6 +97,100 @@ class InboxWhatsappTest extends TestCase
         ], JSON_THROW_ON_ERROR));
     }
 
+    public function test_realtime_update_merges_messages_from_mapped_group_siblings(): void
+    {
+        $component = Livewire::actingAs($this->agent())->test(InboxWhatsapp::class);
+
+        DB::table('TChat')->insert([
+            'Id' => 'chat-group-mapped-sibling',
+            'IdStatusChat' => 'status-open',
+            'IdSesiWhatsapp' => 'session-1',
+            'IdGrupWhatsapp' => 'group-map-1',
+            'JenisChat' => 'Grup',
+            'NomorWhatsapp' => '120363999999999999@g.us',
+            'IdWahaTerdeteksi' => '120363999999999999@g.us',
+            'NamaGrupWhatsapp' => 'Fallback Group',
+            'JumlahPesanBelumDibaca' => 1,
+            'TglChatTerakhir' => now()->addMinute(),
+            'AutoReplyAiAktif' => false,
+            'AiSudahMenyapa' => false,
+            'DiambilOleh' => 'agent-existing',
+            'TglBuat' => now(),
+        ]);
+        $this->insertChatDetail([
+            'Id' => 'message-group-mapped-realtime',
+            'IdChat' => 'chat-group-mapped-sibling',
+            'IsiPesan' => 'Mapped group realtime message',
+            'PayloadJson' => json_encode(['chatId' => '120363999999999999@g.us'], JSON_THROW_ON_ERROR),
+        ]);
+
+        $component->call('handleInboxUpdate', 'chat-group-mapped-sibling');
+
+        $messages = collect($component->getData()['messages'] ?? []);
+
+        self::assertTrue($messages->contains('Id', 'message-group-1'));
+        self::assertTrue($messages->contains('Id', 'message-group-mapped-realtime'));
+    }
+
+    public function test_realtime_update_merges_messages_from_unmapped_group_siblings(): void
+    {
+        $groupJid = '120363888888888888@g.us';
+
+        DB::table('TChat')->insert([
+            'Id' => 'chat-group-unmapped-primary',
+            'IdStatusChat' => 'status-open',
+            'IdSesiWhatsapp' => 'session-1',
+            'JenisChat' => 'Grup',
+            'NomorWhatsapp' => $groupJid,
+            'IdWahaTerdeteksi' => $groupJid,
+            'NamaGrupWhatsapp' => 'Unmapped Group',
+            'JumlahPesanBelumDibaca' => 0,
+            'TglChatTerakhir' => now()->addMinutes(2),
+            'AutoReplyAiAktif' => false,
+            'AiSudahMenyapa' => false,
+            'DiambilOleh' => 'agent-existing',
+            'TglBuat' => now(),
+        ]);
+        $this->insertChatDetail([
+            'Id' => 'message-group-unmapped-primary',
+            'IdChat' => 'chat-group-unmapped-primary',
+            'IsiPesan' => 'First unmapped group message',
+            'PayloadJson' => json_encode(['chatId' => $groupJid], JSON_THROW_ON_ERROR),
+        ]);
+
+        $component = Livewire::actingAs($this->agent())->test(InboxWhatsapp::class);
+        $component->call('selectChat', 'chat-group-unmapped-primary');
+
+        DB::table('TChat')->insert([
+            'Id' => 'chat-group-unmapped-sibling',
+            'IdStatusChat' => 'status-open',
+            'IdSesiWhatsapp' => 'session-1',
+            'JenisChat' => 'Grup',
+            'NomorWhatsapp' => $groupJid,
+            'IdWahaTerdeteksi' => $groupJid,
+            'NamaGrupWhatsapp' => 'Unmapped Group',
+            'JumlahPesanBelumDibaca' => 1,
+            'TglChatTerakhir' => now()->addMinutes(3),
+            'AutoReplyAiAktif' => false,
+            'AiSudahMenyapa' => false,
+            'DiambilOleh' => 'agent-existing',
+            'TglBuat' => now(),
+        ]);
+        $this->insertChatDetail([
+            'Id' => 'message-group-unmapped-realtime',
+            'IdChat' => 'chat-group-unmapped-sibling',
+            'IsiPesan' => 'Unmapped group realtime message',
+            'PayloadJson' => json_encode(['chatId' => $groupJid], JSON_THROW_ON_ERROR),
+        ]);
+
+        $component->call('handleInboxUpdate', 'chat-group-unmapped-sibling');
+
+        $messages = collect($component->getData()['messages'] ?? []);
+
+        self::assertTrue($messages->contains('Id', 'message-group-unmapped-primary'));
+        self::assertTrue($messages->contains('Id', 'message-group-unmapped-realtime'));
+    }
+
     public function test_renders_localized_identity_controls_group_sender_and_media_download(): void
     {
         Livewire::actingAs($this->agent())
@@ -472,6 +566,8 @@ class InboxWhatsappTest extends TestCase
             $table->string('NomorWhatsapp');
             $table->string('NamaKontak')->nullable();
             $table->string('NamaGrupWhatsapp')->nullable();
+            $table->string('IdWahaTerdeteksi')->nullable();
+            $table->string('NomorWhatsappTerdeteksi')->nullable();
             $table->integer('JumlahPesanBelumDibaca')->default(0);
             $table->dateTime('TglChatTerakhir')->nullable();
             $table->boolean('AutoReplyAiAktif')->default(false);
