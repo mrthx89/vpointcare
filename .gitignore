@@ -30,7 +30,6 @@ desktop.ini
 *.sln.iml
 
 # Local agent/tooling
-/.codex/
 /.tools/
 .phpactor.json
 _ide_helper.php
