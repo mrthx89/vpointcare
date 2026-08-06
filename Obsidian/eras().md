@@ -1,0 +1,20 @@
+---
+source_file: "src/public/js/filament/widgets/components/chart.js"
+type: "code"
+community: "Chart Module"
+location: "L3"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Chart_Module
+---
+
+# eras()
+
+## Connections
+- [[Fm()_1]] - `calls` [EXTRACTED]
+- [[componentschart.js]] - `contains` [EXTRACTED]
+- [[extract()]] - `calls` [EXTRACTED]
+- [[lc()_3]] - `indirect_call` [INFERRED]
+
+#graphify/code #graphify/EXTRACTED #community/Chart_Module

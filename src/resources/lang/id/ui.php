@@ -841,6 +841,7 @@ return [
             'waha_send_failed' => 'WAHA gagal mengirim pesan.',
             'reply_sent' => 'Balasan terkirim ke WAHA.',
             'reply_failed' => 'Balasan gagal dikirim ke WAHA.',
+            'loading_more' => 'Memuat pesan lama...',
         ],
     ],
     'ai_learning' => [

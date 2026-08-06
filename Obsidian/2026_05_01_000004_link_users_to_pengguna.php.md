@@ -1,0 +1,18 @@
+---
+source_file: "src/database/migrations/2026_05_01_000004_link_users_to_pengguna.php"
+type: "code"
+community: "2026 05 01 000003 Add Foto Profil To Pengguna Module"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/2026_05_01_000003_Add_Foto_Profil_To_Pengguna_Module
+---
+
+# 2026_05_01_000004_link_users_to_pengguna.php
+
+## Connections
+- [[down()_13]] - `contains` [EXTRACTED]
+- [[up()_13]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/2026_05_01_000003_Add_Foto_Profil_To_Pengguna_Module

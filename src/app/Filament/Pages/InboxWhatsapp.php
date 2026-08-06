@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasMenuBreadcrumbs;
+use App\Filament\Concerns\ResolvesCatatanInternal;
 use App\Jobs\SyncWahaChatIdentityJob;
 use App\Models\Master\Pengguna;
 use App\Services\Ai\AiAutoReplyService;
@@ -26,6 +28,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -36,7 +39,9 @@ use Livewire\WithFileUploads;
 
 class InboxWhatsapp extends Page implements HasForms
 {
+    use HasMenuBreadcrumbs;
     use InteractsWithForms;
+    use ResolvesCatatanInternal;
     use WithFileUploads;
 
     public static function getNavigationIcon(): string|\BackedEnum|null
@@ -134,8 +139,67 @@ class InboxWhatsapp extends Page implements HasForms
 
     public string $startChatDeliveryMode = 'send';
 
+    /** Pagination properties untuk lazy loading messages */
+    public int $messageLimit = 50;
+
+    public int $messageOffset = 0;
+
+    public bool $allMessagesLoaded = false;
+
     /** Cache ID pengguna agar tidak query DB berulang kali per request. */
     private ?string $cachedPenggunaId = null;
+
+    /** Cache Schema::hasColumn untuk reduce metadata queries */
+    private static array $schemaCache = [];
+
+    /**
+     * Measure execution time of an operation and log performance metrics.
+     *
+     * @param  string  $operation  Operation name untuk logging
+     * @param  callable  $callback  Operation yang akan diukur
+     * @return mixed Result dari callback
+     */
+    private function measureTime(string $operation, callable $callback): mixed
+    {
+        $start = microtime(true);
+        $result = $callback();
+        $duration = (microtime(true) - $start) * 1000; // Convert to milliseconds
+
+        Log::debug('InboxWhatsApp timing', [
+            'operation' => $operation,
+            'chat_id' => $this->selectedChatId,
+            'duration_ms' => round($duration, 2),
+        ]);
+
+        if ($duration > 500) {
+            Log::warning('InboxWhatsApp slow operation', [
+                'operation' => $operation,
+                'chat_id' => $this->selectedChatId,
+                'duration_ms' => round($duration, 2),
+            ]);
+        }
+
+        // Laravel Debugbar integration (if enabled)
+        if (app()->bound('debugbar') && app('debugbar')->isEnabled()) {
+            app('debugbar')->addMeasure($operation, $start, microtime(true));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Cached Schema::hasColumn check to reduce metadata queries.
+     *
+     * @param  string  $table  Table name
+     * @param  string  $column  Column name
+     * @return bool True if column exists
+     */
+    private static function hasCol(string $table, string $column): bool
+    {
+        $key = "$table.$column";
+
+        return self::$schemaCache[$key] ??= Schema::hasColumn($table, $column);
+    }
 
     public function mount(): void
     {
@@ -381,14 +445,14 @@ class InboxWhatsapp extends Page implements HasForms
                 ->count(),
         ];
 
-        $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
-        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
-        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
+        $nomorHasIdWaha = self::hasCol('MNomorWhatsapp', 'IdWaha');
+        $chatDetailHasFileName = self::hasCol('TChatD', 'NamaFileMedia');
+        $chatDetailHasMimeType = self::hasCol('TChatD', 'TipeMime');
 
-        $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
-        $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
-        $hasWahaIdentitySnapshot = Schema::hasColumn('TChat', 'NamaKontakWaha');
-        $hasKnowledgeMode = Schema::hasColumn('TChat', 'ModeKnowledgeAi');
+        $hasDiambilOleh = self::hasCol('TChat', 'DiambilOleh');
+        $hasWahaProfileColumns = self::hasCol('TChat', 'UrlFotoProfil');
+        $hasWahaIdentitySnapshot = self::hasCol('TChat', 'NamaKontakWaha');
+        $hasKnowledgeMode = self::hasCol('TChat', 'ModeKnowledgeAi');
 
         $query = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
@@ -418,7 +482,7 @@ class InboxWhatsapp extends Page implements HasForms
                 'c.AiSudahMenyapa',
                 'c.TglAutoReplyAiTerakhir',
                 $hasKnowledgeMode ? 'c.ModeKnowledgeAi' : DB::raw("'Ringan' as ModeKnowledgeAi"),
-                Schema::hasColumn('TChat', 'BatasKnowledgeAi') ? 'c.BatasKnowledgeAi' : DB::raw('NULL as BatasKnowledgeAi'),
+                self::hasCol('TChat', 'BatasKnowledgeAi') ? 'c.BatasKnowledgeAi' : DB::raw('NULL as BatasKnowledgeAi'),
                 $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
                 'i.NamaInstansi',
                 'gi.NamaInstansi as NamaInstansiGrup',
@@ -700,22 +764,73 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function selectChat(string $chatId): void
     {
-        $this->selectedChatId = $chatId;
-        $this->selectedChat = collect($this->chatRows)->firstWhere('Id', $chatId)
-            ?? $this->loadChatHeader($chatId);
-        $this->selectedChat = $this->loadChatHeader($chatId) ?? $this->selectedChat;
-        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
-        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
-        $chatDetailHasSenderWahaId = Schema::hasColumn('TChatD', 'PengirimIdWaha');
-        $chatDetailHasSenderProfile = Schema::hasColumn('TChatD', 'UrlFotoProfilPengirim');
+        $this->measureTime('selectChat.total', function () use ($chatId) {
+            $this->selectedChatId = $chatId;
+            $this->selectedChat = collect($this->chatRows)->firstWhere('Id', $chatId)
+                ?? $this->loadChatHeader($chatId);
+            $this->selectedChat = $this->loadChatHeader($chatId) ?? $this->selectedChat;
+            
+            // Reset pagination state untuk chat baru
+            $this->messageOffset = 0;
+            $this->allMessagesLoaded = false;
+            
+            $this->loadChatMessages($chatId);
+            
+            $this->measureTime('selectChat.loadHistory', fn () => $this->loadHistoryChats());
+            $this->measureTime('selectChat.loadNotes', fn () => $this->loadInternalNotes());
 
-        $penggunaHasFotoProfil = Schema::hasColumn('MPengguna', 'FotoProfilPath');
+            // Auto-claim chat jika belum ada yang menangani
+            if (self::hasCol('TChat', 'DiambilOleh')) {
+                $current = DB::table('TChat')->where('Id', $chatId)->value('DiambilOleh');
+                if (! $current) {
+                    $myId = $this->currentPenggunaId();
+                    if ($myId) {
+                        DB::table('TChat')->where('Id', $chatId)->update([
+                            'DiambilOleh' => $myId,
+                            'TglDiambil' => now(),
+                            'TglEdit' => now(),
+                        ]);
+                    }
+                }
+            }
+        });
+    }
 
-        $this->messages = DB::table('TChatD as d')
+    /**
+     * Load more older messages untuk infinite scroll pagination.
+     * Dipanggil oleh frontend Alpine.js ketika user scroll ke atas.
+     */
+    public function loadMoreMessages(): void
+    {
+        // Early return jika sudah load semua atau tidak ada chat terpilih
+        if ($this->allMessagesLoaded || ! $this->selectedChatId) {
+            return;
+        }
+
+        // Increment offset untuk load older messages
+        $this->messageOffset += $this->messageLimit;
+
+        // Load messages dengan append mode
+        $this->loadChatMessages($this->selectedChatId, append: true);
+    }
+
+    private function loadChatMessages(string $chatId, bool $append = false): void
+    {
+        $this->measureTime('selectChat.loadMessages', function () use ($chatId, $append) {
+            $chatDetailHasFileName = self::hasCol('TChatD', 'NamaFileMedia');
+            $chatDetailHasMimeType = self::hasCol('TChatD', 'TipeMime');
+            $chatDetailHasSenderWahaId = self::hasCol('TChatD', 'PengirimIdWaha');
+            $chatDetailHasSenderProfile = self::hasCol('TChatD', 'UrlFotoProfilPengirim');
+
+            $penggunaHasFotoProfil = self::hasCol('MPengguna', 'FotoProfilPath');
+
+            // Query dengan pagination: ambil terbaru dulu (DESC), lalu reverse
+            $messages = DB::table('TChatD as d')
             ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
             ->where('d.IdChat', $chatId)
-            ->orderBy('d.TglPesan')
-            ->limit(200)
+            ->orderByDesc('d.TglPesan') // DESC untuk ambil terbaru
+            ->offset($this->messageOffset)
+            ->limit($this->messageLimit)
             ->select(
                 'd.Id',
                 'd.ArahPesan',
@@ -738,80 +853,79 @@ class InboxWhatsapp extends Page implements HasForms
                 'p.NamaPengguna as NamaPembalas',
                 $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as FotoProfilPembalasPath')
             )
-            ->get()
-            ->map(function (object $row): array {
-                $media = blank($row->UrlMedia) || blank($row->TipeMime) || blank($row->NamaFileMedia)
-                    ? WahaMediaPayload::inspectPayload(
-                        $row->PayloadJson,
+            ->get();
+
+            // Set flag jika semua messages sudah di-load
+            if ($messages->count() < $this->messageLimit) {
+                $this->allMessagesLoaded = true;
+            }
+
+            // Reverse untuk urutan chronological (oldest first)
+            $formatted = $messages->reverse()
+                ->map(function (object $row): array {
+                    $media = blank($row->UrlMedia) || blank($row->TipeMime) || blank($row->NamaFileMedia)
+                        ? WahaMediaPayload::inspectPayload(
+                            $row->PayloadJson,
+                            $row->TipeMime,
+                            $row->NamaFileMedia,
+                            $row->JenisPesan,
+                        )
+                        : null;
+                    $media ??= WahaMediaPayload::inspectPayload(
+                        $this->base64TextPayload($row->IsiPesan, $row->TipeMime, $row->NamaFileMedia, $row->JenisPesan),
                         $row->TipeMime,
                         $row->NamaFileMedia,
                         $row->JenisPesan,
-                    )
-                    : null;
-                $media ??= WahaMediaPayload::inspectPayload(
-                    $this->base64TextPayload($row->IsiPesan, $row->TipeMime, $row->NamaFileMedia, $row->JenisPesan),
-                    $row->TipeMime,
-                    $row->NamaFileMedia,
-                    $row->JenisPesan,
-                );
-                $hasMedia = filled($row->UrlMedia) || $media !== null;
-                $mediaRoute = $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id]) : null;
-                $mediaCategory = $this->mediaPresentationCategory(
-                    $row->JenisPesan,
-                    $row->TipeMime,
-                    filled($row->UrlMedia),
-                    $media,
-                );
-                $isBase64Text = $this->isBase64MediaText($row->IsiPesan, $row->JenisPesan, $row->TipeMime, $row->NamaFileMedia);
-                $hasBase64Payload = $this->hasBase64MediaCandidate($row->PayloadJson, $row->JenisPesan);
-                $showTextBody = ! ($hasMedia && $isBase64Text);
+                    );
+                    $hasMedia = filled($row->UrlMedia) || $media !== null;
+                    $mediaRoute = $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id]) : null;
+                    $mediaCategory = $this->mediaPresentationCategory(
+                        $row->JenisPesan,
+                        $row->TipeMime,
+                        filled($row->UrlMedia),
+                        $media,
+                    );
+                    $isBase64Text = $this->isBase64MediaText($row->IsiPesan, $row->JenisPesan, $row->TipeMime, $row->NamaFileMedia);
+                    $hasBase64Payload = $this->hasBase64MediaCandidate($row->PayloadJson, $row->JenisPesan);
+                    $showTextBody = ! ($hasMedia && $isBase64Text);
 
-                return [
-                    'Id' => $row->Id,
-                    'ArahPesan' => $row->ArahPesan,
-                    'JenisPesan' => $row->JenisPesan,
-                    'IsiPesan' => $isBase64Text ? null : $row->IsiPesan,
-                    'UrlMedia' => $this->safeStateUrlMedia($row->UrlMedia),
-                    'NamaFileMedia' => $row->NamaFileMedia,
-                    'TipeMime' => $row->TipeMime,
-                    'MediaCategory' => $mediaCategory,
-                    'MediaLabel' => $media['file_name'] ?? $this->mediaLabel($row->JenisPesan, $row->TipeMime, $row->NamaFileMedia),
-                    'MediaUrl' => $mediaRoute,
-                    'MediaDownloadUrl' => $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id, 'download' => 1]) : null,
-                    'ShowTextBody' => $showTextBody,
-                    'Base64Fallback' => ! $hasMedia && ($isBase64Text || $hasBase64Payload),
-                    'PengirimNomorWhatsapp' => $row->PengirimNomorWhatsapp,
-                    'PengirimNamaKontak' => $row->PengirimNamaKontak,
-                    'TglPesan' => $row->TglPesan,
-                    'StatusKirim' => $row->StatusKirim,
-                    'PesanError' => $this->safeMessageError($row->PesanError),
-                    'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
-                    'NamaPembalas' => $row->NamaPembalas,
-                    'FotoProfilPembalasUrl' => $this->profileUrlFromPath($row->FotoProfilPembalasPath),
-                    'SenderName' => $this->messageSenderName($row),
-                    'SenderNumber' => $this->messageSenderNumber($row),
-                    'SenderAvatarUrl' => $this->messageSenderAvatarUrl($row),
-                ];
-            })
-            ->all();
+                    return [
+                        'Id' => $row->Id,
+                        'ArahPesan' => $row->ArahPesan,
+                        'JenisPesan' => $row->JenisPesan,
+                        'IsiPesan' => $isBase64Text ? null : $row->IsiPesan,
+                        'UrlMedia' => $this->safeStateUrlMedia($row->UrlMedia),
+                        'NamaFileMedia' => $row->NamaFileMedia,
+                        'TipeMime' => $row->TipeMime,
+                        'MediaCategory' => $mediaCategory,
+                        'MediaLabel' => $media['file_name'] ?? $this->mediaLabel($row->JenisPesan, $row->TipeMime, $row->NamaFileMedia),
+                        'MediaUrl' => $mediaRoute,
+                        'MediaDownloadUrl' => $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id, 'download' => 1]) : null,
+                        'ShowTextBody' => $showTextBody,
+                        'Base64Fallback' => ! $hasMedia && ($isBase64Text || $hasBase64Payload),
+                        'PengirimNomorWhatsapp' => $row->PengirimNomorWhatsapp,
+                        'PengirimNamaKontak' => $row->PengirimNamaKontak,
+                        'TglPesan' => $row->TglPesan,
+                        'StatusKirim' => $row->StatusKirim,
+                        'PesanError' => $this->safeMessageError($row->PesanError),
+                        'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
+                        'NamaPembalas' => $row->NamaPembalas,
+                        'FotoProfilPembalasUrl' => $this->profileUrlFromPath($row->FotoProfilPembalasPath),
+                        'SenderName' => $this->messageSenderName($row),
+                        'SenderNumber' => $this->messageSenderNumber($row),
+                        'SenderAvatarUrl' => $this->messageSenderAvatarUrl($row),
+                    ];
+                })
+                ->all();
 
-        $this->loadHistoryChats();
-        $this->loadInternalNotes();
-
-        // Auto-claim chat jika belum ada yang menangani
-        if (Schema::hasColumn('TChat', 'DiambilOleh')) {
-            $current = DB::table('TChat')->where('Id', $chatId)->value('DiambilOleh');
-            if (! $current) {
-                $myId = $this->currentPenggunaId();
-                if ($myId) {
-                    DB::table('TChat')->where('Id', $chatId)->update([
-                        'DiambilOleh' => $myId,
-                        'TglDiambil' => now(),
-                        'TglEdit' => now(),
-                    ]);
-                }
+            // Append atau replace messages
+            if ($append) {
+                // Prepend old messages (karena load older messages)
+                $this->messages = array_merge($formatted, $this->messages);
+            } else {
+                $this->messages = $formatted;
             }
-        }
+        });
     }
 
     public function toggleAutoReplyAi(): void
@@ -869,7 +983,7 @@ class InboxWhatsapp extends Page implements HasForms
     {
         abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
 
-        if (! $this->selectedChatId || ! Schema::hasColumn('TChat', 'ModeKnowledgeAi')) {
+        if (! $this->selectedChatId || ! self::hasCol('TChat', 'ModeKnowledgeAi')) {
             return;
         }
 
@@ -921,7 +1035,7 @@ class InboxWhatsapp extends Page implements HasForms
             'TglEdit' => now(),
         ];
 
-        if (Schema::hasColumn('TChat', 'DitutupOleh')) {
+        if (self::hasCol('TChat', 'DitutupOleh')) {
             $updateData['DitutupOleh'] = $this->currentPenggunaId();
             $updateData['TglDitutup'] = now();
         }
@@ -1013,7 +1127,7 @@ class InboxWhatsapp extends Page implements HasForms
             return;
         }
 
-        if (! Schema::hasColumn('TChat', 'NamaKontakWaha')) {
+        if (! self::hasCol('TChat', 'NamaKontakWaha')) {
             Notification::make()
                 ->title(__('ui.pages.inbox.waha_identity_snapshot_column_missing'))
                 ->warning()
@@ -1225,11 +1339,11 @@ class InboxWhatsapp extends Page implements HasForms
             'UrlMedia' => $url,
         ];
 
-        if (Schema::hasColumn('TChatD', 'NamaFileMedia')) {
+        if (self::hasCol('TChatD', 'NamaFileMedia')) {
             $message['NamaFileMedia'] = $fileName;
         }
 
-        if (Schema::hasColumn('TChatD', 'TipeMime')) {
+        if (self::hasCol('TChatD', 'TipeMime')) {
             $message['TipeMime'] = $mimeType;
         }
 
@@ -1311,11 +1425,11 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function loadChatHeader(string $chatId): ?array
     {
-        $nomorHasIdWaha = Schema::hasColumn('MNomorWhatsapp', 'IdWaha');
-        $hasWahaProfileColumns = Schema::hasColumn('TChat', 'UrlFotoProfil');
-        $hasKnowledgeMode = Schema::hasColumn('TChat', 'ModeKnowledgeAi');
-        $hasDiambilOleh = Schema::hasColumn('TChat', 'DiambilOleh');
-        $hasWahaIdentitySnapshot = Schema::hasColumn('TChat', 'NamaKontakWaha');
+        $nomorHasIdWaha = self::hasCol('MNomorWhatsapp', 'IdWaha');
+        $hasWahaProfileColumns = self::hasCol('TChat', 'UrlFotoProfil');
+        $hasKnowledgeMode = self::hasCol('TChat', 'ModeKnowledgeAi');
+        $hasDiambilOleh = self::hasCol('TChat', 'DiambilOleh');
+        $hasWahaIdentitySnapshot = self::hasCol('TChat', 'NamaKontakWaha');
 
         $row = DB::table('TChat as c')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
@@ -1359,7 +1473,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function refreshWahaProfileIfNeeded(string $chatId): void
     {
-        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
+        if (! self::hasCol('TChat', 'UrlFotoProfil')) {
             return;
         }
 
@@ -1401,7 +1515,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function refreshWahaProfile(string $chatId, bool $forceRefresh): bool
     {
-        if (! Schema::hasColumn('TChat', 'UrlFotoProfil')) {
+        if (! self::hasCol('TChat', 'UrlFotoProfil')) {
             return false;
         }
 
@@ -1851,7 +1965,7 @@ class InboxWhatsapp extends Page implements HasForms
             }
         }
 
-        if (! Schema::hasColumn('MNomorWhatsapp', 'IdWaha')) {
+        if (! self::hasCol('MNomorWhatsapp', 'IdWaha')) {
             return null;
         }
 

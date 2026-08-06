@@ -1,0 +1,2165 @@
+{
+  "nodes": [
+    {
+      "id": "src_app_jobs_processwebhookjob",
+      "label": "ProcessWebhookJob.php",
+      "file_type": "code",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "label": "ProcessWebhookJob",
+      "file_type": "code",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_jobs_processwebhookjob_processwebhookjob_construct",
+      "label": ".__construct()",
+      "file_type": "code",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L23",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_jobs_processwebhookjob_processwebhookjob_handle",
+      "label": ".handle()",
+      "file_type": "code",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L28",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_jobs_processwebhookjob_processwebhookjob_failed",
+      "label": ".failed()",
+      "file_type": "code",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L43",
+      "_origin": "ast"
+    },
+    {
+      "id": "throwable",
+      "label": "Throwable",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender",
+      "label": "WahaSender.php",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender",
+      "label": "WahaSender",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_sendtext",
+      "label": ".sendText()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L27",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_sendmedia",
+      "label": ".sendMedia()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L41",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_getcontactprofilepictureurl",
+      "label": ".getContactProfilePictureUrl()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L81",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_getphonenumberbylid",
+      "label": ".getPhoneNumberByLid()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L106",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "label": ".getContactInfo()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L142",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_getgroupinfo",
+      "label": ".getGroupInfo()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L195",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_postjson",
+      "label": ".postJson()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L225",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_getjson",
+      "label": ".getJson()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L300",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_firstphonecontactid",
+      "label": ".firstPhoneContactId()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L371",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_responsepayload",
+      "label": ".responsePayload()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L404",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_metadatatext",
+      "label": ".metadataText()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L412",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_metadataphone",
+      "label": ".metadataPhone()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L439",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_limitsqlservertext",
+      "label": ".limitSqlServerText()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L444",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_redactsensitivevalues",
+      "label": ".redactSensitiveValues()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L473",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_sanitizelogresponse",
+      "label": ".sanitizeLogResponse()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L482",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_sanitizelogerror",
+      "label": ".sanitizeLogError()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L491",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_encodewahapathid",
+      "label": ".encodeWahaPathId()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L499",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_iscircuitopen",
+      "label": ".isCircuitOpen()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L504",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_markcircuitbreakerlog",
+      "label": ".markCircuitBreakerLog()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L521",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_recordcircuitresult",
+      "label": ".recordCircuitResult()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L531",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_recordwahasuccess",
+      "label": ".recordWahaSuccess()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L542",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_services_waha_wahasender_wahasender_recordwahafailure",
+      "label": ".recordWahaFailure()",
+      "file_type": "code",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L552",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload",
+      "label": "WahaMediaPayload.php",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload",
+      "label": "WahaMediaPayload",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_inspectpayload",
+      "label": ".inspectPayload()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_frompayloadjson",
+      "label": ".fromPayloadJson()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L38",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_fromdatauri",
+      "label": ".fromDataUri()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L109",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_frombinary",
+      "label": ".fromBinary()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L146",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_canpreviewinline",
+      "label": ".canPreviewInline()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L173",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_payload",
+      "label": ".payload()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L191",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_candidate",
+      "label": ".candidate()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L206",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_metadata",
+      "label": ".metadata()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L231",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_hasmediacontext",
+      "label": ".hasMediaContext()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L247",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_datauri",
+      "label": ".dataUri()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L261",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_normalizemime",
+      "label": ".normalizeMime()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L274",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_mimefromfilename",
+      "label": ".mimeFromFilename()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L285",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_mimefromcontents",
+      "label": ".mimeFromContents()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L296",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_filename",
+      "label": ".fileName()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L313",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_category",
+      "label": ".category()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L342",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_firstnonempty",
+      "label": ".firstNonEmpty()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L357",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_support_wahamediapayload_wahamediapayload_messagetype",
+      "label": ".messageType()",
+      "file_type": "code",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L368",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest",
+      "label": "WahaMediaPayloadTest.php",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "label": "WahaMediaPayloadTest",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_inspects_nested_media_without_exposing_base64",
+      "label": ".test_inspects_nested_media_without_exposing_base64()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_supported_root_base64_with_media_context",
+      "label": ".test_decodes_supported_root_base64_with_media_context()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_inspects_each_explicit_candidate_key",
+      "label": ".test_inspects_each_explicit_candidate_key()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L64",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_explicitcandidateprovider",
+      "label": ".explicitCandidateProvider()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L90",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_accepts_raw_root_candidates_only_with_media_context",
+      "label": ".test_accepts_raw_root_candidates_only_with_media_context()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L110",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_rawrootcandidateprovider",
+      "label": ".rawRootCandidateProvider()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L149",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_rejects_plain_text_invalid_json_malformed_base64_and_empty_decode",
+      "label": ".test_rejects_plain_text_invalid_json_malformed_base64_and_empty_decode()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L174",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_payload_data_uri_with_payload_metadata",
+      "label": ".test_decodes_payload_data_uri_with_payload_metadata()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L194",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_payload_data_uri_without_mime_using_payload_metadata",
+      "label": ".test_decodes_payload_data_uri_without_mime_using_payload_metadata()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L212",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_base64_data_uri",
+      "label": ".test_decodes_base64_data_uri()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L231",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_non_base64_data_uri",
+      "label": ".test_decodes_non_base64_data_uri()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L245",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_declared_mime_wins_and_is_normalized",
+      "label": ".test_declared_mime_wins_and_is_normalized()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L253",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_mime_uses_filename_then_signature_when_metadata_is_invalid",
+      "label": ".test_mime_uses_filename_then_signature_when_metadata_is_invalid()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L271",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_webp_sticker_and_voice_note_are_categorized_with_safe_defaults",
+      "label": ".test_webp_sticker_and_voice_note_are_categorized_with_safe_defaults()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L286",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_unknown_binary_uses_safe_fallback_filename",
+      "label": ".test_unknown_binary_uses_safe_fallback_filename()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L308",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_filename_is_safe_for_content_disposition_and_preserves_unicode",
+      "label": ".test_filename_is_safe_for_content_disposition_and_preserves_unicode()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L318",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_long_filename_without_extension_reserves_space_for_mime_extension",
+      "label": ".test_long_filename_without_extension_reserves_space_for_mime_extension()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L333",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_active_and_unknown_content_is_not_inline",
+      "label": ".test_active_and_unknown_content_is_not_inline()",
+      "file_type": "code",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L345",
+      "_origin": "ast"
+    },
+    {
+      "id": "app_services_waha_wahawebhookprocessor",
+      "label": "App\\Services\\Waha\\WahaWebhookProcessor",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "illuminate_bus_queueable",
+      "label": "Illuminate\\Bus\\Queueable",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "illuminate_contracts_queue_shouldqueue",
+      "label": "Illuminate\\Contracts\\Queue\\ShouldQueue",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "illuminate_foundation_bus_dispatchable",
+      "label": "Illuminate\\Foundation\\Bus\\Dispatchable",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "illuminate_queue_interactswithqueue",
+      "label": "Illuminate\\Queue\\InteractsWithQueue",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "illuminate_queue_serializesmodels",
+      "label": "Illuminate\\Queue\\SerializesModels",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "illuminate_support_carbon",
+      "label": "Illuminate\\Support\\Carbon",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    },
+    {
+      "id": "phpunit_framework_testcase",
+      "label": "PHPUnit\\Framework\\TestCase",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast"
+    }
+  ],
+  "edges": [
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "app_services_waha_wahawebhookprocessor",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "illuminate_bus_queueable",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "illuminate_contracts_queue_shouldqueue",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "illuminate_foundation_bus_dispatchable",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "illuminate_queue_interactswithqueue",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "illuminate_queue_serializesmodels",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "log",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "throwable",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob",
+      "target": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "illuminate_contracts_queue_shouldqueue",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "illuminate_foundation_bus_dispatchable",
+      "relation": "mixes_in",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "illuminate_queue_interactswithqueue",
+      "relation": "mixes_in",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "illuminate_bus_queueable",
+      "relation": "mixes_in",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "illuminate_queue_serializesmodels",
+      "relation": "mixes_in",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "src_app_jobs_processwebhookjob_processwebhookjob_construct",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "src_app_jobs_processwebhookjob_processwebhookjob_handle",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob_handle",
+      "target": "app_services_waha_wahawebhookprocessor",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob",
+      "target": "src_app_jobs_processwebhookjob_processwebhookjob_failed",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_jobs_processwebhookjob_processwebhookjob_failed",
+      "target": "throwable",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Jobs/ProcessWebhookJob.php",
+      "source_location": "L43",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "wahachathelper",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "arr",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "illuminate_support_carbon",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "db",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "http",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "log",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "str",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "throwable",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "illuminate_support_carbon",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L18",
+      "weight": 1.0,
+      "context": "field",
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_sendtext",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_sendmedia",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_getcontactprofilepictureurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_getphonenumberbylid",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L106",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L142",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_getgroupinfo",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L195",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_postjson",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L225",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_getjson",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L300",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_firstphonecontactid",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L371",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_responsepayload",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L404",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_metadatatext",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L412",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_metadataphone",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L439",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_limitsqlservertext",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L444",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_redactsensitivevalues",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L473",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_sanitizelogresponse",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L482",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_sanitizelogerror",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L491",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_encodewahapathid",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L499",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_iscircuitopen",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L504",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_markcircuitbreakerlog",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L521",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_recordcircuitresult",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L531",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_recordwahasuccess",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L542",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender",
+      "target": "src_app_services_waha_wahasender_wahasender_recordwahafailure",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L552",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_sendtext",
+      "target": "src_app_services_waha_wahasender_wahasender_postjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_sendmedia",
+      "target": "src_app_services_waha_wahasender_wahasender_postjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactprofilepictureurl",
+      "target": "src_app_services_waha_wahasender_wahasender_getjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L83",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getphonenumberbylid",
+      "target": "src_app_services_waha_wahasender_wahasender_getjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getphonenumberbylid",
+      "target": "src_app_services_waha_wahasender_wahasender_encodewahapathid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getphonenumberbylid",
+      "target": "src_app_services_waha_wahasender_wahasender_firstphonecontactid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L127",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_getjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_encodewahapathid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_responsepayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L159",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_metadatatext",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L160",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_metadataphone",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L162",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getcontactinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_getphonenumberbylid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L165",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getgroupinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_getjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L198",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getgroupinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_encodewahapathid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L198",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getgroupinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_metadatatext",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L210",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getgroupinfo",
+      "target": "src_app_services_waha_wahasender_wahasender_responsepayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L210",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_redactsensitivevalues",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L234",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_iscircuitopen",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L241",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_markcircuitbreakerlog",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L242",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_recordcircuitresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L258",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_sanitizelogerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L261",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_sanitizelogresponse",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L264",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_postjson",
+      "target": "src_app_services_waha_wahasender_wahasender_recordwahafailure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L279",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_redactsensitivevalues",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L309",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_iscircuitopen",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L316",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_markcircuitbreakerlog",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L317",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_recordcircuitresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L333",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_sanitizelogerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L336",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_sanitizelogresponse",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L339",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_getjson",
+      "target": "src_app_services_waha_wahasender_wahasender_recordwahafailure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L354",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_metadatatext",
+      "target": "src_app_services_waha_wahasender_wahasender_limitsqlservertext",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L430",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_metadataphone",
+      "target": "src_app_services_waha_wahasender_wahasender_firstphonecontactid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L441",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_sanitizelogerror",
+      "target": "src_app_services_waha_wahasender_wahasender_redactsensitivevalues",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L494",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_recordcircuitresult",
+      "target": "src_app_services_waha_wahasender_wahasender_recordwahasuccess",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L534",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_services_waha_wahasender_wahasender_recordcircuitresult",
+      "target": "src_app_services_waha_wahasender_wahasender_recordwahafailure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Services/Waha/WahaSender.php",
+      "source_location": "L539",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload",
+      "target": "arr",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload",
+      "target": "mimetypes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_inspectpayload",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_frompayloadjson",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L38",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_fromdatauri",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L109",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_frombinary",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L146",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_canpreviewinline",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L173",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_payload",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L191",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_candidate",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L206",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_metadata",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L231",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_hasmediacontext",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L247",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_datauri",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L261",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_normalizemime",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L274",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_mimefromfilename",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L285",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_mimefromcontents",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L296",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_filename",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L313",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_category",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L342",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_firstnonempty",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L357",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_app_support_wahamediapayload_wahamediapayload",
+      "target": "src_app_support_wahamediapayload_wahamediapayload_messagetype",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/Support/WahaMediaPayload.php",
+      "source_location": "L368",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest",
+      "target": "wahamediapayload",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest",
+      "target": "dataprovider",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest",
+      "target": "phpunit_framework_testcase",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "phpunit_framework_testcase",
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_inspects_nested_media_without_exposing_base64",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_supported_root_base64_with_media_context",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_inspects_each_explicit_candidate_key",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_explicitcandidateprovider",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L90",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_accepts_raw_root_candidates_only_with_media_context",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L110",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_rawrootcandidateprovider",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L149",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_rejects_plain_text_invalid_json_malformed_base64_and_empty_decode",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L174",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_payload_data_uri_with_payload_metadata",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L194",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_payload_data_uri_without_mime_using_payload_metadata",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L212",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_base64_data_uri",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L231",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_non_base64_data_uri",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L245",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_declared_mime_wins_and_is_normalized",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L253",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_mime_uses_filename_then_signature_when_metadata_is_invalid",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L271",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_webp_sticker_and_voice_note_are_categorized_with_safe_defaults",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L286",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_unknown_binary_uses_safe_fallback_filename",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L308",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_filename_is_safe_for_content_disposition_and_preserves_unicode",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L318",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_long_filename_without_extension_reserves_space_for_mime_extension",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L333",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest",
+      "target": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_active_and_unknown_content_is_not_inline",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L345",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_inspects_nested_media_without_exposing_base64",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_supported_root_base64_with_media_context",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L53",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_inspects_each_explicit_candidate_key",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L67",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_accepts_raw_root_candidates_only_with_media_context",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L120",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_rejects_plain_text_invalid_json_malformed_base64_and_empty_decode",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L187",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_payload_data_uri_with_payload_metadata",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L204",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_payload_data_uri_without_mime_using_payload_metadata",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L222",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_base64_data_uri",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L233",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_decodes_non_base64_data_uri",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L247",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_declared_mime_wins_and_is_normalized",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L255",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_mime_uses_filename_then_signature_when_metadata_is_invalid",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L273",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_webp_sticker_and_voice_note_are_categorized_with_safe_defaults",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L288",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_unknown_binary_uses_safe_fallback_filename",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L310",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_filename_is_safe_for_content_disposition_and_preserves_unicode",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L320",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_long_filename_without_extension_reserves_space_for_mime_extension",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L335",
+      "weight": 1.0,
+      "_origin": "ast"
+    },
+    {
+      "source": "src_tests_unit_support_wahamediapayloadtest_wahamediapayloadtest_test_active_and_unknown_content_is_not_inline",
+      "target": "src_app_support_wahamediapayload_wahamediapayload",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/tests/Unit/Support/WahaMediaPayloadTest.php",
+      "source_location": "L347",
+      "weight": 1.0,
+      "_origin": "ast"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

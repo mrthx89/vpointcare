@@ -1,0 +1,309 @@
+---
+type: community
+cohesion: 0.01
+members: 254
+---
+
+# Chart Module
+
+**Cohesion:** 0.01 - loosely connected
+**Members:** 254 nodes
+
+## Members
+- [[$o()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ac()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ba()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Bh()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_FULL()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_FULL_WITH_SECONDS()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_HUGE()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_HUGE_WITH_SECONDS()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_MED()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_MED_WITH_SECONDS()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_MED_WITH_WEEKDAY()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_SHORT()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATETIME_SHORT_WITH_SECONDS()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATE_FULL()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATE_HUGE()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATE_MED()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATE_MED_WITH_WEEKDAY()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[DATE_SHORT()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Dr()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Fc()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ha()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ih()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ji()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ko()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Nt()_5]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Oi()_5]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Sl()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_24_SIMPLE()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_24_WITH_LONG_OFFSET()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_24_WITH_SECONDS()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_24_WITH_SHORT_OFFSET()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_SIMPLE()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_WITH_LONG_OFFSET()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_WITH_SECONDS()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[TIME_WITH_SHORT_OFFSET()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Tn()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Uc()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Ve()_6]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Wh()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Wo()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Xn()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Xo()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Yc()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Zs()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[Symbol.for(nodejs.util.inspect.custom)()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_d()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_each()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_exec()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_getRegistryForType()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_getUniformDataChanges()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_l()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_onDataPop()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_onDataPush()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_onDataShift()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_onDataSplice()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_onDataUnshift()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_sync()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[_updateHiddenIndices()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[abutsEnd()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[addControllers()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[addElements()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[addPlugins()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[addScales()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[af()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[afterEvent()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[afterInit()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ai()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[bd()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[beforeDatasetDraw()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[beforeLayout()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[bn()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[boolean()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[br()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[buildFormatParser()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[callback()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[clearer()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[co()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[color()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[componentschart.js]] - code - src/public/js/filament/widgets/components/chart.js
+- [[darken()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[day()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[days()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[daysInMonth()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[defaultLocale()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[defaultNumberingSystem()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[defaultOutputCalendar()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[desaturate()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[di()_6]] - code - src/public/js/filament/widgets/components/chart.js
+- [[du()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[easeInBack()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[easeInOutBack()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[easeInOutElastic()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[easeOutBack()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[easeOutBounce()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ed()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ei()_6]] - code - src/public/js/filament/widgets/components/chart.js
+- [[end()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[engulfs()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[fastNumbers()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[first()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[fn()_7]] - code - src/public/js/filament/widgets/components/chart.js
+- [[fromSeconds()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getController()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getDataElement()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getElement()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getMaximumSize()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getPlugin()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getPointLabelPosition()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getPossibleOffsets()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getScale()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[getTicks()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[gn()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[hexString()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[hg()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[hi()_5]] - code - src/public/js/filament/widgets/components/chart.js
+- [[hour()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[hours()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[hr()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ia()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[inXRange()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[inYRange()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[interpolate()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[invalidExplanation()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[invalidReason()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[is()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isAfter()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isAttached()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isBefore()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isDateTime()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isEnglish()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isForType()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isFullSize()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isInDST()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isInLeapYear()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isInterval()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isOffsetFixed()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isPluginEnabled()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isUniversal()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isValid()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[isWeekend()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[jd()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[jl()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[kd()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[kg()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[labelTextColor()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[last()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[lastDateTime()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[lf()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[lighten()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[listFormatter()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[listingMode()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[local()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[locale()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[logarithmic()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[mf()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[millisecond()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[milliseconds()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[minute()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[minutes()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[mix()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[month()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[monthLong()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[monthShort()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[mr()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[normalizeZone()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ns()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[number()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[numberFormatter()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[numberingSystem()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[oa()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[offsetNameLong()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[offsetNameShort()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[oh()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[opaquer()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[options()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ordinal()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[outputCalendar()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[parseFormatForOpts()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[passive()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[path()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[pathSegment()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[pd()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[platform()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[plugins()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[points()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[pr()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[qi()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[quarter()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[quarters()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[registry()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[relFormatter()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[remove()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[removeControllers()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[removePlugins()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[removeScales()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[resetCache()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[resetCaches()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[rgb()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[rgbString()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[rh()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[rs()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ru()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[running()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[saturate()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[second()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[seconds()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[segments()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[throwOnInvalid()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ti()_6]] - code - src/public/js/filament/widgets/components/chart.js
+- [[title()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toBase64Image()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toISO()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toISODate()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toISOTime()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toISOWeekDate()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toJSON()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toRFC2822()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toSQL()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toSQLDate()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toSQLTime()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toSeconds()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toString()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[toUnixInteger()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ts()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[twoDigitCutoffYear()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[type()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ua()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[ue()_7]] - code - src/public/js/filament/widgets/components/chart.js
+- [[updateConfig()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[utc()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[utcInstance()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[valid()_1]] - code - src/public/js/filament/widgets/components/chart.js
+- [[vd()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[vi()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[vn()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[vr()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[wd()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weekNumber()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weekYear()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weekday()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weekdayLong()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weekdayShort()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weeks()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weeksInLocalWeekYear()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[weeksInWeekYear()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[xd()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[xg()_2]] - code - src/public/js/filament/widgets/components/chart.js
+- [[yd()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[year()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[years()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[yr()_4]] - code - src/public/js/filament/widgets/components/chart.js
+- [[za()_3]] - code - src/public/js/filament/widgets/components/chart.js
+- [[zone()]] - code - src/public/js/filament/widgets/components/chart.js
+- [[zoneName()]] - code - src/public/js/filament/widgets/components/chart.js
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/Chart_Module
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 101 edges to [[_COMMUNITY_Markdown Editor Module]]
+- 94 edges to [[_COMMUNITY_Hak Akses Resource Module]]
+- 94 edges to [[_COMMUNITY_Chart Module_4]]
+- 90 edges to [[_COMMUNITY_Date Range Component Module]]
+- 67 edges to [[_COMMUNITY_Chart Module_7]]
+- 56 edges to [[_COMMUNITY_File Upload Module]]
+- 56 edges to [[_COMMUNITY_Chart Module_11]]
+- 50 edges to [[_COMMUNITY_Rich Editor Module_4]]
+- 49 edges to [[_COMMUNITY_Markdown Editor Module_4]]
+- 46 edges to [[_COMMUNITY_Chart Module_16]]
+- 44 edges to [[_COMMUNITY_Code Editor Module_8]]
+- 32 edges to [[_COMMUNITY_Chart Module_21]]
+- 10 edges to [[_COMMUNITY_Rich Editor Module]]
+- 2 edges to [[_COMMUNITY_Code Editor Module_7]]
+- 1 edge to [[_COMMUNITY_Select Module_3]]
+- 1 edge to [[_COMMUNITY_Slider Module]]
+- 1 edge to [[_COMMUNITY_Chart Module_15]]
+- 1 edge to [[_COMMUNITY_Rich Editor Module_12]]
+- 1 edge to [[_COMMUNITY_Chart Module_8]]
+- 1 edge to [[_COMMUNITY_Code Editor Module_2]]
+- 1 edge to [[_COMMUNITY_Rich Editor Module_6]]
+- 1 edge to [[_COMMUNITY_Chart Module_10]]
+- 1 edge to [[_COMMUNITY_Rich Editor Module_13]]
+- 1 edge to [[_COMMUNITY_Rich Editor Module_2]]
+- 1 edge to [[_COMMUNITY_Package Module]]
+- 1 edge to [[_COMMUNITY_Date Range Component Module_1]]
+- 1 edge to [[_COMMUNITY_Chart Module_19]]
+
+## Top bridge nodes
+- [[componentschart.js]] - degree 975, connects to 19 communities
+- [[ai()_4]] - degree 11, connects to 6 communities
+- [[vi()_4]] - degree 11, connects to 6 communities
+- [[_each()]] - degree 15, connects to 3 communities
+- [[ru()_2]] - degree 5, connects to 3 communities

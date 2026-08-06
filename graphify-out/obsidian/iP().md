@@ -1,0 +1,25 @@
+---
+source_file: "src/public/js/filament/forms/components/code-editor.js"
+type: "code"
+community: "Chart Module"
+location: "L7"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Chart_Module
+---
+
+# iP()
+
+## Connections
+- [[OP()]] - `calls` [EXTRACTED]
+- [[Vf()]] - `calls` [EXTRACTED]
+- [[code-editor.js]] - `contains` [EXTRACTED]
+- [[get()]] - `calls` [EXTRACTED]
+- [[ignoreEvent()]] - `calls` [EXTRACTED]
+- [[isWidget()]] - `calls` [EXTRACTED]
+- [[m()]] - `indirect_call` [INFERRED]
+- [[p()_2]] - `indirect_call` [INFERRED]
+- [[scrollIntoView()]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Chart_Module

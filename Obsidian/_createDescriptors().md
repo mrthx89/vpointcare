@@ -1,0 +1,21 @@
+---
+source_file: "src/public/js/filament/widgets/components/chart.js"
+type: "code"
+community: "Hak Akses Resource Module"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Hak_Akses_Resource_Module
+---
+
+# _createDescriptors()
+
+## Connections
+- [[P()_9]] - `calls` [EXTRACTED]
+- [[_descriptors()]] - `calls` [EXTRACTED]
+- [[_notify()]] - `calls` [EXTRACTED]
+- [[componentschart.js]] - `contains` [EXTRACTED]
+- [[ed()_3]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Hak_Akses_Resource_Module

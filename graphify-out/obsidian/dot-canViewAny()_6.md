@@ -1,0 +1,19 @@
+---
+source_file: "src/app/Filament/Resources/Master/Instansis/InstansiResource.php"
+type: "code"
+community: "Tables Module"
+location: "L59"
+tags:
+  - graphify/code
+  - graphify/INFERRED
+  - community/Tables_Module
+---
+
+# .canViewAny()
+
+## Connections
+- [[FilamentAccess]] - `calls` [INFERRED]
+- [[InstansiResource]] - `method` [EXTRACTED]
+- [[NavigationHelper]] - `calls` [INFERRED]
+
+#graphify/code #graphify/INFERRED #community/Tables_Module

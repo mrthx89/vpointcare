@@ -1,0 +1,17 @@
+---
+source_file: "src/database/migrations/2026_06_28_000002_add_scalability_indexes.php"
+type: "code"
+community: "2026 06 28 000001 Create Internal Chatbot Table Module"
+location: "L29"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/2026_06_28_000001_Create_Internal_Chatbot_Table_Module
+---
+
+# down()
+
+## Connections
+- [[2026_06_28_000002_add_scalability_indexes.php]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/2026_06_28_000001_Create_Internal_Chatbot_Table_Module

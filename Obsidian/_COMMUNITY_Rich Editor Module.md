@@ -1,0 +1,395 @@
+---
+type: community
+cohesion: 0.03
+members: 285
+---
+
+# Rich Editor Module
+
+**Cohesion:** 0.03 - loosely connected
+**Members:** 285 nodes
+
+## Members
+- [[$a()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[$d()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[$l()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dot-dispatch()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dot-forEach()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dot-map()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dot-slice()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ao()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[B()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Cn()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Co()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Cx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[De()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Di()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Dx()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Eg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[El()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Fa()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Fo()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ga()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Gi()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Gp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Hn()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Hp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Id()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Io()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Je()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ju()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ke()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ko()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ln()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Lo()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Mc()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Me()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ml()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Mn()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Mo()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Mx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Nd()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Nl()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Nr()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[O()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Or()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Pn()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Qc()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Ri()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Rs()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[S()_3]] - code - src/public/js/filament/forms/components/select.js
+- [[Sr()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Tw()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Uc()_1]] - code - src/public/js/filament/forms/components/markdown-editor.js
+- [[Ud()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Uo()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Vb()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Vx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Xp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Xr()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Yo()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Yp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Yr()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[Yu()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[_e()]] - code - src/public/js/filament/forms/components/select.js
+- [[a0()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ac()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[add()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addAttributes()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addBadgesForSelectedOptions()]] - code - src/public/js/filament/forms/components/select.js
+- [[addCommands()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addInner()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addInputRules()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addKeyboardShortcuts()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addMark()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addNodeView()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addPasteRules()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addProseMirrorPlugins()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addStoredMark()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[addTextNode()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ag()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[al()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ar()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[au()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[aw()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[bX()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[bg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[blockRange()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[bo()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[bp()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[bu()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[buildProps()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[bx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[cd()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[cellsInRect()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[chain()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[children()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[cl()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[commands()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[compare()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[compile()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[constructor()_1]] - code - src/public/js/filament/forms/components/color-picker.js
+- [[constructor()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[coordsAtPos()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[create()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[createAndFill()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[createChain()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[createDoc()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[cu()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[cw()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[d()_1]] - code - src/public/js/filament/forms/components/date-time-picker.js
+- [[delete()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[deleteRange()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[deleteSelection()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[descendants()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dispatchEvent()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dispatchTransaction()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[domSelection()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[domSelectionRange()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[dw()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[e()_2]] - code - src/public/js/filament/forms/components/date-time-picker.js
+- [[e()_5]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ea()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ed()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[emit()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[en()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ensureMarks()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ep()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[eq()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[eu()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ew()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[extend()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[f()_2]] - code - src/public/js/filament/forms/components/markdown-editor.js
+- [[f0()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[fg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[find()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[findDiffEnd()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[findDiffStart()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[fk()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[focus()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[forChild()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[forEachCell()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[fp()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[fromJSON()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[fromJSON()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[get()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[getMeta()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[getState()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[gx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[h()_3]] - code - src/public/js/filament/support/support.js
+- [[handleDrop()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[handleExit()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[handlePaste()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[hasMarkup()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[hl()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[hm()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[hr()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[i()_1]] - code - src/public/js/filament/forms/components/date-time-picker.js
+- [[i0()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ig()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[il()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[init()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[inline()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[insert()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[insertText()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[isActive()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[iu()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ix()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[jd()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[jg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ji()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[join()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[kr()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[lb()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[lg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ll()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[locals()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[lu()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[lx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ly()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[m()]] - code - src/public/js/filament/forms/components/date-time-picker.js
+- [[mS()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[map()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mapResult()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[markViews()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[marks()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[mg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[mount()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[mp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[mu()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[nodeAt()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[nodeViews()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[nodesBetween()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[np()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[o()]] - code - src/public/js/filament/forms/components/file-upload.js
+- [[od()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ol()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[on()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[onBeforeCreate()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[onUpdate()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ot()_4]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ox()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[p()_2]] - code - src/public/js/filament/forms/components/file-upload.js
+- [[parseHTML()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[pc()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[plugins()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[po()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[popEvent()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[posAtCoords()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[posBeforeChild()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[positionAt()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[pp()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[qb()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[qg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[qi()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[qn()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[qs()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[querySelector()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[querySelectorAll()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[r()_2]] - code - src/public/js/filament/forms/components/date-time-picker.js
+- [[r0()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rangeHasMark()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rd()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[removeStoredMark()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[renderHTML()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[renderSpec()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[replace()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[replaceRange()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[replaceRangeWith()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[replaceSelectionWith()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[replaceWith()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[resolve()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[rf()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rh()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rt()_4]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[rx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[scrollIntoView()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[scrollToSelection()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setAttribute()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setBlockType()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setEditable()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setMeta()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setNodeMarkup()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setOptions()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setSelection()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[setupExtensions()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[sl()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[slot()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[someProp()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[split()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[su()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[text()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[textBetween()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[tf()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[tokenize()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[tp()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[u()_5]] - code - src/public/js/filament/support/support.js
+- [[uk()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ul()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[unmount()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[unregisterPlugin()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[update()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[updateAttributes()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[updateDraggedNode()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[updatePluginViews()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[updateState()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[updateStateInner()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ur()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ut()_4]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[vc()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[vg()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[view()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[vl()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[w()_3]] - code - src/public/js/filament/forms/components/select.js
+- [[widget()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[wl()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[wr()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[ww()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[wx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[xu()]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[xx()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[yl()_3]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[zb()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[zc()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[zg()_1]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[zs()]] - code - src/public/js/filament/forms/components/rich-editor.js
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/Rich_Editor_Module
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 358 edges to [[_COMMUNITY_Rich Editor Module_1]]
+- 236 edges to [[_COMMUNITY_Chart Module_1]]
+- 73 edges to [[_COMMUNITY_Code Editor Module_1]]
+- 72 edges to [[_COMMUNITY_Chart Module_10]]
+- 65 edges to [[_COMMUNITY_Chart Module_5]]
+- 57 edges to [[_COMMUNITY_Chart Module_6]]
+- 54 edges to [[_COMMUNITY_Slider Module]]
+- 50 edges to [[_COMMUNITY_Code Editor Module_3]]
+- 44 edges to [[_COMMUNITY_Code Editor Module]]
+- 44 edges to [[_COMMUNITY_Spec Module]]
+- 39 edges to [[_COMMUNITY_Support Module]]
+- 39 edges to [[_COMMUNITY_Chart Module_22]]
+- 34 edges to [[_COMMUNITY_Code Editor Module_6]]
+- 33 edges to [[_COMMUNITY_Chart Module_2]]
+- 33 edges to [[_COMMUNITY_Chart Module_12]]
+- 27 edges to [[_COMMUNITY_Select Module_1]]
+- 25 edges to [[_COMMUNITY_Chart Module_9]]
+- 25 edges to [[_COMMUNITY_Support Module_4]]
+- 24 edges to [[_COMMUNITY_Code Editor Module_4]]
+- 20 edges to [[_COMMUNITY_Rich Editor Module_5]]
+- 19 edges to [[_COMMUNITY_Select Module_5]]
+- 19 edges to [[_COMMUNITY_Chart Module_20]]
+- 17 edges to [[_COMMUNITY_Rich Editor Module_2]]
+- 16 edges to [[_COMMUNITY_App Module]]
+- 15 edges to [[_COMMUNITY_Inbox Whatsapp Module]]
+- 15 edges to [[_COMMUNITY_Chart Module_11]]
+- 15 edges to [[_COMMUNITY_Markdown Editor Module]]
+- 14 edges to [[_COMMUNITY_Code Editor Module_2]]
+- 12 edges to [[_COMMUNITY_Select Module_3]]
+- 12 edges to [[_COMMUNITY_Hak Akses Resource Module]]
+- 11 edges to [[_COMMUNITY_Rich Editor Module_6]]
+- 11 edges to [[_COMMUNITY_Chart Module_19]]
+- 10 edges to [[_COMMUNITY_Chart Module]]
+- 9 edges to [[_COMMUNITY_Ai Agent Module]]
+- 9 edges to [[_COMMUNITY_Register Module]]
+- 9 edges to [[_COMMUNITY_Markdown Editor Module_4]]
+- 9 edges to [[_COMMUNITY_Code Editor Module_7]]
+- 9 edges to [[_COMMUNITY_Notifications Module]]
+- 8 edges to [[_COMMUNITY_Task Module]]
+- 8 edges to [[_COMMUNITY_Chart Module_15]]
+- 8 edges to [[_COMMUNITY_Support Module_3]]
+- 8 edges to [[_COMMUNITY_Code Editor Module_8]]
+- 7 edges to [[_COMMUNITY_Select Module_6]]
+- 7 edges to [[_COMMUNITY_Chart Module_24]]
+- 7 edges to [[_COMMUNITY_Markdown Editor Module_1]]
+- 7 edges to [[_COMMUNITY_Chart Module_18]]
+- 6 edges to [[_COMMUNITY_File Upload Module]]
+- 6 edges to [[_COMMUNITY_Chart Module_4]]
+- 6 edges to [[_COMMUNITY_Package Module]]
+- 6 edges to [[_COMMUNITY_Support Module_2]]
+- 6 edges to [[_COMMUNITY_Chart Module_14]]
+- 5 edges to [[_COMMUNITY_Chart Module_16]]
+- 5 edges to [[_COMMUNITY_Date Range Component Module]]
+- 5 edges to [[_COMMUNITY_Date Range Component Module_1]]
+- 5 edges to [[_COMMUNITY_External Auth Service Module]]
+- 5 edges to [[_COMMUNITY_Support Module_1]]
+- 4 edges to [[_COMMUNITY_Chart Module_8]]
+- 4 edges to [[_COMMUNITY_Rich Editor Module_3]]
+- 3 edges to [[_COMMUNITY_Project Module]]
+- 3 edges to [[_COMMUNITY_Markdown Editor Module_3]]
+- 3 edges to [[_COMMUNITY_Proposal Module_1]]
+- 3 edges to [[_COMMUNITY_Echo Module_1]]
+- 3 edges to [[_COMMUNITY_Rich Editor Module_4]]
+- 3 edges to [[_COMMUNITY_Rich Editor Module_12]]
+- 3 edges to [[_COMMUNITY_Chart Module_25]]
+- 3 edges to [[_COMMUNITY_Proposal Module_4]]
+- 2 edges to [[_COMMUNITY_Log Data Module]]
+- 2 edges to [[_COMMUNITY_Proposal Module]]
+- 2 edges to [[_COMMUNITY_Job Schedule Resource Module]]
+- 2 edges to [[_COMMUNITY_Tasks Module]]
+- 2 edges to [[_COMMUNITY_Rich Editor Module_9]]
+- 2 edges to [[_COMMUNITY_Chart Module_7]]
+- 2 edges to [[_COMMUNITY_Draft Pengetahuan Resource Module]]
+- 2 edges to [[_COMMUNITY_Waha Inbox Updated Module]]
+- 2 edges to [[_COMMUNITY_Echo Module_3]]
+- 1 edge to [[_COMMUNITY_External Auth Controller Module]]
+- 1 edge to [[_COMMUNITY_Echo Module]]
+- 1 edge to [[_COMMUNITY_Select Module_7]]
+- 1 edge to [[_COMMUNITY_Actions Module]]
+- 1 edge to [[_COMMUNITY_Select Module_8]]
+- 1 edge to [[_COMMUNITY_Markdown Editor Module_5]]
+- 1 edge to [[_COMMUNITY_Waha Sender Module]]
+
+## Top bridge nodes
+- [[o()]] - degree 227, connects to 60 communities
+- [[u()_5]] - degree 130, connects to 45 communities
+- [[h()_3]] - degree 141, connects to 43 communities
+- [[r()_2]] - degree 188, connects to 32 communities
+- [[i()_1]] - degree 169, connects to 28 communities

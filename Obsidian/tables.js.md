@@ -1,0 +1,85 @@
+---
+source_file: "src/public/js/filament/tables/tables.js"
+type: "code"
+community: "Rich Editor Module"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Rich_Editor_Module
+---
+
+# tables.js
+
+## Connections
+- [[C()_5]] - `contains` [EXTRACTED]
+- [[Ce()_5]] - `contains` [EXTRACTED]
+- [[D()_5]] - `contains` [EXTRACTED]
+- [[De()_7]] - `contains` [EXTRACTED]
+- [[E()_6]] - `contains` [EXTRACTED]
+- [[F()_4]] - `contains` [EXTRACTED]
+- [[G()_7]] - `contains` [EXTRACTED]
+- [[I()_2]] - `contains` [EXTRACTED]
+- [[Ie()_7]] - `contains` [EXTRACTED]
+- [[Ke()_6]] - `contains` [EXTRACTED]
+- [[Me()_8]] - `contains` [EXTRACTED]
+- [[N()_6]] - `contains` [EXTRACTED]
+- [[O()_5]] - `contains` [EXTRACTED]
+- [[P()_8]] - `contains` [EXTRACTED]
+- [[R()_6]] - `contains` [EXTRACTED]
+- [[T()_4]] - `contains` [EXTRACTED]
+- [[W()_5]] - `contains` [EXTRACTED]
+- [[X()_7]] - `contains` [EXTRACTED]
+- [[Xe()_4]] - `contains` [EXTRACTED]
+- [[Y()_5]] - `contains` [EXTRACTED]
+- [[Ye()_8]] - `contains` [EXTRACTED]
+- [[Z()_2]] - `contains` [EXTRACTED]
+- [[Ze()_7]] - `contains` [EXTRACTED]
+- [[ae()_5]] - `contains` [EXTRACTED]
+- [[areRecordsSelected()]] - `contains` [EXTRACTED]
+- [[areRecordsToggleable()]] - `contains` [EXTRACTED]
+- [[be()_7]] - `contains` [EXTRACTED]
+- [[canSelectAllRecords()]] - `contains` [EXTRACTED]
+- [[deselectAllRecords()]] - `contains` [EXTRACTED]
+- [[deselectRecords()]] - `contains` [EXTRACTED]
+- [[destroy()_8]] - `contains` [EXTRACTED]
+- [[ee()_3]] - `contains` [EXTRACTED]
+- [[fn()_6]] - `contains` [EXTRACTED]
+- [[ge()_4]] - `contains` [EXTRACTED]
+- [[getRecordsOnPage()]] - `contains` [EXTRACTED]
+- [[getSelectedRecordsCount()]] - `contains` [EXTRACTED]
+- [[handleCheckboxClick()]] - `contains` [EXTRACTED]
+- [[he()_6]] - `contains` [EXTRACTED]
+- [[init()_8]] - `contains` [EXTRACTED]
+- [[isGroupCollapsed()]] - `contains` [EXTRACTED]
+- [[isRecordSelected()]] - `contains` [EXTRACTED]
+- [[it()_8]] - `contains` [EXTRACTED]
+- [[j()_3]] - `contains` [EXTRACTED]
+- [[je()_7]] - `contains` [EXTRACTED]
+- [[k()_3]] - `contains` [EXTRACTED]
+- [[le()_8]] - `contains` [EXTRACTED]
+- [[mountAction()]] - `contains` [EXTRACTED]
+- [[ne()_7]] - `contains` [EXTRACTED]
+- [[oe()_7]] - `contains` [EXTRACTED]
+- [[pe()_4]] - `contains` [EXTRACTED]
+- [[q()_5]] - `contains` [EXTRACTED]
+- [[qe()_7]] - `contains` [EXTRACTED]
+- [[re()_6]] - `contains` [EXTRACTED]
+- [[resetCollapsedGroups()]] - `contains` [EXTRACTED]
+- [[se()_6]] - `contains` [EXTRACTED]
+- [[selectAllRecords()]] - `contains` [EXTRACTED]
+- [[selectRecords()]] - `contains` [EXTRACTED]
+- [[te()_6]] - `contains` [EXTRACTED]
+- [[toggleCollapseGroup()]] - `contains` [EXTRACTED]
+- [[toggleFiltersDropdown()]] - `contains` [EXTRACTED]
+- [[toggleSelectRecords()]] - `contains` [EXTRACTED]
+- [[toggleSelectRecordsOnPage()]] - `contains` [EXTRACTED]
+- [[toggleSelectedRecord()]] - `contains` [EXTRACTED]
+- [[tt()_7]] - `contains` [EXTRACTED]
+- [[ue()_6]] - `contains` [EXTRACTED]
+- [[updatedSelectedRecords()]] - `contains` [EXTRACTED]
+- [[v()_7]] - `contains` [EXTRACTED]
+- [[ve()_5]] - `contains` [EXTRACTED]
+- [[watchForCheckboxClicks()]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Rich_Editor_Module

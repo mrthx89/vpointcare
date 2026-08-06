@@ -1,0 +1,18 @@
+---
+source_file: "src/database/migrations/2026_05_06_175125_create_job_schedules_table.php"
+type: "code"
+community: "2026 05 06 000009 Ensure Navigation Columns On Hak Akses Module"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/2026_05_06_000009_Ensure_Navigation_Columns_On_Hak_Akses_Module
+---
+
+# 2026_05_06_175125_create_job_schedules_table.php
+
+## Connections
+- [[down()_24]] - `contains` [EXTRACTED]
+- [[up()_24]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/2026_05_06_000009_Ensure_Navigation_Columns_On_Hak_Akses_Module

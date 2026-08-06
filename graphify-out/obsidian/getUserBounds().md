@@ -1,0 +1,24 @@
+---
+source_file: "src/public/js/filament/widgets/components/chart.js"
+type: "code"
+community: "Date Range Component Module"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Date_Range_Component_Module
+---
+
+# getUserBounds()
+
+## Connections
+- [[Z()_3]] - `calls` [EXTRACTED]
+- [[componentschart.js]] - `contains` [EXTRACTED]
+- [[determineDataLimits()]] - `calls` [EXTRACTED]
+- [[getMinMax()]] - `calls` [EXTRACTED]
+- [[handleTickRangeOptions()]] - `calls` [EXTRACTED]
+- [[kh()_1]] - `calls` [EXTRACTED]
+- [[qd()_3]] - `calls` [EXTRACTED]
+- [[un()_4]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Date_Range_Component_Module

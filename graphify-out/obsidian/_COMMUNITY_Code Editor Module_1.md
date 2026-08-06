@@ -1,0 +1,244 @@
+---
+type: community
+cohesion: 0.02
+members: 191
+---
+
+# Code Editor Module
+
+**Cohesion:** 0.02 - loosely connected
+**Members:** 191 nodes
+
+## Members
+- [[AX()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Ao()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Dh()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Eo()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Fh()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Fn()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Fr()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[JQ()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[JT()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Ki()_2]] - code - src/public/js/filament/forms/components/rich-editor.js
+- [[LP()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[N()_1]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Ns()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Po()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Qd()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[R1()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[RO()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Ru()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[So()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Tv()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[UQ()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Vn()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Xf()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Zd()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[Zh()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[accept()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[active()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[add()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[addChunk()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[addInfoPane()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[addInner()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[addToSet()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[adjust()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[annotation()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[apply()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[applyEdits()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[bP()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[between()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[br()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[bu()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[cd()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[changeByRange()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[changes()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[checkAsyncSchedule()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[childString()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[chunkEnd()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[clip()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[computeVisibleRanges()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[constructor()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[createContainer()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[createHostedView()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[createListBox()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[createTooltip()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[deactivate()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[define()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[destroy()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[destroyInfo()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[df()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[docViewUpdate()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[domEventHandlers()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[domEventObservers()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[dr()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[draw()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[dynamicSlot()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[e$()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[extendWithRanges()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[f0()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[fX()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[facet()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[field()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[finishChunk()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[finishInner()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[flushIOSKey()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[focus()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[fromTransaction()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[getDOMAfter()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[getDeco()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[getRules()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[getViewport()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[h0()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[hd()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[hu()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[ignore()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[ii()_1]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[init()_2]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[invert()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[isDone()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[isUserEvent()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[iterChangedRanges()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[iterChanges()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[jP()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[join()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[kP()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[kd()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[length()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[lineBlockAtHeight()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mQ()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mapLineGaps()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mapPos()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mapViewport()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[markers()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[maybeMeasure()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[measure()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[measureInfo()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[measureSoon()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mi()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mount()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mountStyles()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[moveSelection()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[mustRefreshForHeights()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[n1()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[nP()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[newName()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[nextChunk()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[nl()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[observeIntersection()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[onResize()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[or()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[pS()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[pl()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[placeInfo()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[plugin()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[pr()_1]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[qa()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[qf()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[rangeIsValid()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[readMeasure()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[readPos()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[refresh()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[replaceRange()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[replaceSelection()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[requestMeasure()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[reset()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[resetRange()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[revertPending()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[scale()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[scheduleAccept()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[scheduleWork()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[scrollAnchorAt()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[scrollIntoView()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[selectedIndex()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setDone()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setNonce()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setOrder()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setQuery()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setRoot()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setSelection()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[setState()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[showOptions()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[sl()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[sliceDoc()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[split()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[start()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[startQuery()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[startUpdate()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[stop()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[syncClasses()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[tabSize()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[takeTree()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[toContextPos()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[toEditorPos()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[toString()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[toText()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[top()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[touches()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[touchesRange()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[tu()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[uS()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[update()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateAttrs()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateDeco()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateFor()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateForViewport()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateGaps()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateGutters()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateInner()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateLineGaps()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updatePlugins()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateRange()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateScaler()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateSel()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateTooltipClass()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateViewport()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[updateViewportLines()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[viewportIsAppropriate()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[wP()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[wh()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[withContext()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[withoutTempSkipped()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[work()]] - code - src/public/js/filament/forms/components/code-editor.js
+- [[zf()]] - code - src/public/js/filament/forms/components/code-editor.js
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/Code_Editor_Module
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 255 edges to [[_COMMUNITY_Code Editor Module]]
+- 82 edges to [[_COMMUNITY_Code Editor Module_3]]
+- 73 edges to [[_COMMUNITY_Rich Editor Module]]
+- 50 edges to [[_COMMUNITY_Chart Module_2]]
+- 36 edges to [[_COMMUNITY_Chart Module_5]]
+- 27 edges to [[_COMMUNITY_Inbox Whatsapp Module]]
+- 26 edges to [[_COMMUNITY_Rich Editor Module_2]]
+- 21 edges to [[_COMMUNITY_Chart Module_9]]
+- 16 edges to [[_COMMUNITY_Select Module_3]]
+- 5 edges to [[_COMMUNITY_Rich Editor Module_6]]
+- 4 edges to [[_COMMUNITY_Chart Module_1]]
+- 3 edges to [[_COMMUNITY_Code Editor Module_6]]
+- 3 edges to [[_COMMUNITY_Code Editor Module_4]]
+- 3 edges to [[_COMMUNITY_Chart Module_6]]
+- 2 edges to [[_COMMUNITY_Rich Editor Module_5]]
+- 2 edges to [[_COMMUNITY_Chart Module_12]]
+- 2 edges to [[_COMMUNITY_Hak Akses Resource Module]]
+- 2 edges to [[_COMMUNITY_Markdown Editor Module]]
+- 2 edges to [[_COMMUNITY_Rich Editor Module_1]]
+- 1 edge to [[_COMMUNITY_Chart Module_10]]
+- 1 edge to [[_COMMUNITY_Markdown Editor Module_3]]
+- 1 edge to [[_COMMUNITY_Chart Module_11]]
+- 1 edge to [[_COMMUNITY_External Auth Service Module]]
+- 1 edge to [[_COMMUNITY_Chart Module_14]]
+- 1 edge to [[_COMMUNITY_Chart Module_22]]
+
+## Top bridge nodes
+- [[update()]] - degree 136, connects to 14 communities
+- [[constructor()]] - degree 134, connects to 13 communities
+- [[facet()]] - degree 66, connects to 10 communities
+- [[measure()]] - degree 32, connects to 7 communities
+- [[field()]] - degree 29, connects to 7 communities

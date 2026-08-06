@@ -1,0 +1,17 @@
+---
+source_file: "src/database/migrations/2026_05_06_000009_ensure_navigation_columns_on_hak_akses.php"
+type: "code"
+community: "2026 05 06 000008 Add Id Hak Akses To Hak Akses Module"
+location: "L27"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/2026_05_06_000008_Add_Id_Hak_Akses_To_Hak_Akses_Module
+---
+
+# down()
+
+## Connections
+- [[2026_05_06_000009_ensure_navigation_columns_on_hak_akses.php]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/2026_05_06_000008_Add_Id_Hak_Akses_To_Hak_Akses_Module
