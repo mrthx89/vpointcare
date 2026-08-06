@@ -506,6 +506,7 @@ CREATE TABLE TChat (
     NomorWhatsapp varchar(30) NOT NULL,
     NamaKontak varchar(150) NULL,
     NamaGrupWhatsapp varchar(200) NULL,
+    GroupName nvarchar(200) NULL,
     IdWahaTerdeteksi varchar(200) NULL,
     NomorWhatsappTerdeteksi varchar(30) NULL,
     UrlFotoProfil nvarchar(1000) NULL,

@@ -25,16 +25,16 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Throwable;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class InboxWhatsapp extends Page implements HasForms
 {
@@ -100,6 +100,14 @@ class InboxWhatsapp extends Page implements HasForms
     /** @var array<int, array<string, mixed>> */
     public array $messages = [];
 
+    public bool $hasOlderMessages = false;
+
+    public ?string $olderMessagesBeforeAt = null;
+
+    public ?string $olderMessagesBeforeId = null;
+
+    private const MESSAGE_PAGE_SIZE = 100;
+
     /** @var array<int, array<string, mixed>> */
     public array $historyChats = [];
 
@@ -152,24 +160,7 @@ class InboxWhatsapp extends Page implements HasForms
     #[On('waha-inbox-updated')]
     public function handleInboxUpdate(?string $chatId = null): void
     {
-        $selectedGroupJid = $this->selectedChatId
-            ? $this->groupJidForChatId($this->selectedChatId)
-            : null;
-        $updatedGroupJid = $chatId ? $this->groupJidForChatId($chatId) : null;
-
         $this->loadInbox();
-
-        if (! $selectedGroupJid || $selectedGroupJid !== $updatedGroupJid) {
-            return;
-        }
-
-        $activeGroupRoom = collect($this->chatRows)->first(
-            fn (array $chatRow): bool => $this->groupJidForChatRow($chatRow) === $selectedGroupJid
-        );
-
-        if ($activeGroupRoom) {
-            $this->selectChat($activeGroupRoom['Id']);
-        }
     }
 
     public function updatedFilterText(): void
@@ -422,6 +413,7 @@ class InboxWhatsapp extends Page implements HasForms
                 'c.NomorWhatsapp',
                 'c.NamaKontak',
                 'c.NamaGrupWhatsapp',
+                Schema::hasColumn('TChat', 'GroupName') ? 'c.GroupName' : DB::raw('NULL as GroupName'),
                 $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as IdWahaTerdeteksi'),
                 $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as NomorWhatsappTerdeteksi'),
                 $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as UrlFotoProfil'),
@@ -497,20 +489,34 @@ class InboxWhatsapp extends Page implements HasForms
             ->limit(50)
             ->get();
 
-        $this->chatRows = $rows->map(function (object $row) use ($chatDetailHasFileName, $chatDetailHasMimeType): array {
-            $lastMessage = DB::table('TChatD')
-                ->where('IdChat', $row->Id)
-                ->orderByDesc('TglPesan')
-                ->select(
-                    'IsiPesan',
-                    'JenisPesan',
-                    'UrlMedia',
-                    $chatDetailHasMimeType ? 'TipeMime' : DB::raw('NULL as TipeMime'),
-                    $chatDetailHasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia')
-                )
-                ->first();
+        $chatIds = $rows->pluck('Id')->all();
+        $latestMessages = collect();
 
-            return $this->formatChatRow($row, $this->messagePreview($lastMessage));
+        if ($chatIds !== []) {
+            $rankedMessages = DB::table('TChatD as d')
+                ->whereIn('d.IdChat', $chatIds)
+                ->select(
+                    'd.IdChat', 'd.IsiPesan', 'd.JenisPesan', 'd.UrlMedia', 'd.PayloadJson',
+                    $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as TipeMime'),
+                    $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
+                    DB::raw('ROW_NUMBER() OVER (PARTITION BY d.IdChat ORDER BY d.TglPesan DESC, d.Id DESC) AS row_number')
+                );
+
+            $latestMessages = DB::query()
+                ->fromSub($rankedMessages, 'ranked_messages')
+                ->where('row_number', 1)
+                ->get()
+                ->keyBy('IdChat');
+        }
+
+        $this->chatRows = $rows->map(function (object $row) use ($latestMessages): array {
+            $lastMessage = $latestMessages->get($row->Id);
+
+            return $this->formatChatRow(
+                $row,
+                $this->messagePreview($lastMessage),
+                $lastMessage?->PayloadJson ? $this->decodePayload($lastMessage->PayloadJson) : null,
+            );
         })->all();
 
         $dedupedRows = [];
@@ -576,11 +582,11 @@ class InboxWhatsapp extends Page implements HasForms
         }
     }
 
-    private function formatChatRow(object $row, string $lastMessage = '-'): array
+    private function formatChatRow(object $row, string $lastMessage = '-', ?array $latestPayload = null): array
     {
         $isGroup = $row->JenisChat === 'Grup';
-        $payload = $this->latestIncomingPayload((string) $row->Id);
-        $groupName = $row->NamaGrupMaster ?: $row->NamaGrupWhatsapp;
+        $payload = $latestPayload ?? $this->latestIncomingPayload((string) $row->Id);
+        $groupName = $row->NamaGrupMaster ?: $this->cachedGroupName($row);
         $groupWahaId = $row->IdGrupWaha ?? null;
         $groupNumber = $row->NomorGrupWhatsapp ?: ($groupWahaId ?: $row->NomorWhatsapp);
         $contactName = $row->NamaKontakMaster ?: $row->NamaKontak;
@@ -608,7 +614,7 @@ class InboxWhatsapp extends Page implements HasForms
         $rawGroupId ??= $isGroup && str_ends_with((string) ($row->IdWahaTerdeteksi ?? ''), '@g.us') ? $row->IdWahaTerdeteksi : null;
         $rawGroupId ??= $isGroup && str_ends_with((string) ($row->NomorWhatsappTerdeteksi ?? ''), '@g.us') ? $row->NomorWhatsappTerdeteksi : null;
         $rawGroupName = $isGroup
-            ? ($this->payloadGroupName($payload) ?: $row->NamaGrupWhatsapp)
+            ? ($this->payloadGroupName($payload) ?: $this->cachedGroupName($row))
             : null;
         $rawChatId = $isGroup
             ? $rawGroupId
@@ -623,13 +629,11 @@ class InboxWhatsapp extends Page implements HasForms
         $mappedGroupName = $isGroup ? ($row->NamaGrupMaster ?: null) : null;
         $mappedGroupId = $isGroup ? $this->groupJid($row->IdGrupWaha ?: $row->NomorGrupWhatsapp ?: null) : null;
 
-        $wahaGroupName = $isGroup && $rawGroupId ? $this->wahaGroupName($rawGroupId) : null;
-
         $whatsappPrimaryName = $isGroup
-            ? ($wahaGroupName ?: $rawGroupName ?: $rawGroupId)
+            ? ($rawGroupName ?: $rawGroupId)
             : ($rawContactName ?: $rawContactNumber);
         $internalPrimaryName = $isGroup
-            ? ($mappedGroupName ?: $wahaGroupName ?: $rawGroupName ?: $rawGroupId)
+            ? ($mappedGroupName ?: $rawGroupName ?: $rawGroupId)
             : ($mappedContactName ?: $rawContactName ?: $mappedContactNumber ?: $rawContactNumber);
 
         return [
@@ -757,11 +761,12 @@ class InboxWhatsapp extends Page implements HasForms
 
         $roomChatIds = $this->groupSiblingIds($chatId);
 
-        $this->messages = DB::table('TChatD as d')
+        $loadedMessages = DB::table('TChatD as d')
             ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
             ->whereIn('d.IdChat', $roomChatIds)
-            ->orderBy('d.TglPesan')
-            ->limit(200)
+            ->orderByDesc('d.TglPesan')
+            ->orderByDesc('d.Id')
+            ->limit(self::MESSAGE_PAGE_SIZE + 1)
             ->select(
                 'd.Id',
                 'd.ArahPesan',
@@ -782,50 +787,15 @@ class InboxWhatsapp extends Page implements HasForms
                 $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as FotoProfilPembalasPath')
             )
             ->get()
-            ->map(function (object $row): array {
-                $media = blank($row->UrlMedia) || blank($row->TipeMime) || blank($row->NamaFileMedia)
-                    ? WahaMediaPayload::inspectPayload(
-                        $row->PayloadJson,
-                        $row->TipeMime,
-                        $row->NamaFileMedia,
-                        $row->JenisPesan,
-                    )
-                    : null;
-                $hasMedia = filled($row->UrlMedia) || $media !== null;
-                $mediaRoute = $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id]) : null;
-                $mediaCategory = $this->mediaPresentationCategory(
-                    $row->JenisPesan,
-                    $row->TipeMime,
-                    filled($row->UrlMedia),
-                    $media,
-                );
-
-                return [
-                    'Id' => $row->Id,
-                    'ArahPesan' => $row->ArahPesan,
-                    'JenisPesan' => $row->JenisPesan,
-                    'IsiPesan' => $row->IsiPesan,
-                    'UrlMedia' => $this->safeStateUrlMedia($row->UrlMedia),
-                    'NamaFileMedia' => $row->NamaFileMedia,
-                    'TipeMime' => $row->TipeMime,
-                    'MediaCategory' => $mediaCategory,
-                    'MediaLabel' => $media['file_name'] ?? $this->mediaLabel($row->JenisPesan, $row->TipeMime, $row->NamaFileMedia),
-                    'MediaUrl' => $mediaRoute,
-                    'MediaDownloadUrl' => $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id, 'download' => 1]) : null,
-                    'PengirimNomorWhatsapp' => $row->PengirimNomorWhatsapp,
-                    'PengirimNamaKontak' => $row->PengirimNamaKontak,
-                    'TglPesan' => $row->TglPesan,
-                    'StatusKirim' => $row->StatusKirim,
-                    'PesanError' => $row->PesanError,
-                    'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
-                    'NamaPembalas' => $row->NamaPembalas,
-                    'FotoProfilPembalasUrl' => $this->profileUrlFromPath($row->FotoProfilPembalasPath),
-                    'SenderName' => $this->messageSenderName($row),
-                    'SenderNumber' => $this->messageSenderNumber($row),
-                    'SenderAvatarUrl' => $this->messageSenderAvatarUrl($row),
-                ];
-            })
+            ->map(fn (object $row): array => $this->mapMessageRow($row))
             ->all();
+
+        $this->hasOlderMessages = count($loadedMessages) > self::MESSAGE_PAGE_SIZE;
+        $visibleMessages = array_slice($loadedMessages, 0, self::MESSAGE_PAGE_SIZE);
+        $oldestVisible = $visibleMessages[array_key_last($visibleMessages)] ?? null;
+        $this->olderMessagesBeforeAt = $oldestVisible['TglPesan'] ?? null;
+        $this->olderMessagesBeforeId = $oldestVisible['Id'] ?? null;
+        $this->messages = array_values(array_reverse($visibleMessages));
 
         $this->loadHistoryChats();
         $this->loadInternalNotes();
@@ -844,6 +814,102 @@ class InboxWhatsapp extends Page implements HasForms
                 }
             }
         }
+    }
+
+    public function loadOlderMessages(): void
+    {
+        if (! $this->selectedChatId || ! $this->hasOlderMessages) {
+            return;
+        }
+
+        $roomChatIds = $this->groupSiblingIds($this->selectedChatId);
+        $chatDetailHasFileName = Schema::hasColumn('TChatD', 'NamaFileMedia');
+        $chatDetailHasMimeType = Schema::hasColumn('TChatD', 'TipeMime');
+        $penggunaHasFotoProfil = Schema::hasColumn('MPengguna', 'FotoProfilPath');
+
+        $query = DB::table('TChatD as d')
+            ->leftJoin('MPengguna as p', 'p.Id', '=', 'd.DibalasOleh')
+            ->whereIn('d.IdChat', $roomChatIds)
+            ->where(function ($query): void {
+                $query->where('d.TglPesan', '<', $this->olderMessagesBeforeAt)
+                    ->orWhere(function ($query): void {
+                        $query->where('d.TglPesan', $this->olderMessagesBeforeAt)
+                            ->where('d.Id', '<', $this->olderMessagesBeforeId);
+                    });
+            })
+            ->orderByDesc('d.TglPesan')
+            ->orderByDesc('d.Id')
+            ->limit(self::MESSAGE_PAGE_SIZE + 1)
+            ->select(
+                'd.Id', 'd.ArahPesan', 'd.JenisPesan', 'd.IsiPesan', 'd.UrlMedia', 'd.PayloadJson',
+                $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
+                $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as TipeMime'),
+                'd.PengirimNomorWhatsapp', 'd.PengirimNamaKontak', 'd.TglPesan', 'd.StatusKirim',
+                'd.PesanError', 'd.DihasilkanOlehAi', 'p.NamaPengguna as NamaPembalas',
+                $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as FotoProfilPembalasPath')
+            )
+            ->get();
+
+        $this->hasOlderMessages = $query->count() > self::MESSAGE_PAGE_SIZE;
+        $page = $query->take(self::MESSAGE_PAGE_SIZE)
+            ->map(fn (object $row): array => $this->mapMessageRow($row))
+            ->reverse()
+            ->values()
+            ->all();
+
+        $oldestPage = $page[0] ?? null;
+        $this->olderMessagesBeforeAt = $oldestPage['TglPesan'] ?? $this->olderMessagesBeforeAt;
+        $this->olderMessagesBeforeId = $oldestPage['Id'] ?? $this->olderMessagesBeforeId;
+        $this->messages = collect($page)
+            ->concat($this->messages)
+            ->unique('Id')
+            ->values()
+            ->all();
+    }
+
+    private function mapMessageRow(object $row): array
+    {
+        $media = blank($row->UrlMedia) || blank($row->TipeMime) || blank($row->NamaFileMedia)
+            ? WahaMediaPayload::inspectPayload(
+                $row->PayloadJson,
+                $row->TipeMime,
+                $row->NamaFileMedia,
+                $row->JenisPesan,
+            )
+            : null;
+        $hasMedia = filled($row->UrlMedia) || $media !== null;
+        $mediaRoute = $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id]) : null;
+        $mediaCategory = $this->mediaPresentationCategory(
+            $row->JenisPesan,
+            $row->TipeMime,
+            filled($row->UrlMedia),
+            $media,
+        );
+
+        return [
+            'Id' => $row->Id,
+            'ArahPesan' => $row->ArahPesan,
+            'JenisPesan' => $row->JenisPesan,
+            'IsiPesan' => $this->safeMessageBody($row->IsiPesan, $hasMedia),
+            'UrlMedia' => $this->safeStateUrlMedia($row->UrlMedia),
+            'NamaFileMedia' => $row->NamaFileMedia,
+            'TipeMime' => $row->TipeMime,
+            'MediaCategory' => $mediaCategory,
+            'MediaLabel' => $media['file_name'] ?? $this->mediaLabel($row->JenisPesan, $row->TipeMime, $row->NamaFileMedia),
+            'MediaUrl' => $mediaRoute,
+            'MediaDownloadUrl' => $hasMedia ? route('admin.waha-media.show', ['message' => $row->Id, 'download' => 1]) : null,
+            'PengirimNomorWhatsapp' => $row->PengirimNomorWhatsapp,
+            'PengirimNamaKontak' => $row->PengirimNamaKontak,
+            'TglPesan' => $row->TglPesan,
+            'StatusKirim' => $row->StatusKirim,
+            'PesanError' => $row->PesanError,
+            'DihasilkanOlehAi' => (bool) ($row->DihasilkanOlehAi ?? false),
+            'NamaPembalas' => $row->NamaPembalas,
+            'FotoProfilPembalasUrl' => $this->profileUrlFromPath($row->FotoProfilPembalasPath),
+            'SenderName' => $this->messageSenderName($row),
+            'SenderNumber' => $this->messageSenderNumber($row),
+            'SenderAvatarUrl' => $this->messageSenderAvatarUrl($row),
+        ];
     }
 
     public function toggleAutoReplyAi(): void
@@ -1020,18 +1086,13 @@ class InboxWhatsapp extends Page implements HasForms
                 ]);
 
                 if ($groupJid) {
-                    $groupName = $this->wahaGroupName($groupJid);
+                    $session = (string) (DB::table('MSesiWhatsapp')
+                        ->where('Id', $chat->IdSesiWhatsapp ?? '')
+                        ->value('KodeSesi') ?: 'default');
 
-                    if ($groupName && $groupName !== ($chat->NamaGrupWhatsapp ?? '')) {
-                        DB::table('TChat')->where('Id', $this->selectedChatId)->update([
-                            'NamaGrupWhatsapp' => $groupName,
-                            'TglEdit' => now(),
-                        ]);
+                    \App\Jobs\RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
 
-                        $nameUpdated = true;
-
-                        $this->loadInbox();
-                    }
+                    $nameUpdated = false;
                 }
             }
 
@@ -1039,7 +1100,7 @@ class InboxWhatsapp extends Page implements HasForms
                 ->title(__('ui.pages.inbox.mapping_not_found'))
                 ->body(
                     ($nameUpdated ? __('ui.pages.inbox.group_name_updated').' ' : '')
-                    . __('ui.pages.inbox.detected_id_hint', ['ids' => implode(', ', array_slice($this->mappingIdentifiers($chat), 0, 8)) ?: '-'])
+                    .__('ui.pages.inbox.detected_id_hint', ['ids' => implode(', ', array_slice($this->mappingIdentifiers($chat), 0, 8)) ?: '-'])
                 )
                 ->warning()
                 ->send();
@@ -1686,6 +1747,39 @@ class InboxWhatsapp extends Page implements HasForms
         return $this->mediaCategory($jenisPesan, $mimeType);
     }
 
+    private function safeMessageBody(?string $body, bool $hasMedia): ?string
+    {
+        $value = trim((string) $body);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (! $hasMedia) {
+            return $value;
+        }
+
+        if (str_starts_with(strtolower($value), 'data:image/') ||
+            str_starts_with(strtolower($value), 'data:video/') ||
+            str_starts_with(strtolower($value), 'data:audio/') ||
+            str_starts_with(strtolower($value), 'data:application/')) {
+            return null;
+        }
+
+        if (str_starts_with($value, '{') && str_ends_with($value, '}') && strlen($value) > 200) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return null;
+            }
+        }
+
+        if ($this->looksLikeRawBase64($value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
     private function safeStateUrlMedia(?string $urlMedia): ?string
     {
         $value = trim((string) $urlMedia);
@@ -2145,7 +2239,7 @@ class InboxWhatsapp extends Page implements HasForms
 
     private function wahaGroupName(string $groupId): ?string
     {
-        $cacheKey = 'waha:group-name:' . md5($groupId);
+        $cacheKey = 'waha:group-name:'.md5($groupId);
 
         return Cache::remember($cacheKey, now()->addHours(6), function () use ($groupId): ?string {
             $session = (string) (config('services.waha.notification_session') ?: 'default');
@@ -2157,7 +2251,7 @@ class InboxWhatsapp extends Page implements HasForms
                     $request = $request->withHeader('X-Api-Key', (string) config('services.waha.api_key'));
                 }
 
-                $response = $request->get(rtrim((string) config('services.waha.base_url'), '/') . '/api/' . rawurlencode($session) . '/groups/' . str_replace('%40', '@', rawurlencode($groupId)));
+                $response = $request->get(rtrim((string) config('services.waha.base_url'), '/').'/api/'.rawurlencode($session).'/groups/'.str_replace('%40', '@', rawurlencode($groupId)));
 
                 if (! $response->successful()) {
                     return null;
@@ -2189,6 +2283,130 @@ class InboxWhatsapp extends Page implements HasForms
     /**
      * @return array<string, mixed>|null
      */
+
+    private function cachedGroupName(object $row): string
+    {
+        if (isset($row->GroupName) && is_string($row->GroupName) && trim($row->GroupName) !== '') {
+            $name = trim($row->GroupName);
+            if (! str_ends_with($name, '@g.us')) {
+                return $name;
+            }
+        }
+
+        if (isset($row->NamaGrupWhatsapp) && is_string($row->NamaGrupWhatsapp) && trim($row->NamaGrupWhatsapp) !== '') {
+            $name = trim($row->NamaGrupWhatsapp);
+            if (! str_ends_with($name, '@g.us')) {
+                return $name;
+            }
+        }
+
+        return __('ui.pages.inbox.unknown_group');
+    }
+
+
+    public function syncSelectedGroupName(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $chat = DB::table('TChat')
+            ->where('Id', $this->selectedChatId)
+            ->where('JenisChat', 'Grup')
+            ->first();
+
+        if (! $chat) {
+            Notification::make()
+                ->title(__('ui.pages.inbox.group_sync_no_group'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $groupJid = $this->groupJidForChatRow([
+            'JenisChat' => $chat->JenisChat,
+            'IdWaha' => $chat->IdWahaTerdeteksi ?? null,
+            'NomorWhatsapp' => $chat->NomorWhatsapp,
+            'NomorWhatsappRaw' => $chat->NomorWhatsapp,
+            'Identity' => ['whatsapp' => ['GroupId' => $chat->NomorWhatsapp]],
+        ]);
+
+        if (! $groupJid) {
+            Notification::make()
+                ->title(__('ui.pages.inbox.group_sync_no_jid'))
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $session = (string) (DB::table('MSesiWhatsapp')
+            ->where('Id', $chat->IdSesiWhatsapp ?? '')
+            ->value('KodeSesi') ?: 'default');
+
+        \App\Jobs\RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
+
+        Notification::make()
+            ->title(__('ui.pages.inbox.group_sync_queued'))
+            ->success()
+            ->send();
+    }
+
+    public function syncMissingGroupNames(): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
+
+        $hasGroupName = Schema::hasColumn('TChat', 'GroupName');
+
+        $groups = DB::table('TChat as c')
+            ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
+            ->where('c.JenisChat', 'Grup')
+            ->where(function ($q) use ($hasGroupName): void {
+                $q->whereNull('c.NamaGrupWhatsapp')
+                    ->orWhere('c.NamaGrupWhatsapp', '');
+
+                if ($hasGroupName) {
+                    $q->orWhereNull('c.GroupName')
+                        ->orWhere('c.GroupName', '');
+                }
+            })
+            ->select('c.Id', 'c.IdSesiWhatsapp', 'c.NomorWhatsapp', 'c.IdWahaTerdeteksi', 's.KodeSesi')
+            ->get();
+
+        $queued = 0;
+        $skipped = 0;
+
+        foreach ($groups as $group) {
+            $groupJid = $this->groupJidForChatRow([
+                'JenisChat' => 'Grup',
+                'IdWaha' => $group->IdWahaTerdeteksi ?? null,
+                'NomorWhatsapp' => $group->NomorWhatsapp,
+                'NomorWhatsappRaw' => $group->NomorWhatsapp,
+                'Identity' => ['whatsapp' => ['GroupId' => $group->NomorWhatsapp]],
+            ]);
+
+            if (! $groupJid) {
+                $skipped++;
+                continue;
+            }
+
+            $session = (string) ($group->KodeSesi ?: 'default');
+            \App\Jobs\RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
+            $queued++;
+        }
+
+        Notification::make()
+            ->title(__('ui.pages.inbox.group_sync_all_summary', [
+                'queued' => $queued,
+                'skipped' => $skipped,
+            ]))
+            ->success()
+            ->send();
+    }
+
     private function latestIncomingPayload(string $chatId): ?array
     {
         $payloadJson = DB::table('TChatD')
@@ -2233,7 +2451,6 @@ class InboxWhatsapp extends Page implements HasForms
         return null;
     }
 
-    
     private function groupJidForChatRow(array $chatRow): ?string
     {
         $groupId = $chatRow['Identity']['whatsapp']['GroupId'] ?? null;
@@ -2302,18 +2519,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->pluck('Id')
             ->toArray();
 
-        $payloadIds = $groupJid
-            ? DB::table('TChatD as d')
-                ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
-                ->where('c.JenisChat', 'Grup')
-                ->when($chat->IdSesiWhatsapp, fn ($query, string $sessionId) => $query->where('c.IdSesiWhatsapp', $sessionId))
-                ->where('d.PayloadJson', 'like', '%' . $groupJid . '%')
-                ->distinct()
-                ->pluck('c.Id')
-                ->toArray()
-            : [];
-
-        return array_values(array_unique(array_merge($directIds, $payloadIds, [$chatId])));
+        return array_values(array_unique(array_merge($directIds, [$chatId])));
     }
 
     private function groupJidForChatId(string $chatId): ?string
@@ -2348,9 +2554,9 @@ class InboxWhatsapp extends Page implements HasForms
             }
         }
 
-        return $this->payloadGroupId($this->latestIncomingPayload((string) $chat->Id))
-            ?: $this->groupJid(is_string($chat->IdGrupWaha ?? null) ? $chat->IdGrupWaha : null);
+        return $this->groupJid(is_string($chat->IdGrupWaha ?? null) ? $chat->IdGrupWaha : null);
     }
+
     private function normalizeWahaChatId(string $chatIdOrNumber): string
     {
         return WahaChatHelper::normalizeChatId($chatIdOrNumber);

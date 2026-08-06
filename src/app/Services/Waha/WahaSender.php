@@ -127,6 +127,48 @@ class WahaSender
         ]);
     }
 
+    /** @return array{ok: bool, subject?: ?string, status?: int, body?: string, error?: string} */
+    public function getGroupMetadata(string $session, string $groupJid): array
+    {
+        $response = $this->getJson(
+            '/api/'.rawurlencode($session).'/groups/'.$this->encodeWahaPathId($groupJid),
+            [],
+            'WAHA_GROUP_METADATA',
+        );
+
+        if (! ($response['ok'] ?? false)) {
+            return $response;
+        }
+
+        $payload = json_decode((string) ($response['body'] ?? ''), true);
+        $subject = null;
+
+        if (is_array($payload)) {
+            $subject = Arr::get($payload, 'groupMetadata.subject')
+                ?? Arr::get($payload, 'groupMetadata.name')
+                ?? Arr::get($payload, 'subject')
+                ?? Arr::get($payload, 'name')
+                ?? Arr::get($payload, 'title')
+                ?? Arr::get($payload, 'chat.name')
+                ?? Arr::get($payload, 'group.name')
+                ?? Arr::get($payload, 'info.subject')
+                ?? Arr::get($payload, 'data.subject');
+        }
+
+        $subject = is_string($subject) ? trim($subject) : null;
+        if ($subject === '' || $subject === null) {
+            $subject = null;
+        }
+
+        if ($subject !== null && str_ends_with($subject, '@g.us')) {
+            $subject = null;
+        }
+
+        return array_merge($response, [
+            'subject' => $subject,
+        ]);
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array{ok: bool, status?: int, body?: string, error?: string}

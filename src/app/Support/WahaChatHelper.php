@@ -44,6 +44,24 @@ class WahaChatHelper
         return preg_replace('/[^0-9]/', '', $number) ?: null;
     }
 
+    /** @param array<string, mixed> $payload */
+    public static function groupJidFromPayload(array $payload): ?string
+    {
+        foreach ([
+            'chatId', 'from', 'from.id', 'id.remote', 'id._serialized', '_data.id.remote',
+            '_data.Info.Chat', '_data.chatId', 'key.remoteJid', 'chat.id', 'chat.id._serialized',
+            'groupId', 'group.id',
+        ] as $key) {
+            $value = Arr::get($payload, $key);
+
+            if (is_string($value) && str_ends_with(trim($value), '@g.us')) {
+                return trim($value);
+            }
+        }
+
+        return null;
+    }
+
     public static function latestIncomingWahaChatId(string $chatId): ?string
     {
         $payloadJson = DB::table('TChatD')

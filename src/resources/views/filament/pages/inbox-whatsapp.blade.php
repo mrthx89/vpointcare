@@ -364,6 +364,14 @@
                     }" x-init="scrollToBottom();
                     $wire.$hook('morph', () => { scrollToBottom(); });"
                         class="wacs-inbox-messages min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 dark:bg-gray-950/60">
+                    @if ($hasOlderMessages)
+                        <div>
+                            <button type=button wire:click=loadOlderMessages wire:loading.attr=disabled wire:target=loadOlderMessages>
+                                <span wire:loading.remove wire:target=loadOlderMessages>{{ __('ui.pages.inbox.load_older_messages') }}</span>
+                                <span wire:loading wire:target=loadOlderMessages>{{ __('ui.pages.inbox.loading_older_messages') }}</span>
+                            </button>
+                        </div>
+                    @endif
                         @forelse ($messages as $message)
                             @php($isOut = $message['ArahPesan'] === 'Keluar')
                             @php($hasMedia = $message['MediaCategory'] !== 'text')
@@ -571,6 +579,16 @@
                                     wire:click="refreshMappingChat">
                                     {{ __('ui.common.refresh') }}
                                 </x-filament::button>
+                                @if (($selectedChat['JenisChat'] ?? '') === 'Grup')
+                                    <x-filament::button type="button" color="warning" size="xs" outlined
+                                        wire:click="syncSelectedGroupName" wire:loading.attr="disabled">
+                                        {{ __('ui.pages.inbox.sync_group_name') }}
+                                    </x-filament::button>
+                                    <x-filament::button type="button" color="warning" size="xs" outlined
+                                        wire:click="syncMissingGroupNames" wire:loading.attr="disabled">
+                                        {{ __('ui.pages.inbox.sync_all_group_names') }}
+                                    </x-filament::button>
+                                @endif
                             </div>
                         @endif
                     </div>

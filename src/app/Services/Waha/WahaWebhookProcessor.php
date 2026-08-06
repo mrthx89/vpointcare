@@ -4,7 +4,6 @@ namespace App\Services\Waha;
 
 use App\Support\SchemaCache;
 use App\Support\WahaChatHelper;
-
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -12,9 +11,7 @@ use Throwable;
 
 class WahaWebhookProcessor
 {
-    public function __construct(private readonly WahaSender $wahaSender)
-    {
-    }
+    public function __construct(private readonly WahaSender $wahaSender) {}
 
     /**
      * @param  array<string, mixed>  $payload
@@ -140,6 +137,8 @@ class WahaWebhookProcessor
                     'chat_id' => $chatId,
                     'webhook_id' => $webhookId,
                     'jenis_chat' => $parsed['jenis_chat'],
+                    'group_jid' => $parsed['group_jid'] ?? null,
+                    'session' => $session->KodeSesi,
                     'id_instansi' => $mapping['IdInstansi'] ?? null,
                 ];
             } catch (Throwable $exception) {
@@ -262,6 +261,10 @@ class WahaWebhookProcessor
                 break;
             }
         }
+
+        $groupJid = WahaChatHelper::groupJidFromPayload(array_merge($message, [
+            'chatId' => Arr::get($payload, 'chatId') ?? Arr::get($message, 'chatId'),
+        ])) ?: $groupJid;
 
         $remoteId = $groupJid ?: $remoteId;
 
@@ -554,6 +557,8 @@ class WahaWebhookProcessor
         $query = DB::table('TChat')->where('JenisChat', $parsed['jenis_chat']);
 
         if ($parsed['jenis_chat'] === 'Grup') {
+            $query->where('IdSesiWhatsapp', $sessionId);
+
             if ($mapping['IdGrupWhatsapp']) {
                 $query->where('IdGrupWhatsapp', $mapping['IdGrupWhatsapp']);
             } elseif (SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi') && ($parsed['group_jid'] ?? null)) {
@@ -575,40 +580,13 @@ class WahaWebhookProcessor
                     $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_jid']);
 
                     if ($parsed['pengirim_nomor'] && str_contains($parsed['pengirim_jid'], '@lid')) {
-                        $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_nomor'] . '@c.us');
+                        $query->orWhere('IdWahaTerdeteksi', $parsed['pengirim_nomor'].'@c.us');
                     }
                 }
             });
         }
 
         $chat = $query->orderByDesc('TglChatTerakhir')->first();
-
-        // Fallback: cari chat grup lama via payload TChatD yang mengandung group_jid
-        if (! $chat
-            && $parsed['jenis_chat'] === 'Grup'
-            && ! $mapping['IdGrupWhatsapp']
-            && ($parsed['group_jid'] ?? null)
-            && SchemaCache::hasColumn('TChatD', 'PayloadJson')
-        ) {
-            $existingId = DB::table('TChatD as d')
-                ->join('TChat as c', 'c.Id', '=', 'd.IdChat')
-                ->where('c.JenisChat', 'Grup')
-                ->whereNull('c.IdGrupWhatsapp')
-                ->where('d.PayloadJson', 'like', '%' . $parsed['group_jid'] . '%')
-                ->select('c.Id')
-                ->orderByDesc('d.TglPesan')
-                ->first();
-
-            if ($existingId) {
-                $chat = DB::table('TChat')->where('Id', $existingId->Id)->first();
-
-                if ($chat && SchemaCache::hasColumn('TChat', 'IdWahaTerdeteksi')) {
-                    DB::table('TChat')
-                        ->where('Id', $chat->Id)
-                        ->update(['IdWahaTerdeteksi' => $parsed['group_jid'], 'TglEdit' => now()]);
-                }
-            }
-        }
 
         $statusDitutupId = DB::table('MStatusChat')->where('KodeStatusChat', 'DITUTUP')->value('Id');
 
@@ -677,6 +655,7 @@ class WahaWebhookProcessor
 
         return $id;
     }
+
     private function normalisasiNomorWhatsapp(?string $nomor): ?string
     {
         if (! $nomor) {
@@ -751,7 +730,7 @@ class WahaWebhookProcessor
 
         if (is_string($phone) && $phone !== '') {
             $parsed['pengirim_nomor'] = $phone;
-            $parsed['pengirim_phone_jid'] = ($result['pn'] ?? null) ?: $phone . '@c.us';
+            $parsed['pengirim_phone_jid'] = ($result['pn'] ?? null) ?: $phone.'@c.us';
         }
 
         return $parsed;
