@@ -41,10 +41,6 @@ class AiAutoReplyService
     {
         $settings = $this->settings();
 
-        if (! $settings || ! (bool) $settings->AutoReplyAktif) {
-            return null;
-        }
-
         $chat = DB::table('TChat as c')
             ->leftJoin('MSesiWhatsapp as s', 's.Id', '=', 'c.IdSesiWhatsapp')
             ->leftJoin('MInstansi as i', 'i.Id', '=', 'c.IdInstansi')
@@ -55,6 +51,10 @@ class AiAutoReplyService
             ->first();
 
         if (! $chat) {
+            return null;
+        }
+
+        if (! $settings || (! (bool) $settings->AutoReplyAktif && ! (bool) $chat->AutoReplyAiAktif)) {
             return null;
         }
 
@@ -102,6 +102,7 @@ class AiAutoReplyService
         $status = 'Selesai';
         $error = null;
         $usedAi = false;
+        $isFirstReply = $this->isFirstInboxAiReply($chatId);
 
         DB::table('TAiPermintaan')->insert([
             'Id' => $requestId,
@@ -120,8 +121,7 @@ class AiAutoReplyService
         ]);
 
         try {
-        $isFirstReply = $this->isFirstInboxAiReply($chatId);
-        $generated = $this->generateReply($settings, $prompt, $isFirstReply);
+            $generated = $this->generateReply($settings, $prompt, $isFirstReply);
 
             if ($generated) {
                 $reply = $generated['text'];
@@ -636,15 +636,15 @@ class AiAutoReplyService
         }
 
         if ($provider === 'deepseek') {
-            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'deepseek');
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'deepseek', $isFirstReply);
         }
 
         if ($provider === 'openrouter') {
-            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'openrouter');
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'openrouter', $isFirstReply);
         }
 
         if (in_array($provider, ['9router', 'ninerouter'], true)) {
-            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'ninerouter');
+            return $this->generateChatCompletionReply($settings, $prompt, $apiKey, 'ninerouter', $isFirstReply);
         }
 
         if ($provider === 'openai') {
