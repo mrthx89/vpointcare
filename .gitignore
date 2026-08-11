@@ -171,3 +171,11 @@ app.publish/
 docker-compose.override.yml
 
 [Gg]raphify-out/
+.agents/
+.claude/
+.codex/
+.kiro/
+.superpowers/
+[Dd]ocs/
+.vscode/
+[Oo]penspec/
