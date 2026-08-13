@@ -113,6 +113,64 @@
                 {{ __('ui.pages.inbox.open_log_data') }}
             </a>
         </div>
+
+        {{-- Embedded WAHA Live Session Statuses --}}
+        <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    {{ __('ui.pages.waha_connection.title') }}:
+                </div>
+                @forelse ($wahaStatuses as $sCode => $sInfo)
+                    @php
+                        $st = $sInfo['status'] ?? 'unknown';
+                        $badgeStyle = match($st) {
+                            'running' => 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
+                            'starting' => 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300',
+                            'scan_required' => 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300',
+                            'stopped' => 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                            'failed' => 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300',
+                            default => 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300',
+                        };
+                        $dotStyle = match($st) {
+                            'running' => 'bg-emerald-500',
+                            'starting' => 'bg-blue-500',
+                            'scan_required' => 'bg-amber-500',
+                            'stopped' => 'bg-slate-400',
+                            'failed' => 'bg-rose-500',
+                            default => 'bg-red-500',
+                        };
+                    @endphp
+                    <div class="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold {{ $badgeStyle }}">
+                        <span class="relative flex h-2.5 w-2.5">
+                            @if ($st === 'running')
+                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            @endif
+                            <span class="relative inline-flex h-2.5 w-2.5 rounded-full {{ $dotStyle }}"></span>
+                        </span>
+                        <span>{{ strtoupper($sCode) }}: {{ strtoupper(str_replace('_', ' ', $st)) }}</span>
+
+                        @if (in_array($st, ['scan_required', 'stopped', 'failed', 'unavailable'], true) && \App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_VIEW))
+                            <a href="{{ route('filament.admin.pages.waha-connection-center') }}" class="ml-1 text-[11px] underline hover:opacity-80">
+                                @if ($st === 'scan_required')
+                                    {{ __('ui.pages.waha_connection.btn_qr') }}
+                                @else
+                                    {{ __('ui.pages.waha_connection.btn_reconnect') }}
+                                @endif
+                            </a>
+                        @endif
+                    </div>
+                @empty
+                    <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                        <span>{{ __('ui.pages.waha_connection.no_sessions') }}</span>
+                    </div>
+                @endforelse
+            </div>
+            @if (\App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_VIEW))
+                <a href="{{ route('filament.admin.pages.waha-connection-center') }}" class="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
+                    {{ __('ui.pages.waha_connection.center_title') }} &rarr;
+                </a>
+            @endif
+        </div>
         <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
             <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                 <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.active_team') }}</div>

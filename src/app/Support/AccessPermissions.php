@@ -46,6 +46,10 @@ class AccessPermissions
 
     public const CHATBOT_ACCESS = 'chatbot.access';
 
+    public const WAHA_SESSION_VIEW = 'waha_session.view';
+
+    public const WAHA_SESSION_MANAGE = 'waha_session.manage';
+
     public const HAK_AKSES_VIEW = 'hak_akses.view';
 
     public const HAK_AKSES_MANAGE = 'hak_akses.manage';
@@ -178,6 +182,7 @@ class AccessPermissions
             self::MENU_MASTER_ANGGOTA_GRUP => self::sidebarMenu('master_data', 60, 'heroicon-o-users', 'ui.models.anggota_grup.label', 'ui.models.anggota_grup.plural'),
             self::HOLIDAY_VIEW => self::sidebarPermissionMenu($definitions, self::HOLIDAY_VIEW, 'master_data', 70, 'heroicon-o-calendar-days'),
             self::LOG_DATA_VIEW => self::sidebarPermissionMenu($definitions, self::LOG_DATA_VIEW, 'monitoring', 10, 'heroicon-o-clipboard-document-list'),
+            self::WAHA_SESSION_VIEW => self::sidebarPermissionMenu($definitions, self::WAHA_SESSION_VIEW, 'monitoring', 20, 'heroicon-o-signal'),
             self::HAK_AKSES_VIEW => self::sidebarPermissionMenu($definitions, self::HAK_AKSES_VIEW, 'settings', 10, 'heroicon-o-shield-check'),
             self::USER_VIEW => self::sidebarPermissionMenu($definitions, self::USER_VIEW, 'settings', 20, 'heroicon-o-user-group'),
             self::JOB_SCHEDULE_VIEW => self::sidebarPermissionMenu($definitions, self::JOB_SCHEDULE_VIEW, 'settings', 30, 'heroicon-o-clock'),
@@ -198,6 +203,7 @@ class AccessPermissions
             self::MASTER_CUSTOMER_MANAGE => 'master_data',
             self::KNOWLEDGE_MANAGE => 'assistant',
             self::HOLIDAY_MANAGE => 'master_data',
+            self::WAHA_SESSION_MANAGE => 'monitoring',
             self::USER_MANAGE => 'settings',
             self::HAK_AKSES_MANAGE => 'settings',
         ];
@@ -322,6 +328,16 @@ class AccessPermissions
                 'module' => 'ui.permissions.monitoring_module',
                 'description' => 'ui.permissions.log_data_view_desc',
             ],
+            self::WAHA_SESSION_VIEW => [
+                'label' => 'ui.permissions.waha_session_view',
+                'module' => 'ui.permissions.monitoring_module',
+                'description' => 'ui.permissions.waha_session_view_desc',
+            ],
+            self::WAHA_SESSION_MANAGE => [
+                'label' => 'ui.permissions.waha_session_manage',
+                'module' => 'ui.permissions.monitoring_module',
+                'description' => 'ui.permissions.waha_session_manage_desc',
+            ],
             self::MASTER_CUSTOMER_VIEW => [
                 'label' => 'ui.permissions.master_customer_view',
                 'module' => 'ui.permissions.master_customer_module',
@@ -417,6 +433,8 @@ class AccessPermissions
                 self::AI_AGENT_VIEW,
                 self::AI_AGENT_MANAGE,
                 self::LOG_DATA_VIEW,
+                self::WAHA_SESSION_VIEW,
+                self::WAHA_SESSION_MANAGE,
                 self::MASTER_CUSTOMER_VIEW,
                 self::MASTER_CUSTOMER_MANAGE,
                 self::KNOWLEDGE_VIEW,
@@ -448,6 +466,7 @@ class AccessPermissions
                 self::TASK_VIEW,
                 self::TASK_MANAGE,
                 self::LOG_DATA_VIEW,
+                self::WAHA_SESSION_VIEW,
                 self::CHAT_HISTORY_VIEW,
                 self::CHATBOT_ACCESS,
             ],

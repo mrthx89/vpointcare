@@ -3,13 +3,13 @@ param (
     [Parameter(Mandatory = $false, HelpMessage = "IP atau Domain Server VPS Ubuntu")]
     [string]$VpsHost,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Username SSH VPS (contoh: root, ubuntu, it)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Username SSH VPS (default: root)")]
     [string]$VpsUser = "root",
 
     [Parameter(Mandatory = $false, HelpMessage = "Port SSH (default: 22)")]
     [int]$VpsPort = 22,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Path ke file SSH Private Key (opsional)")]
+    [Parameter(Mandatory = $false, HelpMessage = "Path ke file SSH Private Key")]
     [string]$SshKey = "",
 
     [Parameter(Mandatory = $false, HelpMessage = "Direktori target deployment di VPS")]
@@ -44,17 +44,66 @@ foreach ($cmd in @("tar", "ssh", "scp")) {
     }
 }
 
-# 3. Opsi SSH & SCP
-$SshOpts = @("-p", $VpsPort)
-$ScpOpts = @("-P", $VpsPort)
-
-if ($SshKey -and (Test-Path $SshKey)) {
-    $SshOpts += @("-i", $SshKey)
-    $ScpOpts += @("-i", $SshKey)
-    Write-Host "[INFO] Menggunakan SSH Key: $SshKey" -ForegroundColor Yellow
-} else {
-    Write-Host "[INFO] Menggunakan SSH standard (password diprompt otomatis oleh OpenSSH jika diperlukan)." -ForegroundColor Yellow
+# 3. Penanganan SSH Key Bootstrap (ed25519)
+$HomeSshDir = Join-Path $env:USERPROFILE ".ssh"
+if (-not $SshKey) {
+    $SshKey = Join-Path $HomeSshDir "id_ed25519"
 }
+
+if (-not (Test-Path $SshKey)) {
+    Write-Host "[INFO] SSH Key tidak ditemukan di $SshKey. Meng-generate SSH Key ed25519 lokal..." -ForegroundColor Yellow
+    if (-not (Test-Path $HomeSshDir)) {
+        New-Item -ItemType Directory -Path $HomeSshDir -Force | Out-Null
+    }
+    $KeyGenCmd = Get-Command "ssh-keygen" -ErrorAction SilentlyContinue
+    if ($KeyGenCmd) {
+        & ssh-keygen -t ed25519 -N "" -f $SshKey
+    } else {
+        Write-Error "ssh-keygen tidak ditemukan. Tidak dapat membuat SSH Key secara otomatis."
+        exit 1
+    }
+}
+
+$SshPubKey = "${SshKey}.pub"
+if (-not (Test-Path $SshPubKey)) {
+    Write-Error "File Public SSH Key ($SshPubKey) tidak ditemukan."
+    exit 1
+}
+
+# Tes koneksi SSH berbasis Key
+Write-Host "[INFO] Memeriksa autentikasi SSH Key ke $VpsUser@${VpsHost}:${VpsPort}..." -ForegroundColor Cyan
+$TestKeyArgs = @("-i", $SshKey, "-p", $VpsPort, "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=accept-new", "-o", "ConnectTimeout=7", "${VpsUser}@${VpsHost}", "echo OK")
+$TestResult = & ssh @TestKeyArgs 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[INFO] SSH Key belum terdaftar di VPS. Memulai bootstrap SSH key otomatis..." -ForegroundColor Yellow
+    Write-Host "[NOTE] Silakan masukkan password VPS ($VpsUser) ketika diminta oleh OpenSSH." -ForegroundColor Yellow
+    Write-Host "[NOTE] Password TIDAK disimpan dan hanya digunakan sekali oleh OpenSSH untuk memasang public key." -ForegroundColor Gray
+    
+    $PubKeyContent = (Get-Content -LiteralPath $SshPubKey -Raw).Trim()
+    $RemoteAppendCmd = "mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '$PubKeyContent' >> ~/.ssh/authorized_keys && sort -u ~/.ssh/authorized_keys -o ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+    
+    $BootstrapArgs = @("-p", $VpsPort, "-o", "StrictHostKeyChecking=accept-new", "${VpsUser}@${VpsHost}", $RemoteAppendCmd)
+    & ssh @BootstrapArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Gagal memasang Public SSH Key ke VPS target."
+        exit 1
+    }
+
+    # Re-test koneksi dengan key
+    Write-Host "[INFO] Verifikasi koneksi SSH key setelah bootstrap..." -ForegroundColor Cyan
+    $TestResult = & ssh @TestKeyArgs 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Autentikasi SSH key masih gagal setelah bootstrap!"
+        exit 1
+    }
+}
+
+Write-Host "[OK] Autentikasi SSH Key berhasil!" -ForegroundColor Green
+
+$SshOpts = @("-i", $SshKey, "-p", $VpsPort, "-o", "StrictHostKeyChecking=accept-new")
+$ScpOpts = @("-i", $SshKey, "-P", $VpsPort, "-o", "StrictHostKeyChecking=accept-new")
 
 $RepoRoot = $PSScriptRoot
 $LocalSrc = Join-Path $RepoRoot "src"
@@ -67,25 +116,23 @@ if (-not (Test-Path (Join-Path $LocalSrc "artisan"))) {
 }
 
 # 4. Membuat Arsip Bersih
-Write-Host "`n[1/4] Membuat arsip deployment bersih (tanpa node_modules & vendor)..." -ForegroundColor Cyan
+Write-Host "`n[1/4] Membuat arsip deployment bersih (termasuk src & deploy/production)..." -ForegroundColor Cyan
 
 Push-Location $RepoRoot
 try {
     tar -czf $TempArchive `
-        src/app `
-        src/bootstrap `
-        src/config `
-        src/database `
-        src/public `
-        src/resources `
-        src/routes `
-        src/artisan `
-        src/composer.json `
-        src/composer.lock `
-        src/package.json `
-        src/package-lock.json `
-        src/vite.config.js `
-        src/Dockerfile `
+        --exclude="src/vendor" `
+        --exclude="src/node_modules" `
+        --exclude="src/.env" `
+        --exclude="src/.env.*" `
+        --exclude="deploy/production/.env.production" `
+        --exclude="src/storage/logs/*" `
+        --exclude="src/storage/framework/cache/*" `
+        --exclude="src/storage/framework/sessions/*" `
+        --exclude="src/storage/framework/views/*" `
+        --exclude="src/tests" `
+        --exclude="src/.phpunit.result.cache" `
+        src `
         deploy/production
     
     Write-Host "[OK] Arsip berhasil dibuat: $TempArchive" -ForegroundColor Green
@@ -113,12 +160,14 @@ Write-Host "[OK] Upload berhasil!" -ForegroundColor Green
 # 6. Eksekusi Remote Setup & Deploy di VPS
 Write-Host "`n[3/4] Menjalankan Docker Setup & Container Build di VPS..." -ForegroundColor Cyan
 
+# Escaping single quotes in RemoteDir path to prevent injection in ssh context
+$EscapedRemoteDir = $RemoteDir -replace "'", "'\''"
 $RemoteCmd = "set -e; " +
              "mkdir -p /tmp/wacs-deploy && " +
              "tar -xzf $RemoteArchive -C /tmp/wacs-deploy deploy/production/vps-setup.sh deploy/production/vps-deploy.sh && " +
              "chmod +x /tmp/wacs-deploy/deploy/production/vps-setup.sh /tmp/wacs-deploy/deploy/production/vps-deploy.sh && " +
              "/tmp/wacs-deploy/deploy/production/vps-setup.sh && " +
-             "/tmp/wacs-deploy/deploy/production/vps-deploy.sh '$RemoteArchive' '$RemoteDir'"
+             "/tmp/wacs-deploy/deploy/production/vps-deploy.sh '$RemoteArchive' '$EscapedRemoteDir'"
 
 $SshTarget = "${VpsUser}@${VpsHost}"
 $SshArgs = $SshOpts + @($SshTarget, $RemoteCmd)

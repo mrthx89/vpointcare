@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal
 echo ============================================================
 echo  VPoint Care (WACS) - VPS Deployment Launcher

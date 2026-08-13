@@ -8,6 +8,7 @@ use App\Services\Ai\AiKnowledgeLearningService;
 use App\Services\Chat\ChatInitiationService;
 use App\Services\Waha\WahaSender;
 use App\Support\AccessPermissions;
+use App\Services\Waha\WahaSessionService;
 use App\Support\FilamentAccess;
 use App\Support\FilamentBreadcrumbs;
 use App\Support\NavigationHelper;
@@ -93,6 +94,9 @@ class InboxWhatsapp extends Page implements HasForms
     public array $stats = [];
 
     public int $activeAgents = 0;
+
+    /** @var array<string, array<string, mixed>> */
+    public array $wahaStatuses = [];
 
     /** @var array<int, array<string, mixed>> */
     public array $chatRows = [];
@@ -376,9 +380,34 @@ class InboxWhatsapp extends Page implements HasForms
             ->send();
     }
 
+    public function refreshWahaSessionStatuses(): void
+    {
+        try {
+            $sessions = DB::table('MSesiWhatsapp')
+                ->where(function ($query): void {
+                    if (Schema::hasColumn('MSesiWhatsapp', 'NonAktif')) {
+                        $query->where('NonAktif', false)->orWhereNull('NonAktif');
+                    }
+                })
+                ->pluck('KodeSesi')
+                ->filter()
+                ->values();
+
+            if ($sessions->isEmpty()) {
+                $sessions = collect(['default']);
+            }
+
+            $service = app(WahaSessionService::class);
+            $this->wahaStatuses = $service->getSessionStatuses($sessions);
+        } catch (\Throwable $exception) {
+            $this->wahaStatuses = [];
+        }
+    }
+
     public function loadInbox(): void
     {
         $this->refreshActiveAgents();
+        $this->refreshWahaSessionStatuses();
 
         $this->stats = [
             'baru' => (int) DB::table('TChat')->count(),
