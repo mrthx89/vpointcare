@@ -6,14 +6,14 @@
         detailsOpen: false,
         notificationPermission: 'default',
         checkNotificationPermission() {
-            if ("Notification" in window) {
+            if ('Notification' in window) {
                 this.notificationPermission = Notification.permission;
             } else {
-                this.notificationPermission = "unsupported";
+                this.notificationPermission = 'unsupported';
             }
         },
         requestBrowserNotification() {
-            if (!("Notification" in window)) return;
+            if (!('Notification' in window)) return;
             Notification.requestPermission().then(permission => {
                 this.notificationPermission = permission;
             });
@@ -68,7 +68,7 @@
                 });
             } catch (e) {}
         }
-    }" x-init="window.wacsNotificationBodyCopy = {!! json_encode(__('ui.pages.inbox.new_message_notification')) !!}; checkNotificationPermission(); wsOnline = Boolean(window.wahaWsOnline);
+    }" x-init="window.wacsNotificationBodyCopy = @js(__('ui.pages.inbox.new_message_notification')); checkNotificationPermission(); wsOnline = Boolean(window.wahaWsOnline);
     if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
     setTimeout(() => {
         if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
@@ -225,7 +225,7 @@
             {{-- KOLOM KIRI / DRAWER KIRI: Daftar Chat --}}
             <section
                 :class="mobilePane === 'list' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
-                class="wacs-inbox-chat-list fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] transform transition-transform duration-300 ease-in-out md:static md:z-0 md:w-auto md:!flex flex min-h-0 flex-col overflow-hidden rounded-r-2xl md:rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 shadow-2xl md:shadow-none h-full md:h-auto">
+                class="wacs-inbox-chat-list wacs-inbox-chat-list--drawer flex min-h-0 flex-col overflow-hidden rounded-r-2xl md:rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 md:shadow-none">
                 {{-- Header Daftar Chat --}}
                 <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                     <div class="flex items-center justify-between gap-2">
@@ -758,8 +758,8 @@
             <div x-show="detailsOpen" x-transition.opacity @click="detailsOpen = false" x-cloak class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm 2xl:hidden"></div>
 
             {{-- Aside (Sidebar Kanan) / Modal di Mobile --}}
-            <aside :class="detailsOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none 2xl:scale-100 2xl:opacity-100 2xl:pointer-events-auto'" 
-                class="wacs-inbox-aside fixed inset-0 z-50 m-auto h-[90dvh] w-[95vw] max-w-md transform overflow-y-auto rounded-2xl bg-gray-50 p-4 shadow-2xl transition-all duration-300 dark:bg-gray-950 2xl:static 2xl:m-0 2xl:h-auto 2xl:w-auto 2xl:max-w-none 2xl:transform-none 2xl:bg-transparent 2xl:p-0 2xl:shadow-none min-h-0 space-y-4 overflow-x-hidden">
+            <aside :class="detailsOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none 2xl:scale-100 2xl:opacity-100 2xl:pointer-events-auto'"
+                class="wacs-inbox-aside wacs-inbox-aside--details min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
                 <div class="2xl:hidden flex items-center justify-between mb-2 border-b border-gray-200 pb-3 dark:border-gray-800">
                     <h3 class="font-semibold text-lg text-gray-950 dark:text-white">{{ __('ui.pages.inbox.open_details') }}</h3>
                     <button type="button" @click="detailsOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
