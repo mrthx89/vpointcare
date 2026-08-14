@@ -2006,12 +2006,39 @@ label.fi-btn.fi-outlined.fi-color:focus-visible,
 }
 
 @media (max-width: 767px) {
+    .wacs-inbox-shell {
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        gap: 0.75rem;
+    }
+
+    .wacs-inbox-layout {
+        flex: 0 0 auto;
+        height: clamp(28rem, calc(100dvh - 12rem), 42rem);
+        min-height: 28rem;
+        overflow: visible;
+    }
+
+    .wacs-inbox-conversation {
+        height: 100%;
+    }
+
+    .wacs-inbox-conversation.hidden {
+        display: none;
+    }
+
+    .wacs-inbox-conversation.flex {
+        display: flex;
+    }
+
     .wacs-inbox-chat-list--drawer {
         position: fixed;
         inset: 0 auto 0 0;
         z-index: 50;
         width: min(20rem, 85vw);
         height: 100dvh;
+        max-height: 100dvh;
         border-radius: 0 1rem 1rem 0;
     }
 }

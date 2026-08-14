@@ -17,4 +17,16 @@ class InboxWhatsappMarkupTest extends TestCase
         self::assertStringContainsString('wacs-inbox-chat-list--drawer', $view);
         self::assertStringContainsString('wacs-inbox-aside--details', $view);
     }
+
+    public function test_inbox_mobile_workspace_uses_compact_stats_and_keyboard_safe_composer(): void
+    {
+        $view = file_get_contents(base_path('resources/views/filament/pages/inbox-whatsapp.blade.php'));
+
+        self::assertIsString($view);
+        self::assertStringContainsString('wacs-inbox-stats', $view);
+        self::assertStringContainsString('wacs-inbox-stats grid shrink-0 grid-cols-2', $view);
+        self::assertStringContainsString('if ($event.ctrlKey || $event.metaKey)', $view);
+        self::assertStringContainsString('aria-label="{{ __(\'ui.pages.inbox.open_details\') }}"', $view);
+        self::assertStringNotContainsString('x-on:keydown.enter.prevent=', $view);
+    }
 }

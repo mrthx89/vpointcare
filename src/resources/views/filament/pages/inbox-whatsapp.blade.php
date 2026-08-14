@@ -101,7 +101,7 @@
         }" x-show="shown" x-cloak
             class="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <span>🔔</span>
+                <x-heroicon-o-bell class="h-5 w-5 shrink-0" aria-hidden="true" />
                 <span>{{ __('ui.pages.inbox.sound_permission') }}</span>
             </div>
             <button type="button" x-on:click="allowAudio()"
@@ -187,26 +187,26 @@
                 </a>
             @endif
         </div>
-        <div class="grid shrink-0 gap-4 md:grid-cols-3 xl:grid-cols-5">
-            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.active_team') }}</div>
-                <div class="mt-2 text-xl font-semibold text-emerald-600">{{ $activeAgents }}</div>
+        <div class="wacs-inbox-stats grid shrink-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 xl:grid-cols-5">
+            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.active_team') }}</div>
+                <div class="mt-1 text-lg font-semibold text-emerald-600 sm:mt-2 sm:text-xl">{{ $activeAgents }}</div>
             </div>
-            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.total_chat') }}</div>
-                <div class="mt-2 text-xl font-semibold text-gray-950 dark:text-white">{{ $stats['baru'] ?? 0 }}</div>
+            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.total_chat') }}</div>
+                <div class="mt-1 text-lg font-semibold text-gray-950 dark:text-white sm:mt-2 sm:text-xl">{{ $stats['baru'] ?? 0 }}</div>
             </div>
-            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unread') }}</div>
-                <div class="mt-2 text-xl font-semibold text-amber-600">{{ $stats['belum_dibaca'] ?? 0 }}</div>
+            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.unread') }}</div>
+                <div class="mt-1 text-lg font-semibold text-amber-600 sm:mt-2 sm:text-xl">{{ $stats['belum_dibaca'] ?? 0 }}</div>
             </div>
-            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.group_chat') }}</div>
-                <div class="mt-2 text-xl font-semibold text-blue-600">{{ $stats['grup'] ?? 0 }}</div>
+            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.group_chat') }}</div>
+                <div class="mt-1 text-lg font-semibold text-blue-600 sm:mt-2 sm:text-xl">{{ $stats['grup'] ?? 0 }}</div>
             </div>
-            <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                <div class="text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.inbox.unmapped') }}</div>
-                <div class="mt-2 text-xl font-semibold text-red-600">{{ $stats['unknown'] ?? 0 }}</div>
+            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.unmapped') }}</div>
+                <div class="mt-1 text-lg font-semibold text-red-600 sm:mt-2 sm:text-xl">{{ $stats['unknown'] ?? 0 }}</div>
             </div>
         </div>
 
@@ -220,11 +220,12 @@
                 x-transition:leave="transition ease-in duration-150"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm md:hidden"></div>
+                aria-hidden="true" class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm md:hidden"></div>
 
             {{-- KOLOM KIRI / DRAWER KIRI: Daftar Chat --}}
             <section
                 :class="mobilePane === 'list' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+                aria-label="{{ __('ui.pages.inbox.chat_list') }}"
                 class="wacs-inbox-chat-list wacs-inbox-chat-list--drawer flex min-h-0 flex-col overflow-hidden rounded-r-2xl md:rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 md:shadow-none">
                 {{-- Header Daftar Chat --}}
                 <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
@@ -238,7 +239,7 @@
                                 <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full"
                                     :class="reverbDotClass()"></span>
                                 <span class="text-xs text-gray-400"
-                                    x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} · ${@js(__('ui.pages.inbox.polling'))}`"></span>
+                                    x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} / ${@js(__('ui.pages.inbox.polling'))}`"></span>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-1.5 justify-end">
@@ -349,14 +350,14 @@
                                             <span
                                                 class="rounded px-1.5 py-0.5 text-[10px] font-semibold
                                                     {{ $chat['DiambilOlehSaya'] ?? false ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' }}">
-                                                👤
+                                                <x-heroicon-o-user class="mr-1 inline h-3 w-3 align-[-2px]" aria-hidden="true" />
                                                 {{ $chat['DiambilOlehSaya'] ?? false ? 'Anda' : $chat['DiambilNamaCS'] }}
                                             </span>
                                         @endif
                                         {{-- AI badge --}}
                                         @if ($chat['AutoReplyAiAktif'])
                                             <span
-                                                class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">✨
+                                                class="rounded px-1.5 py-0.5 text-[10px] font-semibold bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
                                                 AI</span>
                                         @endif
                                     </div>
@@ -365,7 +366,7 @@
                         </button>
                     @empty
                         <div class="p-8 text-center">
-                            <div class="text-xl mb-2">💬</div>
+                            <x-heroicon-o-chat-bubble-bottom-center-text class="mx-auto mb-2 h-7 w-7 text-gray-400" aria-hidden="true" />
                             <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
                                 {{ __('ui.pages.inbox.no_chat') }}</div>
                             <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -394,7 +395,7 @@
                     <div
                         class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="flex min-w-0 items-center gap-3">
-                            <button type="button" @click="mobilePane = 'list'" class="md:hidden shrink-0 flex items-center justify-center p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full" title="{{ __('ui.pages.inbox.chat_list') }}">
+                                <button type="button" @click="mobilePane = 'list'" aria-label="{{ __('ui.pages.inbox.chat_list') }}" class="md:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300" title="{{ __('ui.pages.inbox.chat_list') }}">
                                 <x-heroicon-o-bars-3 class="w-6 h-6" />
                             </button>
                             @if ($selectedChat['FotoProfilUrl'] ?? null)
@@ -435,7 +436,7 @@
 
                             {{-- Dropdown Pengaturan Chat (Mobile & Tablet) --}}
                             <div x-data="{ menuOpen: false }" class="relative z-30 shrink-0">
-                                <button type="button" @click="menuOpen = !menuOpen" @click.outside="menuOpen = false"
+                                <button type="button" @click="menuOpen = !menuOpen" @click.outside="menuOpen = false" :aria-expanded="menuOpen.toString()" aria-haspopup="menu" aria-label="{{ __('ui.pages.inbox.details') }}"
                                     class="2xl:hidden flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors focus:outline-none"
                                     title="Pengaturan">
                                     <x-heroicon-o-ellipsis-vertical class="w-6 h-6" />
@@ -445,7 +446,7 @@
                                     class="absolute right-0 top-full mt-1.5 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-sm">
                                     
                                     {{-- Lihat Detail / Modal --}}
-                                    <button type="button" @click="detailsOpen = true; menuOpen = false"
+                                    <button type="button" @click="detailsOpen = true; menuOpen = false" aria-label="{{ __('ui.pages.inbox.open_details') }}" aria-haspopup="dialog"
                                         class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
                                         <x-heroicon-o-information-circle class="w-4 h-4 text-gray-400" />
                                         <span>{{ __('ui.pages.inbox.open_details') }}</span>
@@ -720,7 +721,7 @@
 
                                     <div class="flex-1 min-w-0">
                                         <textarea wire:model="replyText"
-                                            x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.kirimBalasanWaha() }"
+                                            x-on:keydown.enter="if ($event.ctrlKey || $event.metaKey) { $event.preventDefault(); $wire.kirimBalasanWaha() }"
                                             x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
                                             x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
                                             class="block max-h-[180px] min-h-[42px] w-full resize-none border-none bg-transparent px-2 py-2 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
@@ -759,10 +760,11 @@
 
             {{-- Aside (Sidebar Kanan) / Modal di Mobile --}}
             <aside :class="detailsOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none 2xl:scale-100 2xl:opacity-100 2xl:pointer-events-auto'"
+                :role="detailsOpen ? 'dialog' : 'complementary'" :aria-modal="detailsOpen ? 'true' : null" aria-labelledby="wacs-inbox-details-title"
                 class="wacs-inbox-aside wacs-inbox-aside--details min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
                 <div class="2xl:hidden flex items-center justify-between mb-2 border-b border-gray-200 pb-3 dark:border-gray-800">
-                    <h3 class="font-semibold text-lg text-gray-950 dark:text-white">{{ __('ui.pages.inbox.open_details') }}</h3>
-                    <button type="button" @click="detailsOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <h3 id="wacs-inbox-details-title" class="font-semibold text-lg text-gray-950 dark:text-white">{{ __('ui.pages.inbox.open_details') }}</h3>
+                    <button type="button" @click="detailsOpen = false" aria-label="{{ __('ui.common.cancel') }}" class="flex h-11 w-11 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                         <x-heroicon-o-x-mark class="w-6 h-6" />
                     </button>
                 </div>

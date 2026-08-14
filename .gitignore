@@ -41,6 +41,7 @@ _ide_helper.php
 **/.env
 **/.env.*
 !**/.env.example
+!deploy/production/.env.production.example
 auth.json
 **/auth.json
 secrets.json
