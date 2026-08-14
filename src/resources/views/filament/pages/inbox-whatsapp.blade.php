@@ -72,7 +72,7 @@
     if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
     setTimeout(() => {
         if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
-    }, 300);" @waha-new-message.window="if (.detail.isIncoming) playSound()"
+    }, 300);" @waha-new-message.window="if ($event.detail.isIncoming) playSound()"
         @waha-ws-connected.window="wsOnline = true" @waha-ws-disconnected.window="wsOnline = false"
         @wacs-reverb-status-changed.window="updateReverbStatus($event.detail)"
         class="wacs-inbox-shell flex flex-col gap-4" wire:poll.60s="loadInbox">
@@ -374,7 +374,7 @@
 
             {{-- KOLOM TENGAH: Ruang Percakapan --}}
             <section
-                :class="{ 'hidden': mobilePane !== 'conversation', 'flex': mobilePane === 'conversation' }" class="wacs-inbox-conversation md:!flex flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                :class="{ 'hidden': mobilePane !== 'conversation', 'flex': mobilePane === 'conversation' }" class="wacs-inbox-conversation relative md:!flex flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 @if ($selectedChat)
                     @php
                         $selectedIdentity = $selectedChat['Identity'][$identityDisplayMode] ?? $selectedChat['Identity']['whatsapp'];
@@ -459,7 +459,7 @@
                         }
                     }" x-init="scrollToBottom();
                     $wire.$hook('morph', () => { scrollToBottom(); });"
-                        class="wacs-inbox-messages min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 dark:bg-gray-950/60">
+                        class="wacs-inbox-messages min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 pb-36 dark:bg-gray-950/60">
                     @if ($hasOlderMessages)
                         <div>
                             <button type=button wire:click=loadOlderMessages wire:loading.attr=disabled wire:target=loadOlderMessages>
@@ -607,49 +607,69 @@
                             }
                         }"
                             @paste="handlePaste($event)"
-                            class="wacs-inbox-reply-form shrink-0 border-t border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-                            <input x-ref="attachmentInput" type="file" wire:model="attachment"
-                                accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
-                                class="hidden">
-                            <x-filament::input.wrapper :valid="!$errors->has('replyText')">
-                                <textarea wire:model="replyText"
-                                    class="w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
-                                    rows="4" placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
-                            </x-filament::input.wrapper>
-                            @error('replyText')
-                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
-                            @enderror
-                            @error('attachment')
-                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
-                            @enderror
-                            <div wire:loading wire:target="attachment"
-                                class="mt-2 text-xs font-medium text-blue-600 dark:text-blue-300">
-                                {{ __('ui.pages.inbox.uploading_attachment') }}
-                            </div>
-                            @if ($attachment)
-                                <div
-                                    class="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
-                                    <div class="min-w-0 truncate">
-                                        {{ __('ui.pages.inbox.attachment') }}:
-                                        {{ $attachment->getClientOriginalName() }}
+                            class="wacs-inbox-reply-form absolute bottom-0 inset-x-0 z-20 pointer-events-none p-3 sm:p-4 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-gray-900 dark:via-gray-900/85">
+                            <div class="pointer-events-auto mx-auto max-w-4xl rounded-2xl border border-gray-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-md dark:border-gray-700/60 dark:bg-gray-900/95 space-y-2">
+                                <input x-ref="attachmentInput" type="file" wire:model="attachment"
+                                    accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
+                                    class="hidden">
+
+                                @if ($attachment)
+                                    <div
+                                        class="flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
+                                        <div class="min-w-0 truncate flex items-center gap-1.5">
+                                            <x-heroicon-o-paper-clip class="h-4 w-4 shrink-0" />
+                                            <span class="truncate">{{ __('ui.pages.inbox.attachment') }}: {{ $attachment->getClientOriginalName() }}</span>
+                                        </div>
+                                        <button type="button" wire:click="removeAttachment"
+                                            class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">{{ __('ui.common.delete') }}</button>
                                     </div>
-                                    <button type="button" wire:click="removeAttachment"
-                                        class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">{{ __('ui.common.delete') }}</button>
+                                @endif
+
+                                @error('replyText')
+                                    <div class="px-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</div>
+                                @enderror
+                                @error('attachment')
+                                    <div class="px-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</div>
+                                @enderror
+
+                                <div wire:loading wire:target="attachment"
+                                    class="px-1 text-xs font-medium text-blue-600 dark:text-blue-300">
+                                    {{ __('ui.pages.inbox.uploading_attachment') }}
                                 </div>
-                            @endif
-                            <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                <x-filament::button type="button" color="gray" outlined
-                                    x-on:click="$refs.attachmentInput.click()">
-                                    {{ __('ui.pages.inbox.attach_file') }}
-                                </x-filament::button>
-                                <div class="flex flex-wrap justify-end gap-2">
-                                    <x-filament::button type="button" color="gray" outlined
-                                        wire:click="simpanBalasanLokal">
-                                        {{ __('ui.common.save') }} Draft
-                                    </x-filament::button>
-                                    <x-filament::button type="submit" wire:target="attachment,kirimBalasanWaha">
-                                        {{ __('ui.pages.inbox.send_to_whatsapp') }}
-                                    </x-filament::button>
+
+                                <div class="flex items-end gap-2">
+                                    <button type="button" x-on:click="$refs.attachmentInput.click()"
+                                        class="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                                        title="{{ __('ui.pages.inbox.attach_file') }}">
+                                        <x-heroicon-o-paper-clip class="h-5 w-5" />
+                                    </button>
+
+                                    <div class="flex-1 min-w-0">
+                                        <textarea wire:model="replyText"
+                                            x-on:keydown.enter.prevent="if (!$event.shiftKey) { $wire.kirimBalasanWaha() }"
+                                            x-on:input="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
+                                            x-effect="$el.style.height='auto'; $el.style.height=Math.min($el.scrollHeight, 180)+'px'"
+                                            class="block max-h-[180px] min-h-[42px] w-full resize-none border-none bg-transparent px-2 py-2 text-sm leading-6 text-gray-950 outline-none placeholder:text-gray-400 focus:ring-0 dark:text-white dark:placeholder:text-gray-500"
+                                            rows="1" placeholder="{{ __('ui.pages.inbox.reply_placeholder') }}"></textarea>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        <x-filament::button type="button" color="gray" size="sm" outlined
+                                            wire:click="simpanBalasanLokal"
+                                            title="Simpan Draft">
+                                            {{ __('ui.common.save') }} Draft
+                                        </x-filament::button>
+
+                                        <button type="submit" wire:loading.attr="disabled" wire:target="attachment,kirimBalasanWaha"
+                                            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 dark:ring-offset-gray-900"
+                                            title="{{ __('ui.pages.inbox.send_to_whatsapp') }}">
+                                            <x-heroicon-m-paper-airplane wire:loading.remove wire:target="attachment,kirimBalasanWaha" class="h-5 w-5" />
+                                            <svg wire:loading wire:target="attachment,kirimBalasanWaha" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </form>

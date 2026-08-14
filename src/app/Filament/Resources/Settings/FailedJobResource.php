@@ -8,7 +8,6 @@ use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
 use App\Support\NavigationHelper;
 use BackedEnum;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -20,6 +19,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use UnitEnum;
@@ -33,12 +33,12 @@ class FailedJobResource extends Resource
         return FailedJob::class;
     }
 
-    public static function getNavigationIcon(): string | BackedEnum | \Illuminate\Contracts\Support\Htmlable | null
+    public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {
         return NavigationHelper::iconFor(AccessPermissions::QUEUE_MONITOR_VIEW, 'heroicon-o-exclamation-triangle');
     }
 
-    public static function getNavigationGroup(): string | UnitEnum | null
+    public static function getNavigationGroup(): string|UnitEnum|null
     {
         return NavigationHelper::groupFor(AccessPermissions::QUEUE_MONITOR_VIEW, __('ui.navigation.settings'));
     }
@@ -121,6 +121,7 @@ class FailedJobResource extends Resource
                     ->color('danger'),
             ])
             ->actions([
+                ViewAction::make(),
                 Action::make('retry')
                     ->label(__('ui.queue_monitor.retry'))
                     ->icon('heroicon-o-arrow-path')
