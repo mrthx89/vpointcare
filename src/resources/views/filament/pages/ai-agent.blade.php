@@ -296,6 +296,16 @@
                         </div>
                         <div>
                             <label
+                                class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.pages.ai_agent.ai_signature') }}</label>
+                            <x-filament::input.wrapper class="mt-2">
+                                <x-filament::input type="text" wire:model="pengaturan.TandaTanganAi"
+                                    placeholder="{{ __('ui.pages.ai_agent.ai_signature_placeholder') }}" />
+                            </x-filament::input.wrapper>
+                            <div class="mt-1 text-xs text-gray-500">
+                                {{ __('ui.pages.ai_agent.ai_signature_help') }}</div>
+                        </div>
+                        <div>
+                            <label
                                 class="text-sm font-medium text-gray-700 dark:text-gray-200">{{ __('ui.common.endpoint') }}</label>
                             <x-filament::input.wrapper class="mt-2">
                                 <x-filament::input type="url" wire:model="pengaturan.BaseUrl" />

@@ -2,28 +2,24 @@
 
 namespace Tests\Unit\Services;
 
-use App\Services\Ai\AiMessageRefinementService;
 use App\Services\Ai\AiAutoReplyService;
-use App\Support\AiSettings;
+use App\Services\Ai\AiMessageRefinementService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Tests\TestCase;
 use Mockery;
 use RuntimeException;
+use Tests\TestCase;
 
 class AiMessageRefinementServiceTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        $this->createSchema();
         Cache::flush();
     }
 
     protected function tearDown(): void
     {
-        Schema::dropIfExists('MPengaturanAi');
+        Cache::flush();
         Mockery::close();
         parent::tearDown();
     }
@@ -39,6 +35,7 @@ class AiMessageRefinementServiceTest extends TestCase
 
     public function test_refine_returns_error_when_provider_is_missing(): void
     {
+        Cache::put('mpengaturan_ai_default_v2', []);
         $autoReply = Mockery::mock(AiAutoReplyService::class);
         $service = new AiMessageRefinementService($autoReply);
         $result = $service->refine('test');
@@ -57,6 +54,51 @@ class AiMessageRefinementServiceTest extends TestCase
 
         $service = new AiMessageRefinementService($autoReply);
         $result = $service->refine('hallo');
+        self::assertTrue($result['ok']);
+        self::assertSame('Halo, apa kabar?', $result['text']);
+    }
+
+    public function test_refine_removes_ai_signature_from_manual_reply(): void
+    {
+        $settings = $this->seedSettings(['TandaTanganAi' => '~ Admin AI']);
+        $autoReply = Mockery::mock(AiAutoReplyService::class);
+        $autoReply->shouldReceive('generateManualRefinement')
+            ->once()
+            ->andReturn(['text' => "Halo, apa kabar?\n\n~ Admin AI"]);
+
+        $service = new AiMessageRefinementService($autoReply);
+        $result = $service->refine('hallo');
+
+        self::assertTrue($result['ok']);
+        self::assertSame('Halo, apa kabar?', $result['text']);
+    }
+
+    public function test_refine_removes_fallback_ai_signature_from_manual_reply(): void
+    {
+        $this->seedSettings();
+        $autoReply = Mockery::mock(AiAutoReplyService::class);
+        $autoReply->shouldReceive('generateManualRefinement')
+            ->once()
+            ->andReturn(['text' => "Halo, apa kabar?\n\n~ Auto Reply by VICA"]);
+
+        $service = new AiMessageRefinementService($autoReply);
+        $result = $service->refine('hallo');
+
+        self::assertTrue($result['ok']);
+        self::assertSame('Halo, apa kabar?', $result['text']);
+    }
+
+    public function test_refine_removes_short_ai_footer_from_manual_reply(): void
+    {
+        $this->seedSettings();
+        $autoReply = Mockery::mock(AiAutoReplyService::class);
+        $autoReply->shouldReceive('generateManualRefinement')
+            ->once()
+            ->andReturn(['text' => "Halo, apa kabar?\n\n~AI"]);
+
+        $service = new AiMessageRefinementService($autoReply);
+        $result = $service->refine('hallo');
+
         self::assertTrue($result['ok']);
         self::assertSame('Halo, apa kabar?', $result['text']);
     }
@@ -86,24 +128,9 @@ class AiMessageRefinementServiceTest extends TestCase
         self::assertFalse(isset($result['detail']));
     }
 
-    private function createSchema(): void
+    private function seedSettings(array $overrides = []): object
     {
-        Schema::create('MPengaturanAi', function ($table): void {
-            $table->string('Id')->primary();
-            $table->string('KodePengaturan')->unique();
-            $table->string('NamaPengaturan');
-            $table->string('ProviderAi');
-            $table->string('ModelAi')->nullable();
-            $table->string('ModelInstructAi')->nullable();
-            $table->string('BaseUrl')->nullable();
-            $table->boolean('NonAktif')->default(false);
-            $table->boolean('AutoReplyAktif')->default(false);
-        });
-    }
-
-    private function seedSettings(): object
-    {
-        DB::table('MPengaturanAi')->insert([
+        $settings = array_merge([
             'Id' => 'default-settings',
             'KodePengaturan' => 'DEFAULT',
             'NamaPengaturan' => 'Default AI',
@@ -113,7 +140,11 @@ class AiMessageRefinementServiceTest extends TestCase
             'BaseUrl' => 'https://api.openai.com/v1',
             'NonAktif' => false,
             'AutoReplyAktif' => true,
-        ]);
-        return (object) DB::table('MPengaturanAi')->where('KodePengaturan', 'DEFAULT')->first();
+            'TandaTanganAi' => null,
+        ], $overrides);
+
+        Cache::put('mpengaturan_ai_default_v2', $settings);
+
+        return (object) $settings;
     }
 }

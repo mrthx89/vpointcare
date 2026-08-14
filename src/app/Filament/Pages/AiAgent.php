@@ -156,6 +156,7 @@ class AiAgent extends Page
             'pengaturan.ProviderAi' => ['required', 'string', 'max:50'],
             'pengaturan.ModelAi' => ['nullable', 'string', 'max:100'],
             'pengaturan.ModelInstructAi' => ['nullable', 'string', 'max:100'],
+            'pengaturan.TandaTanganAi' => ['nullable', 'string', 'max:255'],
             'pengaturan.BaseUrl' => ['nullable', 'url', 'max:255'],
             'pengaturan.PromptSistem' => ['nullable', 'string', 'max:8000'],
             'pengaturan.TemplateDiluarJamKerja' => ['nullable', 'string', 'max:4000'],
@@ -195,6 +196,13 @@ class AiAgent extends Page
             $data['PerhalusJawabanWhatsappDefault'] = (bool) ($validated['pengaturan']['PerhalusJawabanWhatsappDefault'] ?? false);
         } else {
             unset($data['PerhalusJawabanWhatsappDefault']);
+        }
+
+        if (Schema::hasColumn('MPengaturanAi', 'TandaTanganAi')) {
+            $signature = trim((string) ($validated['pengaturan']['TandaTanganAi'] ?? ''));
+            $data['TandaTanganAi'] = $signature !== '' ? $signature : null;
+        } else {
+            unset($data['TandaTanganAi']);
         }
 
         DB::table('MPengaturanAi')
@@ -253,6 +261,7 @@ class AiAgent extends Page
             'ProviderAi' => $row->ProviderAi ?: 'OpenAI',
             'ModelAi' => $row->ModelAi ?: $this->defaultModel($row->ProviderAi ?: 'OpenAI'),
             'ModelInstructAi' => Schema::hasColumn('MPengaturanAi', 'ModelInstructAi') ? ($row->ModelInstructAi ?? null) : null,
+            'TandaTanganAi' => Schema::hasColumn('MPengaturanAi', 'TandaTanganAi') ? ($row->TandaTanganAi ?? null) : null,
             'BaseUrl' => $row->BaseUrl ?: $this->defaultBaseUrl($row->ProviderAi ?: 'OpenAI'),
             'PromptSistem' => $row->PromptSistem,
             'TemplateDiluarJamKerja' => $row->TemplateDiluarJamKerja,

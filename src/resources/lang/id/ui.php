@@ -514,6 +514,9 @@ return [
         'ai_agent' => [
         'refine_whatsapp_replies' => 'Perhalus Jawaban WhatsApp secara Default',
         'refine_whatsapp_replies_desc' => 'Jika diaktifkan, opsi perhalus jawaban AI akan secara otomatis terpilih saat membalas pesan WhatsApp.',
+        'ai_signature' => 'Tanda Tangan AI',
+        'ai_signature_placeholder' => 'Contoh: ~ Auto Reply by VICA',
+        'ai_signature_help' => 'Ditambahkan hanya pada balasan otomatis AI, bukan pesan admin yang diperhalus.',
             'title' => 'AI Agent',
             'navigation_label' => 'AI Agent',
             'settings_saved' => 'Pengaturan AI Agent tersimpan.',

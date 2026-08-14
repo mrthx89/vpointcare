@@ -88,6 +88,7 @@ CREATE TABLE MPengguna (
     EmailTerverifikasiPada datetime2 NULL,
     LoginTerakhirPada datetime2 NULL,
     NonAktif bit NOT NULL CONSTRAINT DF_MPengguna_NonAktif DEFAULT 0,
+    PerhalusJawabanWhatsapp bit NULL,
     TglBuat datetime2 NOT NULL CONSTRAINT DF_MPengguna_TglBuat DEFAULT SYSDATETIME(),
     DibuatOleh uniqueidentifier NULL,
     TglEdit datetime2 NULL,
@@ -377,6 +378,8 @@ CREATE TABLE MPengaturanAi (
     ZonaWaktu varchar(100) NOT NULL CONSTRAINT DF_MPengaturanAi_ZonaWaktu DEFAULT 'Asia/Jakarta',
     ProviderAi varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ProviderAi DEFAULT 'OpenAI',
     ModelAi varchar(100) NULL,
+    PerhalusJawabanWhatsappDefault bit NOT NULL CONSTRAINT DF_MPengaturanAi_PerhalusJawabanWhatsappDefault DEFAULT 0,
+    TandaTanganAi nvarchar(255) NULL,
     BaseUrl varchar(255) NULL,
     ApiKeyTerenkripsi nvarchar(max) NULL,
     PromptSistem nvarchar(max) NULL,
@@ -849,7 +852,9 @@ INSERT INTO MPengaturanAi (
     TemplateNotifikasiChatBelumTerbalas,
     BatasRiwayatPesan,
     KirimKeWaha,
-    ModeKirim
+    ModeKirim,
+    PerhalusJawabanWhatsappDefault,
+    TandaTanganAi
 )
 VALUES (
     'DEFAULT',
@@ -878,7 +883,9 @@ VALUES (
     N'Halo {nama_user}, ada chat WhatsApp dari {nama_instansi} yang belum dibalas selama {menit_menunggu} menit. Kontak: {nama_kontak} ({nomor_whatsapp}). Pesan terakhir: {pesan_terakhir}. Silakan cek VPoint Care: {url_admin}',
     8,
     0,
-    'DraftLokal'
+    'DraftLokal',
+    0,
+    NULL
 );
 GO
 

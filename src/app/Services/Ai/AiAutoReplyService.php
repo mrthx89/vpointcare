@@ -25,7 +25,7 @@ class AiAutoReplyService
 
     public function generateManualRefinement(object $settings, string $message): ?array
     {
-        $prompt = "Anda adalah asisten komunikasi profesional. Tugas Anda adalah memperhalus pesan WhatsApp berikut agar lebih sopan, jelas, dan baik secara tata bahasa. PERATURAN MUTLAK:\n1. Pertahankan bahasa asli pesan (misal Bahasa Indonesia tetap Bahasa Indonesia).\n2. JANGAN mengubah fakta, maksud utama, nominal, harga, angka, URL, nomor WhatsApp, atau placeholder.\n3. JANGAN menambahkan fakta atau promosi baru yang tidak ada pada pesan asli.\n4. Kembalikan HANYA teks pesan yang sudah diperhalus tanpa penjelasan tambahan.\n\nPesan asli:\n" . $message;
+        $prompt = "Anda adalah asisten komunikasi profesional. Tugas Anda adalah memperhalus pesan WhatsApp berikut agar lebih sopan, jelas, dan baik secara tata bahasa. PERATURAN MUTLAK:\n1. Pertahankan bahasa asli pesan (misal Bahasa Indonesia tetap Bahasa Indonesia).\n2. JANGAN mengubah fakta, maksud utama, nominal, harga, angka, URL, nomor WhatsApp, atau placeholder.\n3. JANGAN menambahkan fakta atau promosi baru yang tidak ada pada pesan asli.\n4. Jangan menambahkan tanda tangan, label, nama AI, atribusi, atau footer apa pun.\n5. Kembalikan HANYA teks pesan yang sudah diperhalus tanpa penjelasan tambahan.\n\nPesan asli:\n" . $message;
         return $this->generateReply($settings, $prompt, true);
     }
     public function testProviderConnection(object $settings, string $prompt): string
@@ -832,6 +832,7 @@ class AiAutoReplyService
      */
     private function storeReply(object $settings, object $chat, string $reply, string $responseId, string $mode): array
     {
+        $reply = $this->appendAiSignature($settings, $reply);
         $status = 'Draft Auto Reply AI';
         $sentAt = null;
         $error = null;
@@ -865,6 +866,22 @@ class AiAutoReplyService
             'auto_reply_mode' => $mode,
             'error' => $error,
         ];
+    }
+
+    private function appendAiSignature(object $settings, string $reply): string
+    {
+        $signature = trim((string) ($settings->TandaTanganAi ?? ''));
+        $reply = rtrim($reply);
+
+        if ($signature === '' || $reply === '') {
+            return $reply;
+        }
+
+        if (Str::endsWith($reply, $signature)) {
+            return $reply;
+        }
+
+        return $reply . "\n\n" . $signature;
     }
 
     /**
@@ -967,4 +984,3 @@ class AiAutoReplyService
         return 'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.';
     }
 }
-

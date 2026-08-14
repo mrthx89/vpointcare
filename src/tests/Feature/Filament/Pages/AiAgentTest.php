@@ -77,6 +77,33 @@ class AiAgentTest extends TestCase
         self::assertSame(0, (int) DB::table('MPengguna')->where('Id', 'operator-inactive')->value('PerhalusJawabanWhatsapp'));
     }
 
+    public function test_ai_agent_persists_ai_signature(): void
+    {
+        Livewire::actingAs($this->agent())
+            ->test(AiAgent::class)
+            ->assertSee(__('ui.pages.ai_agent.ai_signature'))
+            ->set('pengaturan.TandaTanganAi', '~ Auto Reply by VICA')
+            ->call('simpanPengaturan')
+            ->assertHasNoErrors();
+
+        self::assertSame('~ Auto Reply by VICA', DB::table('MPengaturanAi')->value('TandaTanganAi'));
+    }
+
+    public function test_ai_signature_setting_is_ignored_before_migration(): void
+    {
+        Schema::table('MPengaturanAi', function (Blueprint $table): void {
+            $table->dropColumn('TandaTanganAi');
+        });
+
+        Livewire::actingAs($this->agent())
+            ->test(AiAgent::class)
+            ->assertSet('pengaturan.TandaTanganAi', null)
+            ->set('pengaturan.TandaTanganAi', '~ Auto Reply by VICA')
+            ->call('simpanPengaturan')
+            ->assertHasNoErrors();
+
+        self::assertArrayNotHasKey('TandaTanganAi', (array) DB::table('MPengaturanAi')->first());
+    }
 
     public function test_fallback_when_whatsapp_refinement_schema_is_missing(): void
     {
@@ -88,6 +115,7 @@ class AiAgentTest extends TestCase
         $component->set('pengaturan.PerhalusJawabanWhatsappDefault', true)->call('simpanPengaturan')->assertHasNoErrors();
         self::assertArrayNotHasKey('PerhalusJawabanWhatsappDefault', (array) DB::table('MPengaturanAi')->first());
     }
+
     private function createSchema(): void
     {
         Schema::create('MPengguna', function (Blueprint $table): void {
@@ -147,6 +175,7 @@ class AiAgentTest extends TestCase
             $table->boolean('NonAktif')->default(false);
             $table->dateTime('TglBuat')->nullable();
             $table->dateTime('TglEdit')->nullable();
+            $table->string('TandaTanganAi')->nullable();
             $table->boolean('PerhalusJawabanWhatsappDefault')->default(false);
         });
     }

@@ -514,6 +514,9 @@ return [
         'ai_agent' => [
         'refine_whatsapp_replies' => 'Refine WhatsApp Replies by Default',
         'refine_whatsapp_replies_desc' => 'When enabled, the AI answer refinement option will be selected by default when replying via WhatsApp.',
+        'ai_signature' => 'AI Signature',
+        'ai_signature_placeholder' => 'Example: ~ Auto Reply by VICA',
+        'ai_signature_help' => 'Added only to automated AI replies, not admin messages refined by AI.',
             'title' => 'AI Agent',
             'navigation_label' => 'AI Agent',
             'settings_saved' => 'AI Agent settings saved.',
