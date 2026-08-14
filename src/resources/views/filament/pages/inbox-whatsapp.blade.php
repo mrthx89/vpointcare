@@ -21,8 +21,8 @@
         wsOnline: false,
         reverbStatus: window.wahaGetReverbStatus ? window.wahaGetReverbStatus() : {
             state: 'unknown',
-            message: 'Reverb client belum terdeteksi.',
-            reason: 'Asset Echo belum aktif atau halaman belum selesai memuat.',
+            message: @js(__('ui.pages.inbox.reverb_reason_client_missing')),
+            reason: @js(__('ui.pages.inbox.reverb_reason_asset_inactive')),
             updatedAt: new Date().toISOString(),
         },
         toggleSound() {
@@ -165,6 +165,15 @@
                             'failed' => 'bg-rose-500',
                             default => 'bg-red-500',
                         };
+                        $statusLabel = match ($st) {
+                            'running' => __('ui.pages.waha_connection.status_running'),
+                            'starting' => __('ui.pages.waha_connection.status_starting'),
+                            'scan_required' => __('ui.pages.waha_connection.status_scan_required'),
+                            'stopped' => __('ui.pages.waha_connection.status_stopped'),
+                            'failed' => __('ui.pages.waha_connection.status_failed'),
+                            'unavailable' => __('ui.pages.waha_connection.status_unavailable'),
+                            default => __('ui.pages.waha_connection.status_unknown'),
+                        };
                     @endphp
                     <div
                         class="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold {{ $badgeStyle }}">
@@ -175,7 +184,7 @@
                             @endif
                             <span class="relative inline-flex h-2.5 w-2.5 rounded-full {{ $dotStyle }}"></span>
                         </span>
-                        <span>{{ strtoupper($sCode) }}: {{ strtoupper(str_replace('_', ' ', $st)) }}</span>
+                        <span>{{ strtoupper($sCode) }}: {{ $statusLabel }}</span>
 
                         @if (in_array($st, ['scan_required', 'stopped', 'failed', 'unavailable'], true) &&
                                 \App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_MANAGE))
@@ -265,7 +274,7 @@
                                 <span x-show="!wsOnline" class="inline-block w-2 h-2 rounded-full"
                                     :class="reverbDotClass()"></span>
                                 <span class="text-xs text-gray-400"
-                                    x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} / ${@js(__('ui.pages.inbox.polling'))}`"></span>
+                                    x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || @js(__('ui.pages.inbox.reverb_state_unknown'))} / ${@js(__('ui.pages.inbox.polling'))}`"></span>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-1.5 justify-end">
@@ -362,14 +371,11 @@
                                     <div class="mt-2 flex flex-wrap items-center gap-1">
                                         {{-- Status badge --}}
                                         @php
-                                            $statusColor = match (true) {
-                                                str_contains($chat['Status'], 'Proses')
-                                                    => 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300',
-                                                str_contains($chat['Status'], 'Selesai') ||
-                                                    str_contains($chat['Status'], 'Ditutup')
-                                                    => 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
-                                                str_contains($chat['Status'], 'Tunggu')
-                                                    => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
+                                            $statusCode = strtoupper((string) ($chat['StatusCode'] ?? ''));
+                                            $statusColor = match ($statusCode) {
+                                                'DALAM_PROSES' => 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300',
+                                                'SELESAI', 'DITUTUP' => 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                                                'MENUNGGU_CS', 'MENUNGGU_CUSTOMER' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
                                                 default
                                                     => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
                                             };
@@ -383,7 +389,7 @@
                                                     {{ $chat['DiambilOlehSaya'] ?? false ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' }}">
                                                 <x-heroicon-o-user class="mr-1 inline h-3 w-3 align-[-2px]"
                                                     aria-hidden="true" />
-                                                {{ $chat['DiambilOlehSaya'] ?? false ? 'Anda' : $chat['DiambilNamaCS'] }}
+                                                {{ $chat['DiambilOlehSaya'] ?? false ? __('ui.pages.inbox.you') : $chat['DiambilNamaCS'] }}
                                             </span>
                                         @endif
                                         {{-- AI badge --}}
@@ -469,7 +475,7 @@
                             @if ($selectedChat['AutoReplyAiAktif'])
                                 <div
                                     class="inline-flex rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                                    AI Auto Reply</div>
+                                    {{ __('ui.pages.inbox.ai_auto_reply') }}</div>
                             @endif
                             <div
                                 class="inline-flex rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
@@ -481,7 +487,7 @@
                                     @click.outside="menuOpen = false" :aria-expanded="menuOpen.toString()"
                                     aria-haspopup="menu" aria-label="{{ __('ui.pages.inbox.details') }}"
                                     class="2xl:hidden flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors focus:outline-none"
-                                    title="Pengaturan">
+                                    title="{{ __('ui.pages.inbox.chat_settings') }}">
                                     <x-heroicon-o-ellipsis-vertical class="w-6 h-6" />
                                 </button>
 
@@ -512,11 +518,11 @@
                                             @click="menuOpen = false"
                                             class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
                                             <x-heroicon-o-arrow-path class="w-4 h-4 text-gray-400" />
-                                            <span>{{ __('ui.common.refresh') }} Mapping</span>
+                                            <span>{{ __('ui.pages.inbox.refresh_mapping') }}</span>
                                         </button>
                                     @endif
 
-                                    @if ($this->canManageInbox() && !str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
+                                    @if ($this->canManageInbox() && strtoupper((string) ($selectedChat['StatusCode'] ?? '')) !== 'DITUTUP')
                                         <div class="my-1 border-t border-gray-100 dark:border-gray-800"></div>
 
                                         {{-- Tutup Percakapan --}}
@@ -546,7 +552,7 @@
                             </div>
 
                             {{-- Tombol Tutup Chat Desktop (Tetap Tampil di Kanan luar menu jika layar besar >= 2xl) --}}
-                            @if ($this->canManageInbox() && !str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
+                            @if ($this->canManageInbox() && strtoupper((string) ($selectedChat['StatusCode'] ?? '')) !== 'DITUTUP')
                                 <x-filament::button color="danger" size="sm" class="hidden 2xl:inline-flex"
                                     x-on:click="
                                             Swal.fire({
@@ -1150,7 +1156,7 @@
                                 <div class="font-medium text-gray-900 dark:text-white">
                                     {{ \App\Support\LocaleFormatter::dateTime($history['TglChatTerakhir']) }}</div>
                                 <div class="text-sm text-gray-500">{{ $history['NamaStatusChat'] }} &middot;
-                                    {{ $history['JumlahPesanBelumDibaca'] }} unread</div>
+                                    {{ $history['JumlahPesanBelumDibaca'] }} {{ __('ui.pages.inbox.unread_messages') }}</div>
                             </div>
                             <a href="{{ route('filament.admin.pages.view-chat-session') . '?id=' . $history['Id'] }}"
                                 target="_blank"

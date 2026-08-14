@@ -60,17 +60,17 @@ class InboxWhatsapp extends Page implements HasForms
 
     public function getTitle(): string|Htmlable
     {
-        return 'Inbox WhatsApp';
+        return __('ui.pages.inbox.title');
     }
 
     public static function getNavigationLabel(): string
     {
-        return NavigationHelper::labelFor(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
+        return NavigationHelper::labelFor(AccessPermissions::INBOX_VIEW, __('ui.pages.inbox.navigation_label'));
     }
 
     public function getBreadcrumbs(): array
     {
-        return FilamentBreadcrumbs::forMenu(AccessPermissions::INBOX_VIEW, 'Inbox WhatsApp');
+        return FilamentBreadcrumbs::forMenu(AccessPermissions::INBOX_VIEW, __('ui.pages.inbox.navigation_label'));
     }
 
     protected string $view = 'filament.pages.inbox-whatsapp';
@@ -478,6 +478,7 @@ $this->dispatch('inbox-refreshed');
                 'g.NamaGrup as NamaGrupMaster',
                 'g.IdGrupWaha',
                 'g.NomorGrupWhatsapp',
+                's.KodeStatusChat',
                 's.NamaStatusChat',
                 'pd.NamaPengguna as NamaDiambilOleh'
             );
@@ -627,6 +628,7 @@ $this->dispatch('inbox-refreshed');
 
     private function formatChatRow(object $row, string $lastMessage = '-', ?array $latestPayload = null): array
     {
+        $statusCode = property_exists($row, 'KodeStatusChat') ? (string) $row->KodeStatusChat : null;
         $isGroup = $row->JenisChat === 'Grup';
         $payload = $latestPayload ?? $this->latestIncomingPayload((string) $row->Id);
         $groupName = $row->NamaGrupMaster ?: $this->cachedGroupName($row);
@@ -690,7 +692,8 @@ $this->dispatch('inbox-refreshed');
             'NomorWhatsappRaw' => $row->NomorWhatsapp,
             'IdWaha' => $detectedWahaId,
             'FotoProfilUrl' => $row->UrlFotoProfil ?? null,
-            'Status' => $row->NamaStatusChat ?: __('ui.pages.inbox.waiting_cs'),
+            'StatusCode' => $statusCode,
+            'Status' => $this->chatStatusLabel($statusCode, $row->NamaStatusChat ?? null),
             'BelumDibaca' => (int) $row->JumlahPesanBelumDibaca,
             'TglChatTerakhir' => $row->TglChatTerakhir,
             'PesanTerakhir' => $lastMessage,
@@ -730,6 +733,21 @@ $this->dispatch('inbox-refreshed');
                 ],
             ],
         ];
+    }
+
+    private function chatStatusLabel(?string $statusCode, ?string $fallback = null): string
+    {
+        $key = match (strtoupper(trim((string) $statusCode))) {
+            'BARU' => 'ui.pages.inbox.status_new',
+            'MENUNGGU_CS' => 'ui.pages.inbox.waiting_cs',
+            'DALAM_PROSES' => 'ui.pages.inbox.status_in_progress',
+            'MENUNGGU_CUSTOMER' => 'ui.pages.inbox.status_waiting_customer',
+            'SELESAI' => 'ui.pages.inbox.status_completed',
+            'DITUTUP' => 'ui.pages.inbox.status_closed',
+            default => null,
+        };
+
+        return $key ? __($key) : ($fallback ?: __('ui.pages.inbox.waiting_cs'));
     }
 
     public function loadHistoryChats(): void
@@ -778,13 +796,13 @@ $this->dispatch('inbox-refreshed');
         });
 
         $this->historyChats = $query->orderByDesc('c.TglChatTerakhir')
-            ->select('c.Id', 'c.TglChatTerakhir', 's.NamaStatusChat', 'c.JumlahPesanBelumDibaca')
+            ->select('c.Id', 'c.TglChatTerakhir', 's.KodeStatusChat', 's.NamaStatusChat', 'c.JumlahPesanBelumDibaca')
             ->limit(20)
             ->get()
             ->map(fn ($r) => [
                 'Id' => $r->Id,
                 'TglChatTerakhir' => $r->TglChatTerakhir,
-                'NamaStatusChat' => $r->NamaStatusChat ?: __('ui.common.completed'),
+                'NamaStatusChat' => $this->chatStatusLabel($r->KodeStatusChat ?? null, $r->NamaStatusChat ?? null),
                 'JumlahPesanBelumDibaca' => (int) $r->JumlahPesanBelumDibaca,
             ])
             ->all();
@@ -1329,7 +1347,7 @@ $this->dispatch('inbox-refreshed');
         if ($result['ok'] ?? false) {
             $this->refinedDraft = $result['text'] ?? '';
         } else {
-            $this->refinementError = $result['error'] ?? 'Gagal menghubungi AI provider.';
+            $this->refinementError = $result['error'] ?? __('ui.pages.inbox.refinement_provider_unavailable');
         }
     }
 
@@ -1607,6 +1625,7 @@ $this->dispatch('inbox-refreshed');
                 'g.NamaGrup as NamaGrupMaster',
                 'g.IdGrupWaha',
                 'g.NomorGrupWhatsapp',
+                's.KodeStatusChat',
                 's.NamaStatusChat'
             )
             ->first();

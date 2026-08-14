@@ -70,7 +70,7 @@ class AiAgent extends Page
 
     public string $apiKeyInfo = '';
 
-    public string $testPrompt = 'Apakah kamu sudah siap? Nama kamu siapa?';
+    public string $testPrompt = '';
 
     public string $testResult = '';
 
@@ -79,6 +79,7 @@ class AiAgent extends Page
     public function mount(): void
     {
         $this->providerPresets = $this->providerPresets();
+        $this->testPrompt = __('ui.pages.ai_agent.test_prompt_default');
         $this->ensureDefaultSettings();
         $this->loadPengaturan();
     }
@@ -474,7 +475,7 @@ class AiAgent extends Page
         return [
             'OpenAI' => [
                 'label' => 'OpenAI',
-                'summary' => 'Stabil untuk customer service.',
+                'summary' => __('ui.pages.ai_agent.provider_openai_summary'),
                 'model' => (string) config('services.openai.model'),
                 'instruct_model' => (string) config('services.openai.model'),
                 'base_url' => (string) config('services.openai.base_url'),
@@ -485,7 +486,7 @@ class AiAgent extends Page
             ],
             'DeepSeek' => [
                 'label' => 'DeepSeek',
-                'summary' => 'Alternatif hemat dengan API sendiri.',
+                'summary' => __('ui.pages.ai_agent.provider_deepseek_summary'),
                 'model' => (string) config('services.deepseek.model'),
                 'instruct_model' => (string) config('services.deepseek.model'),
                 'base_url' => (string) config('services.deepseek.base_url'),
@@ -496,7 +497,7 @@ class AiAgent extends Page
             ],
             'OpenRouter' => [
                 'label' => 'OpenRouter',
-                'summary' => 'Router banyak model, termasuk opsi free.',
+                'summary' => __('ui.pages.ai_agent.provider_openrouter_summary'),
                 'model' => (string) config('services.openrouter.model'),
                 'instruct_model' => (string) config('services.openrouter.model'),
                 'base_url' => (string) config('services.openrouter.base_url'),
@@ -507,7 +508,7 @@ class AiAgent extends Page
             ],
             '9Router' => [
                 'label' => '9Router',
-                'summary' => 'Preset 9Router dengan format chat completions.',
+                'summary' => __('ui.pages.ai_agent.provider_ninerouter_summary'),
                 'model' => (string) config('services.ninerouter.model'),
                 'instruct_model' => (string) config('services.ninerouter.model'),
                 'base_url' => (string) config('services.ninerouter.base_url'),

@@ -35,14 +35,11 @@ const shouldDisplayReverbPort =
 const reverbDisplayPort = shouldDisplayReverbPort ? `:${reverbPort}` : "";
 const reverbUrl = `${reverbScheme}://${reverbHost}${reverbDisplayPort}/app/${import.meta.env.VITE_REVERB_APP_KEY}`;
 
-const reverbStatusMessages = {
-    connecting: "Reverb client sedang mencoba tersambung.",
-    connected: "Reverb client tersambung.",
-    disconnected: "Reverb client terputus.",
-    unavailable: "Reverb server offline / tidak ditemukan.",
-    failed: "Reverb client gagal tersambung.",
-    initialized: "Reverb client disiapkan.",
-};
+const reverbCopy = () => window.wacsReverbCopy ?? { messages: {}, reasons: {} };
+const reverbStatusMessage = (state) =>
+    reverbCopy().messages?.[state] ?? `Reverb: ${state}`;
+const reverbReason = (reason) =>
+    reverbCopy().reasons?.[reason] ?? `Reverb detail: ${reason}`;
 
 const reverbStatusLogKey = "wacs_reverb_status_logs";
 const maxReverbStatusLogs = 60;
@@ -82,7 +79,7 @@ const writeReverbStatusLog = (payload) => {
 window.wahaGetReverbStatus = () =>
     window.wahaReverbStatus ?? {
         state: "initialized",
-        message: reverbStatusMessages.initialized,
+        message: reverbStatusMessage("initialized"),
         wsUrl: reverbUrl,
         host: reverbHost,
         port: reverbPort,
@@ -97,22 +94,22 @@ const normalizeReverbError = (error) => {
     const message = error?.data?.message ?? error?.message;
 
     if (code === 4001) {
-        return "Reverb server ditemukan, tapi app key tidak valid / tidak terdaftar.";
+        return reverbReason("invalid_app_key");
     }
 
     if (code === 1006) {
-        return "Koneksi WebSocket ditutup tidak normal. Reverb server kemungkinan offline, port salah, atau diblokir proxy/firewall.";
+        return reverbReason("abnormal_close");
     }
 
     if (message) {
         return message;
     }
 
-    return "Detail error tidak tersedia dari browser.";
+    return reverbReason("no_details");
 };
 
 const logReverbStatus = (state, context = {}) => {
-    const message = reverbStatusMessages[state] ?? `Reverb status: ${state}`;
+    const message = reverbStatusMessage(state);
     const payload = {
         state,
         message,
@@ -147,7 +144,7 @@ const logReverbStatus = (state, context = {}) => {
 
 if (!import.meta.env.VITE_REVERB_APP_KEY) {
     logReverbStatus("failed", {
-        reason: "VITE_REVERB_APP_KEY kosong. Cek .env dan jalankan ulang npm build/dev.",
+        reason: reverbReason("missing_app_key"),
     });
 }
 
@@ -296,7 +293,10 @@ window.Echo.channel("waha-inbox").listen(".inbox.updated", (event) => {
             if (isTabHidden || activeChatId !== event.chat_id) {
                 try {
                     const title = "VPoint Care";
-                    const body = window.wacsNotificationBodyCopy || "Ada pesan WhatsApp baru";
+                    const body =
+                        window.wacsNotificationBodyCopy ||
+                        window.wacsReverbCopy?.notification_body ||
+                        "WhatsApp message";
                     const notif = new Notification(title, { body });
 
                     notif.onclick = () => {
@@ -329,7 +329,7 @@ window.Echo.connector.pusher.connection.bind("disconnected", () => {
 });
 window.Echo.connector.pusher.connection.bind("unavailable", () => {
     logReverbStatus("unavailable", {
-        reason: "Browser tidak berhasil membuka koneksi ke Reverb.",
+        reason: reverbReason("browser_unavailable"),
     });
     setWahaWsOnline(false);
 });
@@ -346,7 +346,7 @@ window.Echo.connector.pusher.connection.bind("error", (error) => {
     const reason = normalizeReverbError(error);
     const payload = {
         state: window.Echo.connector.pusher.connection.state,
-        message: "Reverb client menerima error koneksi.",
+        message: reverbStatusMessage("error"),
         reason,
         wsUrl: reverbUrl,
         host: reverbHost,

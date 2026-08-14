@@ -125,15 +125,7 @@ HTML
             )
             ->renderHook(
                 PanelsRenderHook::BODY_START,
-                fn(): string => <<<HTML
-<script>
-    document.documentElement.lang = "{$this->currentLocale()}"
-    document.documentElement.setAttribute('translate', 'no')
-    document.documentElement.classList.add('notranslate')
-    document.body.setAttribute('translate', 'no')
-    document.body.classList.add('notranslate')
-</script>
-HTML
+                fn(): string => $this->bodyStartScript()
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,
@@ -193,6 +185,42 @@ HTML
     {
         return app()->getLocale();
     }
-}
 
+    private function bodyStartScript(): string
+    {
+        $locale = json_encode($this->currentLocale(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+        $reverbCopy = json_encode([
+            'messages' => [
+                'connecting' => __('ui.pages.inbox.reverb_status_connecting'),
+                'connected' => __('ui.pages.inbox.reverb_status_connected'),
+                'disconnected' => __('ui.pages.inbox.reverb_status_disconnected'),
+                'unavailable' => __('ui.pages.inbox.reverb_status_unavailable'),
+                'failed' => __('ui.pages.inbox.reverb_status_failed'),
+                'initialized' => __('ui.pages.inbox.reverb_status_initialized'),
+                'error' => __('ui.pages.inbox.reverb_error_message'),
+            ],
+            'reasons' => [
+                'client_missing' => __('ui.pages.inbox.reverb_reason_client_missing'),
+                'asset_inactive' => __('ui.pages.inbox.reverb_reason_asset_inactive'),
+                'invalid_app_key' => __('ui.pages.inbox.reverb_reason_invalid_app_key'),
+                'abnormal_close' => __('ui.pages.inbox.reverb_reason_abnormal_close'),
+                'no_details' => __('ui.pages.inbox.reverb_reason_no_details'),
+                'missing_app_key' => __('ui.pages.inbox.reverb_reason_missing_app_key'),
+                'browser_unavailable' => __('ui.pages.inbox.reverb_reason_browser_unavailable'),
+            ],
+            'notification_body' => __('ui.pages.inbox.new_message_notification'),
+        ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+
+        return <<<HTML
+<script>
+    window.wacsReverbCopy = {$reverbCopy}
+    document.documentElement.lang = {$locale}
+    document.documentElement.setAttribute('translate', 'no')
+    document.documentElement.classList.add('notranslate')
+    document.body.setAttribute('translate', 'no')
+    document.body.classList.add('notranslate')
+</script>
+HTML;
+    }
+}
 

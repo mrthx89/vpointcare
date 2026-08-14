@@ -4,10 +4,10 @@
             locale: @js(\App\Support\LocaleManager::browserLocale()),
             status: window.wahaGetReverbStatus ? window.wahaGetReverbStatus() : {
                 state: 'unknown',
-                message: 'Reverb client belum terdeteksi di browser ini.',
+                message: @js(__('ui.pages.inbox.reverb_reason_client_missing')),
                 updatedAt: new Date().toISOString(),
                 wsUrl: '-',
-                reason: 'Asset Echo belum aktif atau halaman belum selesai memuat.',
+                reason: @js(__('ui.pages.inbox.reverb_reason_asset_inactive')),
             },
             logs: window.wahaGetReverbStatusLogs ? window.wahaGetReverbStatusLogs() : [],
             init() {
