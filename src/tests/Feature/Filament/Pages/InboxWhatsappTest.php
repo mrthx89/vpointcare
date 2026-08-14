@@ -113,7 +113,7 @@ class InboxWhatsappTest extends TestCase
             'NomorWhatsapp' => '120363999999999999@g.us',
             'IdWahaTerdeteksi' => '120363999999999999@g.us',
             'NamaGrupWhatsapp' => 'Fallback Group',
-                'GroupName' => 'Internal Support Group',
+            'GroupName' => 'Internal Support Group',
             'JumlahPesanBelumDibaca' => 1,
             'TglChatTerakhir' => now()->addMinute(),
             'AutoReplyAiAktif' => false,
@@ -654,7 +654,7 @@ class InboxWhatsappTest extends TestCase
             'NomorWhatsapp' => '120363999999999999@g.us',
             'IdWahaTerdeteksi' => '120363999999999999@g.us',
             'NamaGrupWhatsapp' => 'Fallback Group',
-                'GroupName' => 'Internal Support Group',
+            'GroupName' => 'Internal Support Group',
             'JumlahPesanBelumDibaca' => 0,
             'TglChatTerakhir' => now()->addMinute(),
             'AutoReplyAiAktif' => false,
@@ -1070,6 +1070,70 @@ class InboxWhatsappTest extends TestCase
 
         self::assertIsArray($selectedChat);
         self::assertNotSame('120363028059901162@g.us', $selectedChat['Identity']['whatsapp']['GroupName']);
+    }
+
+    public function test_inbox_renders_waha_session_status_badge(): void
+    {
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'WORKING',
+            ], 200),
+        ]);
+
+        $agent = $this->agent([AccessPermissions::INBOX_VIEW]);
+        $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
+
+        $component->assertStatus(200)
+            ->assertSee('DEFAULT: RUNNING');
+    }
+
+    public function test_inbox_renders_gracefully_when_waha_endpoint_is_unavailable(): void
+    {
+        Http::fake([
+            '*/api/sessions/default' => Http::response([], 500),
+        ]);
+
+        $agent = $this->agent([AccessPermissions::INBOX_VIEW]);
+        $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
+
+        $component->assertStatus(200)
+            ->assertSee('DEFAULT: UNAVAILABLE');
+    }
+
+    public function test_inbox_hides_recovery_action_from_agents_without_waha_manage_permission(): void
+    {
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'STOPPED',
+            ], 200),
+        ]);
+
+        // Agent lacks WAHA_SESSION_MANAGE
+        $agent = $this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::WAHA_SESSION_VIEW]);
+        $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
+
+        $component->assertStatus(200)
+            ->assertSee('DEFAULT: STOPPED')
+            ->assertDontSee(__('ui.pages.waha_connection.btn_reconnect'));
+    }
+
+    public function test_inbox_shows_recovery_action_for_agents_with_waha_manage_permission(): void
+    {
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'STOPPED',
+            ], 200),
+        ]);
+
+        $agent = $this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
+
+        $component->assertStatus(200)
+            ->assertSee('DEFAULT: STOPPED')
+            ->assertSee(__('ui.pages.waha_connection.btn_reconnect'));
     }
 
     private function agent(array $permissions = [AccessPermissions::INBOX_VIEW]): Pengguna

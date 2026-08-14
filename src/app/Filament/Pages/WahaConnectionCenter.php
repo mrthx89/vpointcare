@@ -70,9 +70,13 @@ class WahaConnectionCenter extends Page
 
     public ?string $qrCodePayload = null;
 
+    public ?string $qrCodeExpiresAt = null;
+
     public ?string $pairingPhoneNumber = null;
 
     public ?string $pairingCodePayload = null;
+
+    public ?string $pairingCodeExpiresAt = null;
 
     public ?string $modalErrorMessage = null;
 
@@ -118,6 +122,8 @@ class WahaConnectionCenter extends Page
                         'stale' => false,
                     ];
 
+                $liveStatus = $this->safeLiveStatus($liveStatus);
+
                 $sessionList[] = [
                     'id' => (string) $row->Id,
                     'code' => $sessionCode,
@@ -132,6 +138,7 @@ class WahaConnectionCenter extends Page
             }
 
             $this->sessions = $sessionList;
+            $this->clearAuthenticationArtifactsForRunningSession();
         } catch (Throwable $exception) {
             Notification::make()
                 ->title(__('ui.pages.waha_connection.load_failed'))
@@ -144,11 +151,14 @@ class WahaConnectionCenter extends Page
 
     public function openQrModal(string $sessionCode, string $sessionName): void
     {
-        $this->authorizeManage();
+        $this->authorizeManageSession($sessionCode);
 
         $this->activeModalSession = $sessionCode;
         $this->activeModalSessionName = $sessionName;
         $this->qrCodePayload = null;
+        $this->qrCodeExpiresAt = null;
+        $this->pairingCodePayload = null;
+        $this->pairingCodeExpiresAt = null;
         $this->modalErrorMessage = null;
         $this->modalLoading = true;
 
@@ -158,11 +168,11 @@ class WahaConnectionCenter extends Page
 
     public function fetchQrCode(): void
     {
-        $this->authorizeManage();
-
         if (! $this->activeModalSession) {
             return;
         }
+
+        $this->authorizeManageSession($this->activeModalSession);
 
         $this->modalLoading = true;
         $this->modalErrorMessage = null;
@@ -173,8 +183,9 @@ class WahaConnectionCenter extends Page
 
             if (($result['ok'] ?? false) && isset($result['qr'])) {
                 $this->qrCodePayload = (string) $result['qr'];
+                $this->qrCodeExpiresAt = isset($result['expires_at']) ? (string) $result['expires_at'] : null;
             } else {
-                $this->modalErrorMessage = (string) ($result['message'] ?? __('ui.waha.qr_unavailable'));
+                $this->modalErrorMessage = $this->genericResultMessage($result, 'qr');
             }
         } catch (Throwable $exception) {
             $this->modalErrorMessage = __('ui.waha.qr_unavailable');
@@ -185,12 +196,15 @@ class WahaConnectionCenter extends Page
 
     public function openPairingModal(string $sessionCode, string $sessionName): void
     {
-        $this->authorizeManage();
+        $this->authorizeManageSession($sessionCode);
 
         $this->activeModalSession = $sessionCode;
         $this->activeModalSessionName = $sessionName;
         $this->pairingPhoneNumber = '';
         $this->pairingCodePayload = null;
+        $this->pairingCodeExpiresAt = null;
+        $this->qrCodePayload = null;
+        $this->qrCodeExpiresAt = null;
         $this->modalErrorMessage = null;
         $this->modalLoading = false;
 
@@ -199,11 +213,11 @@ class WahaConnectionCenter extends Page
 
     public function submitPairingCode(): void
     {
-        $this->authorizeManage();
-
         if (! $this->activeModalSession) {
             return;
         }
+
+        $this->authorizeManageSession($this->activeModalSession);
 
         $cleanPhone = WahaChatHelper::normalizePhoneNumber($this->pairingPhoneNumber);
 
@@ -222,8 +236,9 @@ class WahaConnectionCenter extends Page
 
             if (($result['ok'] ?? false) && isset($result['code'])) {
                 $this->pairingCodePayload = (string) $result['code'];
+                $this->pairingCodeExpiresAt = isset($result['expires_at']) ? (string) $result['expires_at'] : null;
             } else {
-                $this->modalErrorMessage = (string) ($result['message'] ?? __('ui.waha.pairing_unavailable'));
+                $this->modalErrorMessage = $this->genericResultMessage($result, 'pairing');
             }
         } catch (Throwable $exception) {
             $this->modalErrorMessage = __('ui.waha.pairing_unavailable');
@@ -249,7 +264,7 @@ class WahaConnectionCenter extends Page
 
     private function executeLifecycleAction(string $action, string $sessionCode): void
     {
-        $this->authorizeManage();
+        $this->authorizeManageSession($sessionCode);
 
         try {
             $service = app(WahaSessionService::class);
@@ -276,7 +291,7 @@ class WahaConnectionCenter extends Page
                         'action' => strtoupper($action),
                         'session' => $sessionCode,
                     ]))
-                    ->body((string) ($result['message'] ?? __('ui.waha.mutation_failed')))
+                    ->body($this->genericResultMessage($result, 'lifecycle'))
                     ->danger()
                     ->send();
             }
@@ -295,5 +310,110 @@ class WahaConnectionCenter extends Page
     private function authorizeManage(): void
     {
         abort_unless($this->canManageSession(), 403);
+    }
+
+    public function clearExpiredAuthenticationArtifacts(): void
+    {
+        if ($this->artifactHasExpired($this->qrCodeExpiresAt)) {
+            $this->qrCodePayload = null;
+            $this->qrCodeExpiresAt = null;
+            $this->modalErrorMessage = __('ui.waha.qr_unavailable');
+        }
+
+        if ($this->artifactHasExpired($this->pairingCodeExpiresAt)) {
+            $this->pairingCodePayload = null;
+            $this->pairingCodeExpiresAt = null;
+            $this->modalErrorMessage = __('ui.waha.pairing_unavailable');
+        }
+    }
+
+    public function clearAuthenticationArtifacts(): void
+    {
+        $this->activeModalSession = null;
+        $this->activeModalSessionName = null;
+        $this->qrCodePayload = null;
+        $this->qrCodeExpiresAt = null;
+        $this->pairingPhoneNumber = null;
+        $this->pairingCodePayload = null;
+        $this->pairingCodeExpiresAt = null;
+        $this->modalErrorMessage = null;
+        $this->modalLoading = false;
+    }
+
+    private function authorizeManageSession(string $sessionCode): void
+    {
+        $this->authorizeManage();
+
+        $sessionCode = trim($sessionCode);
+        $isActiveSession = $sessionCode !== '' && DB::table('MSesiWhatsapp')
+            ->where('KodeSesi', $sessionCode)
+            ->where(function ($query): void {
+                $query->where('NonAktif', false)->orWhereNull('NonAktif');
+            })
+            ->exists();
+
+        abort_unless($isActiveSession, 403);
+    }
+
+    private function clearAuthenticationArtifactsForRunningSession(): void
+    {
+        if (! $this->activeModalSession) {
+            return;
+        }
+
+        foreach ($this->sessions as $session) {
+            if ($session['code'] === $this->activeModalSession && ($session['live']['status'] ?? null) === WahaSessionService::STATUS_RUNNING) {
+                $this->clearAuthenticationArtifacts();
+
+                return;
+            }
+        }
+    }
+
+    private function artifactHasExpired(?string $expiresAt): bool
+    {
+        return $expiresAt !== null && now()->greaterThanOrEqualTo($expiresAt);
+    }
+
+    /** @param array<string, mixed> $result */
+    private function genericResultMessage(array $result, string $context): string
+    {
+        $errorCategory = (string) ($result['error_category'] ?? '');
+
+        return match ($context) {
+            'qr' => __('ui.waha.qr_unavailable'),
+            'pairing' => $errorCategory === 'validation'
+                ? __('ui.waha.phone_invalid')
+                : __('ui.waha.pairing_unavailable'),
+            'lifecycle' => match ($errorCategory) {
+                'busy' => __('ui.waha.mutation_in_progress'),
+                'unavailable', 'authentication', 'malformed_response' => __('ui.waha.unavailable'),
+                'validation' => __('ui.waha.session_required'),
+                default => __('ui.waha.mutation_failed'),
+            },
+            default => __('ui.waha.unavailable'),
+        };
+    }
+
+    /** @param array<string, mixed> $status */
+    private function safeLiveStatus(array $status): array
+    {
+        if (($status['error_category'] ?? null) === 'disabled') {
+            $status['message'] = __('ui.pages.waha_connection.disabled_in_wacs');
+
+            return $status;
+        }
+
+        $status['message'] = match ((string) ($status['status'] ?? 'unknown')) {
+            WahaSessionService::STATUS_RUNNING => __('ui.waha.status_running'),
+            WahaSessionService::STATUS_STARTING => __('ui.waha.status_starting'),
+            WahaSessionService::STATUS_SCAN_REQUIRED => __('ui.waha.status_scan_required'),
+            WahaSessionService::STATUS_STOPPED => __('ui.waha.status_stopped'),
+            WahaSessionService::STATUS_FAILED => __('ui.waha.status_failed'),
+            WahaSessionService::STATUS_UNAVAILABLE => __('ui.waha.unavailable'),
+            default => __('ui.waha.status_unknown'),
+        };
+
+        return $status;
     }
 }

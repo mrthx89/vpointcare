@@ -3,8 +3,10 @@
 namespace Tests\Feature\Filament\Pages;
 
 use App\Filament\Pages\WahaConnectionCenter;
+use App\Services\Waha\WahaSessionService;
 use App\Models\Master\Pengguna;
 use App\Support\AccessPermissions;
+use Filament\Notifications\Notification;
 use Filament\Facades\Filament;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
@@ -127,7 +129,12 @@ class WahaConnectionCenterTest extends TestCase
 
         Livewire::test(WahaConnectionCenter::class)
             ->call('startSession', 'default')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertNotified(
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.action_success', ['action' => 'START', 'session' => 'default']))
+                    ->success(),
+            );
     }
 
     public function test_user_without_manage_permission_cannot_trigger_mutations(): void
@@ -138,6 +145,173 @@ class WahaConnectionCenterTest extends TestCase
         Livewire::test(WahaConnectionCenter::class)
             ->call('startSession', 'default')
             ->assertForbidden();
+    }
+
+    public function test_disabled_session_hides_actions_and_rejects_direct_manage_requests(): void
+    {
+        DB::table('MSesiWhatsapp')->where('KodeSesi', 'default')->update(['NonAktif' => true]);
+        Http::fake();
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.pages.waha_connection.disabled_in_wacs'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_start'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_stop'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_restart'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_qr'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_pairing'));
+
+        foreach (['startSession', 'stopSession', 'restartSession', 'openQrModal', 'openPairingModal'] as $action) {
+            $parameters = in_array($action, ['openQrModal', 'openPairingModal'], true)
+                ? ['default', 'Default Session']
+                : ['default'];
+
+            Livewire::test(WahaConnectionCenter::class)
+                ->call($action, ...$parameters)
+                ->assertForbidden();
+        }
+
+        Http::assertNothingSent();
+    }
+
+    public function test_pairing_failure_shows_generic_message_without_sensitive_response(): void
+    {
+        $this->bindWahaService([
+            'ok' => false,
+            'status' => WahaSessionService::STATUS_SCAN_REQUIRED,
+            'error_category' => 'unsupported',
+            'message' => 'apiKey=private-value',
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('openPairingModal', 'default', 'Session Default')
+            ->set('pairingPhoneNumber', '628123456789')
+            ->call('submitPairingCode')
+            ->assertSet('modalErrorMessage', __('ui.waha.pairing_unavailable'))
+            ->assertSee(__('ui.waha.pairing_unavailable'))
+            ->assertDontSee('private-value');
+    }
+
+    public function test_live_status_diagnostic_uses_a_generic_message_without_sensitive_response(): void
+    {
+        $service = \Mockery::mock(WahaSessionService::class);
+        $service->shouldReceive('getSessionStatus')->andReturn([
+            'ok' => false,
+            'status' => WahaSessionService::STATUS_UNAVAILABLE,
+            'capabilities' => ['qr' => false, 'pairing' => false, 'start' => false, 'stop' => false, 'restart' => false],
+            'checked_at' => now()->toIso8601String(),
+            'message' => 'X-Api-Key: private-value',
+        ]);
+        app()->instance(WahaSessionService::class, $service);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.waha.unavailable'))
+            ->assertDontSee('private-value');
+    }
+
+    public function test_qr_expiry_clears_the_artifact_and_offers_a_safe_retry(): void
+    {
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->set('activeModalSession', 'default')
+            ->set('activeModalSessionName', 'Session Default')
+            ->set('qrCodePayload', 'data:image/png;base64,EXPIRED_QR')
+            ->set('qrCodeExpiresAt', now()->subSecond()->toIso8601String())
+            ->call('clearExpiredAuthenticationArtifacts')
+            ->assertSet('qrCodePayload', null)
+            ->assertSet('qrCodeExpiresAt', null)
+            ->assertSet('modalErrorMessage', __('ui.waha.qr_unavailable'))
+            ->assertSee(__('ui.waha.qr_unavailable'))
+            ->assertSee(__('ui.common.retry'))
+            ->assertDontSee('EXPIRED_QR');
+    }
+
+    public function test_pairing_expiry_clears_the_code_and_returns_to_the_form(): void
+    {
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->set('activeModalSession', 'default')
+            ->set('activeModalSessionName', 'Session Default')
+            ->set('pairingCodePayload', 'EXPIRED_PAIRING_CODE')
+            ->set('pairingCodeExpiresAt', now()->subSecond()->toIso8601String())
+            ->call('clearExpiredAuthenticationArtifacts')
+            ->assertSet('pairingCodePayload', null)
+            ->assertSet('pairingCodeExpiresAt', null)
+            ->assertSet('modalErrorMessage', __('ui.waha.pairing_unavailable'))
+            ->assertSee(__('ui.waha.pairing_unavailable'))
+            ->assertSee(__('ui.pages.waha_connection.phone_label'))
+            ->assertDontSee('EXPIRED_PAIRING_CODE');
+    }
+
+    public function test_lifecycle_failure_notifies_with_a_generic_message_without_sensitive_response(): void
+    {
+        $this->bindWahaService([
+            'ok' => false,
+            'status' => WahaSessionService::STATUS_UNAVAILABLE,
+            'error_category' => 'unavailable',
+            'message' => 'Authorization: Bearer private-token',
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('startSession', 'default')
+            ->assertNotified(
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.action_failed', ['action' => 'START', 'session' => 'default']))
+                    ->body(__('ui.waha.unavailable'))
+                    ->danger(),
+            )
+            ->assertDontSee('private-token');
+    }
+
+    public function test_pairing_action_is_not_rendered_when_waha_does_not_support_it(): void
+    {
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'SCAN_QR_CODE',
+                'capabilities' => ['qr' => true, 'pairing' => false],
+            ], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.pages.waha_connection.status_scan_required'))
+            ->assertSee(__('ui.pages.waha_connection.btn_qr'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_pairing'));
+    }
+
+    public function test_pairing_requires_a_valid_phone_number_before_calling_waha(): void
+    {
+        Http::fake();
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('openPairingModal', 'default', 'Session Default')
+            ->set('pairingPhoneNumber', '@lid')
+            ->call('submitPairingCode')
+            ->assertSet('modalErrorMessage', __('ui.waha.phone_invalid'))
+            ->assertSee(__('ui.waha.phone_invalid'));
+
+        Http::assertNothingSent();
     }
 
     private function createSchema(): void
@@ -189,7 +363,8 @@ class WahaConnectionCenterTest extends TestCase
 
     private function user(array $permissions = []): Pengguna
     {
-        $user = new class extends Pengguna {
+        $user = new class extends Pengguna
+        {
             /** @var array<int, string> */
             public array $testPermissions = [];
 
@@ -206,5 +381,24 @@ class WahaConnectionCenterTest extends TestCase
             'NamaPengguna' => 'Test Operator',
             'NonAktif' => false,
         ]);
+    }
+
+    /** @param array<string, mixed> $result */
+    private function bindWahaService(array $result): void
+    {
+        $service = \Mockery::mock(WahaSessionService::class);
+        $service->shouldReceive('getSessionStatus')->andReturn([
+            'ok' => true,
+            'status' => WahaSessionService::STATUS_SCAN_REQUIRED,
+            'capabilities' => ['qr' => true, 'pairing' => true, 'start' => true, 'stop' => true, 'restart' => true],
+            'checked_at' => now()->toIso8601String(),
+        ]);
+        $service->shouldReceive('getQrCode')->andReturn($result);
+        $service->shouldReceive('requestPairingCode')->andReturn($result);
+        $service->shouldReceive('startSession')->andReturn($result);
+        $service->shouldReceive('stopSession')->andReturn($result);
+        $service->shouldReceive('restartSession')->andReturn($result);
+
+        app()->instance(WahaSessionService::class, $service);
     }
 }

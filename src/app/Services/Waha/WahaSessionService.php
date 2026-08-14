@@ -63,13 +63,14 @@ class WahaSessionService
         );
 
         if (! ($result['ok'] ?? false)) {
+            $errorCategory = (string) ($result['error_category'] ?? 'unavailable');
             $failure = $this->failureResult(
-                self::STATUS_UNAVAILABLE,
-                (string) ($result['error_category'] ?? 'unavailable'),
+                $errorCategory === 'malformed_response' ? self::STATUS_UNKNOWN : self::STATUS_UNAVAILABLE,
+                $errorCategory,
                 (string) ($result['message'] ?? __('ui.waha.unavailable')),
                 $result['http_status'] ?? null,
+                $session,
             );
-
 
             return $failure;
         }
@@ -123,6 +124,7 @@ class WahaSessionService
                 (string) ($result['error_category'] ?? 'qr_unavailable'),
                 (string) ($result['message'] ?? __('ui.waha.qr_unavailable')),
                 $result['http_status'] ?? null,
+                $session,
             );
             $this->auditAction('qr', $session, $failure);
 
@@ -148,7 +150,7 @@ class WahaSessionService
         }
 
         if ($qr === null) {
-            $failure = $this->failureResult(self::STATUS_SCAN_REQUIRED, 'qr_missing', __('ui.waha.qr_unavailable'));
+            $failure = $this->failureResult(self::STATUS_SCAN_REQUIRED, 'qr_missing', __('ui.waha.qr_unavailable'), null, $session);
             $this->auditAction('qr', $session, $failure);
 
             return $failure;
@@ -193,6 +195,7 @@ class WahaSessionService
                 (string) ($result['error_category'] ?? 'pairing_unavailable'),
                 (string) ($result['message'] ?? __('ui.waha.pairing_unavailable')),
                 $result['http_status'] ?? null,
+                $session,
             );
             $this->auditAction('pairing', $session, $failure);
 
@@ -209,7 +212,7 @@ class WahaSessionService
         ]);
 
         if ($code === null) {
-            $failure = $this->failureResult(self::STATUS_SCAN_REQUIRED, 'pairing_missing', __('ui.waha.pairing_unavailable'));
+            $failure = $this->failureResult(self::STATUS_SCAN_REQUIRED, 'pairing_missing', __('ui.waha.pairing_unavailable'), null, $session);
             $this->auditAction('pairing', $session, $failure);
 
             return $failure;
@@ -266,16 +269,19 @@ class WahaSessionService
 
             if ($this->isSensitiveKey($keyString)) {
                 $redacted[$key] = '[REDACTED]';
+
                 continue;
             }
 
             if (is_array($value)) {
                 $redacted[$key] = $this->redactSensitivePayload($value);
+
                 continue;
             }
 
             if (is_string($value) && $this->containsSensitiveValue($value)) {
                 $redacted[$key] = '[REDACTED]';
+
                 continue;
             }
 
@@ -323,15 +329,37 @@ class WahaSessionService
         }
 
         try {
+            $currentStatus = $this->getSessionStatus($session, true);
+
+            if ($this->isIdempotentMutation($action, $currentStatus)) {
+                $this->auditAction($action, $session, $currentStatus);
+
+                return $currentStatus;
+            }
+
+            if (($currentStatus['ok'] ?? false) && ($currentStatus['capabilities'][$action] ?? true) === false) {
+                $unsupported = array_merge($currentStatus, [
+                    'ok' => false,
+                    'message' => __('ui.waha.mutation_failed'),
+                    'error_category' => 'unsupported',
+                    'session' => $session,
+                ]);
+                $this->auditAction($action, $session, $unsupported);
+
+                return $unsupported;
+            }
+
             $mutation = $this->requestJson('POST', $path, $payload, $action);
 
             if (! ($mutation['ok'] ?? false)) {
-                $failure = $this->failureResult(
-                    self::STATUS_UNAVAILABLE,
-                    (string) ($mutation['error_category'] ?? 'mutation_failed'),
-                    (string) ($mutation['message'] ?? __('ui.waha.mutation_failed')),
-                    $mutation['http_status'] ?? null,
-                );
+                $refreshed = $this->getSessionStatus($session, true);
+                $failure = array_merge($refreshed, [
+                    'ok' => false,
+                    'message' => (string) ($mutation['message'] ?? __('ui.waha.mutation_failed')),
+                    'error_category' => (string) ($mutation['error_category'] ?? 'mutation_failed'),
+                    'http_status' => $mutation['http_status'] ?? null,
+                    'session' => $session,
+                ]);
                 $this->auditAction($action, $session, $failure);
 
                 return $failure;
@@ -385,14 +413,24 @@ class WahaSessionService
                 ];
             }
 
+            $contentType = strtolower((string) $response->header('Content-Type'));
             $payload = $response->json();
+
+            if (! is_array($payload) && ! ($action === 'qr' && str_starts_with($contentType, 'image/'))) {
+                return [
+                    'ok' => false,
+                    'http_status' => $response->status(),
+                    'error_category' => 'malformed_response',
+                    'message' => __('ui.waha.unavailable'),
+                ];
+            }
 
             return [
                 'ok' => true,
                 'http_status' => $response->status(),
                 'payload' => is_array($payload) ? $payload : [],
                 'raw_body' => $action === 'qr' ? $response->body() : null,
-                'content_type' => $response->header('Content-Type'),
+                'content_type' => $contentType,
             ];
         } catch (Throwable $exception) {
             $this->logSafeEvent('warning', 'WAHA control-plane request unavailable.', [
@@ -484,7 +522,7 @@ class WahaSessionService
     {
         $capabilities = [
             'qr' => $status === self::STATUS_SCAN_REQUIRED,
-            'pairing' => $status === self::STATUS_SCAN_REQUIRED,
+            'pairing' => false,
             'start' => ! in_array($status, [self::STATUS_UNAVAILABLE, self::STATUS_UNKNOWN], true),
             'stop' => ! in_array($status, [self::STATUS_UNAVAILABLE, self::STATUS_UNKNOWN], true),
             'restart' => ! in_array($status, [self::STATUS_UNAVAILABLE, self::STATUS_UNKNOWN], true),
@@ -558,12 +596,12 @@ class WahaSessionService
 
     private function statusCacheKey(string $session): string
     {
-        return self::STATUS_CACHE_PREFIX.Str::slug($session);
+        return self::STATUS_CACHE_PREFIX.hash('sha256', $session);
     }
 
     private function mutationLockKey(string $session): string
     {
-        return 'waha_session_mutation:'.Str::slug($session);
+        return 'waha_session_mutation:'.hash('sha256', $session);
     }
 
     private function statusPath(string $session): string
@@ -603,16 +641,23 @@ class WahaSessionService
 
     private function isSensitiveKey(string $key): bool
     {
-        $normalized = strtolower(str_replace(['-', '_', ' '], '', $key));
+        $normalized = strtolower((string) preg_replace('/[^a-z0-9]/i', '', $key));
 
         return in_array($normalized, [
             'qr',
             'qrcode',
             'pairingcode',
+            'body',
+            'rawbody',
+            'response',
+            'responsebody',
+            'rawresponse',
             'apikey',
+            'xapikey',
             'authorization',
             'accesstoken',
             'webhooktoken',
+            'xwebhooktoken',
             'password',
             'secret',
             'cookie',
@@ -628,6 +673,15 @@ class WahaSessionService
             || str_contains($lower, 'base64,');
     }
 
+    /**
+     * @param  array<string, mixed>  $status
+     */
+    private function isIdempotentMutation(string $action, array $status): bool
+    {
+        return ($action === 'start' && ($status['status'] ?? null) === self::STATUS_RUNNING)
+            || ($action === 'stop' && ($status['status'] ?? null) === self::STATUS_STOPPED);
+    }
+
     private function auditAction(string $action, string $session, array $result): void
     {
         try {
@@ -639,9 +693,7 @@ class WahaSessionService
             $metadata = [
                 'session_code' => $session,
                 'action' => $action,
-                'status' => $status,
-                'ok' => (bool) ($result['ok'] ?? false),
-                'http_status' => $result['http_status'] ?? null,
+                'outcome' => $status,
             ];
 
             DB::table('TLogAktivitas')->insert([
@@ -654,8 +706,8 @@ class WahaSessionService
                     'action' => $action,
                     'status' => $status,
                 ]), 1000, ''),
-                'IpAddress' => app()->runningInConsole() ? null : request()->ip(),
-                'UserAgent' => app()->runningInConsole() ? null : Str::limit((string) request()->userAgent(), 500, ''),
+                'IpAddress' => null,
+                'UserAgent' => null,
                 'DataSebelumJson' => null,
                 'DataSesudahJson' => json_encode($this->redactSensitivePayload($metadata), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'TglAktivitas' => now(),

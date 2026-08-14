@@ -435,7 +435,7 @@ return [
         'reject_pending_user_desc' => 'Tolak pendaftaran user ini. User tetap tidak bisa masuk panel.',
 
     ],
-    
+
     'waha' => [
         'session_required' => 'Kode sesi WAHA wajib diisi.',
         'unavailable' => 'Endpoint WAHA tidak dapat dihubungi atau tidak merespons.',
@@ -766,13 +766,13 @@ return [
         ],
         'inbox' => [
             'load_older_messages' => 'Muat pesan lama',
-        'sync_all_group_names' => 'Sinkronkan Semua Nama Grup',
-        'sync_group_name' => 'Sinkronkan Nama Grup',
-        'group_sync_all_summary' => ':queued grup disinkronkan, :skip dilewati.',
-        'group_sync_queued' => 'Nama grup sedang disinkronkan.',
-        'group_sync_no_jid' => 'Group JID tidak ditemukan.',
-        'group_sync_no_group' => 'Pilih grup terlebih dahulu.',
-        'unknown_group' => 'Grup tidak dikenal',
+            'sync_all_group_names' => 'Sinkronkan Semua Nama Grup',
+            'sync_group_name' => 'Sinkronkan Nama Grup',
+            'group_sync_all_summary' => ':queued grup disinkronkan, :skip dilewati.',
+            'group_sync_queued' => 'Nama grup sedang disinkronkan.',
+            'group_sync_no_jid' => 'Group JID tidak ditemukan.',
+            'group_sync_no_group' => 'Pilih grup terlebih dahulu.',
+            'unknown_group' => 'Grup tidak dikenal',
             'loading_older_messages' => 'Memuat pesan lama...',
             'sound_permission' => 'Izinkan notifikasi suara untuk peringatan pesan WhatsApp masuk.',
             'reverb_default_changed' => 'Status Reverb berubah.',
@@ -855,7 +855,7 @@ return [
             'conversation_closed' => 'Percakapan telah ditutup.',
             'ai_greeting_reset' => 'Status sapaan AI direset.',
             'mapping_not_found' => 'Mapping belum ditemukan.',
-              'group_name_updated' => 'Nama grup diperbarui.',
+            'group_name_updated' => 'Nama grup diperbarui.',
             'detected_id_hint' => 'ID terdeteksi: :ids. Pastikan salah satu ID ini sama dengan master.',
             'mapping_updated' => 'Mapping chat berhasil diperbarui.',
             'waha_profile_column_missing' => 'Kolom profil WAHA belum tersedia.',

@@ -1,5 +1,5 @@
 ﻿<x-filament-panels::page>
-    <div class="space-y-6">
+    <div class="space-y-6" wire:poll.15s="clearExpiredAuthenticationArtifacts">
         {{-- Header Status Summary --}}
         <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div>
@@ -209,12 +209,16 @@
     </div>
 
     {{-- Ephemeral QR Code Modal --}}
-    <x-filament::modal id="waha-qr-modal" width="md" alignment="center">
+    <x-filament::modal id="waha-qr-modal" width="md" alignment="center" x-on:close-modal.window="if ($event.detail.id === 'waha-qr-modal') $wire.clearAuthenticationArtifacts()">
         <x-slot name="heading">
             {{ __('ui.pages.waha_connection.qr_heading', ['session' => $activeModalSessionName]) }}
         </x-slot>
 
-        <div class="flex flex-col items-center justify-center p-6 space-y-4">
+        <div
+            class="flex flex-col items-center justify-center p-6 space-y-4"
+            x-data
+            x-init="@if ($qrCodeExpiresAt) { const delay = Math.max(0, new Date(@js($qrCodeExpiresAt)).getTime() - Date.now()); setTimeout(() => $wire.clearExpiredAuthenticationArtifacts(), delay); } @endif"
+        >
             @if ($modalLoading)
                 <div class="flex flex-col items-center space-y-2 py-8">
                     <x-filament::loading-indicator class="h-10 w-10 text-primary-600" />
@@ -237,7 +241,7 @@
             @elseif ($qrCodePayload)
                 <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-inner dark:border-gray-800">
                     @if (str_starts_with($qrCodePayload, 'data:image'))
-                        <img src="{{ $qrCodePayload }}" alt="QR Code" class="h-64 w-64 object-contain select-none" />
+                        <img src="{{ $qrCodePayload }}" alt="{{ __('ui.pages.waha_connection.qr_heading', ['session' => $activeModalSessionName]) }}" class="h-64 w-64 object-contain select-none" />
                     @else
                         {{-- Fallback renderer if raw text returned --}}
                         <div class="flex h-64 w-64 items-center justify-center bg-gray-50 p-2 dark:bg-gray-800">
@@ -271,12 +275,16 @@
     </x-filament::modal>
 
     {{-- Ephemeral Pairing Code Modal --}}
-    <x-filament::modal id="waha-pairing-modal" width="md" alignment="center">
+    <x-filament::modal id="waha-pairing-modal" width="md" alignment="center" x-on:close-modal.window="if ($event.detail.id === 'waha-pairing-modal') $wire.clearAuthenticationArtifacts()">
         <x-slot name="heading">
             {{ __('ui.pages.waha_connection.pairing_heading', ['session' => $activeModalSessionName]) }}
         </x-slot>
 
-        <div class="p-6 space-y-6">
+        <div
+            class="p-6 space-y-6"
+            x-data
+            x-init="@if ($pairingCodeExpiresAt) { const delay = Math.max(0, new Date(@js($pairingCodeExpiresAt)).getTime() - Date.now()); setTimeout(() => $wire.clearExpiredAuthenticationArtifacts(), delay); } @endif"
+        >
             @if ($modalLoading)
                 <div class="flex flex-col items-center justify-center space-y-2 py-8">
                     <x-filament::loading-indicator class="h-10 w-10 text-primary-600" />

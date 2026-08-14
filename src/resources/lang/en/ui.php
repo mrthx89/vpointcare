@@ -435,7 +435,7 @@ return [
         'reject_pending_user_desc' => 'Reject this registration. The user will remain unable to access the panel.',
 
     ],
-    
+
     'waha' => [
         'session_required' => 'WAHA session code is required.',
         'unavailable' => 'WAHA endpoint is unreachable or not responding.',
@@ -766,13 +766,13 @@ return [
         ],
         'inbox' => [
             'load_older_messages' => 'Load older messages',
-        'sync_all_group_names' => 'Sync All Group Names',
-        'sync_group_name' => 'Sync Group Name',
-        'group_sync_all_summary' => ':queued groups synced, :skip skipped.',
-        'group_sync_queued' => 'Group name sync queued.',
-        'group_sync_no_jid' => 'Group JID not found.',
-        'group_sync_no_group' => 'Select a group first.',
-        'unknown_group' => 'Unknown Group',
+            'sync_all_group_names' => 'Sync All Group Names',
+            'sync_group_name' => 'Sync Group Name',
+            'group_sync_all_summary' => ':queued groups synced, :skip skipped.',
+            'group_sync_queued' => 'Group name sync queued.',
+            'group_sync_no_jid' => 'Group JID not found.',
+            'group_sync_no_group' => 'Select a group first.',
+            'unknown_group' => 'Unknown Group',
             'loading_older_messages' => 'Loading older messages...',
             'sound_permission' => 'Allow sound notifications for incoming WhatsApp message alerts.',
             'reverb_default_changed' => 'Reverb status changed.',
@@ -855,7 +855,7 @@ return [
             'conversation_closed' => 'Conversation has been closed.',
             'ai_greeting_reset' => 'AI greeting status has been reset.',
             'mapping_not_found' => 'Mapping was not found.',
-              'group_name_updated' => 'Group name updated.',
+            'group_name_updated' => 'Group name updated.',
             'detected_id_hint' => 'Detected ID: :ids. Make sure one of these IDs matches the master data.',
             'mapping_updated' => 'Chat mapping updated.',
             'waha_profile_column_missing' => 'WAHA profile column is not available.',

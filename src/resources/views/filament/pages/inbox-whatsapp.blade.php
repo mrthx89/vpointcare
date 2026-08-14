@@ -149,7 +149,7 @@
                         </span>
                         <span>{{ strtoupper($sCode) }}: {{ strtoupper(str_replace('_', ' ', $st)) }}</span>
 
-                        @if (in_array($st, ['scan_required', 'stopped', 'failed', 'unavailable'], true) && \App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_VIEW))
+                        @if (in_array($st, ['scan_required', 'stopped', 'failed', 'unavailable'], true) && \App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_MANAGE))
                             <a href="{{ route('filament.admin.pages.waha-connection-center') }}" class="ml-1 text-[11px] underline hover:opacity-80">
                                 @if ($st === 'scan_required')
                                     {{ __('ui.pages.waha_connection.btn_qr') }}
