@@ -148,6 +148,7 @@ class AiAgent extends Page
             'pengaturan.AutoReplyHariLibur' => ['boolean'],
             'pengaturan.AutoReplyJamKerjaSapaan' => ['boolean'],
             'pengaturan.AutoReplyJamKerjaBerlanjut' => ['boolean'],
+            'pengaturan.PerhalusJawabanWhatsappDefault' => ['boolean'],
             'pengaturan.JamKerjaMulai' => ['required', 'date_format:H:i'],
             'pengaturan.JamKerjaSelesai' => ['required', 'date_format:H:i'],
             'pengaturan.HariKerja' => ['required', 'array', 'min:1'],
@@ -188,6 +189,12 @@ class AiAgent extends Page
         // Only add ModelInstructAi to data if the column exists
         if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
             $data['ModelInstructAi'] = $validated['pengaturan']['ModelInstructAi'] ?? null;
+        }
+
+        if (Schema::hasColumn('MPengaturanAi', 'PerhalusJawabanWhatsappDefault')) {
+            $data['PerhalusJawabanWhatsappDefault'] = (bool) ($validated['pengaturan']['PerhalusJawabanWhatsappDefault'] ?? false);
+        } else {
+            unset($data['PerhalusJawabanWhatsappDefault']);
         }
 
         DB::table('MPengaturanAi')
@@ -236,6 +243,9 @@ class AiAgent extends Page
             'AutoReplyHariLibur' => (bool) ($row->AutoReplyHariLibur ?? true),
             'AutoReplyJamKerjaSapaan' => (bool) $row->AutoReplyJamKerjaSapaan,
             'AutoReplyJamKerjaBerlanjut' => (bool) $row->AutoReplyJamKerjaBerlanjut,
+            'PerhalusJawabanWhatsappDefault' => Schema::hasColumn('MPengaturanAi', 'PerhalusJawabanWhatsappDefault')
+                ? (bool) ($row->PerhalusJawabanWhatsappDefault ?? false)
+                : false,
             'JamKerjaMulai' => substr((string) $row->JamKerjaMulai, 0, 5),
             'JamKerjaSelesai' => substr((string) $row->JamKerjaSelesai, 0, 5),
             'HariKerja' => array_values(array_filter(explode(',', (string) $row->HariKerja))),
@@ -380,6 +390,9 @@ class AiAgent extends Page
         }
         if (Schema::hasColumn('MPengaturanAi', 'ModelInstructAi')) {
             $data['ModelInstructAi'] = null;
+        }
+        if (Schema::hasColumn('MPengaturanAi', 'PerhalusJawabanWhatsappDefault')) {
+            $data['PerhalusJawabanWhatsappDefault'] = false;
         }
 
         DB::table('MPengaturanAi')->insert($data);

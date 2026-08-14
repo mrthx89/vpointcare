@@ -1188,4 +1188,121 @@ class InboxWhatsappTest extends TestCase
             ->assertSeeHtml('wacs-inbox-shell')
             ->assertSeeHtml('mobilePane');
     }
+
+    public function test_active_refinement_does_not_send_before_confirmation(): void
+    {
+        $this->seedSettingsForRefinement();
+        $chat = $this->createChatFixture();
+        DB::table('MPengguna')->where('Id', 'agent-1')->update(['PerhalusJawabanWhatsapp' => true]);
+
+        Http::fake([
+            'api.openai.com/v1/*' => Http::response(['choices' => [['message' => ['content' => 'Refined response']]]], 200),
+            '*/api/sendText' => Http::response(['session' => 'default'], 200),
+        ]);
+
+        Livewire::actingAs($this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::INBOX_REPLY]))
+            ->test(InboxWhatsapp::class)
+            ->set('selectedChatId', $chat->Id)
+            ->set('replyText', 'original text')
+            ->call('kirimBalasanWaha')
+            ->assertSet('reviewModalOpen', true)
+            ->assertSet('originalDraft', 'original text')
+            ->assertSet('refinedDraft', 'Refined response');
+
+        self::assertDatabaseCount('TChatD', 0);
+    }
+
+    public function test_confirmed_refined_reply_is_sent_once(): void
+    {
+        $chat = $this->createChatFixture();
+        Http::fake(['*/api/sendText' => Http::response(['session' => 'default'], 200)]);
+
+        Livewire::actingAs($this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::INBOX_REPLY]))
+            ->test(InboxWhatsapp::class)
+            ->set('selectedChatId', $chat->Id)
+            ->set('refinedDraft', 'Refined response')
+            ->call('confirmRefinedReply')
+            ->assertSet('reviewModalOpen', false)
+            ->assertSet('replyText', '');
+
+        $this->assertDatabaseHas('TChatD', ['IdChat' => $chat->Id, 'IsiPesan' => 'Refined response']);
+    }
+
+    public function test_edit_refined_reply_returns_to_composer(): void
+    {
+        $component = Livewire::actingAs($this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::INBOX_REPLY]))
+            ->test(InboxWhatsapp::class)
+            ->set('refinedDraft', 'Refined response')
+            ->set('reviewModalOpen', true)
+            ->call('editRefinedReply')
+            ->assertSet('reviewModalOpen', false)
+            ->assertSet('replyText', 'Refined response');
+
+        self::assertDatabaseCount('TChatD', 0);
+    }
+
+    public function test_refinement_failure_requires_explicit_original_send(): void
+    {
+        $this->seedSettingsForRefinement();
+        $chat = $this->createChatFixture();
+        DB::table('MPengguna')->where('Id', 'agent-1')->update(['PerhalusJawabanWhatsapp' => true]);
+
+        Http::fake([
+            'api.openai.com/v1/*' => Http::response([], 500),
+            '*/api/sendText' => Http::response(['session' => 'default'], 200),
+        ]);
+
+        $component = Livewire::actingAs($this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::INBOX_REPLY]))
+            ->test(InboxWhatsapp::class)
+            ->set('selectedChatId', $chat->Id)
+            ->set('replyText', 'original text')
+            ->call('kirimBalasanWaha')
+            ->assertSet('reviewModalOpen', true)
+            ->assertSet('originalDraft', 'original text')
+            ->assertSet('refinementError', 'Gagal menghubungi AI provider.');
+
+        self::assertDatabaseCount('TChatD', 0);
+
+        $component->call('sendOriginalAfterRefinementFailure')
+            ->assertSet('reviewModalOpen', false);
+        $this->assertDatabaseHas('TChatD', ['IdChat' => $chat->Id, 'IsiPesan' => 'original text']);
+    }
+
+    public function test_attachment_only_bypasses_refinement(): void
+    {
+        $chat = $this->createChatFixture();
+        DB::table('MPengguna')->where('Id', 'agent-1')->update(['PerhalusJawabanWhatsapp' => true]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('test.jpg');
+        Http::fake(['*/api/sendFile' => Http::response(['session' => 'default'], 200)]);
+
+        Livewire::actingAs($this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::INBOX_REPLY]))
+            ->test(InboxWhatsapp::class)
+            ->set('selectedChatId', $chat->Id)
+            ->set('replyText', '')
+            ->set('attachment', $file)
+            ->call('kirimBalasanWaha')
+            ->assertSet('reviewModalOpen', false);
+
+        $this->assertDatabaseHas('TChatD', ['IdChat' => $chat->Id, 'NamaFileMedia' => 'test.jpg']);
+    }
+
+    private function seedSettingsForRefinement(): void
+    {
+        DB::table('MPengaturanAi')->insert([
+            'Id' => 'ai-settings-default',
+            'KodePengaturan' => 'DEFAULT',
+            'NamaPengaturan' => 'Default AI Agent',
+            'ProviderAi' => 'OpenAI',
+            'ModelAi' => 'gpt-4',
+            'ModelInstructAi' => 'gpt-4-instruct',
+            'BaseUrl' => 'https://api.openai.com/v1/chat/completions',
+        ]);
+    }
+
+    private function createChatFixture() {
+        $session = \App\Models\Master\MSesiWhatsapp::first() ?? \App\Models\Master\MSesiWhatsapp::factory()->create();
+        return \App\Models\Chat\TChat::factory()->create(['IdSesiWhatsapp' => $session->Id, 'JenisChat' => 'Personal', 'NomorWhatsapp' => '62800000000']);
+    }
+
 }

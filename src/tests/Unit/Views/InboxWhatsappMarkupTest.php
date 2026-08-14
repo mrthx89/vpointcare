@@ -29,4 +29,13 @@ class InboxWhatsappMarkupTest extends TestCase
         self::assertStringContainsString('aria-label="{{ __(\'ui.pages.inbox.open_details\') }}"', $view);
         self::assertStringNotContainsString('x-on:keydown.enter.prevent=', $view);
     }
+
+    public function test_inbox_renders_refinement_modal_and_preference_control(): void
+    {
+        $view = file_get_contents(base_path("resources/views/filament/pages/inbox-whatsapp.blade.php"));
+        self::assertStringContainsString("wire:click=\"setReplyRefinementPreference('follow')\"", $view);
+        self::assertStringContainsString("wire:click=\"setReplyRefinementPreference('active')\"", $view);
+        self::assertStringContainsString("wire:click=\"setReplyRefinementPreference('inactive')\"", $view);
+        self::assertStringContainsString("wire:model=\"pengaturan.PerhalusJawabanWhatsappDefault\"", file_get_contents(base_path("resources/views/filament/pages/ai-agent.blade.php")));
+    }
 }

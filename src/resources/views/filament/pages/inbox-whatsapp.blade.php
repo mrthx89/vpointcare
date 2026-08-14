@@ -68,12 +68,15 @@
                 });
             } catch (e) {}
         }
-    }" x-init="window.wacsNotificationBodyCopy = @js(__('ui.pages.inbox.new_message_notification')); checkNotificationPermission(); wsOnline = Boolean(window.wahaWsOnline);
+    }" x-init="window.wacsNotificationBodyCopy = @js(__('ui.pages.inbox.new_message_notification'));
+    checkNotificationPermission();
+    wsOnline = Boolean(window.wahaWsOnline);
     if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
     setTimeout(() => {
         if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
-    }, 300);" @waha-new-message.window="if ($event.detail.isIncoming) playSound()"
-        @waha-ws-connected.window="wsOnline = true" @waha-ws-disconnected.window="wsOnline = false"
+    }, 300);"
+        @waha-new-message.window="if ($event.detail.isIncoming) playSound()" @waha-ws-connected.window="wsOnline = true"
+        @waha-ws-disconnected.window="wsOnline = false"
         @wacs-reverb-status-changed.window="updateReverbStatus($event.detail)"
         class="wacs-inbox-shell flex flex-col gap-4" wire:poll.60s="loadInbox">
 
@@ -131,7 +134,8 @@
         </div>
 
         {{-- Embedded WAHA Live Session Statuses --}}
-        <div class="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div
+            class="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
             <div class="flex flex-wrap items-center gap-3">
                 <div class="text-xs font-semibold text-gray-500 dark:text-gray-400">
                     {{ __('ui.pages.waha_connection.title') }}:
@@ -139,15 +143,21 @@
                 @forelse ($wahaStatuses as $sCode => $sInfo)
                     @php
                         $st = $sInfo['status'] ?? 'unknown';
-                        $badgeStyle = match($st) {
-                            'running' => 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
-                            'starting' => 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300',
-                            'scan_required' => 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300',
-                            'stopped' => 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
-                            'failed' => 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300',
-                            default => 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300',
+                        $badgeStyle = match ($st) {
+                            'running'
+                                => 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
+                            'starting'
+                                => 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300',
+                            'scan_required'
+                                => 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300',
+                            'stopped'
+                                => 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                            'failed'
+                                => 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300',
+                            default
+                                => 'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300',
                         };
-                        $dotStyle = match($st) {
+                        $dotStyle = match ($st) {
                             'running' => 'bg-emerald-500',
                             'starting' => 'bg-blue-500',
                             'scan_required' => 'bg-amber-500',
@@ -156,17 +166,21 @@
                             default => 'bg-red-500',
                         };
                     @endphp
-                    <div class="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold {{ $badgeStyle }}">
+                    <div
+                        class="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold {{ $badgeStyle }}">
                         <span class="relative flex h-2.5 w-2.5">
                             @if ($st === 'running')
-                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span
+                                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             @endif
                             <span class="relative inline-flex h-2.5 w-2.5 rounded-full {{ $dotStyle }}"></span>
                         </span>
                         <span>{{ strtoupper($sCode) }}: {{ strtoupper(str_replace('_', ' ', $st)) }}</span>
 
-                        @if (in_array($st, ['scan_required', 'stopped', 'failed', 'unavailable'], true) && \App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_MANAGE))
-                            <a href="{{ route('filament.admin.pages.waha-connection-center') }}" class="ml-1 text-[11px] underline hover:opacity-80">
+                        @if (in_array($st, ['scan_required', 'stopped', 'failed', 'unavailable'], true) &&
+                                \App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_MANAGE))
+                            <a href="{{ route('filament.admin.pages.waha-connection-center') }}"
+                                class="ml-1 text-[11px] underline hover:opacity-80">
                                 @if ($st === 'scan_required')
                                     {{ __('ui.pages.waha_connection.btn_qr') }}
                                 @else
@@ -176,37 +190,53 @@
                         @endif
                     </div>
                 @empty
-                    <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                    <div
+                        class="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
                         <span>{{ __('ui.pages.waha_connection.no_sessions') }}</span>
                     </div>
                 @endforelse
             </div>
             @if (\App\Support\FilamentAccess::can(\App\Support\AccessPermissions::WAHA_SESSION_VIEW))
-                <a href="{{ route('filament.admin.pages.waha-connection-center') }}" class="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
+                <a href="{{ route('filament.admin.pages.waha-connection-center') }}"
+                    class="text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
                     {{ __('ui.pages.waha_connection.center_title') }} &rarr;
                 </a>
             @endif
         </div>
         <div class="wacs-inbox-stats grid shrink-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 xl:grid-cols-5">
-            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
-                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.active_team') }}</div>
+            <div
+                class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">
+                    {{ __('ui.pages.inbox.active_team') }}</div>
                 <div class="mt-1 text-lg font-semibold text-emerald-600 sm:mt-2 sm:text-xl">{{ $activeAgents }}</div>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
-                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.total_chat') }}</div>
-                <div class="mt-1 text-lg font-semibold text-gray-950 dark:text-white sm:mt-2 sm:text-xl">{{ $stats['baru'] ?? 0 }}</div>
+            <div
+                class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">
+                    {{ __('ui.pages.inbox.total_chat') }}</div>
+                <div class="mt-1 text-lg font-semibold text-gray-950 dark:text-white sm:mt-2 sm:text-xl">
+                    {{ $stats['baru'] ?? 0 }}</div>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
-                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.unread') }}</div>
-                <div class="mt-1 text-lg font-semibold text-amber-600 sm:mt-2 sm:text-xl">{{ $stats['belum_dibaca'] ?? 0 }}</div>
+            <div
+                class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">
+                    {{ __('ui.pages.inbox.unread') }}</div>
+                <div class="mt-1 text-lg font-semibold text-amber-600 sm:mt-2 sm:text-xl">
+                    {{ $stats['belum_dibaca'] ?? 0 }}</div>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
-                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.group_chat') }}</div>
-                <div class="mt-1 text-lg font-semibold text-blue-600 sm:mt-2 sm:text-xl">{{ $stats['grup'] ?? 0 }}</div>
+            <div
+                class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">
+                    {{ __('ui.pages.inbox.group_chat') }}</div>
+                <div class="mt-1 text-lg font-semibold text-blue-600 sm:mt-2 sm:text-xl">{{ $stats['grup'] ?? 0 }}
+                </div>
             </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
-                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">{{ __('ui.pages.inbox.unmapped') }}</div>
-                <div class="mt-1 text-lg font-semibold text-red-600 sm:mt-2 sm:text-xl">{{ $stats['unknown'] ?? 0 }}</div>
+            <div
+                class="rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:rounded-2xl sm:p-4">
+                <div class="truncate text-[11px] leading-4 text-gray-500 dark:text-gray-400 sm:text-sm">
+                    {{ __('ui.pages.inbox.unmapped') }}</div>
+                <div class="mt-1 text-lg font-semibold text-red-600 sm:mt-2 sm:text-xl">{{ $stats['unknown'] ?? 0 }}
+                </div>
             </div>
         </div>
 
@@ -214,17 +244,13 @@
         <div class="wacs-inbox-layout flex-1 min-h-0">
             {{-- Backdrop Drawer Kiri (Daftar Chat) di Mobile --}}
             <div x-show="mobilePane === 'list'" x-cloak @click="mobilePane = 'conversation'"
-                x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-150"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                aria-hidden="true" class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm md:hidden"></div>
+                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" aria-hidden="true"
+                class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm md:hidden"></div>
 
             {{-- KOLOM KIRI / DRAWER KIRI: Daftar Chat --}}
-            <section
-                :class="mobilePane === 'list' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+            <section :class="mobilePane === 'list' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
                 aria-label="{{ __('ui.pages.inbox.chat_list') }}"
                 class="wacs-inbox-chat-list wacs-inbox-chat-list--drawer flex min-h-0 flex-col overflow-hidden rounded-r-2xl md:rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900 md:shadow-none">
                 {{-- Header Daftar Chat --}}
@@ -243,26 +269,30 @@
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-1.5 justify-end">
-                            <button @click="toggleSound()" type="button" title="{{ __('ui.pages.inbox.sound_toggle') }}"
+                            <button @click="toggleSound()" type="button"
+                                title="{{ __('ui.pages.inbox.sound_toggle') }}"
                                 class="shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 active:scale-95"
-                                :class="soundOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' :
+                                :class="soundOn ?
+                                    'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' :
                                     'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
                                 <x-heroicon-o-bell x-show="soundOn" class="w-4 h-4" />
                                 <x-heroicon-o-bell-slash x-show="!soundOn" class="w-4 h-4" x-cloak />
-                                <span x-text="soundOn ? @js(__('ui.pages.inbox.sound_on')) : @js(__('ui.pages.inbox.sound_off'))"></span>
+                                <span
+                                    x-text="soundOn ? @js(__('ui.pages.inbox.sound_on')) : @js(__('ui.pages.inbox.sound_off'))"></span>
                             </button>
 
-                            <button @click="requestBrowserNotification()" type="button" 
-                                    title="{{ __('ui.pages.inbox.notifications_toggle') }}"
-                                    class="shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 active:scale-95"
-                                    :class="{
-                                        'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300': notificationPermission === 'granted',
-                                        'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300': notificationPermission === 'default',
-                                        'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300': notificationPermission === 'denied',
-                                        'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400': notificationPermission === 'unsupported'
-                                    }">
+                            <button @click="requestBrowserNotification()" type="button"
+                                title="{{ __('ui.pages.inbox.notifications_toggle') }}"
+                                class="shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 active:scale-95"
+                                :class="{
+                                    'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300': notificationPermission === 'granted',
+                                    'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300': notificationPermission === 'default',
+                                    'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300': notificationPermission === 'denied',
+                                    'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400': notificationPermission === 'unsupported'
+                                }">
                                 <x-heroicon-o-chat-bubble-bottom-center-text class="w-4 h-4" />
-                                <span x-text="notificationPermission === 'granted' ? @js(__('ui.pages.inbox.notifications_active')) : (notificationPermission === 'denied' ? @js(__('ui.pages.inbox.notifications_denied')) : (notificationPermission === 'unsupported' ? @js(__('ui.pages.inbox.notifications_unsupported')) : @js(__('ui.pages.inbox.notifications_enable'))))"></span>
+                                <span
+                                    x-text="notificationPermission === 'granted' ? @js(__('ui.pages.inbox.notifications_active')) : (notificationPermission === 'denied' ? @js(__('ui.pages.inbox.notifications_denied')) : (notificationPermission === 'unsupported' ? @js(__('ui.pages.inbox.notifications_unsupported')) : @js(__('ui.pages.inbox.notifications_enable'))))"></span>
                             </button>
                         </div>
                     </div>
@@ -290,7 +320,8 @@
                         @php
                             $identity = $chat['Identity'][$identityDisplayMode] ?? $chat['Identity']['whatsapp'];
                         @endphp
-                        <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')" @click="mobilePane = 'conversation'"
+                        <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
+                            @click="mobilePane = 'conversation'"
                             class="block w-full p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60
                                     {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30 border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-transparent' }}">
                             {{-- Layout item chat: Avatar + Info --}}
@@ -350,7 +381,8 @@
                                             <span
                                                 class="rounded px-1.5 py-0.5 text-[10px] font-semibold
                                                     {{ $chat['DiambilOlehSaya'] ?? false ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300' }}">
-                                                <x-heroicon-o-user class="mr-1 inline h-3 w-3 align-[-2px]" aria-hidden="true" />
+                                                <x-heroicon-o-user class="mr-1 inline h-3 w-3 align-[-2px]"
+                                                    aria-hidden="true" />
                                                 {{ $chat['DiambilOlehSaya'] ?? false ? 'Anda' : $chat['DiambilNamaCS'] }}
                                             </span>
                                         @endif
@@ -366,7 +398,8 @@
                         </button>
                     @empty
                         <div class="p-8 text-center">
-                            <x-heroicon-o-chat-bubble-bottom-center-text class="mx-auto mb-2 h-7 w-7 text-gray-400" aria-hidden="true" />
+                            <x-heroicon-o-chat-bubble-bottom-center-text class="mx-auto mb-2 h-7 w-7 text-gray-400"
+                                aria-hidden="true" />
                             <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
                                 {{ __('ui.pages.inbox.no_chat') }}</div>
                             <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
@@ -385,17 +418,21 @@
             </section>
 
             {{-- KOLOM TENGAH: Ruang Percakapan --}}
-            <section
-                :class="{ 'hidden': mobilePane !== 'conversation', 'flex': mobilePane === 'conversation' }" class="wacs-inbox-conversation relative md:!flex flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+            <section :class="{ 'hidden': mobilePane !== 'conversation', 'flex': mobilePane === 'conversation' }"
+                class="wacs-inbox-conversation relative md:!flex flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 @if ($selectedChat)
                     @php
-                        $selectedIdentity = $selectedChat['Identity'][$identityDisplayMode] ?? $selectedChat['Identity']['whatsapp'];
+                        $selectedIdentity =
+                            $selectedChat['Identity'][$identityDisplayMode] ?? $selectedChat['Identity']['whatsapp'];
                     @endphp
                     {{-- Header Chat: Tidak Ikut Scroll --}}
                     <div
                         class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="flex min-w-0 items-center gap-3">
-                                <button type="button" @click="mobilePane = 'list'" aria-label="{{ __('ui.pages.inbox.chat_list') }}" class="md:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300" title="{{ __('ui.pages.inbox.chat_list') }}">
+                            <button type="button" @click="mobilePane = 'list'"
+                                aria-label="{{ __('ui.pages.inbox.chat_list') }}"
+                                class="md:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                                title="{{ __('ui.pages.inbox.chat_list') }}">
                                 <x-heroicon-o-bars-3 class="w-6 h-6" />
                             </button>
                             @if ($selectedChat['FotoProfilUrl'] ?? null)
@@ -410,16 +447,20 @@
                             <div class="min-w-0">
                                 <div class="truncate text-base font-semibold text-gray-950 dark:text-white">
                                     {{ $selectedIdentity['PrimaryName'] ?: '-' }}</div>
-                                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                <div
+                                    class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                     <span class="rounded bg-gray-100 px-1.5 py-0.5 font-semibold dark:bg-gray-800">
                                         {{ $selectedChat['JenisChat'] === 'Grup' ? __('ui.pages.inbox.whatsapp_group') : __('ui.pages.inbox.personal_chat') }}
                                     </span>
                                     @if ($selectedChat['JenisChat'] === 'Grup')
-                                        <span>{{ __('ui.pages.inbox.group_name') }}: {{ $selectedIdentity['GroupName'] ?: '-' }}</span>
-                                        <span class="break-all font-mono">{{ __('ui.pages.inbox.group_id') }}: {{ $selectedIdentity['GroupId'] ?: '-' }}</span>
+                                        <span>{{ __('ui.pages.inbox.group_name') }}:
+                                            {{ $selectedIdentity['GroupName'] ?: '-' }}</span>
+                                        <span class="break-all font-mono">{{ __('ui.pages.inbox.group_id') }}:
+                                            {{ $selectedIdentity['GroupId'] ?: '-' }}</span>
                                     @else
                                         <span>{{ $selectedIdentity['ContactName'] ?: '-' }}</span>
-                                        <span class="break-all font-mono">{{ $selectedIdentity['ContactNumber'] ?: $selectedIdentity['ChatId'] ?: '-' }}</span>
+                                        <span
+                                            class="break-all font-mono">{{ $selectedIdentity['ContactNumber'] ?: $selectedIdentity['ChatId'] ?: '-' }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -436,17 +477,20 @@
 
                             {{-- Dropdown Pengaturan Chat (Mobile & Tablet) --}}
                             <div x-data="{ menuOpen: false }" class="relative z-30 shrink-0">
-                                <button type="button" @click="menuOpen = !menuOpen" @click.outside="menuOpen = false" :aria-expanded="menuOpen.toString()" aria-haspopup="menu" aria-label="{{ __('ui.pages.inbox.details') }}"
+                                <button type="button" @click="menuOpen = !menuOpen"
+                                    @click.outside="menuOpen = false" :aria-expanded="menuOpen.toString()"
+                                    aria-haspopup="menu" aria-label="{{ __('ui.pages.inbox.details') }}"
                                     class="2xl:hidden flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors focus:outline-none"
                                     title="Pengaturan">
                                     <x-heroicon-o-ellipsis-vertical class="w-6 h-6" />
                                 </button>
-                                
+
                                 <div x-cloak x-show="menuOpen" x-transition.origin.top.right
                                     class="absolute right-0 top-full mt-1.5 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-sm">
-                                    
+
                                     {{-- Lihat Detail / Modal --}}
-                                    <button type="button" @click="detailsOpen = true; menuOpen = false" aria-label="{{ __('ui.pages.inbox.open_details') }}" aria-haspopup="dialog"
+                                    <button type="button" @click="detailsOpen = true; menuOpen = false"
+                                        aria-label="{{ __('ui.pages.inbox.open_details') }}" aria-haspopup="dialog"
                                         class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
                                         <x-heroicon-o-information-circle class="w-4 h-4 text-gray-400" />
                                         <span>{{ __('ui.pages.inbox.open_details') }}</span>
@@ -456,14 +500,16 @@
                                         <div class="my-1 border-t border-gray-100 dark:border-gray-800"></div>
 
                                         {{-- Fetch Profile --}}
-                                        <button type="button" wire:click="refreshProfilWaha" @click="menuOpen = false"
+                                        <button type="button" wire:click="refreshProfilWaha"
+                                            @click="menuOpen = false"
                                             class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
                                             <x-heroicon-o-arrow-path class="w-4 h-4 text-gray-400" />
                                             <span>{{ __('ui.pages.inbox.fetch_profile') }}</span>
                                         </button>
 
                                         {{-- Refresh Mapping --}}
-                                        <button type="button" wire:click="refreshMappingChat" @click="menuOpen = false"
+                                        <button type="button" wire:click="refreshMappingChat"
+                                            @click="menuOpen = false"
                                             class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
                                             <x-heroicon-o-arrow-path class="w-4 h-4 text-gray-400" />
                                             <span>{{ __('ui.common.refresh') }} Mapping</span>
@@ -472,7 +518,7 @@
 
                                     @if ($this->canManageInbox() && !str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
                                         <div class="my-1 border-t border-gray-100 dark:border-gray-800"></div>
-                                        
+
                                         {{-- Tutup Percakapan --}}
                                         <button type="button"
                                             x-on:click="
@@ -535,14 +581,17 @@
                     }" x-init="scrollToBottom();
                     $wire.$hook('morph', () => { scrollToBottom(); });"
                         class="wacs-inbox-messages min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden bg-gray-50 p-4 pb-36 dark:bg-gray-950/60">
-                    @if ($hasOlderMessages)
-                        <div>
-                            <button type=button wire:click=loadOlderMessages wire:loading.attr=disabled wire:target=loadOlderMessages>
-                                <span wire:loading.remove wire:target=loadOlderMessages>{{ __('ui.pages.inbox.load_older_messages') }}</span>
-                                <span wire:loading wire:target=loadOlderMessages>{{ __('ui.pages.inbox.loading_older_messages') }}</span>
-                            </button>
-                        </div>
-                    @endif
+                        @if ($hasOlderMessages)
+                            <div>
+                                <button type=button wire:click=loadOlderMessages wire:loading.attr=disabled
+                                    wire:target=loadOlderMessages>
+                                    <span wire:loading.remove
+                                        wire:target=loadOlderMessages>{{ __('ui.pages.inbox.load_older_messages') }}</span>
+                                    <span wire:loading
+                                        wire:target=loadOlderMessages>{{ __('ui.pages.inbox.loading_older_messages') }}</span>
+                                </button>
+                            </div>
+                        @endif
                         @forelse ($messages as $message)
                             @php($isOut = $message['ArahPesan'] === 'Keluar')
                             @php($hasMedia = $message['MediaCategory'] !== 'text')
@@ -598,8 +647,10 @@
                                                 </div>
                                             @elseif ($message['MediaUrl'] && $message['MediaCategory'] === 'pdf')
                                                 <object data="{{ $message['MediaUrl'] }}" type="application/pdf"
-                                                    title="{{ __('ui.pages.inbox.preview_media') }}" class="h-80 w-full">
-                                                    <a href="{{ $message['MediaUrl'] }}" target="_blank" rel="noopener"
+                                                    title="{{ __('ui.pages.inbox.preview_media') }}"
+                                                    class="h-80 w-full">
+                                                    <a href="{{ $message['MediaUrl'] }}" target="_blank"
+                                                        rel="noopener"
                                                         class="block px-3 py-2 text-sm font-medium underline underline-offset-2">
                                                         {{ __('ui.pages.inbox.preview_media') }}
                                                     </a>
@@ -617,7 +668,8 @@
                                                 </div>
                                             @endif
                                             @if ($message['MediaDownloadUrl'])
-                                                <a href="{{ $message['MediaDownloadUrl'] }}" target="_blank" rel="noopener"
+                                                <a href="{{ $message['MediaDownloadUrl'] }}" target="_blank"
+                                                    rel="noopener"
                                                     class="block border-t border-gray-200 px-3 py-2 text-xs font-semibold underline underline-offset-2 dark:border-gray-800">
                                                     {{ __('ui.pages.inbox.download_media') }}
                                                 </a>
@@ -683,7 +735,8 @@
                         }"
                             @paste="handlePaste($event)"
                             class="wacs-inbox-reply-form absolute bottom-0 inset-x-0 z-20 pointer-events-none p-3 sm:p-4 bg-gradient-to-t from-white via-white/85 to-transparent dark:from-gray-900 dark:via-gray-900/85">
-                            <div class="pointer-events-auto mx-auto max-w-4xl rounded-2xl border border-gray-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-md dark:border-gray-700/60 dark:bg-gray-900/95 space-y-2">
+                            <div
+                                class="pointer-events-auto mx-auto max-w-4xl rounded-2xl border border-gray-200/80 bg-white/95 p-3 shadow-xl backdrop-blur-md dark:border-gray-700/60 dark:bg-gray-900/95 space-y-2">
                                 <input x-ref="attachmentInput" type="file" wire:model="attachment"
                                     accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip,.rar"
                                     class="hidden">
@@ -693,7 +746,8 @@
                                         class="flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200">
                                         <div class="min-w-0 truncate flex items-center gap-1.5">
                                             <x-heroicon-o-paper-clip class="h-4 w-4 shrink-0" />
-                                            <span class="truncate">{{ __('ui.pages.inbox.attachment') }}: {{ $attachment->getClientOriginalName() }}</span>
+                                            <span class="truncate">{{ __('ui.pages.inbox.attachment') }}:
+                                                {{ $attachment->getClientOriginalName() }}</span>
                                         </div>
                                         <button type="button" wire:click="removeAttachment"
                                             class="shrink-0 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-200 dark:hover:text-white">{{ __('ui.common.delete') }}</button>
@@ -729,19 +783,25 @@
                                     </div>
 
                                     <div class="flex items-center gap-1.5 shrink-0">
-                                        <x-filament::button type="button" color="gray" size="sm" outlined
+                                        {{-- <x-filament::button type="button" color="gray" size="sm" outlined
                                             wire:click="simpanBalasanLokal"
                                             title="Simpan Draft">
                                             {{ __('ui.common.save') }} Draft
-                                        </x-filament::button>
+                                        </x-filament::button> --}}
 
-                                        <button type="submit" wire:loading.attr="disabled" wire:target="attachment,kirimBalasanWaha"
+                                        <button type="submit" wire:loading.attr="disabled"
+                                            wire:target="attachment,kirimBalasanWaha"
                                             class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 dark:ring-offset-gray-900"
                                             title="{{ __('ui.pages.inbox.send_to_whatsapp') }}">
-                                            <x-heroicon-m-paper-airplane wire:loading.remove wire:target="attachment,kirimBalasanWaha" class="h-5 w-5" />
-                                            <svg wire:loading wire:target="attachment,kirimBalasanWaha" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+                                            <x-heroicon-m-paper-airplane wire:loading.remove
+                                                wire:target="attachment,kirimBalasanWaha" class="h-5 w-5" />
+                                            <svg wire:loading wire:target="attachment,kirimBalasanWaha"
+                                                class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none"
+                                                aria-hidden="true">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
                                             </svg>
                                         </button>
                                     </div>
@@ -756,15 +816,22 @@
             </section>
 
             {{-- Backdrop untuk Aside di Mobile/Tablet --}}
-            <div x-show="detailsOpen" x-transition.opacity @click="detailsOpen = false" x-cloak class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm 2xl:hidden"></div>
+            <div x-show="detailsOpen" x-transition.opacity @click="detailsOpen = false" x-cloak
+                class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm 2xl:hidden"></div>
 
             {{-- Aside (Sidebar Kanan) / Modal di Mobile --}}
-            <aside :class="detailsOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none 2xl:scale-100 2xl:opacity-100 2xl:pointer-events-auto'"
-                :role="detailsOpen ? 'dialog' : 'complementary'" :aria-modal="detailsOpen ? 'true' : null" aria-labelledby="wacs-inbox-details-title"
+            <aside
+                :class="detailsOpen ? 'scale-100 opacity-100' :
+                    'scale-95 opacity-0 pointer-events-none 2xl:scale-100 2xl:opacity-100 2xl:pointer-events-auto'"
+                :role="detailsOpen ? 'dialog' : 'complementary'" :aria-modal="detailsOpen ? 'true' : null"
+                aria-labelledby="wacs-inbox-details-title"
                 class="wacs-inbox-aside wacs-inbox-aside--details min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
-                <div class="2xl:hidden flex items-center justify-between mb-2 border-b border-gray-200 pb-3 dark:border-gray-800">
-                    <h3 id="wacs-inbox-details-title" class="font-semibold text-lg text-gray-950 dark:text-white">{{ __('ui.pages.inbox.open_details') }}</h3>
-                    <button type="button" @click="detailsOpen = false" aria-label="{{ __('ui.common.cancel') }}" class="flex h-11 w-11 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:hover:bg-gray-800 dark:hover:text-gray-300">
+                <div
+                    class="2xl:hidden flex items-center justify-between mb-2 border-b border-gray-200 pb-3 dark:border-gray-800">
+                    <h3 id="wacs-inbox-details-title" class="font-semibold text-lg text-gray-950 dark:text-white">
+                        {{ __('ui.pages.inbox.open_details') }}</h3>
+                    <button type="button" @click="detailsOpen = false" aria-label="{{ __('ui.common.cancel') }}"
+                        class="flex h-11 w-11 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                         <x-heroicon-o-x-mark class="w-6 h-6" />
                     </button>
                 </div>
@@ -904,13 +971,25 @@
                                         wire:click="resetSapaanAi">
                                         {{ __('ui.pages.inbox.reset_greeting') }}
                                     </x-filament::button>
-                                    @if (\App\Support\FilamentAccess::can(\App\Support\AccessPermissions::KNOWLEDGE_MANAGE))
-                                        <x-filament::button type="button" color="info" outlined
-                                            wire:click="buatDraftKnowledge" wire:loading.attr="disabled"
-                                            wire:target="buatDraftKnowledge">
-                                            {{ __('ui.ai_learning.create_draft_button') }}
-                                        </x-filament::button>
-                                    @endif
+                                    
+                                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                                    <label class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ __('ui.pages.ai_agent.refine_whatsapp_replies') }}</label>
+                                    <div class="mt-1.5 flex rounded-lg shadow-sm">
+                                        <button type="button" wire:click="setReplyRefinementPreference('follow')" class="relative flex-1 rounded-l-lg border px-2 py-1.5 text-xs font-medium focus:z-10 focus:ring-2 focus:ring-primary-500 transition-colors {{ $replyRefinementPreference === 'follow' ? 'bg-gray-100 border-gray-300 text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white z-10' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800' }}">
+                                            {{ __('ui.pages.inbox.refinement_follow') }}
+                                        </button>
+                                        <button type="button" wire:click="setReplyRefinementPreference('active')" class="relative flex-1 -ml-px border px-2 py-1.5 text-xs font-medium focus:z-10 focus:ring-2 focus:ring-primary-500 transition-colors {{ $replyRefinementPreference === 'active' ? 'bg-primary-50 border-primary-300 text-primary-700 dark:bg-primary-500/10 dark:border-primary-500/30 dark:text-primary-300 z-10' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800' }}">
+                                            {{ __('ui.common.active') }}
+                                        </button>
+                                        <button type="button" wire:click="setReplyRefinementPreference('inactive')" class="relative flex-1 -ml-px rounded-r-lg border px-2 py-1.5 text-xs font-medium focus:z-10 focus:ring-2 focus:ring-primary-500 transition-colors {{ $replyRefinementPreference === 'inactive' ? 'bg-gray-100 border-gray-300 text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-white z-10' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800' }}">
+                                            {{ __('ui.common.inactive') }}
+                                        </button>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        {{ __('ui.pages.inbox.refinement_desc') }}
+                                    </p>
+                                </div>
+
                                 </div>
                             @endif
                         </div>
@@ -1126,4 +1205,77 @@
             </div>
         </x-filament::modal>
     @endif
+
+    {{-- Modal Review Refinement --}}
+    <div x-data="{ open: @entangle('reviewModalOpen') }" x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="refinement-modal-title">
+        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div x-show="open" x-transition.opacity class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" @click="$wire.cancelRefinedReply()"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <div x-show="open" x-transition.scale.95
+                class="inline-block transform overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 text-left align-bottom shadow-2xl backdrop-blur-md transition-all dark:border-gray-700/60 dark:bg-gray-900/95 sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                    <h3 class="text-base font-semibold text-gray-950 dark:text-white" id="refinement-modal-title">
+                        {{ __('ui.pages.inbox.refinement_modal_title') }}
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div wire:loading wire:target="kirimBalasanWaha" class="w-full text-center py-8 space-y-3">
+                        <svg class="mx-auto h-8 w-8 animate-spin text-primary-600" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+                        </svg>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('ui.pages.inbox.refining_loader') }}</p>
+                    </div>
+                    <div wire:loading.remove wire:target="kirimBalasanWaha" class="space-y-4">
+                        @if ($refinementError)
+                            <div class="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10">
+                                <div class="flex gap-3">
+                                    <x-heroicon-o-x-circle class="h-5 w-5 text-red-600 dark:text-red-400 shrink-0" />
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-red-800 dark:text-red-300">{{ __('ui.pages.inbox.refinement_failed_title') }}</h4>
+                                        <p class="mt-1 text-xs text-red-700 dark:text-red-400">{{ $refinementError }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-950/40">
+                                    <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ __('ui.pages.inbox.refinement_original') }}</h4>
+                                    <p class="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ $originalDraft }}</p>
+                                </div>
+                                <div class="rounded-xl border border-primary-200 bg-primary-50/20 p-4 dark:border-primary-800/30 dark:bg-primary-950/20">
+                                    <h4 class="text-xs font-semibold text-primary-500 uppercase tracking-wider">{{ __('ui.pages.inbox.refinement_suggested') }}</h4>
+                                    <p class="mt-2 text-sm text-gray-900 dark:text-white whitespace-pre-wrap">{{ $refinedDraft }}</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                <div wire:loading.remove wire:target="kirimBalasanWaha" class="px-6 py-4 bg-gray-50 dark:bg-gray-950/30 border-t border-gray-100 dark:border-gray-800 flex flex-wrap justify-between items-center gap-3">
+                    <div>
+                        @if ($refinementError)
+                            <x-filament::button type="button" color="danger" size="sm" wire:click="sendOriginalAfterRefinementFailure" wire:loading.attr="disabled">
+                                {{ __('ui.pages.inbox.refinement_send_original') }}
+                            </x-filament::button>
+                        @else
+                            <x-filament::button type="button" color="primary" size="sm" wire:click="confirmRefinedReply" wire:loading.attr="disabled">
+                                {{ __('ui.pages.inbox.refinement_send_refined') }}
+                            </x-filament::button>
+                        @endif
+                    </div>
+                    <div class="flex gap-2">
+                        @if (! $refinementError)
+                            <x-filament::button type="button" color="gray" size="sm" outlined wire:click="editRefinedReply" wire:loading.attr="disabled">
+                                {{ __('ui.pages.inbox.refinement_edit') }}
+                            </x-filament::button>
+                        @endif
+                        <x-filament::button type="button" color="gray" size="sm" outlined wire:click="cancelRefinedReply" wire:loading.attr="disabled">
+                            {{ __('ui.common.cancel') }}
+                        </x-filament::button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </x-filament-panels::page>

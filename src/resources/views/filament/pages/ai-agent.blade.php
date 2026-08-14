@@ -107,6 +107,16 @@
                                     class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.continue_all_sessions_desc') }}</span>
                             </span>
                         </label>
+                        <label class="wacs-ai-agent-option flex gap-3 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                            <x-filament::input.checkbox wire:model="pengaturan.PerhalusJawabanWhatsappDefault"
+                                class="mt-1" />
+                            <span>
+                                <span
+                                    class="block text-sm font-semibold text-gray-950 dark:text-white">{{ __('ui.pages.ai_agent.refine_whatsapp_replies') }}</span>
+                                <span
+                                    class="mt-1 block text-sm text-gray-500 dark:text-gray-400">{{ __('ui.pages.ai_agent.refine_whatsapp_replies_desc') }}</span>
+                            </span>
+                        </label>
                     </div>
                 </div>
 

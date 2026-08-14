@@ -22,6 +22,12 @@ class AiAutoReplyService
     {
     }
 
+
+    public function generateManualRefinement(object $settings, string $message): ?array
+    {
+        $prompt = "Anda adalah asisten komunikasi profesional. Tugas Anda adalah memperhalus pesan WhatsApp berikut agar lebih sopan, jelas, dan baik secara tata bahasa. PERATURAN MUTLAK:\n1. Pertahankan bahasa asli pesan (misal Bahasa Indonesia tetap Bahasa Indonesia).\n2. JANGAN mengubah fakta, maksud utama, nominal, harga, angka, URL, nomor WhatsApp, atau placeholder.\n3. JANGAN menambahkan fakta atau promosi baru yang tidak ada pada pesan asli.\n4. Kembalikan HANYA teks pesan yang sudah diperhalus tanpa penjelasan tambahan.\n\nPesan asli:\n" . $message;
+        return $this->generateReply($settings, $prompt, true);
+    }
     public function testProviderConnection(object $settings, string $prompt): string
     {
         // Test koneksi selalu menggunakan ModelAi (bukan ModelInstructAi) untuk validasi model utama

@@ -127,6 +127,12 @@ class InboxWhatsapp extends Page implements HasForms
 
     public string $replyText = '';
 
+
+    public string $replyRefinementPreference = 'follow';
+    public string $originalDraft = '';
+    public string $refinedDraft = '';
+    public string $refinementError = '';
+    public bool $reviewModalOpen = false;
     public ?TemporaryUploadedFile $attachment = null;
 
     public string $filterText = '';
@@ -166,7 +172,9 @@ class InboxWhatsapp extends Page implements HasForms
     public function handleInboxUpdate(?string $chatId = null): void
     {
         $this->loadInboxData();
-        $this->dispatch('inbox-refreshed');
+        
+        $this->loadOperatorRefinementPreference();
+$this->dispatch('inbox-refreshed');
     }
 
     public function updatedFilterText(): void
@@ -947,6 +955,58 @@ class InboxWhatsapp extends Page implements HasForms
         ];
     }
 
+
+
+    public function isRefinementEnabled(): bool
+    {
+        $this->loadOperatorRefinementPreference();
+        if ($this->replyRefinementPreference === 'active') {
+            return true;
+        }
+        if ($this->replyRefinementPreference === 'inactive') {
+            return false;
+        }
+        $settings = \App\Support\AiSettings::get();
+        if (! $settings || ! \Illuminate\Support\Facades\Schema::hasColumn('MPengaturanAi', 'PerhalusJawabanWhatsappDefault')) {
+            return false;
+        }
+        return (bool) ($settings->PerhalusJawabanWhatsappDefault ?? false);
+    }
+    public function setReplyRefinementPreference(string $preference): void
+    {
+        abort_unless(\App\Support\FilamentAccess::can(\App\Support\AccessPermissions::INBOX_REPLY), 403);
+
+        if (! in_array($preference, ['follow', 'active', 'inactive'], true)) {
+            return;
+        }
+
+        $userId = $this->currentPenggunaId();
+        if (! $userId || ! \Illuminate\Support\Facades\Schema::hasColumn('MPengguna', 'PerhalusJawabanWhatsapp')) {
+            return;
+        }
+
+        $value = match ($preference) {
+            'active' => true,
+            'inactive' => false,
+            default => null,
+        };
+
+        \Illuminate\Support\Facades\DB::table('MPengguna')->where('Id', $userId)->update(['PerhalusJawabanWhatsapp' => $value]);
+        $this->replyRefinementPreference = $preference;
+        \Filament\Notifications\Notification::make()->title(__('ui.pages.ai_agent.settings_saved'))->success()->send();
+    }
+
+    private function loadOperatorRefinementPreference(): void
+    {
+        $userId = $this->currentPenggunaId();
+        if (! $userId || ! \Illuminate\Support\Facades\Schema::hasColumn('MPengguna', 'PerhalusJawabanWhatsapp')) {
+            $this->replyRefinementPreference = 'follow';
+            return;
+        }
+
+        $value = \Illuminate\Support\Facades\DB::table('MPengguna')->where('Id', $userId)->value('PerhalusJawabanWhatsapp');
+        $this->replyRefinementPreference = $value === null ? 'follow' : ((bool) $value ? 'active' : 'inactive');
+    }
     public function toggleAutoReplyAi(): void
     {
         abort_unless(FilamentAccess::can(AccessPermissions::INBOX_MANAGE), 403);
@@ -1236,7 +1296,7 @@ class InboxWhatsapp extends Page implements HasForms
         $this->attachment = null;
     }
 
-    public function kirimBalasanWaha(WahaSender $wahaSender): void
+    public function kirimBalasanWaha(WahaSender $wahaSender, \App\Services\Ai\AiMessageRefinementService $refinementService): void
     {
         abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
 
@@ -1250,13 +1310,77 @@ class InboxWhatsapp extends Page implements HasForms
         }
 
         $reply = trim($this->replyText);
-
         if ($reply === '' && ! $this->attachment) {
-            Notification::make()
-                ->title(__('ui.pages.inbox.reply_required'))
-                ->warning()
-                ->send();
+            Notification::make()->title(__('ui.pages.inbox.reply_required'))->warning()->send();
+            return;
+        }
 
+        if ($reply === '' || ! $this->isRefinementEnabled()) {
+            $this->executeDelivery($wahaSender, $reply);
+            return;
+        }
+
+        $this->resetRefinementState();
+        $this->originalDraft = $reply;
+        $this->reviewModalOpen = true;
+
+        $result = $refinementService->refine($reply);
+
+        if ($result['ok'] ?? false) {
+            $this->refinedDraft = $result['text'] ?? '';
+        } else {
+            $this->refinementError = $result['error'] ?? 'Gagal menghubungi AI provider.';
+        }
+    }
+
+    /**
+     * @return array{response: array<string, mixed>, message: array<string, mixed>}
+     */
+
+    public function confirmRefinedReply(WahaSender $wahaSender): void
+    {
+        $this->executeDelivery($wahaSender, trim($this->refinedDraft));
+        $this->resetRefinementState();
+    }
+
+    public function sendOriginalAfterRefinementFailure(WahaSender $wahaSender): void
+    {
+        $this->executeDelivery($wahaSender, trim($this->originalDraft));
+        $this->resetRefinementState();
+    }
+
+    public function editRefinedReply(): void
+    {
+        if (trim($this->refinedDraft) !== '') {
+            $this->replyText = trim($this->refinedDraft);
+        }
+        $this->resetRefinementState();
+    }
+
+    public function cancelRefinedReply(): void
+    {
+        $this->resetRefinementState();
+    }
+
+    private function resetRefinementState(): void
+    {
+        $this->originalDraft = '';
+        $this->refinedDraft = '';
+        $this->refinementError = '';
+        $this->reviewModalOpen = false;
+    }
+
+    private function executeDelivery(WahaSender $wahaSender, string $replyText): void
+    {
+        abort_unless(FilamentAccess::can(AccessPermissions::INBOX_REPLY), 403);
+
+        if (! $this->selectedChatId) {
+            return;
+        }
+
+        $reply = trim($replyText);
+        if ($reply === '' && ! $this->attachment) {
+            Notification::make()->title(__('ui.pages.inbox.reply_required'))->warning()->send();
             return;
         }
 
@@ -1268,11 +1392,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->first();
 
         if (! $chat) {
-            Notification::make()
-                ->title(__('ui.pages.inbox.chat_not_found'))
-                ->danger()
-                ->send();
-
+            Notification::make()->title(__('ui.pages.inbox.chat_not_found'))->danger()->send();
             return;
         }
 
@@ -1280,16 +1400,8 @@ class InboxWhatsapp extends Page implements HasForms
             $sent = $this->sendAttachmentReply($wahaSender, $chat, $reply);
         } else {
             $sent = [
-                'response' => $wahaSender->sendText(
-                    $chat->KodeSesi ?: 'default',
-                    $this->wahaChatId($chat),
-                    $reply,
-                    'WAHA_MANUAL_SEND_TEXT'
-                ),
-                'message' => [
-                    'JenisPesan' => 'Teks',
-                    'IsiPesan' => $reply,
-                ],
+                'response' => $wahaSender->sendText($chat->KodeSesi ?: 'default', $this->wahaChatId($chat), $reply, 'WAHA_MANUAL_SEND_TEXT'),
+                'message' => ['JenisPesan' => 'Teks', 'IsiPesan' => $reply],
             ];
         }
 
@@ -1325,10 +1437,6 @@ class InboxWhatsapp extends Page implements HasForms
             ->{$success ? 'success' : 'danger'}()
             ->send();
     }
-
-    /**
-     * @return array{response: array<string, mixed>, message: array<string, mixed>}
-     */
     private function sendAttachmentReply(WahaSender $wahaSender, object $chat, string $caption): array
     {
         $file = $this->attachment;
