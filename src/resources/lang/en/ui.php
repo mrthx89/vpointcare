@@ -321,6 +321,7 @@ return [
             'failed_at' => 'Failed At',
             'retry' => 'Retry Job',
             'retry_success' => 'Job successfully pushed back onto the queue.',
+            'retry_failed' => 'Failed to retry the job.',
         ],
         'job_schedule' => [
             'label' => 'Job Scheduling (Cron)',

@@ -321,6 +321,7 @@ return [
             'failed_at' => 'Waktu Gagal',
             'retry' => 'Coba Ulang (Retry)',
             'retry_success' => 'Job berhasil dikirim ulang ke antrean.',
+            'retry_failed' => 'Gagal mengirim ulang job.',
         ],
         'job_schedule' => [
             'label' => 'Penjadwalan Job (Cron)',

@@ -136,7 +136,7 @@ class FailedJobResource extends Resource
                                 ->send();
                         } catch (\Throwable $e) {
                             Notification::make()
-                                ->title('Retry Failed')
+                                ->title(__('ui.queue_monitor.retry_failed'))
                                 ->body($e->getMessage())
                                 ->danger()
                                 ->send();
@@ -160,7 +160,7 @@ class FailedJobResource extends Resource
                                 ->send();
                         } catch (\Throwable $e) {
                             Notification::make()
-                                ->title('Retry Failed')
+                                ->title(__('ui.queue_monitor.retry_failed'))
                                 ->body($e->getMessage())
                                 ->danger()
                                 ->send();
