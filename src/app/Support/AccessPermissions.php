@@ -56,6 +56,8 @@ class AccessPermissions
 
     public const JOB_SCHEDULE_VIEW = 'job_schedule.view';
 
+    public const QUEUE_MONITOR_VIEW = 'queue_monitor.view';
+
     public const MENU_MASTER_INSTANSI = 'menu.master.instansi';
 
     public const MENU_MASTER_CUSTOMER = 'menu.master.customer';
@@ -186,6 +188,7 @@ class AccessPermissions
             self::HAK_AKSES_VIEW => self::sidebarPermissionMenu($definitions, self::HAK_AKSES_VIEW, 'settings', 10, 'heroicon-o-shield-check'),
             self::USER_VIEW => self::sidebarPermissionMenu($definitions, self::USER_VIEW, 'settings', 20, 'heroicon-o-user-group'),
             self::JOB_SCHEDULE_VIEW => self::sidebarPermissionMenu($definitions, self::JOB_SCHEDULE_VIEW, 'settings', 30, 'heroicon-o-clock'),
+            self::QUEUE_MONITOR_VIEW => self::sidebarPermissionMenu($definitions, self::QUEUE_MONITOR_VIEW, 'settings', 40, 'heroicon-o-exclamation-triangle'),
         ];
     }
 
@@ -403,6 +406,11 @@ class AccessPermissions
                 'module' => 'ui.permissions.settings_module',
                 'description' => 'ui.permissions.job_schedule_view_desc',
             ],
+            self::QUEUE_MONITOR_VIEW => [
+                'label' => 'ui.permissions.queue_monitor_view',
+                'module' => 'ui.permissions.settings_module',
+                'description' => 'ui.permissions.queue_monitor_view_desc',
+            ],
         ];
     }
 
@@ -446,6 +454,7 @@ class AccessPermissions
                 self::HAK_AKSES_VIEW,
                 self::HAK_AKSES_MANAGE,
                 self::JOB_SCHEDULE_VIEW,
+                self::QUEUE_MONITOR_VIEW,
             ],
             'CS' => [
                 self::DASHBOARD_VIEW,

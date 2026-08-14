@@ -1157,4 +1157,35 @@ class InboxWhatsappTest extends TestCase
             'NonAktif' => false,
         ]);
     }
+
+    public function test_handle_inbox_update_refreshes_chat_without_session_status_refresh(): void
+    {
+        $session = MSesiWhatsapp::first();
+        if (! $session) {
+            $session = MSesiWhatsapp::factory()->create();
+        }
+
+        $chat = TChat::factory()->create([
+            'IdSesiWhatsapp' => $session->Id,
+            'JenisChat' => 'Personal',
+            'NomorWhatsapp' => '62800000000',
+            'TglChatTerakhir' => now(),
+        ]);
+
+        Http::fake([
+            '*/api/sessions' => Http::response([['name' => 'default', 'status' => 'STOPPED']], 200),
+        ]);
+
+        Livewire::test(InboxWhatsapp::class)
+            ->call('handleInboxUpdate', $chat->Id);
+
+        Http::assertSentCount(0);
+    }
+
+    public function test_inbox_renders_responsive_workspace_controls_and_notification_elements(): void
+    {
+        Livewire::test(InboxWhatsapp::class)
+            ->assertSeeHtml('wacs-inbox-shell')
+            ->assertSeeHtml('mobilePane');
+    }
 }

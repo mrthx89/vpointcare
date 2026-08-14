@@ -61,4 +61,22 @@ class ProcessWebhookJobTest extends TestCase
                 && ! isset($context['message'])
         ));
     }
+
+    public function test_is_incoming_propagation(): void
+    {
+        Cache::flush();
+        Queue::fake();
+
+        $processor = Mockery::mock(WahaWebhookProcessor::class);
+        $processor->expects('process')->andReturn([
+            'ok' => true,
+            'chat_id' => 'chat-incoming',
+            'is_incoming' => true,
+            'jenis_chat' => 'Personal',
+        ]);
+
+        (new ProcessWebhookJob([]))->handle($processor);
+
+        $this->assertEquals(['is_incoming' => true], Cache::get('broadcast:pending:chat-incoming'));
+    }
 }

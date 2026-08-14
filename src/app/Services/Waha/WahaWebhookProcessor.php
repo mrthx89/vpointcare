@@ -48,6 +48,7 @@ class WahaWebhookProcessor
                     return [
                         'ok' => true,
                         'ignored' => true,
+                        'is_incoming' => false,
                         'webhook_id' => $webhookId,
                         'jenis_chat' => 'Status',
                         'message' => 'WhatsApp status broadcast ignored.',
@@ -64,6 +65,7 @@ class WahaWebhookProcessor
                     return [
                         'ok' => true,
                         'ignored' => true,
+                        'is_incoming' => false,
                         'webhook_id' => $webhookId,
                         'jenis_chat' => $parsed['jenis_chat'],
                         'message' => 'WhatsApp sender number excluded from chat inbox.',
@@ -82,6 +84,7 @@ class WahaWebhookProcessor
                     return [
                         'ok' => true,
                         'duplicate' => true,
+                        'is_incoming' => false,
                         'chat_id' => $duplicate->IdChat,
                         'webhook_id' => $webhookId,
                         'jenis_chat' => $parsed['jenis_chat'],
@@ -134,6 +137,7 @@ class WahaWebhookProcessor
 
                 return [
                     'ok' => true,
+                    'is_incoming' => ! $parsed['from_me'],
                     'chat_id' => $chatId,
                     'webhook_id' => $webhookId,
                     'jenis_chat' => $parsed['jenis_chat'],

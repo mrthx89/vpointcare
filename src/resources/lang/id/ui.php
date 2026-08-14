@@ -149,6 +149,8 @@ return [
         'waha_session_manage_desc' => 'Memulai, menghentikan, me-restart, dan melakukan scan QR / pairing sesi WAHA.',
         'job_schedule_view' => 'Penjadwalan Job',
         'job_schedule_view_desc' => 'Melihat dan mengatur jadwal eksekusi background job (interval & aktif/nonaktif).',
+        'queue_monitor_view' => 'Monitor Queue & Job Gagal',
+        'queue_monitor_view_desc' => 'Memantau antrean background jobs yang gagal dan melakukan retry.',
         'settings_module' => 'Pengaturan',
     ],
     'ticketing' => [
@@ -307,6 +309,18 @@ return [
             'parent_self_denied' => 'Hak akses tidak boleh menjadi parent dirinya sendiri.',
             'parent_child_denied' => 'Parent harus berupa group sidebar, bukan menu di dalam group.',
             'character_counter' => ':count / :max karakter',
+        ],
+        'queue_monitor' => [
+            'label' => 'Antrean Gagal',
+            'plural' => 'Daftar Job Gagal',
+            'uuid' => 'UUID',
+            'connection' => 'Koneksi',
+            'queue' => 'Antrean (Queue)',
+            'payload' => 'Payload',
+            'exception' => 'Pesan Error',
+            'failed_at' => 'Waktu Gagal',
+            'retry' => 'Coba Ulang (Retry)',
+            'retry_success' => 'Job berhasil dikirim ulang ke antrean.',
         ],
         'job_schedule' => [
             'label' => 'Penjadwalan Job (Cron)',
@@ -765,6 +779,14 @@ return [
             'timeline_developer' => 'Developer mulai investigasi',
         ],
         'inbox' => [
+            'notifications_toggle' => 'Pengaturan Notifikasi Browser',
+            'notifications_enable' => 'Aktifkan Notifikasi Browser',
+            'notifications_active' => 'Notifikasi Browser Aktif',
+            'notifications_denied' => 'Notifikasi Browser Ditolak',
+            'notifications_unsupported' => 'Browser Tidak Mendukung',
+            'new_message_notification' => 'Ada pesan WhatsApp baru',
+            'details' => 'Detail Chat',
+
             'load_older_messages' => 'Muat pesan lama',
             'sync_all_group_names' => 'Sinkronkan Semua Nama Grup',
             'sync_group_name' => 'Sinkronkan Nama Grup',

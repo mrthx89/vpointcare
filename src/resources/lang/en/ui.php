@@ -149,6 +149,8 @@ return [
         'waha_session_manage_desc' => 'Start, stop, restart, and perform QR / PIN pairing for WAHA sessions.',
         'job_schedule_view' => 'Job Scheduling',
         'job_schedule_view_desc' => 'View and configure background job execution schedules (interval & active/inactive).',
+        'queue_monitor_view' => 'Failed Jobs Monitor',
+        'queue_monitor_view_desc' => 'Monitor failed background jobs and retry them.',
         'settings_module' => 'Settings',
     ],
     'ticketing' => [
@@ -307,6 +309,18 @@ return [
             'parent_self_denied' => 'An access permission cannot be its own parent.',
             'parent_child_denied' => 'Parent must be a sidebar group, not a menu inside a group.',
             'character_counter' => ':count / :max characters',
+        ],
+        'queue_monitor' => [
+            'label' => 'Failed Job',
+            'plural' => 'Failed Jobs Monitor',
+            'uuid' => 'UUID',
+            'connection' => 'Connection',
+            'queue' => 'Queue',
+            'payload' => 'Payload',
+            'exception' => 'Exception / Error',
+            'failed_at' => 'Failed At',
+            'retry' => 'Retry Job',
+            'retry_success' => 'Job successfully pushed back onto the queue.',
         ],
         'job_schedule' => [
             'label' => 'Job Scheduling (Cron)',
@@ -765,6 +779,14 @@ return [
             'timeline_developer' => 'Developer started investigation',
         ],
         'inbox' => [
+            'notifications_toggle' => 'Pengaturan Notifikasi Browser',
+            'notifications_enable' => 'Aktifkan Notifikasi Browser',
+            'notifications_active' => 'Notifikasi Browser Aktif',
+            'notifications_denied' => 'Notifikasi Browser Ditolak',
+            'notifications_unsupported' => 'Browser Tidak Mendukung',
+            'new_message_notification' => 'Ada pesan WhatsApp baru',
+            'details' => 'Detail Chat',
+
             'load_older_messages' => 'Load older messages',
             'sync_all_group_names' => 'Sync All Group Names',
             'sync_group_name' => 'Sync Group Name',

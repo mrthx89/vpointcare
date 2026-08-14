@@ -2,6 +2,22 @@
     {{-- Komponen utama: mengelola sound notifikasi + WS status --}}
     <div x-data="{
         soundOn: localStorage.getItem('wacs_sound') !== 'false',
+        mobilePane: 'list',
+        detailsOpen: false,
+        notificationPermission: 'default',
+        checkNotificationPermission() {
+            if ("Notification" in window) {
+                this.notificationPermission = Notification.permission;
+            } else {
+                this.notificationPermission = "unsupported";
+            }
+        },
+        requestBrowserNotification() {
+            if (!("Notification" in window)) return;
+            Notification.requestPermission().then(permission => {
+                this.notificationPermission = permission;
+            });
+        },
         wsOnline: false,
         reverbStatus: window.wahaGetReverbStatus ? window.wahaGetReverbStatus() : {
             state: 'unknown',
@@ -52,11 +68,11 @@
                 });
             } catch (e) {}
         }
-    }" x-init="wsOnline = Boolean(window.wahaWsOnline);
+    }" x-init="window.wacsNotificationBodyCopy = {!! json_encode(__('ui.pages.inbox.new_message_notification')) !!}; checkNotificationPermission(); wsOnline = Boolean(window.wahaWsOnline);
     if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
     setTimeout(() => {
         if (window.wahaGetReverbStatus) updateReverbStatus(window.wahaGetReverbStatus());
-    }, 300);" @waha-new-message.window="playSound()"
+    }, 300);" @waha-new-message.window="if (.detail.isIncoming) playSound()"
         @waha-ws-connected.window="wsOnline = true" @waha-ws-disconnected.window="wsOnline = false"
         @wacs-reverb-status-changed.window="updateReverbStatus($event.detail)"
         class="wacs-inbox-shell flex flex-col gap-4" wire:poll.60s="loadInbox">
@@ -198,7 +214,7 @@
         <div class="wacs-inbox-layout flex-1 min-h-0">
             {{-- KOLOM KIRI: Daftar Chat --}}
             <section
-                class="wacs-inbox-chat-list relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                :class="{ 'hidden': mobilePane !== 'list', 'flex': mobilePane === 'list' }" class="wacs-inbox-chat-list md:!flex relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 {{-- Header Daftar Chat --}}
                 <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                     <div class="flex items-center justify-between gap-2">
@@ -214,13 +230,29 @@
                                     x-text="wsOnline ? @js(__('ui.pages.inbox.realtime_active')) : `${reverbStatus.state || 'offline'} · ${@js(__('ui.pages.inbox.polling'))}`"></span>
                             </div>
                         </div>
-                        <button @click="toggleSound()" type="button" title="{{ __('ui.pages.inbox.sound_toggle') }}"
-                            class="shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors"
-                            :class="soundOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' :
-                                'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
-                            <span x-text="soundOn ? '🔔' : '🔕'"></span>
-                            <span x-text="soundOn ? @js(__('ui.pages.inbox.sound_on')) : @js(__('ui.pages.inbox.sound_off'))"></span>
-                        </button>
+                        <div class="flex flex-wrap gap-1.5 justify-end">
+                            <button @click="toggleSound()" type="button" title="{{ __('ui.pages.inbox.sound_toggle') }}"
+                                class="shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 active:scale-95"
+                                :class="soundOn ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' :
+                                    'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
+                                <x-heroicon-o-bell x-show="soundOn" class="w-4 h-4" />
+                                <x-heroicon-o-bell-slash x-show="!soundOn" class="w-4 h-4" x-cloak />
+                                <span x-text="soundOn ? @js(__('ui.pages.inbox.sound_on')) : @js(__('ui.pages.inbox.sound_off'))"></span>
+                            </button>
+
+                            <button @click="requestBrowserNotification()" type="button" 
+                                    title="{{ __('ui.pages.inbox.notifications_toggle') }}"
+                                    class="shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 active:scale-95"
+                                    :class="{
+                                        'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300': notificationPermission === 'granted',
+                                        'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300': notificationPermission === 'default',
+                                        'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300': notificationPermission === 'denied',
+                                        'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400': notificationPermission === 'unsupported'
+                                    }">
+                                <x-heroicon-o-chat-bubble-bottom-center-text class="w-4 h-4" />
+                                <span x-text="notificationPermission === 'granted' ? @js(__('ui.pages.inbox.notifications_active')) : (notificationPermission === 'denied' ? @js(__('ui.pages.inbox.notifications_denied')) : (notificationPermission === 'unsupported' ? @js(__('ui.pages.inbox.notifications_unsupported')) : @js(__('ui.pages.inbox.notifications_enable'))))"></span>
+                            </button>
+                        </div>
                     </div>
                     <div class="mt-3 space-y-3">
                         {{ $this->form }}
@@ -246,7 +278,7 @@
                         @php
                             $identity = $chat['Identity'][$identityDisplayMode] ?? $chat['Identity']['whatsapp'];
                         @endphp
-                        <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')"
+                        <button type="button" wire:click="selectChat('{{ $chat['Id'] }}')" @click="mobilePane = 'conversation'"
                             class="block w-full p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60
                                     {{ $selectedChatId === $chat['Id'] ? 'bg-blue-50 dark:bg-blue-950/30 border-l-[3px] border-l-blue-500' : 'border-l-[3px] border-l-transparent' }}">
                             {{-- Layout item chat: Avatar + Info --}}
@@ -342,7 +374,7 @@
 
             {{-- KOLOM TENGAH: Ruang Percakapan --}}
             <section
-                class="wacs-inbox-conversation flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                :class="{ 'hidden': mobilePane !== 'conversation', 'flex': mobilePane === 'conversation' }" class="wacs-inbox-conversation md:!flex flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 @if ($selectedChat)
                     @php
                         $selectedIdentity = $selectedChat['Identity'][$identityDisplayMode] ?? $selectedChat['Identity']['whatsapp'];
@@ -351,6 +383,9 @@
                     <div
                         class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="flex min-w-0 items-center gap-3">
+                            <button type="button" @click="mobilePane = 'list'" class="md:hidden shrink-0 flex items-center justify-center p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full">
+                                <x-heroicon-o-arrow-left class="w-5 h-5" />
+                            </button>
                             @if ($selectedChat['FotoProfilUrl'] ?? null)
                                 <img src="{{ $selectedChat['FotoProfilUrl'] }}" alt=""
                                     class="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-gray-200 dark:ring-gray-700">
@@ -409,6 +444,9 @@
                                     {{ __('ui.pages.inbox.close_chat_confirm_button') }}
                                 </x-filament::button>
                             @endif
+                            <button type="button" @click="detailsOpen = !detailsOpen" class="2xl:hidden shrink-0 flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full" title="{{ __('ui.pages.inbox.open_details') }}">
+                                <x-heroicon-o-information-circle class="w-6 h-6" />
+                            </button>
                         </div>
                     </div>
 
@@ -622,7 +660,8 @@
                 @endif
             </section>
 
-            <aside class="wacs-inbox-aside min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
+            <div x-show="detailsOpen" @click="detailsOpen = false" x-cloak class="fixed inset-0 z-30 bg-gray-900/50 2xl:hidden"></div>
+<aside :class="detailsOpen ? 'translate-x-0' : 'translate-x-full 2xl:translate-x-0'" class="wacs-inbox-aside transition-transform duration-300 min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
                 <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between gap-3">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">

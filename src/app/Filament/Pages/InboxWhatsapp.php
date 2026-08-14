@@ -2,13 +2,14 @@
 
 namespace App\Filament\Pages;
 
+use App\Jobs\RefreshWahaGroupMetadataJob;
 use App\Models\Master\Pengguna;
 use App\Services\Ai\AiAutoReplyService;
 use App\Services\Ai\AiKnowledgeLearningService;
 use App\Services\Chat\ChatInitiationService;
 use App\Services\Waha\WahaSender;
-use App\Support\AccessPermissions;
 use App\Services\Waha\WahaSessionService;
+use App\Support\AccessPermissions;
 use App\Support\FilamentAccess;
 use App\Support\FilamentBreadcrumbs;
 use App\Support\NavigationHelper;
@@ -164,7 +165,8 @@ class InboxWhatsapp extends Page implements HasForms
     #[On('waha-inbox-updated')]
     public function handleInboxUpdate(?string $chatId = null): void
     {
-        $this->loadInbox();
+        $this->loadInboxData();
+        $this->dispatch('inbox-refreshed');
     }
 
     public function updatedFilterText(): void
@@ -314,7 +316,7 @@ class InboxWhatsapp extends Page implements HasForms
     private function refreshFilteredInbox(): void
     {
         $this->resetSelectedChat();
-        $this->loadInbox();
+        $this->loadInboxData();
     }
 
     private function defaultStartChatSessionId(): ?string
@@ -399,7 +401,7 @@ class InboxWhatsapp extends Page implements HasForms
 
             $service = app(WahaSessionService::class);
             $this->wahaStatuses = $service->getSessionStatuses($sessions);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->wahaStatuses = [];
         }
     }
@@ -408,7 +410,11 @@ class InboxWhatsapp extends Page implements HasForms
     {
         $this->refreshActiveAgents();
         $this->refreshWahaSessionStatuses();
+        $this->loadInboxData();
+    }
 
+    public function loadInboxData(): void
+    {
         $this->stats = [
             'baru' => (int) DB::table('TChat')->count(),
             'belum_dibaca' => (int) DB::table('TChat')->sum('JumlahPesanBelumDibaca'),
@@ -1119,7 +1125,7 @@ class InboxWhatsapp extends Page implements HasForms
                         ->where('Id', $chat->IdSesiWhatsapp ?? '')
                         ->value('KodeSesi') ?: 'default');
 
-                    \App\Jobs\RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
+                    RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
 
                     $nameUpdated = false;
                 }
@@ -1671,7 +1677,7 @@ class InboxWhatsapp extends Page implements HasForms
     {
         if ($message->ArahPesan === 'Keluar') {
             return (bool) ($message->DihasilkanOlehAi ?? false)
-                ? 'Medina'
+                ? 'AI'
                 : ((string) ($message->NamaPembalas ?: 'CS'));
         }
 
@@ -2312,7 +2318,6 @@ class InboxWhatsapp extends Page implements HasForms
     /**
      * @return array<string, mixed>|null
      */
-
     private function cachedGroupName(object $row): string
     {
         if (isset($row->GroupName) && is_string($row->GroupName) && trim($row->GroupName) !== '') {
@@ -2331,7 +2336,6 @@ class InboxWhatsapp extends Page implements HasForms
 
         return __('ui.pages.inbox.unknown_group');
     }
-
 
     public function syncSelectedGroupName(): void
     {
@@ -2376,7 +2380,7 @@ class InboxWhatsapp extends Page implements HasForms
             ->where('Id', $chat->IdSesiWhatsapp ?? '')
             ->value('KodeSesi') ?: 'default');
 
-        \App\Jobs\RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
+        RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
 
         Notification::make()
             ->title(__('ui.pages.inbox.group_sync_queued'))
@@ -2419,11 +2423,12 @@ class InboxWhatsapp extends Page implements HasForms
 
             if (! $groupJid) {
                 $skipped++;
+
                 continue;
             }
 
             $session = (string) ($group->KodeSesi ?: 'default');
-            \App\Jobs\RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
+            RefreshWahaGroupMetadataJob::dispatch($session, $groupJid);
             $queued++;
         }
 

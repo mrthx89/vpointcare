@@ -1,4 +1,4 @@
-﻿# VPoint Care Capability Spec
+# VPoint Care Capability Spec
 
 ## Purpose
 
@@ -530,6 +530,210 @@ The system SHALL log important integration, webhook, error, chat, and AI activit
 - WHEN an external provider call fails
 - THEN the system SHALL record enough error detail for debugging
 - AND the UI/log module SHALL make the failure traceable by authorized users
+
+
+### Requirement: Embedded WAHA Session Observability
+
+The system SHALL provide an authenticated, localized WAHA Connection Center within the admin panel for observing every applicable `MSesiWhatsapp` logical session without requiring the operator to open the external WAHA dashboard.
+
+The Connection Center SHALL present the session label/code, configured availability, normalized runtime status, connected number when WAHA provides it, capability availability, last checked timestamp, and an actionable generic condition. Runtime status SHALL be one of `running`, `starting`, `scan_required`, `stopped`, `failed`, `unavailable`, or `unknown`.
+
+The runtime status SHALL remain distinct from persisted `MSesiWhatsapp.StatusSesi` and `MSesiWhatsapp.NonAktif`; ordinary status polling SHALL NOT overwrite those persisted fields.
+
+#### Scenario: Authorized operator sees session health
+
+- **GIVEN** an authenticated user has `waha_session.view`
+- **AND** one or more `MSesiWhatsapp` records are available to the application
+- **WHEN** the user opens WAHA Connection Center
+- **THEN** the system SHALL show one row or card for each applicable session
+- **AND** each session SHALL display its normalized runtime status and last checked timestamp
+- **AND** the page SHALL use the active Bahasa Indonesia or English localization
+- **AND** the user SHALL not need to open the external WAHA dashboard to see the status
+
+#### Scenario: WAHA reports an authenticated session
+
+- **GIVEN** WAHA reports that a logical session is authenticated and ready
+- **WHEN** WACS refreshes the session status
+- **THEN** the system SHALL normalize and display the state as `running`
+- **AND** the connected WhatsApp number SHALL be displayed only when WAHA supplies a non-empty value
+- **AND** the system SHALL preserve the existing `MSesiWhatsapp` configuration values
+
+#### Scenario: WAHA requires a new authentication scan
+
+- **GIVEN** WAHA reports that a session is awaiting authentication
+- **WHEN** WACS refreshes the session status
+- **THEN** the system SHALL normalize and display the state as `scan_required`
+- **AND** the Connection Center SHALL show an operator with `waha_session.manage` how to obtain an inline QR code or supported pairing code
+- **AND** the Inbox indicator for that session SHALL visibly warn that WhatsApp connectivity requires attention
+
+#### Scenario: WAHA status endpoint is unavailable or returns an unknown state
+
+- **GIVEN** the configured WAHA endpoint cannot be reached, rejects the configured credential, times out, or returns an unrecognized session state
+- **WHEN** WACS refreshes the session status
+- **THEN** the system SHALL display `unavailable` for transport/authentication failure or `unknown` for an unrecognized valid response
+- **AND** the system SHALL show a localized, generic diagnostic message without exposing response body or credential details
+- **AND** the system SHALL NOT display a fresh `running` state based solely on stale cached data
+
+#### Scenario: Session is disabled in WACS configuration
+
+- **GIVEN** `MSesiWhatsapp.NonAktif` is true for a session
+- **WHEN** an authorized user views WAHA Connection Center
+- **THEN** the system SHALL identify the session as disabled in WACS configuration
+- **AND** the system SHALL not offer start, stop, restart, QR, or pairing actions for that session
+- **AND** the system SHALL NOT modify the WAHA runtime state automatically
+
+### Requirement: Native WAHA Connection and Session Recovery
+
+The system SHALL allow only authorized operators to recover or manage a configured active WAHA session from within WACS through start, stop, restart/reconnect, QR authentication, and pairing-code authentication when the connected WAHA deployment supports the requested capability.
+
+The system SHALL use an operation lock per session and SHALL not automatically retry a lifecycle mutation after a timeout or failed API response. Start, stop, and restart results SHALL be refreshed against WAHA before the UI reports the resulting session condition.
+
+#### Scenario: Authorized operator starts a stopped session
+
+- **GIVEN** an authenticated user has `waha_session.manage`
+- **AND** a configured active session has normalized runtime status `stopped`
+- **WHEN** the operator invokes Start Session
+- **THEN** the system SHALL request the start operation from WAHA exactly once for that operator action
+- **AND** the system SHALL lock duplicate lifecycle actions for the same session while the operation is in progress
+- **AND** the system SHALL refresh and show the resulting normalized status
+- **AND** the system SHALL show a localized failure state if WAHA does not accept or complete the request
+
+#### Scenario: Operator repeats an idempotent lifecycle action
+
+- **GIVEN** an authorized operator selects Start Session for a session already reported as `running`, or Stop Session for a session already reported as `stopped`
+- **WHEN** the requested action reaches WACS
+- **THEN** the system SHALL report the current resulting status without a duplicate concurrent operation
+- **AND** the system SHALL NOT create a retry loop or queue job for that action
+- **AND** the system SHALL keep the final outcome observable to the operator
+
+#### Scenario: Authorized operator restarts a session
+
+- **GIVEN** an authenticated user has `waha_session.manage`
+- **AND** a configured active session is in `running`, `failed`, `unknown`, or `unavailable` state
+- **WHEN** the operator confirms Restart Session
+- **THEN** the system SHALL invoke only the restart/reconnect sequence supported by the connected WAHA deployment
+- **AND** the system SHALL prevent an overlapping start, stop, restart, QR, or pairing operation for the same session
+- **AND** the system SHALL refresh status after the operation and present its localized outcome
+
+#### Scenario: Authorized operator scans an inline QR code
+
+- **GIVEN** an authenticated user has `waha_session.manage`
+- **AND** an active session has runtime status `scan_required`
+- **AND** the connected WAHA deployment supports QR authentication
+- **WHEN** the operator requests a QR code from WAHA Connection Center or the permitted Inbox recovery action
+- **THEN** the system SHALL render the QR code inside WACS only for that authenticated operator session
+- **AND** the system SHALL display expiration and refresh guidance
+- **AND** the system SHALL refresh the status after the operator scans the QR code
+- **AND** the system SHALL remove the QR value from the rendered state when it expires, the panel is closed, or the session becomes `running`
+
+#### Scenario: Authorized operator requests a pairing code
+
+- **GIVEN** an authenticated user has `waha_session.manage`
+- **AND** an active session has runtime status `scan_required`
+- **WHEN** the operator enters a valid phone number and requests a pairing code
+- **THEN** the system SHALL request and display the pairing code only when the connected WAHA deployment reports pairing capability support
+- **AND** the system SHALL validate the requested phone number before sending it to WAHA
+- **AND** the system SHALL provide QR authentication as the fallback path when pairing is unsupported or unavailable
+
+#### Scenario: User without manage permission attempts a session action
+
+- **GIVEN** an authenticated user does not have `waha_session.manage`
+- **WHEN** the user attempts to invoke start, stop, restart, QR, or pairing functionality through a direct Livewire request or UI action
+- **THEN** the system SHALL deny the action
+- **AND** the system SHALL NOT call WAHA or mutate session state
+- **AND** the system SHALL NOT disclose QR, pairing code, API key, token, password, or raw WAHA response
+
+### Requirement: Inbox WAHA Health Visibility
+
+The system SHALL show a compact WAHA session-health indicator in Inbox WhatsApp independently from the Echo/Reverb client indicator so agents can distinguish WhatsApp gateway availability from browser realtime connectivity.
+
+The indicator SHALL represent the session configured for the selected/default Inbox operation and SHALL be sourced through bounded status refresh and short-lived per-session cache. It SHALL NOT issue a WAHA request for every chat row, message bubble, or ordinary component render.
+
+#### Scenario: Inbox displays a healthy WAHA connection
+
+- **GIVEN** an agent with `inbox.view` opens Inbox WhatsApp
+- **AND** the relevant WAHA session has normalized runtime status `running`
+- **WHEN** the Inbox header renders
+- **THEN** the system SHALL display a localized, visually distinct healthy WAHA indicator
+- **AND** the indicator SHALL remain separate from the Echo/Reverb connectivity indicator
+- **AND** the Inbox chat list, filters, selected chat, and message order SHALL remain unchanged
+
+#### Scenario: Inbox displays a session requiring attention
+
+- **GIVEN** an agent with `inbox.view` opens Inbox WhatsApp
+- **AND** the relevant WAHA session has runtime status `scan_required`, `stopped`, `failed`, `unavailable`, or `unknown`
+- **WHEN** the Inbox header renders or refreshes
+- **THEN** the system SHALL display a localized warning/error indicator that identifies WAHA as the affected service
+- **AND** an agent without `waha_session.manage` SHALL see no QR, pairing, or lifecycle control
+- **AND** an authorized manager SHALL be offered a link or recovery entry point to the native WACS Connection Center
+
+#### Scenario: Inbox status refresh is bounded
+
+- **GIVEN** an Inbox contains many chat sessions and message rows
+- **WHEN** the Inbox status indicator refreshes
+- **THEN** the system SHALL resolve the relevant WAHA status at most once per configured status refresh/cache interval for that session
+- **AND** the system SHALL NOT make a synchronous WAHA status request for each chat row or message row
+- **AND** a temporary WAHA failure SHALL not prevent the Inbox from rendering existing chat data
+
+### Requirement: Secure WAHA Session Control Observability
+
+The system SHALL make WAHA session-control outcomes observable to authorized operators while preventing QR values, pairing codes, API keys, webhook tokens, passwords, authorization headers, and full sensitive WAHA response bodies from being persisted or logged.
+
+The system SHALL record authorized lifecycle and onboarding actions with non-sensitive metadata when `TLogAktivitas` is available. This metadata SHALL include the operator identity, logical session code, requested action, normalized outcome, and time of the action without including secret-bearing values.
+
+#### Scenario: Operator action is audited safely
+
+- **GIVEN** an authorized operator refreshes status, starts, stops, restarts, requests QR, or requests a pairing code
+- **WHEN** WACS completes or rejects the action
+- **THEN** the system SHALL record an audit outcome when `TLogAktivitas` is available
+- **AND** the audit SHALL contain only non-sensitive action metadata
+- **AND** the action outcome SHALL remain visible to the operator through localized UI feedback
+
+#### Scenario: QR or pairing response is received
+
+- **GIVEN** WAHA returns a QR value, QR image, pairing code, or other authentication artifact
+- **WHEN** WACS prepares the inline operator response
+- **THEN** the system SHALL keep the artifact only in ephemeral authenticated UI state
+- **AND** the system SHALL NOT write the artifact to `TLogIntegrasi`, `TLogAktivitas`, `TLogError`, application log, database, or status cache
+- **AND** the system SHALL NOT expose the artifact to users without `waha_session.manage`
+
+#### Scenario: WAHA returns a sensitive or malformed failure response
+
+- **GIVEN** WAHA returns an error response that includes sensitive fields or malformed content
+- **WHEN** WACS handles the failure
+- **THEN** the system SHALL map the failure to a generic localized message and normalized status/error category
+- **AND** the system SHALL redact or omit sensitive fields before any audit or technical log is written
+- **AND** the system SHALL preserve the existing webhook route and chat data without mutation from the failed control-plane request
+
+### Requirement: WAHA Control-Plane Compatibility and Operational Safety
+
+The system SHALL preserve existing WAHA data-plane behavior while adding the embedded control plane. The existing `/webhooks/waha/{token?}` route, WAHA message delivery, chat identity normalization, SQL Server compatibility, and existing queue contracts SHALL remain unchanged.
+
+The control plane SHALL not require a schema migration in this change and SHALL not create queue jobs for status polling or lifecycle mutation. Existing webhook, AI, broadcast, and WAHA metadata queues SHALL retain their configured names, timeouts, retries, and idempotency behavior.
+
+#### Scenario: Existing inbound and outbound messaging continues during normal status observation
+
+- **GIVEN** a WAHA session is `running`
+- **AND** the Connection Center or Inbox status indicator is active
+- **WHEN** WAHA posts a valid message to `/webhooks/waha/{token?}` or an authorized agent sends a message from Inbox
+- **THEN** the system SHALL preserve the existing webhook validation, idempotent persistence, queue dispatch, and WAHA send behavior
+- **AND** status observation SHALL NOT alter `TChat`, `TChatD`, message order, or WAHA identifier normalization
+
+#### Scenario: Control-plane feature is deployed to an existing SQL Server database
+
+- **GIVEN** WACS uses an existing supported Microsoft SQL Server database
+- **WHEN** the embedded WAHA session-control feature is deployed
+- **THEN** the feature SHALL operate using existing session and log tables when present
+- **AND** the deployment SHALL NOT require `migrate:fresh`, `db:wipe`, destructive reset, or a new schema migration for this feature
+- **AND** the application SHALL continue to function if optional audit storage is unavailable in a legacy test environment
+
+#### Scenario: Deployment runs with existing workers
+
+- **GIVEN** the web server, queue workers, scheduler, Reverb, and WAHA service are running under the existing deployment topology
+- **WHEN** the embedded Connection Center is used
+- **THEN** the system SHALL not require a new queue worker solely for status, QR, pairing, start, stop, or restart operations
+- **AND** existing workers for `webhooks`, `ai-replies`, `broadcasts`, and `waha-metadata` SHALL continue their existing responsibilities
+- **AND** status failures SHALL remain visible without silently discarding webhook or queued work
 
 <!-- Non-Functional Requirements -->
 

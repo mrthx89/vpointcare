@@ -40,7 +40,8 @@ class ProcessWebhookJob implements ShouldQueue
             'jenis_chat' => $result['jenis_chat'] ?? null,
         ]);
 
-        SendBroadcastDebouncedJob::dispatchDebounced($chatId);
+        $isIncoming = (bool) ($result['is_incoming'] ?? false);
+        SendBroadcastDebouncedJob::dispatchDebounced($chatId, $isIncoming);
         Log::info('WAHA inbox broadcast queued.', ['chat_id' => $chatId]);
 
         if (($result['jenis_chat'] ?? null) === 'Grup' && filled($result['group_jid'] ?? null)) {

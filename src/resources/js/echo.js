@@ -260,6 +260,7 @@ let wahaInboxLatestChatId = null;
 window.Echo.channel("waha-inbox").listen(".inbox.updated", (event) => {
     console.info("[Reverb] Event inbox.updated diterima.", event);
     wahaInboxLatestChatId = event.chat_id;
+    const isIncoming = Boolean(event.is_incoming);
 
     // 1. Refresh data via Livewire dengan debounce agar burst pesan tidak memicu loadInbox berulang.
     clearTimeout(wahaInboxUpdateTimer);
@@ -273,12 +274,46 @@ window.Echo.channel("waha-inbox").listen(".inbox.updated", (event) => {
         }
     }, 300);
 
-    // 2. Trigger sound notification tetap langsung (dihandle Alpine.js di blade)
-    window.dispatchEvent(
-        new CustomEvent("waha-new-message", {
-            detail: { chatId: event.chat_id },
-        }),
-    );
+    // 2. Notifikasi suara dan browser (hanya untuk pesan masuk)
+    if (isIncoming) {
+        window.dispatchEvent(
+            new CustomEvent("waha-new-message", {
+                detail: { chatId: event.chat_id, isIncoming: true },
+            }),
+        );
+
+        if ("Notification" in window && Notification.permission === "granted") {
+            const isTabHidden = document.hidden;
+            let activeChatId = null;
+
+            try {
+                const el = document.querySelector('[wire\\:id]');
+                if (el && el.__livewire) {
+                    activeChatId = el.__livewire.get('selectedChatId');
+                }
+            } catch (e) {}
+
+            if (isTabHidden || activeChatId !== event.chat_id) {
+                try {
+                    const title = "VPoint Care";
+                    const body = window.wacsNotificationBodyCopy || "Ada pesan WhatsApp baru";
+                    const notif = new Notification(title, { body });
+
+                    notif.onclick = () => {
+                        window.focus();
+                        try {
+                            const el = document.querySelector('[wire\\:id]');
+                            if (el && el.__livewire) {
+                                el.__livewire.call('selectChat', event.chat_id);
+                            }
+                        } catch (e) {}
+                    };
+                } catch (e) {
+                    console.error("[Notification] Error triggering browser notification:", e);
+                }
+            }
+        }
+    }
 });
 
 // Expose Echo connection state untuk UI indicator
