@@ -2,7 +2,7 @@
     {{-- Komponen utama: mengelola sound notifikasi + WS status --}}
     <div x-data="{
         soundOn: localStorage.getItem('wacs_sound') !== 'false',
-        mobilePane: 'list',
+        mobilePane: '{{ $selectedChatId ? 'conversation' : 'list' }}',
         detailsOpen: false,
         notificationPermission: 'default',
         checkNotificationPermission() {
@@ -212,9 +212,20 @@
 
         {{-- Grid chat: mobile satu kolom, desktop tiga kolom --}}
         <div class="wacs-inbox-layout flex-1 min-h-0">
-            {{-- KOLOM KIRI: Daftar Chat --}}
+            {{-- Backdrop Drawer Kiri (Daftar Chat) di Mobile --}}
+            <div x-show="mobilePane === 'list'" x-cloak @click="mobilePane = 'conversation'"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm md:hidden"></div>
+
+            {{-- KOLOM KIRI / DRAWER KIRI: Daftar Chat --}}
             <section
-                :class="{ 'hidden': mobilePane !== 'list', 'flex': mobilePane === 'list' }" class="wacs-inbox-chat-list md:!flex relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                :class="mobilePane === 'list' ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+                class="wacs-inbox-chat-list fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] transform transition-transform duration-300 ease-in-out md:static md:z-0 md:w-auto md:!flex flex min-h-0 flex-col overflow-hidden rounded-r-2xl md:rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 shadow-2xl md:shadow-none h-full md:h-auto">
                 {{-- Header Daftar Chat --}}
                 <div class="shrink-0 border-b border-gray-200 p-3 dark:border-gray-800">
                     <div class="flex items-center justify-between gap-2">
@@ -383,8 +394,8 @@
                     <div
                         class="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
                         <div class="flex min-w-0 items-center gap-3">
-                            <button type="button" @click="mobilePane = 'list'" class="md:hidden shrink-0 flex items-center justify-center p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full">
-                                <x-heroicon-o-arrow-left class="w-5 h-5" />
+                            <button type="button" @click="mobilePane = 'list'" class="md:hidden shrink-0 flex items-center justify-center p-2 -ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full" title="{{ __('ui.pages.inbox.chat_list') }}">
+                                <x-heroicon-o-bars-3 class="w-6 h-6" />
                             </button>
                             @if ($selectedChat['FotoProfilUrl'] ?? null)
                                 <img src="{{ $selectedChat['FotoProfilUrl'] }}" alt=""
@@ -422,8 +433,74 @@
                                 class="inline-flex rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                                 {{ $selectedChat['Status'] }}</div>
 
+                            {{-- Dropdown Pengaturan Chat (Mobile & Tablet) --}}
+                            <div x-data="{ menuOpen: false }" class="relative z-30 shrink-0">
+                                <button type="button" @click="menuOpen = !menuOpen" @click.outside="menuOpen = false"
+                                    class="2xl:hidden flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors focus:outline-none"
+                                    title="Pengaturan">
+                                    <x-heroicon-o-ellipsis-vertical class="w-6 h-6" />
+                                </button>
+                                
+                                <div x-cloak x-show="menuOpen" x-transition.origin.top.right
+                                    class="absolute right-0 top-full mt-1.5 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl dark:border-gray-800 dark:bg-gray-900 text-sm">
+                                    
+                                    {{-- Lihat Detail / Modal --}}
+                                    <button type="button" @click="detailsOpen = true; menuOpen = false"
+                                        class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                                        <x-heroicon-o-information-circle class="w-4 h-4 text-gray-400" />
+                                        <span>{{ __('ui.pages.inbox.open_details') }}</span>
+                                    </button>
+
+                                    @if ($this->canManageInbox())
+                                        <div class="my-1 border-t border-gray-100 dark:border-gray-800"></div>
+
+                                        {{-- Fetch Profile --}}
+                                        <button type="button" wire:click="refreshProfilWaha" @click="menuOpen = false"
+                                            class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                                            <x-heroicon-o-arrow-path class="w-4 h-4 text-gray-400" />
+                                            <span>{{ __('ui.pages.inbox.fetch_profile') }}</span>
+                                        </button>
+
+                                        {{-- Refresh Mapping --}}
+                                        <button type="button" wire:click="refreshMappingChat" @click="menuOpen = false"
+                                            class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">
+                                            <x-heroicon-o-arrow-path class="w-4 h-4 text-gray-400" />
+                                            <span>{{ __('ui.common.refresh') }} Mapping</span>
+                                        </button>
+                                    @endif
+
+                                    @if ($this->canManageInbox() && !str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
+                                        <div class="my-1 border-t border-gray-100 dark:border-gray-800"></div>
+                                        
+                                        {{-- Tutup Percakapan --}}
+                                        <button type="button"
+                                            x-on:click="
+                                                Swal.fire({
+                                                    title: '{{ __('ui.pages.inbox.close_chat_confirm_title') }}',
+                                                    text: '{{ __('ui.pages.inbox.close_chat_confirm_text') }}',
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#dc2626',
+                                                    cancelButtonColor: '#6b7280',
+                                                    confirmButtonText: '{{ __('ui.pages.inbox.close_chat_confirm_button') }}',
+                                                    cancelButtonText: '{{ __('ui.common.cancel') }}'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        $wire.tutupPercakapan();
+                                                    }
+                                                })
+                                            "
+                                            class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30">
+                                            <x-heroicon-o-x-circle class="w-4 h-4 text-red-500" />
+                                            <span>{{ __('ui.pages.inbox.close_chat_confirm_button') }}</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Tombol Tutup Chat Desktop (Tetap Tampil di Kanan luar menu jika layar besar >= 2xl) --}}
                             @if ($this->canManageInbox() && !str_contains(strtolower($selectedChat['Status'] ?? ''), 'ditutup'))
-                                <x-filament::button color="danger" size="sm"
+                                <x-filament::button color="danger" size="sm" class="hidden 2xl:inline-flex"
                                     x-on:click="
                                             Swal.fire({
                                                 title: '{{ __('ui.pages.inbox.close_chat_confirm_title') }}',
@@ -444,9 +521,6 @@
                                     {{ __('ui.pages.inbox.close_chat_confirm_button') }}
                                 </x-filament::button>
                             @endif
-                            <button type="button" @click="detailsOpen = !detailsOpen" class="2xl:hidden shrink-0 flex items-center justify-center p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full" title="{{ __('ui.pages.inbox.open_details') }}">
-                                <x-heroicon-o-information-circle class="w-6 h-6" />
-                            </button>
                         </div>
                     </div>
 
@@ -680,8 +754,18 @@
                 @endif
             </section>
 
-            <div x-show="detailsOpen" @click="detailsOpen = false" x-cloak class="fixed inset-0 z-30 bg-gray-900/50 2xl:hidden"></div>
-<aside :class="detailsOpen ? 'translate-x-0' : 'translate-x-full 2xl:translate-x-0'" class="wacs-inbox-aside transition-transform duration-300 min-h-0 space-y-4 overflow-y-auto overflow-x-hidden">
+            {{-- Backdrop untuk Aside di Mobile/Tablet --}}
+            <div x-show="detailsOpen" x-transition.opacity @click="detailsOpen = false" x-cloak class="fixed inset-0 z-40 bg-gray-900/60 backdrop-blur-sm 2xl:hidden"></div>
+
+            {{-- Aside (Sidebar Kanan) / Modal di Mobile --}}
+            <aside :class="detailsOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none 2xl:scale-100 2xl:opacity-100 2xl:pointer-events-auto'" 
+                class="wacs-inbox-aside fixed inset-0 z-50 m-auto h-[90dvh] w-[95vw] max-w-md transform overflow-y-auto rounded-2xl bg-gray-50 p-4 shadow-2xl transition-all duration-300 dark:bg-gray-950 2xl:static 2xl:m-0 2xl:h-auto 2xl:w-auto 2xl:max-w-none 2xl:transform-none 2xl:bg-transparent 2xl:p-0 2xl:shadow-none min-h-0 space-y-4 overflow-x-hidden">
+                <div class="2xl:hidden flex items-center justify-between mb-2 border-b border-gray-200 pb-3 dark:border-gray-800">
+                    <h3 class="font-semibold text-lg text-gray-950 dark:text-white">{{ __('ui.pages.inbox.open_details') }}</h3>
+                    <button type="button" @click="detailsOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <x-heroicon-o-x-mark class="w-6 h-6" />
+                    </button>
+                </div>
                 <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between gap-3">
                         <div class="text-base font-semibold text-gray-950 dark:text-white">
