@@ -593,10 +593,10 @@ Jangan memasukkan refactor spekulatif atau pekerjaan "untuk nanti".
 
 ---
 
-# 11. Aturan Teknis WACS
+# 11. Aturan Teknis WACS / CareDesk
 
-- Pertahankan PHP 8.3+, Laravel 13, Filament 5, dan kompatibilitas Microsoft SQL Server.
-- Jangan mengasumsikan sintaks atau perilaku MySQL/PostgreSQL.
+- Pertahankan PHP 8.3+, Laravel 13, Filament 5, dan kompatibilitas PostgreSQL 16+ (default SaaS).
+- Pertahankan dukungan migrasi universal (PostgreSQL, SQL Server, MySQL/MariaDB).
 - Pertahankan `MPengguna` sebagai sumber autentikasi; jangan kembali ke tabel `users` default.
 - Pertahankan kontrak route penting: `/admin`, `/webhooks/waha/{token?}`, `/admin/waha-media/{message}`, dan `/profile-storage/{path}`.
 - Pertahankan normalisasi WAHA untuk `@c.us`, `@s.whatsapp.net`, `@g.us`, dan `@lid`.
@@ -612,10 +612,10 @@ Jangan memasukkan refactor spekulatif atau pekerjaan "untuk nanti".
 
 # 12. Database dan Data Safety
 
-- Periksa migration dan `src/script/DATABASE_SCHEMA_WACS.sql` sebelum mengubah schema.
+- Periksa migration, `src/script/DATABASE_SCHEMA_POSTGRESQL.sql`, dan `src/script/DATABASE_SCHEMA_WACS.sql` sebelum mengubah schema.
 - Migration harus aman untuk fresh install dan database existing sejauh scope memerlukannya.
 - Gunakan transaksi untuk rangkaian write yang harus atomik.
-- Pertahankan UUID dan konvensi nama tabel/kolom legacy.
+- Pertahankan UUID dan konvensi nama tabel/kolom master (M) dan transaksi (T).
 - Jangan menghapus atau mengubah data produksi secara destruktif tanpa backup, rollback, dan persetujuan eksplisit.
 - Jangan menjalankan `migrate:fresh`, `db:wipe`, reset database, atau command destruktif lainnya tanpa permintaan eksplisit pengguna.
 

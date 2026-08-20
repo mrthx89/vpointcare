@@ -1,116 +1,112 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            throw new RuntimeException('The WhatsApp group mapping migration requires the sqlsrv database connection.');
+        if (! Schema::hasTable('MGrupWhatsapp')) {
+            Schema::create('MGrupWhatsapp', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->uuid('IdInstansi');
+                $table->string('KodeGrup', 50)->unique();
+                $table->string('NamaGrup', 200);
+                $table->string('IdGrupWaha', 200)->nullable()->index();
+                $table->string('NomorGrupWhatsapp', 100)->nullable();
+                $table->string('Deskripsi', 500)->nullable();
+                $table->string('SumberData', 50)->nullable();
+                $table->string('IdExternal', 100)->nullable();
+                $table->boolean('NonAktif')->default(false);
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+                $table->timestamp('TglEdit')->nullable();
+                $table->uuid('DieditOleh')->nullable();
+
+                $table->foreign('IdInstansi')->references('Id')->on('MInstansi');
+                $table->index('IdInstansi');
+            });
         }
 
-        DB::unprepared(<<<'SQL'
-IF OBJECT_ID(N'MGrupWhatsapp', 'U') IS NULL
-BEGIN
-    CREATE TABLE MGrupWhatsapp (
-        Id uniqueidentifier NOT NULL CONSTRAINT DF_MGrupWhatsapp_Id DEFAULT NEWSEQUENTIALID(),
-        IdInstansi uniqueidentifier NOT NULL,
-        KodeGrup varchar(50) NOT NULL,
-        NamaGrup varchar(200) NOT NULL,
-        IdGrupWaha varchar(200) NULL,
-        NomorGrupWhatsapp varchar(100) NULL,
-        Deskripsi varchar(500) NULL,
-        SumberData varchar(50) NULL,
-        IdExternal varchar(100) NULL,
-        NonAktif bit NOT NULL CONSTRAINT DF_MGrupWhatsapp_NonAktif DEFAULT 0,
-        TglBuat datetime2 NOT NULL CONSTRAINT DF_MGrupWhatsapp_TglBuat DEFAULT SYSDATETIME(),
-        DibuatOleh uniqueidentifier NULL,
-        TglEdit datetime2 NULL,
-        DieditOleh uniqueidentifier NULL,
-        CONSTRAINT PK_MGrupWhatsapp PRIMARY KEY (Id),
-        CONSTRAINT FK_MGrupWhatsapp_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
-        CONSTRAINT UQ_MGrupWhatsapp_KodeGrup UNIQUE (KodeGrup)
-    );
-END
-SQL);
+        if (! Schema::hasTable('MAnggotaGrupWhatsapp')) {
+            Schema::create('MAnggotaGrupWhatsapp', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->uuid('IdGrupWhatsapp');
+                $table->uuid('IdNomorWhatsapp');
+                $table->uuid('IdCustomer')->nullable();
+                $table->string('PeranAnggota', 100)->nullable();
+                $table->boolean('NonAktif')->default(false);
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+                $table->timestamp('TglEdit')->nullable();
+                $table->uuid('DieditOleh')->nullable();
 
-        DB::unprepared(<<<'SQL'
-IF OBJECT_ID(N'MAnggotaGrupWhatsapp', 'U') IS NULL
-BEGIN
-    CREATE TABLE MAnggotaGrupWhatsapp (
-        Id uniqueidentifier NOT NULL CONSTRAINT DF_MAnggotaGrupWhatsapp_Id DEFAULT NEWSEQUENTIALID(),
-        IdGrupWhatsapp uniqueidentifier NOT NULL,
-        IdNomorWhatsapp uniqueidentifier NOT NULL,
-        IdCustomer uniqueidentifier NULL,
-        PeranAnggota varchar(100) NULL,
-        NonAktif bit NOT NULL CONSTRAINT DF_MAnggotaGrupWhatsapp_NonAktif DEFAULT 0,
-        TglBuat datetime2 NOT NULL CONSTRAINT DF_MAnggotaGrupWhatsapp_TglBuat DEFAULT SYSDATETIME(),
-        DibuatOleh uniqueidentifier NULL,
-        TglEdit datetime2 NULL,
-        DieditOleh uniqueidentifier NULL,
-        CONSTRAINT PK_MAnggotaGrupWhatsapp PRIMARY KEY (Id),
-        CONSTRAINT FK_MAnggotaGrupWhatsapp_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id),
-        CONSTRAINT FK_MAnggotaGrupWhatsapp_MNomorWhatsapp FOREIGN KEY (IdNomorWhatsapp) REFERENCES MNomorWhatsapp(Id),
-        CONSTRAINT FK_MAnggotaGrupWhatsapp_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
-        CONSTRAINT UQ_MAnggotaGrupWhatsapp UNIQUE (IdGrupWhatsapp, IdNomorWhatsapp)
-    );
-END
-SQL);
-
-        foreach ([
-            'IdGrupWhatsapp uniqueidentifier NULL',
-            "JenisChat varchar(30) NOT NULL CONSTRAINT DF_TChat_JenisChat DEFAULT 'Pribadi'",
-            'NamaGrupWhatsapp varchar(200) NULL',
-        ] as $definition) {
-            [$column] = explode(' ', $definition, 2);
-            DB::unprepared("
-                IF COL_LENGTH('TChat', '{$column}') IS NULL
-                    ALTER TABLE TChat ADD {$definition}
-            ");
+                $table->unique(['IdGrupWhatsapp', 'IdNomorWhatsapp']);
+                $table->foreign('IdGrupWhatsapp')->references('Id')->on('MGrupWhatsapp');
+                $table->foreign('IdNomorWhatsapp')->references('Id')->on('MNomorWhatsapp');
+                $table->foreign('IdCustomer')->references('Id')->on('MCustomer');
+                $table->index('IdGrupWhatsapp');
+            });
         }
 
-        DB::unprepared(<<<'SQL'
-IF NOT EXISTS (
-    SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_TChat_MGrupWhatsapp'
-)
-BEGIN
-    ALTER TABLE TChat
-    ADD CONSTRAINT FK_TChat_MGrupWhatsapp FOREIGN KEY (IdGrupWhatsapp) REFERENCES MGrupWhatsapp(Id);
-END
-SQL);
-
-        foreach ([
-            'PengirimNomorWhatsapp varchar(30) NULL',
-            'PengirimNamaKontak varchar(150) NULL',
-        ] as $definition) {
-            [$column] = explode(' ', $definition, 2);
-            DB::unprepared("
-                IF COL_LENGTH('TChatD', '{$column}') IS NULL
-                    ALTER TABLE TChatD ADD {$definition}
-            ");
+        if (Schema::hasTable('TChat')) {
+            Schema::table('TChat', function (Blueprint $table): void {
+                if (! Schema::hasColumn('TChat', 'IdGrupWhatsapp')) {
+                    $table->uuid('IdGrupWhatsapp')->nullable()->index();
+                    $table->foreign('IdGrupWhatsapp')->references('Id')->on('MGrupWhatsapp');
+                }
+                if (! Schema::hasColumn('TChat', 'JenisChat')) {
+                    $table->string('JenisChat', 30)->default('Pribadi');
+                }
+                if (! Schema::hasColumn('TChat', 'NamaGrupWhatsapp')) {
+                    $table->string('NamaGrupWhatsapp', 200)->nullable();
+                }
+            });
         }
 
-        DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MGrupWhatsapp_IdInstansi') CREATE INDEX IX_MGrupWhatsapp_IdInstansi ON MGrupWhatsapp (IdInstansi)");
-        DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MGrupWhatsapp_IdGrupWaha') CREATE INDEX IX_MGrupWhatsapp_IdGrupWaha ON MGrupWhatsapp (IdGrupWaha)");
-        DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp') CREATE INDEX IX_MAnggotaGrupWhatsapp_IdGrupWhatsapp ON MAnggotaGrupWhatsapp (IdGrupWhatsapp)");
-        DB::unprepared("IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChat_IdGrupWhatsapp') CREATE INDEX IX_TChat_IdGrupWhatsapp ON TChat (IdGrupWhatsapp)");
+        if (Schema::hasTable('TChatD')) {
+            Schema::table('TChatD', function (Blueprint $table): void {
+                if (! Schema::hasColumn('TChatD', 'PengirimNomorWhatsapp')) {
+                    $table->string('PengirimNomorWhatsapp', 30)->nullable();
+                }
+                if (! Schema::hasColumn('TChatD', 'PengirimNamaKontak')) {
+                    $table->string('PengirimNamaKontak', 150)->nullable();
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            return;
+        if (Schema::hasTable('TChatD')) {
+            Schema::table('TChatD', function (Blueprint $table): void {
+                if (Schema::hasColumn('TChatD', 'PengirimNamaKontak')) {
+                    $table->dropColumn('PengirimNamaKontak');
+                }
+                if (Schema::hasColumn('TChatD', 'PengirimNomorWhatsapp')) {
+                    $table->dropColumn('PengirimNomorWhatsapp');
+                }
+            });
         }
 
-        DB::unprepared("IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_TChat_MGrupWhatsapp') ALTER TABLE TChat DROP CONSTRAINT FK_TChat_MGrupWhatsapp");
-        DB::unprepared("IF COL_LENGTH('TChatD', 'PengirimNamaKontak') IS NOT NULL ALTER TABLE TChatD DROP COLUMN PengirimNamaKontak");
-        DB::unprepared("IF COL_LENGTH('TChatD', 'PengirimNomorWhatsapp') IS NOT NULL ALTER TABLE TChatD DROP COLUMN PengirimNomorWhatsapp");
-        DB::unprepared("IF COL_LENGTH('TChat', 'NamaGrupWhatsapp') IS NOT NULL ALTER TABLE TChat DROP COLUMN NamaGrupWhatsapp");
-        DB::unprepared("IF COL_LENGTH('TChat', 'JenisChat') IS NOT NULL ALTER TABLE TChat DROP CONSTRAINT DF_TChat_JenisChat; IF COL_LENGTH('TChat', 'JenisChat') IS NOT NULL ALTER TABLE TChat DROP COLUMN JenisChat");
-        DB::unprepared("IF COL_LENGTH('TChat', 'IdGrupWhatsapp') IS NOT NULL ALTER TABLE TChat DROP COLUMN IdGrupWhatsapp");
-        DB::unprepared("IF OBJECT_ID(N'MAnggotaGrupWhatsapp', 'U') IS NOT NULL DROP TABLE MAnggotaGrupWhatsapp");
-        DB::unprepared("IF OBJECT_ID(N'MGrupWhatsapp', 'U') IS NOT NULL DROP TABLE MGrupWhatsapp");
+        if (Schema::hasTable('TChat')) {
+            Schema::table('TChat', function (Blueprint $table): void {
+                if (Schema::hasColumn('TChat', 'IdGrupWhatsapp')) {
+                    $table->dropForeign(['IdGrupWhatsapp']);
+                    $table->dropColumn('IdGrupWhatsapp');
+                }
+                if (Schema::hasColumn('TChat', 'JenisChat')) {
+                    $table->dropColumn('JenisChat');
+                }
+                if (Schema::hasColumn('TChat', 'NamaGrupWhatsapp')) {
+                    $table->dropColumn('NamaGrupWhatsapp');
+                }
+            });
+        }
+
+        Schema::dropIfExists('MAnggotaGrupWhatsapp');
+        Schema::dropIfExists('MGrupWhatsapp');
     }
 };

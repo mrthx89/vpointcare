@@ -1,49 +1,47 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            throw new RuntimeException('This migration requires the sqlsrv database connection.');
-        }
-
-        if (! Schema::hasTable('MHakAkses')) {
-            return;
-        }
-
-        $columns = [
-            ['NamaHakAksesId', "varchar(150) NOT NULL DEFAULT ''"],
-            ['NamaHakAksesEn', "varchar(150) NOT NULL DEFAULT ''"],
-            ['ModulId', "varchar(100) NOT NULL DEFAULT ''"],
-            ['ModulEn', "varchar(100) NOT NULL DEFAULT ''"],
-            ['KeteranganId', "varchar(255) NULL"],
-            ['KeteranganEn', "varchar(255) NULL"],
-        ];
-
-        foreach ($columns as [$col, $def]) {
-            if (! Schema::hasColumn('MHakAkses', $col)) {
-                DB::unprepared("ALTER TABLE MHakAkses ADD [{$col}] {$def}");
-            }
+        if (Schema::hasTable('MHakAkses')) {
+            Schema::table('MHakAkses', function (Blueprint $table): void {
+                if (! Schema::hasColumn('MHakAkses', 'NamaHakAksesId')) {
+                    $table->string('NamaHakAksesId', 150)->nullable();
+                }
+                if (! Schema::hasColumn('MHakAkses', 'NamaHakAksesEn')) {
+                    $table->string('NamaHakAksesEn', 150)->nullable();
+                }
+                if (! Schema::hasColumn('MHakAkses', 'ModulId')) {
+                    $table->string('ModulId', 100)->nullable();
+                }
+                if (! Schema::hasColumn('MHakAkses', 'ModulEn')) {
+                    $table->string('ModulEn', 100)->nullable();
+                }
+                if (! Schema::hasColumn('MHakAkses', 'KeteranganId')) {
+                    $table->string('KeteranganId', 255)->nullable();
+                }
+                if (! Schema::hasColumn('MHakAkses', 'KeteranganEn')) {
+                    $table->string('KeteranganEn', 255)->nullable();
+                }
+            });
         }
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv' || ! Schema::hasTable('MHakAkses')) {
-            return;
-        }
-
-        $columns = ['NamaHakAksesId', 'NamaHakAksesEn', 'ModulId', 'ModulEn', 'KeteranganId', 'KeteranganEn'];
-
-        foreach ($columns as $col) {
-            if (Schema::hasColumn('MHakAkses', $col)) {
-                DB::unprepared("ALTER TABLE MHakAkses DROP COLUMN [{$col}]");
-            }
+        if (Schema::hasTable('MHakAkses')) {
+            Schema::table('MHakAkses', function (Blueprint $table): void {
+                foreach (['KeteranganEn', 'KeteranganId', 'ModulEn', 'ModulId', 'NamaHakAksesEn', 'NamaHakAksesId'] as $col) {
+                    if (Schema::hasColumn('MHakAkses', $col)) {
+                        $table->dropColumn($col);
+                    }
+                }
+            });
         }
     }
 };

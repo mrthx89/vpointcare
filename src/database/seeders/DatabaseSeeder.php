@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
             'Email' => 'mrthx.89@gmail.com',
         ], [
             'IdPeran' => $peranAdmin->Id,
-            'NamaPengguna' => 'Admin VPoint Care',
+            'NamaPengguna' => 'Admin CareDesk',
             'Password' => Hash::make('Ell1t3s3rv'),
             'NonAktif' => false,
             'EmailTerverifikasiPada' => now(),

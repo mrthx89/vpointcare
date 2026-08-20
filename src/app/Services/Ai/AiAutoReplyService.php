@@ -208,9 +208,9 @@ class AiAutoReplyService
             return;
         }
 
-        $prompt = $this->buildPrompt($settings, $chat, 'Tutup percakapan ini dengan sopan dan profesional. Ucapkan terima kasih karena telah menghubungi VPoint Care, dan sampaikan bahwa sesi percakapan ini telah ditutup. Tanyakan apakah ada hal lain yang bisa dibantu untuk ke depannya (meskipun sesi sudah ditutup). Jangan terlalu panjang.');
+        $prompt = $this->buildPrompt($settings, $chat, 'Tutup percakapan ini dengan sopan dan profesional. Ucapkan terima kasih karena telah menghubungi CareDesk, dan sampaikan bahwa sesi percakapan ini telah ditutup. Tanyakan apakah ada hal lain yang bisa dibantu untuk ke depannya (meskipun sesi sudah ditutup). Jangan terlalu panjang.');
         $requestId = (string) Str::orderedUuid();
-        $reply = 'Terima kasih telah menghubungi VPoint Care. Sesi percakapan ini telah ditutup.';
+        $reply = 'Terima kasih telah menghubungi CareDesk. Sesi percakapan ini telah ditutup.';
 
         DB::table('TAiPermintaan')->insert([
             'Id' => $requestId,
@@ -966,17 +966,17 @@ class AiAutoReplyService
 
     private function defaultOutsideTemplate(): string
     {
-        return 'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.';
+        return 'Terima kasih sudah menghubungi CareDesk. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.';
     }
 
     private function defaultHolidayTemplate(): string
     {
-        return 'Terima kasih sudah menghubungi VPoint Care. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.';
+        return 'Terima kasih sudah menghubungi CareDesk. Hari ini kami sedang libur ({nama_hari_libur}). Pesan Bapak/Ibu tetap kami terima dan akan kami teruskan ke tim customer service. Silakan sampaikan detail kendalanya agar tim kami bisa menindaklanjuti pada hari kerja berikutnya, {tanggal_masuk_kerja}. Mohon maaf atas ketidaknyamanannya.';
     }
 
     private function defaultGreetingTemplate(): string
     {
-        return 'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.';
+        return 'Halo, terima kasih sudah menghubungi CareDesk. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.';
     }
 
     private function defaultFallbackTemplate(): string

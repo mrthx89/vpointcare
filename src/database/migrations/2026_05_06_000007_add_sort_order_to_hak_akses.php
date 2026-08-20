@@ -1,39 +1,30 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasTable('MHakAkses')) {
-            return;
-        }
-
-        $columns = [
-            ['SortOrder', 'int NULL'],
-            ['IconString', 'varchar(100) NULL'],
-        ];
-
-        foreach ($columns as [$col, $def]) {
-            if (! Schema::hasColumn('MHakAkses', $col)) {
-                DB::unprepared("ALTER TABLE MHakAkses ADD [{$col}] {$def}");
-            }
+        if (Schema::hasTable('MHakAkses')) {
+            Schema::table('MHakAkses', function (Blueprint $table): void {
+                if (! Schema::hasColumn('MHakAkses', 'SortOrder')) {
+                    $table->integer('SortOrder')->nullable();
+                }
+            });
         }
     }
 
     public function down(): void
     {
-        if (! Schema::hasTable('MHakAkses')) {
-            return;
-        }
-
-        foreach (['IconString', 'SortOrder'] as $col) {
-            if (Schema::hasColumn('MHakAkses', $col)) {
-                DB::unprepared("ALTER TABLE MHakAkses DROP COLUMN [{$col}]");
-            }
+        if (Schema::hasTable('MHakAkses')) {
+            Schema::table('MHakAkses', function (Blueprint $table): void {
+                if (Schema::hasColumn('MHakAkses', 'SortOrder')) {
+                    $table->dropColumn('SortOrder');
+                }
+            });
         }
     }
 };

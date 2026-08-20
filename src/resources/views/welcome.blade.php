@@ -988,7 +988,7 @@
         <footer class="footer">
             <div class="footer-inner">
                 <span>{{ __('ui.landing.footer_product') }}</span>
-                <span>{{ __('ui.landing.footer_copyright', ['year' => now()->year]) }}</span>
+                <span>&copy; {{ now()->year }} {{ __('ui.landing.footer_product') }}. Dibuat oleh <a href="https://yhdev.click" target="_blank" rel="noopener noreferrer" style="color: var(--brand); font-weight: 600; text-decoration: underline;">YHDev</a>. All rights reserved.</span>
             </div>
         </footer>
     </div>

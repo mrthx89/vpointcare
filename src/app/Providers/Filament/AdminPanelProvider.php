@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        $brandName = config('app.name', 'VPoint Care');
+        $brandName = config('app.name', 'CareDesk');
 
         return $panel
             ->default()
@@ -131,7 +131,7 @@ HTML
                 PanelsRenderHook::FOOTER,
                 fn(): string => request()->is('admin/v-point-assistant')
                     ? ''
-                    : '<div class="wacs-admin-footer">&copy; ' . date('Y') . ' VPoint Care. All rights reserved.</div>'
+                    : '<div class="wacs-admin-footer">&copy; ' . date('Y') . ' Care Desk System. Dibuat oleh <a href="https://yhdev.click" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">YHDev</a>. All rights reserved.</div>'
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,

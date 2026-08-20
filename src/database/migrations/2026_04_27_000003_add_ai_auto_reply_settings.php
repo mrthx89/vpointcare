@@ -1,180 +1,80 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            throw new RuntimeException('The AI auto reply migration requires the sqlsrv database connection.');
+        if (Schema::hasTable('MPengaturanAi')) {
+            Schema::table('MPengaturanAi', function (Blueprint $table): void {
+                if (! Schema::hasColumn('MPengaturanAi', 'ProviderAi')) {
+                    $table->string('ProviderAi', 50)->default('OpenAI');
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'ModelAi')) {
+                    $table->string('ModelAi', 100)->default('gpt-5');
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'BaseUrl')) {
+                    $table->string('BaseUrl', 255)->default('https://api.openai.com/v1/responses');
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'PromptSistem')) {
+                    $table->text('PromptSistem')->nullable();
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'TemplateDiluarJamKerja')) {
+                    $table->text('TemplateDiluarJamKerja')->nullable();
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'TemplateHariLibur')) {
+                    $table->text('TemplateHariLibur')->nullable();
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'TemplateJamKerjaSapaan')) {
+                    $table->text('TemplateJamKerjaSapaan')->nullable();
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'TemplateFallback')) {
+                    $table->text('TemplateFallback')->nullable();
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'AiAutoReplyAktif')) {
+                    $table->boolean('AiAutoReplyAktif')->default(true);
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'ModeAutoReply')) {
+                    $table->string('ModeAutoReply', 30)->default('Always');
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'JamMulaiKerja')) {
+                    $table->string('JamMulaiKerja', 10)->default('08:00');
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'JamSelesaiKerja')) {
+                    $table->string('JamSelesaiKerja', 10)->default('17:00');
+                }
+                if (! Schema::hasColumn('MPengaturanAi', 'KirimKeWaha')) {
+                    $table->boolean('KirimKeWaha')->default(true);
+                }
+            });
         }
 
-        DB::unprepared(<<<'SQL'
-IF OBJECT_ID(N'MPengaturanAi', 'U') IS NULL
-BEGIN
-    CREATE TABLE MPengaturanAi (
-        Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengaturanAi_Id DEFAULT NEWSEQUENTIALID(),
-        KodePengaturan varchar(50) NOT NULL,
-        NamaPengaturan varchar(100) NOT NULL,
-        AutoReplyAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyAktif DEFAULT 0,
-        AutoReplyDiluarJamKerja bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyDiluarJamKerja DEFAULT 1,
-        AutoReplyJamKerjaSapaan bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaSapaan DEFAULT 1,
-        AutoReplyJamKerjaBerlanjut bit NOT NULL CONSTRAINT DF_MPengaturanAi_AutoReplyJamKerjaBerlanjut DEFAULT 0,
-        JamKerjaMulai time(0) NOT NULL CONSTRAINT DF_MPengaturanAi_JamKerjaMulai DEFAULT '08:00',
-        JamKerjaSelesai time(0) NOT NULL CONSTRAINT DF_MPengaturanAi_JamKerjaSelesai DEFAULT '17:00',
-        HariKerja varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_HariKerja DEFAULT '1,2,3,4,5',
-        ZonaWaktu varchar(100) NOT NULL CONSTRAINT DF_MPengaturanAi_ZonaWaktu DEFAULT 'Asia/Jakarta',
-        ProviderAi varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ProviderAi DEFAULT 'OpenAI',
-        ModelAi varchar(100) NULL,
-        BaseUrl varchar(255) NULL,
-        ApiKeyTerenkripsi nvarchar(max) NULL,
-        PromptSistem nvarchar(max) NULL,
-        TemplateDiluarJamKerja nvarchar(max) NULL,
-        TemplateJamKerjaSapaan nvarchar(max) NULL,
-        TemplateFallback nvarchar(max) NULL,
-        BatasRiwayatPesan int NOT NULL CONSTRAINT DF_MPengaturanAi_BatasRiwayatPesan DEFAULT 8,
-        KirimKeWaha bit NOT NULL CONSTRAINT DF_MPengaturanAi_KirimKeWaha DEFAULT 0,
-        ModeKirim varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAi_ModeKirim DEFAULT 'DraftLokal',
-        NonAktif bit NOT NULL CONSTRAINT DF_MPengaturanAi_NonAktif DEFAULT 0,
-        TglBuat datetime2 NOT NULL CONSTRAINT DF_MPengaturanAi_TglBuat DEFAULT SYSDATETIME(),
-        DibuatOleh uniqueidentifier NULL,
-        TglEdit datetime2 NULL,
-        DieditOleh uniqueidentifier NULL,
-        CONSTRAINT PK_MPengaturanAi PRIMARY KEY (Id),
-        CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan)
-    );
-END
-
-IF COL_LENGTH('TChat', 'AutoReplyAiAktif') IS NULL
-    ALTER TABLE TChat ADD AutoReplyAiAktif bit NOT NULL CONSTRAINT DF_TChat_AutoReplyAiAktif DEFAULT 0;
-
-IF COL_LENGTH('TChat', 'AiSudahMenyapa') IS NULL
-    ALTER TABLE TChat ADD AiSudahMenyapa bit NOT NULL CONSTRAINT DF_TChat_AiSudahMenyapa DEFAULT 0;
-
-IF COL_LENGTH('TChat', 'ModeAutoReplyAi') IS NULL
-    ALTER TABLE TChat ADD ModeAutoReplyAi varchar(50) NOT NULL CONSTRAINT DF_TChat_ModeAutoReplyAi DEFAULT 'Default';
-
-IF COL_LENGTH('TChat', 'TglAutoReplyAiTerakhir') IS NULL
-    ALTER TABLE TChat ADD TglAutoReplyAiTerakhir datetime2 NULL;
-
-IF COL_LENGTH('TChatD', 'DihasilkanOlehAi') IS NULL
-    ALTER TABLE TChatD ADD DihasilkanOlehAi bit NOT NULL CONSTRAINT DF_TChatD_DihasilkanOlehAi DEFAULT 0;
-
-IF COL_LENGTH('TChatD', 'IdAiRespon') IS NULL
-    ALTER TABLE TChatD ADD IdAiRespon uniqueidentifier NULL;
-
-IF OBJECT_ID(N'TAiRespon', 'U') IS NOT NULL
-    AND COL_LENGTH('TChatD', 'IdAiRespon') IS NOT NULL
-    AND OBJECT_ID(N'FK_TChatD_TAiRespon', 'F') IS NULL
-BEGIN
-    ALTER TABLE TChatD
-    ADD CONSTRAINT FK_TChatD_TAiRespon FOREIGN KEY (IdAiRespon) REFERENCES TAiRespon(Id);
-END
-
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_IdAiRespon' AND object_id = OBJECT_ID('TChatD'))
-    CREATE INDEX IX_TChatD_IdAiRespon ON TChatD (IdAiRespon);
-
-IF NOT EXISTS (SELECT 1 FROM MPengaturanAi WHERE KodePengaturan = 'DEFAULT')
-BEGIN
-    INSERT INTO MPengaturanAi (
-        KodePengaturan,
-        NamaPengaturan,
-        AutoReplyAktif,
-        AutoReplyDiluarJamKerja,
-        AutoReplyJamKerjaSapaan,
-        AutoReplyJamKerjaBerlanjut,
-        JamKerjaMulai,
-        JamKerjaSelesai,
-        HariKerja,
-        ZonaWaktu,
-        ProviderAi,
-        ModelAi,
-        BaseUrl,
-        PromptSistem,
-        TemplateDiluarJamKerja,
-        TemplateJamKerjaSapaan,
-        TemplateFallback,
-        BatasRiwayatPesan,
-        KirimKeWaha,
-        ModeKirim
-    )
-    VALUES (
-        'DEFAULT',
-        'Pengaturan Default AI Agent',
-        0,
-        1,
-        1,
-        0,
-        '08:00',
-        '17:00',
-        '1,2,3,4,5',
-        'Asia/Jakarta',
-        'OpenAI',
-        'gpt-5',
-        'https://api.openai.com/v1/responses',
-        N'Anda adalah AI Agent customer service VPoint Care. Jawab dalam Bahasa Indonesia yang sopan, singkat, jelas, dan jangan membuat janji teknis yang belum dipastikan. Jika masalah perlu ditangani manusia, arahkan bahwa tim customer service akan menindaklanjuti.',
-        N'Terima kasih sudah menghubungi VPoint Care. Saat ini kami berada di luar jam operasional. Pesan Bapak/Ibu sudah kami terima dan akan kami tindak lanjuti pada jam kerja berikutnya.',
-        N'Halo, terima kasih sudah menghubungi VPoint Care. Saya bantu catat terlebih dahulu ya. Silakan jelaskan kendala yang sedang dialami, nanti tim customer service kami akan melanjutkan penanganannya.',
-        N'Terima kasih informasinya. Pesan sudah kami terima dan akan kami teruskan ke tim terkait untuk ditindaklanjuti.',
-        8,
-        0,
-        'DraftLokal'
-    );
-END
-SQL);
+        if (Schema::hasTable('TChat')) {
+            Schema::table('TChat', function (Blueprint $table): void {
+                if (! Schema::hasColumn('TChat', 'SesiGreetingAktifSampai')) {
+                    $table->timestamp('SesiGreetingAktifSampai')->nullable();
+                }
+                if (! Schema::hasColumn('TChat', 'TerakhirDisapaAiPada')) {
+                    $table->timestamp('TerakhirDisapaAiPada')->nullable();
+                }
+            });
+        }
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            return;
+        if (Schema::hasTable('TChat')) {
+            Schema::table('TChat', function (Blueprint $table): void {
+                if (Schema::hasColumn('TChat', 'TerakhirDisapaAiPada')) {
+                    $table->dropColumn('TerakhirDisapaAiPada');
+                }
+                if (Schema::hasColumn('TChat', 'SesiGreetingAktifSampai')) {
+                    $table->dropColumn('SesiGreetingAktifSampai');
+                }
+            });
         }
-
-        DB::unprepared(<<<'SQL'
-IF OBJECT_ID(N'FK_TChatD_TAiRespon', 'F') IS NOT NULL
-    ALTER TABLE TChatD DROP CONSTRAINT FK_TChatD_TAiRespon;
-
-IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_TChatD_IdAiRespon' AND object_id = OBJECT_ID('TChatD'))
-    DROP INDEX IX_TChatD_IdAiRespon ON TChatD;
-
-IF COL_LENGTH('TChatD', 'IdAiRespon') IS NOT NULL
-    ALTER TABLE TChatD DROP COLUMN IdAiRespon;
-
-IF COL_LENGTH('TChatD', 'DihasilkanOlehAi') IS NOT NULL
-BEGIN
-    IF OBJECT_ID(N'DF_TChatD_DihasilkanOlehAi', 'D') IS NOT NULL
-        ALTER TABLE TChatD DROP CONSTRAINT DF_TChatD_DihasilkanOlehAi;
-    ALTER TABLE TChatD DROP COLUMN DihasilkanOlehAi;
-END
-
-IF COL_LENGTH('TChat', 'TglAutoReplyAiTerakhir') IS NOT NULL
-    ALTER TABLE TChat DROP COLUMN TglAutoReplyAiTerakhir;
-
-IF COL_LENGTH('TChat', 'ModeAutoReplyAi') IS NOT NULL
-BEGIN
-    IF OBJECT_ID(N'DF_TChat_ModeAutoReplyAi', 'D') IS NOT NULL
-        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_ModeAutoReplyAi;
-    ALTER TABLE TChat DROP COLUMN ModeAutoReplyAi;
-END
-
-IF COL_LENGTH('TChat', 'AiSudahMenyapa') IS NOT NULL
-BEGIN
-    IF OBJECT_ID(N'DF_TChat_AiSudahMenyapa', 'D') IS NOT NULL
-        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_AiSudahMenyapa;
-    ALTER TABLE TChat DROP COLUMN AiSudahMenyapa;
-END
-
-IF COL_LENGTH('TChat', 'AutoReplyAiAktif') IS NOT NULL
-BEGIN
-    IF OBJECT_ID(N'DF_TChat_AutoReplyAiAktif', 'D') IS NOT NULL
-        ALTER TABLE TChat DROP CONSTRAINT DF_TChat_AutoReplyAiAktif;
-    ALTER TABLE TChat DROP COLUMN AutoReplyAiAktif;
-END
-
-IF OBJECT_ID(N'MPengaturanAi', 'U') IS NOT NULL
-    DROP TABLE MPengaturanAi;
-SQL);
     }
 };

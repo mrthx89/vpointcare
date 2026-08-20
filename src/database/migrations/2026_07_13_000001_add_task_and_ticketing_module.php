@@ -1,89 +1,138 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            return;
+        if (! Schema::hasTable('MStatusTask')) {
+            Schema::create('MStatusTask', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->string('KodeStatusTask', 50)->unique();
+                $table->string('NamaStatusTask', 100);
+                $table->integer('Urutan')->default(0);
+                $table->boolean('StatusFinal')->default(false);
+                $table->string('Warna', 30)->nullable();
+                $table->boolean('NonAktif')->default(false);
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+                $table->timestamp('TglEdit')->nullable();
+                $table->uuid('DieditOleh')->nullable();
+            });
         }
 
-        DB::unprepared(<<<'SQL'
-IF OBJECT_ID('MStatusTask', 'U') IS NULL
-BEGIN
-    CREATE TABLE MStatusTask (
-        Id uniqueidentifier NOT NULL CONSTRAINT DF_MStatusTask_Id DEFAULT NEWSEQUENTIALID(),
-        KodeStatusTask varchar(50) NOT NULL,
-        NamaStatusTask varchar(100) NOT NULL,
-        Urutan int NOT NULL CONSTRAINT DF_MStatusTask_Urutan DEFAULT 0,
-        StatusFinal bit NOT NULL CONSTRAINT DF_MStatusTask_StatusFinal DEFAULT 0,
-        Warna varchar(30) NULL,
-        NonAktif bit NOT NULL CONSTRAINT DF_MStatusTask_NonAktif DEFAULT 0,
-        TglBuat datetime2 NOT NULL CONSTRAINT DF_MStatusTask_TglBuat DEFAULT SYSDATETIME(),
-        DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL,
-        CONSTRAINT PK_MStatusTask PRIMARY KEY (Id),
-        CONSTRAINT UQ_MStatusTask_KodeStatusTask UNIQUE (KodeStatusTask)
-    );
-END;
+        if (! Schema::hasTable('TTask')) {
+            Schema::create('TTask', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->string('NomorTask', 50)->unique();
+                $table->uuid('IdTicket')->nullable()->index();
+                $table->uuid('IdChat')->nullable()->index();
+                $table->uuid('IdCustomer')->nullable()->index();
+                $table->uuid('IdInstansi')->nullable();
+                $table->uuid('IdTugasInduk')->nullable()->index();
+                $table->uuid('IdKategoriTicket')->nullable();
+                $table->uuid('IdPrioritasTicket')->nullable();
+                $table->uuid('IdStatusTask')->index();
+                $table->string('JudulTask', 255);
+                $table->text('DeskripsiTask')->nullable();
+                $table->uuid('DitugaskanKepada')->nullable()->index();
+                $table->timestamp('TglDitugaskan')->nullable();
+                $table->timestamp('TglTargetSelesai')->nullable()->index();
+                $table->timestamp('TglSelesai')->nullable();
+                $table->timestamp('TglDitutup')->nullable();
+                $table->uuid('DitutupOleh')->nullable();
+                $table->integer('EstimasiMenit')->nullable();
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+                $table->timestamp('TglEdit')->nullable();
+                $table->uuid('DieditOleh')->nullable();
 
-IF OBJECT_ID('TTask', 'U') IS NULL
-BEGIN
-    CREATE TABLE TTask (
-        Id uniqueidentifier NOT NULL CONSTRAINT DF_TTask_Id DEFAULT NEWSEQUENTIALID(),
-        NomorTask varchar(50) NOT NULL, IdTicket uniqueidentifier NULL, IdChat uniqueidentifier NULL,
-        IdCustomer uniqueidentifier NULL, IdInstansi uniqueidentifier NULL, IdTugasInduk uniqueidentifier NULL,
-        IdKategoriTicket uniqueidentifier NULL, IdPrioritasTicket uniqueidentifier NULL, IdStatusTask uniqueidentifier NOT NULL,
-        JudulTask varchar(255) NOT NULL, DeskripsiTask nvarchar(max) NULL, DitugaskanKepada uniqueidentifier NULL,
-        TglDitugaskan datetime2 NULL, TglTargetSelesai datetime2 NULL, TglSelesai datetime2 NULL,
-        TglDitutup datetime2 NULL, DitutupOleh uniqueidentifier NULL, EstimasiMenit int NULL,
-        TglBuat datetime2 NOT NULL CONSTRAINT DF_TTask_TglBuat DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL,
-        TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL,
-        CONSTRAINT PK_TTask PRIMARY KEY (Id), CONSTRAINT UQ_TTask_NomorTask UNIQUE (NomorTask),
-        CONSTRAINT FK_TTask_TTicket FOREIGN KEY (IdTicket) REFERENCES TTicket(Id),
-        CONSTRAINT FK_TTask_TChat FOREIGN KEY (IdChat) REFERENCES TChat(Id),
-        CONSTRAINT FK_TTask_MCustomer FOREIGN KEY (IdCustomer) REFERENCES MCustomer(Id),
-        CONSTRAINT FK_TTask_MInstansi FOREIGN KEY (IdInstansi) REFERENCES MInstansi(Id),
-        CONSTRAINT FK_TTask_TTask_Induk FOREIGN KEY (IdTugasInduk) REFERENCES TTask(Id),
-        CONSTRAINT FK_TTask_MKategoriTicket FOREIGN KEY (IdKategoriTicket) REFERENCES MKategoriTicket(Id),
-        CONSTRAINT FK_TTask_MPrioritasTicket FOREIGN KEY (IdPrioritasTicket) REFERENCES MPrioritasTicket(Id),
-        CONSTRAINT FK_TTask_MStatusTask FOREIGN KEY (IdStatusTask) REFERENCES MStatusTask(Id),
-        CONSTRAINT FK_TTask_MPengguna_Assignee FOREIGN KEY (DitugaskanKepada) REFERENCES MPengguna(Id)
-    );
-    CREATE INDEX IX_TTask_IdTicket ON TTask(IdTicket); CREATE INDEX IX_TTask_IdStatusTask ON TTask(IdStatusTask);
-    CREATE INDEX IX_TTask_IdChat ON TTask(IdChat); CREATE INDEX IX_TTask_IdCustomer ON TTask(IdCustomer);
-    CREATE INDEX IX_TTask_DitugaskanKepada ON TTask(DitugaskanKepada); CREATE INDEX IX_TTask_TglTargetSelesai ON TTask(TglTargetSelesai); CREATE INDEX IX_TTask_IdTugasInduk ON TTask(IdTugasInduk);
-END;
+                $table->foreign('IdTicket')->references('Id')->on('TTicket')->nullOnDelete();
+                $table->foreign('IdChat')->references('Id')->on('TChat')->nullOnDelete();
+                $table->foreign('IdCustomer')->references('Id')->on('MCustomer')->nullOnDelete();
+                $table->foreign('IdInstansi')->references('Id')->on('MInstansi')->nullOnDelete();
+                $table->foreign('IdTugasInduk')->references('Id')->on('TTask')->nullOnDelete();
+                $table->foreign('IdKategoriTicket')->references('Id')->on('MKategoriTicket')->nullOnDelete();
+                $table->foreign('IdPrioritasTicket')->references('Id')->on('MPrioritasTicket')->nullOnDelete();
+                $table->foreign('IdStatusTask')->references('Id')->on('MStatusTask');
+                $table->foreign('DitugaskanKepada')->references('Id')->on('MPengguna')->nullOnDelete();
+            });
+        }
 
-IF OBJECT_ID('TTaskDPenugasan', 'U') IS NULL
-BEGIN
-    CREATE TABLE TTaskDPenugasan (Id uniqueidentifier NOT NULL CONSTRAINT DF_TTaskDPenugasan_Id DEFAULT NEWSEQUENTIALID(), IdTask uniqueidentifier NOT NULL, DitugaskanDari uniqueidentifier NULL, DitugaskanKepada uniqueidentifier NOT NULL, AlasanPenugasan varchar(500) NULL, TglPenugasan datetime2 NOT NULL CONSTRAINT DF_TTaskDPenugasan_Tgl DEFAULT SYSDATETIME(), TglBuat datetime2 NOT NULL CONSTRAINT DF_TTaskDPenugasan_Buat DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL, CONSTRAINT PK_TTaskDPenugasan PRIMARY KEY (Id), CONSTRAINT FK_TTaskDPenugasan_TTask FOREIGN KEY (IdTask) REFERENCES TTask(Id), CONSTRAINT FK_TTaskDPenugasan_MPengguna_Dari FOREIGN KEY (DitugaskanDari) REFERENCES MPengguna(Id), CONSTRAINT FK_TTaskDPenugasan_MPengguna_Kepada FOREIGN KEY (DitugaskanKepada) REFERENCES MPengguna(Id));
-    CREATE INDEX IX_TTaskDPenugasan_IdTask ON TTaskDPenugasan(IdTask);
-END;
-IF OBJECT_ID('TTaskDChecklist', 'U') IS NULL
-BEGIN
-    CREATE TABLE TTaskDChecklist (Id uniqueidentifier NOT NULL CONSTRAINT DF_TTaskDChecklist_Id DEFAULT NEWSEQUENTIALID(), IdTask uniqueidentifier NOT NULL, JudulItem varchar(500) NOT NULL, Selesai bit NOT NULL CONSTRAINT DF_TTaskDChecklist_Selesai DEFAULT 0, Urutan int NOT NULL CONSTRAINT DF_TTaskDChecklist_Urutan DEFAULT 0, TglSelesai datetime2 NULL, DiselesaikanOleh uniqueidentifier NULL, TglBuat datetime2 NOT NULL CONSTRAINT DF_TTaskDChecklist_Buat DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL, CONSTRAINT PK_TTaskDChecklist PRIMARY KEY (Id), CONSTRAINT FK_TTaskDChecklist_TTask FOREIGN KEY (IdTask) REFERENCES TTask(Id));
-    CREATE INDEX IX_TTaskDChecklist_IdTask ON TTaskDChecklist(IdTask);
-END;
-IF OBJECT_ID('TTaskDKomentar', 'U') IS NULL
-BEGIN
-    CREATE TABLE TTaskDKomentar (Id uniqueidentifier NOT NULL CONSTRAINT DF_TTaskDKomentar_Id DEFAULT NEWSEQUENTIALID(), IdTask uniqueidentifier NOT NULL, IsiKomentar nvarchar(max) NOT NULL, TglKomentar datetime2 NOT NULL CONSTRAINT DF_TTaskDKomentar_Tgl DEFAULT SYSDATETIME(), TglBuat datetime2 NOT NULL CONSTRAINT DF_TTaskDKomentar_Buat DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL, CONSTRAINT PK_TTaskDKomentar PRIMARY KEY (Id), CONSTRAINT FK_TTaskDKomentar_TTask FOREIGN KEY (IdTask) REFERENCES TTask(Id));
-    CREATE INDEX IX_TTaskDKomentar_IdTask ON TTaskDKomentar(IdTask);
-END;
-IF OBJECT_ID('TTaskDLampiran', 'U') IS NULL
-BEGIN
-    CREATE TABLE TTaskDLampiran (Id uniqueidentifier NOT NULL CONSTRAINT DF_TTaskDLampiran_Id DEFAULT NEWSEQUENTIALID(), IdTask uniqueidentifier NOT NULL, NamaFile varchar(255) NOT NULL, PathFile varchar(1000) NOT NULL, TipeFile varchar(100) NULL, UkuranFile bigint NULL, TglBuat datetime2 NOT NULL CONSTRAINT DF_TTaskDLampiran_Buat DEFAULT SYSDATETIME(), DibuatOleh uniqueidentifier NULL, TglEdit datetime2 NULL, DieditOleh uniqueidentifier NULL, CONSTRAINT PK_TTaskDLampiran PRIMARY KEY (Id), CONSTRAINT FK_TTaskDLampiran_TTask FOREIGN KEY (IdTask) REFERENCES TTask(Id));
-    CREATE INDEX IX_TTaskDLampiran_IdTask ON TTaskDLampiran(IdTask);
-END;
-SQL);
+        if (! Schema::hasTable('TTaskDPenugasan')) {
+            Schema::create('TTaskDPenugasan', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->uuid('IdTask')->index();
+                $table->uuid('DitugaskanKepada')->nullable();
+                $table->uuid('DitugaskanOleh')->nullable();
+                $table->text('Catatan')->nullable();
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+
+                $table->foreign('IdTask')->references('Id')->on('TTask')->cascadeOnDelete();
+                $table->foreign('DitugaskanKepada')->references('Id')->on('MPengguna')->nullOnDelete();
+                $table->foreign('DitugaskanOleh')->references('Id')->on('MPengguna')->nullOnDelete();
+            });
+        }
+
+        if (! Schema::hasTable('TTaskDChecklist')) {
+            Schema::create('TTaskDChecklist', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->uuid('IdTask')->index();
+                $table->string('JudulItem', 255);
+                $table->boolean('SudahSelesai')->default(false);
+                $table->timestamp('TglSelesai')->nullable();
+                $table->uuid('DiselesaikanOleh')->nullable();
+                $table->integer('Urutan')->default(0);
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+                $table->timestamp('TglEdit')->nullable();
+                $table->uuid('DieditOleh')->nullable();
+
+                $table->foreign('IdTask')->references('Id')->on('TTask')->cascadeOnDelete();
+            });
+        }
+
+        if (! Schema::hasTable('TTaskDKomentar')) {
+            Schema::create('TTaskDKomentar', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->uuid('IdTask')->index();
+                $table->uuid('IdPengguna')->nullable();
+                $table->text('Komentar');
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+
+                $table->foreign('IdTask')->references('Id')->on('TTask')->cascadeOnDelete();
+                $table->foreign('IdPengguna')->references('Id')->on('MPengguna')->nullOnDelete();
+            });
+        }
+
+        if (! Schema::hasTable('TTaskDLampiran')) {
+            Schema::create('TTaskDLampiran', function (Blueprint $table): void {
+                $table->uuid('Id')->primary();
+                $table->uuid('IdTask')->index();
+                $table->string('NamaFile', 255);
+                $table->string('PathFile', 500);
+                $table->string('MimeType', 100)->nullable();
+                $table->bigInteger('UkuranBytes')->nullable();
+                $table->timestamp('TglBuat')->useCurrent();
+                $table->uuid('DibuatOleh')->nullable();
+
+                $table->foreign('IdTask')->references('Id')->on('TTask')->cascadeOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() === 'sqlsrv') {
-            DB::unprepared('DROP TABLE IF EXISTS TTaskDLampiran, TTaskDKomentar, TTaskDChecklist, TTaskDPenugasan, TTask, MStatusTask;');
-        }
+        Schema::dropIfExists('TTaskDLampiran');
+        Schema::dropIfExists('TTaskDKomentar');
+        Schema::dropIfExists('TTaskDChecklist');
+        Schema::dropIfExists('TTaskDPenugasan');
+        Schema::dropIfExists('TTask');
+        Schema::dropIfExists('MStatusTask');
     }
 };

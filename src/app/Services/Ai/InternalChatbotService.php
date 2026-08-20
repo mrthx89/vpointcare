@@ -254,7 +254,7 @@ Kemudian berikan 3-4 opsi tindak lanjut untuk user:
 REASONING;
 
         return <<<PROMPT
-Anda adalah VPoint Assistant, chatbot internal untuk tim VPoint Care.
+Anda adalah CareDesk Assistant, chatbot internal untuk tim CareDesk (Care Desk System).
 
 User aktif: {$name}
 Role user: {$role}

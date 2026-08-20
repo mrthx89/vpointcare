@@ -7,34 +7,59 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
-            throw new RuntimeException('The VPoint Care schema migration requires the sqlsrv database connection.');
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            $schemaPath = base_path('DATABASE_SCHEMA_POSTGRESQL.sql');
+
+            if (! file_exists($schemaPath)) {
+                $schemaPath = base_path('script/DATABASE_SCHEMA_POSTGRESQL.sql');
+            }
+
+            if (! file_exists($schemaPath)) {
+                throw new RuntimeException("PostgreSQL schema file not found: {$schemaPath}");
+            }
+
+            $sql = file_get_contents($schemaPath);
+            DB::unprepared($sql);
+            return;
         }
 
-        $schemaPath = base_path('DATABASE_SCHEMA_WACS.sql');
+        if ($driver === 'sqlsrv') {
+            $schemaPath = base_path('DATABASE_SCHEMA_WACS.sql');
 
-        if (! file_exists($schemaPath)) {
-            throw new RuntimeException("Schema file not found: {$schemaPath}");
+            if (! file_exists($schemaPath)) {
+                $schemaPath = base_path('script/DATABASE_SCHEMA_WACS.sql');
+            }
+
+            if (! file_exists($schemaPath)) {
+                throw new RuntimeException("SQL Server schema file not found: {$schemaPath}");
+            }
+
+            $sql = file_get_contents($schemaPath);
+
+            foreach ($this->splitSqlServerBatches($sql) as $batch) {
+                DB::unprepared($batch);
+            }
+            return;
         }
 
-        $sql = file_get_contents($schemaPath);
-
-        foreach ($this->splitSqlServerBatches($sql) as $batch) {
-            DB::unprepared($batch);
-        }
+        throw new RuntimeException("Unsupported database driver: {$driver}. Supported drivers are pgsql and sqlsrv.");
     }
 
     public function down(): void
     {
-        if (DB::getDriverName() !== 'sqlsrv') {
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            foreach ($this->tablesInDropOrder() as $table) {
+                DB::unprepared("DROP TABLE IF EXISTS \"{$table}\" CASCADE;");
+            }
             return;
         }
 
         foreach ($this->tablesInDropOrder() as $table) {
-            DB::unprepared("
-                IF OBJECT_ID(N'{$table}', 'U') IS NOT NULL
-                    DROP TABLE {$table}
-            ");
+            Schema::dropIfExists($table);
         }
     }
 

@@ -1,10 +1,10 @@
-﻿# VPoint Care / WACS
+# CareDesk / Care Desk System
 
-VPoint Care (WACS - WhatsApp Customer Service) adalah aplikasi customer-service berbasis Laravel untuk mengelola percakapan WhatsApp, respons agent, auto-reply AI, ticketing, data master customer, dan integrasi WAHA. Aplikasi ini menggunakan panel admin Filament, SQL Server sebagai database utama, Laravel Reverb untuk realtime event, queue worker untuk pekerjaan background, serta Vite/Tailwind untuk asset frontend.
+**CareDesk** (**Care Desk System**) adalah aplikasi customer-service terpadu berbasis Laravel untuk mengelola percakapan WhatsApp, respons agent, auto-reply AI, ticketing, data master customer, dan integrasi WAHA. Dibuat oleh **[YHDev](https://yhdev.click)**. Aplikasi ini menggunakan panel admin Filament, PostgreSQL sebagai database utama (siap SaaS), Laravel Reverb untuk realtime event, queue worker untuk pekerjaan background, serta Vite/Tailwind untuk asset frontend.
 
 ## Ringkasan Aplikasi
 
-Aplikasi ini dibuat untuk membantu tim customer service VPoint menangani komunikasi pelanggan melalui WhatsApp secara terpusat. Pesan masuk diterima dari webhook WAHA, dinormalisasi ke tabel chat internal, ditampilkan pada inbox admin, lalu dapat dibalas manual oleh agent atau diproses oleh auto-reply AI sesuai pengaturan.
+Aplikasi ini dibuat untuk membantu tim customer service menangani komunikasi pelanggan melalui WhatsApp secara terpusat. Pesan masuk diterima dari webhook WAHA, dinormalisasi ke tabel chat internal, ditampilkan pada inbox admin, lalu dapat dibalas manual oleh agent atau diproses oleh auto-reply AI sesuai pengaturan.
 
 Fokus utama aplikasi:
 
@@ -24,9 +24,9 @@ Fokus utama aplikasi:
 | --- | --- |
 | Backend | PHP 8.3+, Laravel 13 |
 | Admin panel | Filament 5 |
-| Database | Microsoft SQL Server (`sqlsrv`) |
+| Database | PostgreSQL 16+ (`pgsql` - Open Source, Free for SaaS) |
 | Realtime | Laravel Reverb, Laravel Echo, Pusher protocol |
-| Queue | Laravel database queue |
+| Queue | Laravel database / redis queue |
 | Frontend build | Node.js, npm, Vite 8, Tailwind CSS 4 |
 | WhatsApp gateway | WAHA |
 | AI provider | OpenAI Responses API, DeepSeek Chat Completions, OpenRouter/9Router Chat Completions |
@@ -40,7 +40,7 @@ Fokus utama aplikasi:
 ├── docs/                      # Dokumentasi tambahan proyek
 ├── openspec/                  # Spesifikasi kebutuhan dan kemampuan aplikasi
 ├── res/                       # Resource pendukung repository
-└── src/                       # Source code Laravel VPoint Care
+└── src/                       # Source code Laravel CareDesk
     ├── app/                   # Controller, Filament page/resource, service, model, job, command
     ├── config/                # Konfigurasi Laravel, service, Reverb, database
     ├── database/              # Migration dan seeder
@@ -129,8 +129,8 @@ Install komponen berikut di komputer development:
 - PHP 8.3 atau lebih baru.
 - Composer 2.
 - Node.js dan npm versi aktif/LTS.
-- Microsoft SQL Server.
-- PHP extension SQL Server: `sqlsrv` dan `pdo_sqlsrv`.
+- PostgreSQL 14+ / 16+ (atau Docker container PostgreSQL).
+- PHP extension database: `pdo_pgsql`, `pgsql`, `pdo_mysql`.
 - PHP extension umum Laravel: `openssl`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `curl`, `fileinfo`, `zip`, `intl`.
 - WAHA server/container jika ingin menguji webhook dan kirim WhatsApp.
 - Git.
@@ -138,8 +138,7 @@ Install komponen berikut di komputer development:
 Contoh stack lokal yang cocok di Windows:
 
 - Laragon atau PHP manual untuk web server lokal.
-- SQL Server Developer/Express.
-- ODBC Driver for SQL Server.
+- PostgreSQL 16 / Docker PostgreSQL container.
 - WAHA berjalan di `http://127.0.0.1:3000`.
 
 ## Instalasi Development
@@ -157,19 +156,19 @@ php artisan key:generate
 Edit `.env` sesuai environment lokal:
 
 ```env
-APP_NAME="VPoint Care"
+APP_NAME="CareDesk"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://127.0.0.1:8008
 APP_SERVE_HOST=127.0.0.1
 APP_SERVE_PORT=8008
 
-DB_CONNECTION=sqlsrv
-DB_HOST=localhost
-DB_PORT=1433
-DB_DATABASE=DBVPointCare
-DB_USERNAME=sa
-DB_PASSWORD=your_password
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=caredesk
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
 
 QUEUE_CONNECTION=database
 SESSION_DRIVER=database
@@ -370,7 +369,7 @@ Untuk update aplikasi existing, jangan generate ulang `APP_KEY` karena dapat mer
 Contoh `.env` production:
 
 ```env
-APP_NAME="VPoint Care"
+APP_NAME="CareDesk"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://care.example.com

@@ -13,7 +13,7 @@ Artisan::command('serve:vpoint', function () {
     $host = env('APP_SERVE_HOST', '127.0.0.1');
     $port = env('APP_SERVE_PORT', '8008');
 
-    $this->info("Starting VPoint Care at http://{$host}:{$port}/admin");
+    $this->info("Starting CareDesk at http://{$host}:{$port}/admin");
 
     $process = new Process([
         PHP_BINARY,
@@ -29,7 +29,7 @@ Artisan::command('serve:vpoint', function () {
     });
 
     return $process->getExitCode() ?? 0;
-})->purpose('Serve VPoint Care using APP_SERVE_HOST and APP_SERVE_PORT from .env');
+})->purpose('Serve CareDesk using APP_SERVE_HOST and APP_SERVE_PORT from .env');
 
 use Illuminate\Support\Facades\Schema;
 use App\Models\JobSchedule;

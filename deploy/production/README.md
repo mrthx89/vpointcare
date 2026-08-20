@@ -1,9 +1,9 @@
-# Deployment Production VPoint Care (WACS) dengan Docker Compose
+# Deployment Production CareDesk (Care Desk System) dengan Docker Compose
 
-Dokumen ini menjelaskan tata cara pengoperasian stack deployment production VPoint Care secara terisolasi menggunakan Docker Compose. Stack ini mengintegrasikan seluruh dependency utama dalam satu lingkungan terkontrol:
-- **WACS Web & App (Laravel 13 & PHP-FPM 8.5)**
+Dokumen ini menjelaskan tata cara pengoperasian stack deployment production CareDesk secara terisolasi menggunakan Docker Compose. Stack ini mengintegrasikan seluruh dependency utama dalam satu lingkungan terkontrol:
+- **CareDesk Web & App (Laravel 13 & PHP-FPM 8.5)**
 - **Nginx Web Server**
-- **Microsoft SQL Server Express 2022**
+- **PostgreSQL 16 Database (Open Source, Free)**
 - **WAHA WhatsApp Gateway (Publik)**
 - **Redis (Cache, Session, Queue, Broadcast)**
 - **Queue Workers (Webhooks, AI, Broadcasts)**
@@ -35,7 +35,7 @@ Gunakan script deployment otomatis dari mesin lokal (Windows atau Linux/macOS) u
    ./deploy-to-vps.sh "IP_VPS_ANDA" "root"
    ```
 
-*Catatan Keamanan: Script tidak pernah menyimpan password root/SSH di local storage atau git. Jika file `.env.production` di VPS belum ada, remote orchestrator akan menggenerate credentials dan password acak yang kuat untuk SQL Server, Redis, WAHA, dan Reverb secara aman.*
+*Catatan Keamanan: Script tidak pernah menyimpan password root/SSH di local storage atau git. Jika file `.env.production` di VPS belum ada, remote orchestrator akan menggenerate credentials dan password acak yang kuat untuk PostgreSQL, Redis, WAHA, dan Reverb secara aman.*
 
 ---
 
