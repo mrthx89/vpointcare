@@ -456,25 +456,25 @@ $this->dispatch('inbox-refreshed');
                 'c.NomorWhatsapp',
                 'c.NamaKontak',
                 'c.NamaGrupWhatsapp',
-                Schema::hasColumn('TChat', 'GroupName') ? 'c.GroupName' : DB::raw('NULL as GroupName'),
-                $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as IdWahaTerdeteksi'),
-                $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as NomorWhatsappTerdeteksi'),
-                $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as UrlFotoProfil'),
-                $hasWahaProfileColumns ? 'c.TglFotoProfilDiambil' : DB::raw('NULL as TglFotoProfilDiambil'),
+                Schema::hasColumn('TChat', 'GroupName') ? 'c.GroupName' : DB::raw('NULL as "GroupName"'),
+                $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as "IdWahaTerdeteksi"'),
+                $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as "NomorWhatsappTerdeteksi"'),
+                $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as "UrlFotoProfil"'),
+                $hasWahaProfileColumns ? 'c.TglFotoProfilDiambil' : DB::raw('NULL as "TglFotoProfilDiambil"'),
                 'c.JumlahPesanBelumDibaca',
                 'c.TglChatTerakhir',
                 'c.AutoReplyAiAktif',
                 'c.AiSudahMenyapa',
                 'c.TglAutoReplyAiTerakhir',
-                $hasKnowledgeMode ? 'c.ModeKnowledgeAi' : DB::raw("'Ringan' as ModeKnowledgeAi"),
-                Schema::hasColumn('TChat', 'BatasKnowledgeAi') ? 'c.BatasKnowledgeAi' : DB::raw('NULL as BatasKnowledgeAi'),
-                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
+                $hasKnowledgeMode ? 'c.ModeKnowledgeAi' : DB::raw("'Ringan' as \"ModeKnowledgeAi\""),
+                Schema::hasColumn('TChat', 'BatasKnowledgeAi') ? 'c.BatasKnowledgeAi' : DB::raw('NULL as "BatasKnowledgeAi"'),
+                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as "DiambilOleh"'),
                 'i.NamaInstansi',
                 'gi.NamaInstansi as NamaInstansiGrup',
                 'm.NamaCustomer',
                 'n.NamaKontak as NamaKontakMaster',
                 'n.NomorWhatsapp as NomorWhatsappMaster',
-                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as NomorIdWaha'),
+                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as "NomorIdWaha"'),
                 'g.NamaGrup as NamaGrupMaster',
                 'g.IdGrupWaha',
                 'g.NomorGrupWhatsapp',
@@ -541,9 +541,9 @@ $this->dispatch('inbox-refreshed');
                 ->whereIn('d.IdChat', $chatIds)
                 ->select(
                     'd.IdChat', 'd.IsiPesan', 'd.JenisPesan', 'd.UrlMedia', 'd.PayloadJson',
-                    $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as TipeMime'),
-                    $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
-                    DB::raw('ROW_NUMBER() OVER (PARTITION BY d.IdChat ORDER BY d.TglPesan DESC, d.Id DESC) AS row_number')
+                    $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as "TipeMime"'),
+                    $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as "NamaFileMedia"'),
+                    DB::raw('ROW_NUMBER() OVER (PARTITION BY d."IdChat" ORDER BY d."TglPesan" DESC, d."Id" DESC) AS row_number')
                 );
 
             $latestMessages = DB::query()
@@ -835,8 +835,8 @@ $this->dispatch('inbox-refreshed');
                 'd.IsiPesan',
                 'd.UrlMedia',
                 'd.PayloadJson',
-                $chatDetailHasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
-                $chatDetailHasMimeType ? 'TipeMime' : DB::raw('NULL as TipeMime'),
+                $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as "NamaFileMedia"'),
+                $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as "TipeMime"'),
                 'd.PengirimNomorWhatsapp',
                 'd.PengirimNamaKontak',
                 'd.TglPesan',
@@ -845,7 +845,7 @@ $this->dispatch('inbox-refreshed');
                 'd.DihasilkanOlehAi',
                 'd.DibalasOleh',
                 'p.NamaPengguna as NamaPembalas',
-                $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as FotoProfilPembalasPath')
+                $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as "FotoProfilPembalasPath"')
             )
             ->get()
             ->map(fn (object $row): array => $this->mapMessageRow($row))
@@ -903,11 +903,11 @@ $this->dispatch('inbox-refreshed');
             ->limit(self::MESSAGE_PAGE_SIZE + 1)
             ->select(
                 'd.Id', 'd.ArahPesan', 'd.JenisPesan', 'd.IsiPesan', 'd.UrlMedia', 'd.PayloadJson',
-                $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
-                $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as TipeMime'),
+                $chatDetailHasFileName ? 'd.NamaFileMedia' : DB::raw('NULL as "NamaFileMedia"'),
+                $chatDetailHasMimeType ? 'd.TipeMime' : DB::raw('NULL as "TipeMime"'),
                 'd.PengirimNomorWhatsapp', 'd.PengirimNamaKontak', 'd.TglPesan', 'd.StatusKirim',
                 'd.PesanError', 'd.DihasilkanOlehAi', 'p.NamaPengguna as NamaPembalas',
-                $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as FotoProfilPembalasPath')
+                $penggunaHasFotoProfil ? 'p.FotoProfilPath as FotoProfilPembalasPath' : DB::raw('NULL as "FotoProfilPembalasPath"')
             )
             ->get();
 
@@ -1615,13 +1615,13 @@ $this->dispatch('inbox-refreshed');
                 'm.NamaCustomer',
                 'n.NamaKontak as NamaKontakMaster',
                 'n.NomorWhatsapp as NomorWhatsappMaster',
-                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as NomorIdWaha'),
-                $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as IdWahaTerdeteksi'),
-                $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as NomorWhatsappTerdeteksi'),
-                $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as UrlFotoProfil'),
-                $hasWahaProfileColumns ? 'c.TglFotoProfilDiambil' : DB::raw('NULL as TglFotoProfilDiambil'),
-                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as DiambilOleh'),
-                DB::raw('NULL as NamaDiambilOleh'),
+                $nomorHasIdWaha ? 'n.IdWaha as NomorIdWaha' : DB::raw('NULL as "NomorIdWaha"'),
+                $hasWahaProfileColumns ? 'c.IdWahaTerdeteksi' : DB::raw('NULL as "IdWahaTerdeteksi"'),
+                $hasWahaProfileColumns ? 'c.NomorWhatsappTerdeteksi' : DB::raw('NULL as "NomorWhatsappTerdeteksi"'),
+                $hasWahaProfileColumns ? 'c.UrlFotoProfil' : DB::raw('NULL as "UrlFotoProfil"'),
+                $hasWahaProfileColumns ? 'c.TglFotoProfilDiambil' : DB::raw('NULL as "TglFotoProfilDiambil"'),
+                $hasDiambilOleh ? 'c.DiambilOleh' : DB::raw('NULL as "DiambilOleh"'),
+                DB::raw('NULL as "NamaDiambilOleh"'),
                 'g.NamaGrup as NamaGrupMaster',
                 'g.IdGrupWaha',
                 'g.NomorGrupWhatsapp',

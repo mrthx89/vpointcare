@@ -285,13 +285,13 @@ class Dashboard extends BaseDashboard
     private function unansweredChats(Carbon $start, Carbon $end): int
     {
         $latestIncoming = DB::table('TChatD')
-            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
+            ->select('IdChat', DB::raw('MAX("TglPesan") as "TglPesanTerakhirMasuk"'))
             ->where('ArahPesan', 'Masuk')
             ->whereBetween('TglPesan', [$start, $end])
             ->groupBy('IdChat');
 
         $latestCsReply = DB::table('TChatD')
-            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
+            ->select('IdChat', DB::raw('MAX("TglPesan") as "TglPesanTerakhirCs"'))
             ->where('ArahPesan', 'Keluar')
             ->where(function ($query): void {
                 $query->whereNull('DihasilkanOlehAi')
@@ -320,7 +320,7 @@ class Dashboard extends BaseDashboard
     private function averageResponseMinutes(Carbon $start, Carbon $end): ?float
     {
         $firstIncoming = DB::table('TChatD')
-            ->select('IdChat', DB::raw('MIN(TglPesan) as TglMasuk'))
+            ->select('IdChat', DB::raw('MIN("TglPesan") as "TglMasuk"'))
             ->where('ArahPesan', 'Masuk')
             ->whereBetween('TglPesan', [$start, $end])
             ->groupBy('IdChat');
@@ -448,7 +448,7 @@ class Dashboard extends BaseDashboard
             ->select(
                 'i.NamaInstansi',
                 DB::raw('COUNT(*) as JumlahPesan'),
-                DB::raw('COUNT(DISTINCT d.IdChat) as JumlahChat')
+                DB::raw('COUNT(DISTINCT d."IdChat") as JumlahChat')
             )
             ->groupBy('i.NamaInstansi')
             ->orderByDesc('JumlahPesan')

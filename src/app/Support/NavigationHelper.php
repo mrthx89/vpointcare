@@ -127,11 +127,11 @@ class NavigationHelper
                         'h.SortOrder',
                         'h.IconString',
                         'h.NonAktif',
-                        DB::raw('p.Id as GroupId'),
-                        DB::raw("h.{$columns['label']} as LabelMenu"),
-                        DB::raw("p.{$columns['label']} as LabelGroup"),
-                        DB::raw('p.SortOrder as SortGroup'),
-                        DB::raw('p.NonAktif as GroupNonAktif'),
+                        'p.Id as GroupId',
+                        "h.{$columns['label']} as LabelMenu",
+                        "p.{$columns['label']} as LabelGroup",
+                        'p.SortOrder as SortGroup',
+                        'p.NonAktif as GroupNonAktif',
                     ])
                     ->get();
 

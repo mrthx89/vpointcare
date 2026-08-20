@@ -125,7 +125,7 @@ class WahaWebhookProcessor
 
                 DB::table('TChat')->where('Id', $chatId)->update([
                     'TglChatTerakhir' => $parsed['tgl_pesan'],
-                    'JumlahPesanBelumDibaca' => DB::raw($parsed['from_me'] ? 'JumlahPesanBelumDibaca' : 'JumlahPesanBelumDibaca + 1'),
+                    'JumlahPesanBelumDibaca' => DB::raw($parsed['from_me'] ? '"JumlahPesanBelumDibaca"' : '"JumlahPesanBelumDibaca" + 1'),
                     'TglEdit' => now(),
                 ]);
 

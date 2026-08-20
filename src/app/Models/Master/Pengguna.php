@@ -98,10 +98,12 @@ class Pengguna extends Authenticatable implements FilamentUser, HasAvatar
 
     public function canAccessPanel(Panel $panel): bool
     {
+        $statusRegistrasi = strtolower((string) ($this->getRawOriginal('StatusRegistrasi') ?: self::REGISTRATION_APPROVED));
+
         return ! (bool) $this->getRawOriginal('NonAktif')
             && filled($this->getRawOriginal('IdPeran'))
             && $this->roleCode() !== null
-            && (($this->getRawOriginal('StatusRegistrasi') ?: self::REGISTRATION_APPROVED) === self::REGISTRATION_APPROVED);
+            && in_array($statusRegistrasi, ['active', 'approved', self::REGISTRATION_APPROVED, self::STATUS_ACTIVE], true);
     }
 
     public function externalIdentities(): HasMany

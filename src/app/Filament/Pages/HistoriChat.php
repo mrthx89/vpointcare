@@ -191,12 +191,12 @@ class HistoriChat extends Page implements HasTable
                 'c.NomorWhatsapp',
                 'c.JumlahPesanBelumDibaca',
                 'c.TglChatTerakhir',
-                DB::raw('COALESCE(n.NamaKontak, g.NamaGrup, c.NamaKontak, c.NamaGrupWhatsapp, c.NomorWhatsapp) as NamaKontakDisplay'),
-                DB::raw('COALESCE(g.NomorGrupWhatsapp, g.IdGrupWaha, c.NomorWhatsapp) as NomorWhatsappDisplay'),
-                DB::raw('COALESCE(i.NamaInstansi, gi.NamaInstansi) as NamaInstansiDisplay'),
-                DB::raw('COALESCE(cu.NamaCustomer, \'\') as NamaCustomer'),
-                DB::raw('COALESCE(s.NamaStatusChat, \'\') as NamaStatusChat'),
-                DB::raw('COALESCE(pd.NamaPengguna, \'\') as NamaCS'),
+                DB::raw('COALESCE(n."NamaKontak", g."NamaGrup", c."NamaKontak", c."NamaGrupWhatsapp", c."NomorWhatsapp") as "NamaKontakDisplay"'),
+                DB::raw('COALESCE(g."NomorGrupWhatsapp", g."IdGrupWaha", c."NomorWhatsapp") as "NomorWhatsappDisplay"'),
+                DB::raw('COALESCE(i."NamaInstansi", gi."NamaInstansi") as "NamaInstansiDisplay"'),
+                DB::raw('COALESCE(cu."NamaCustomer", \'\') as "NamaCustomer"'),
+                DB::raw('COALESCE(s."NamaStatusChat", \'\') as "NamaStatusChat"'),
+                DB::raw('COALESCE(pd."NamaPengguna", \'\') as "NamaCS"'),
             ])
             ->selectSub(
                 DB::table('TChatD as d')

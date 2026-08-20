@@ -316,7 +316,8 @@ class ExternalAuthService
 
     private function assertApprovedUser(Pengguna $user): void
     {
-        if ((bool) $user->NonAktif || ! filled($user->IdPeran) || ! $user->roleCode() || (($user->StatusRegistrasi ?? 'approved') !== 'approved')) {
+        $statusRegistrasi = strtolower((string) ($user->StatusRegistrasi ?? Pengguna::REGISTRATION_APPROVED));
+        if ((bool) $user->NonAktif || ! filled($user->IdPeran) || ! $user->roleCode() || ! in_array($statusRegistrasi, ['active', 'approved', Pengguna::REGISTRATION_APPROVED, Pengguna::STATUS_ACTIVE], true)) {
             throw new RuntimeException(__('ui.auth.external_not_approved'));
         }
     }

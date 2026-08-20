@@ -90,7 +90,7 @@ class RefreshWahaGroupMetadataJob implements ShouldQueue
                         $w->orWhereIn('IdGrupWhatsapp', $masterIds);
                     }
                 });
-            $rows = $q->select(['Id', 'NamaGrupWhatsapp', 'IdGrupWhatsapp', $hasGroupName ? 'GroupName' : DB::raw('NULL as GroupName')])->get();
+            $rows = $q->select(['Id', 'NamaGrupWhatsapp', 'IdGrupWhatsapp', $hasGroupName ? 'GroupName' : DB::raw('NULL as "GroupName"')])->get();
             $attempts[] = 'by_session_id:'.$rows->count();
         }
 
@@ -106,7 +106,7 @@ class RefreshWahaGroupMetadataJob implements ShouldQueue
                         $w->orWhereIn('c.IdGrupWhatsapp', $masterIds);
                     }
                 });
-            $rows = $q2->select(['c.Id', 'c.NamaGrupWhatsapp', 'c.IdGrupWhatsapp', $hasGroupName ? 'c.GroupName' : DB::raw('NULL as GroupName')])->get();
+            $rows = $q2->select(['c.Id', 'c.NamaGrupWhatsapp', 'c.IdGrupWhatsapp', $hasGroupName ? 'c.GroupName' : DB::raw('NULL as "GroupName"')])->get();
             $attempts[] = 'by_session_code:'.$rows->count();
         }
 
@@ -120,7 +120,7 @@ class RefreshWahaGroupMetadataJob implements ShouldQueue
                         $w->orWhereIn('IdGrupWhatsapp', $masterIds);
                     }
                 });
-            $rows = $q3->select(['Id', 'NamaGrupWhatsapp', 'IdGrupWhatsapp', $hasGroupName ? 'GroupName' : DB::raw('NULL as GroupName')])->get();
+            $rows = $q3->select(['Id', 'NamaGrupWhatsapp', 'IdGrupWhatsapp', $hasGroupName ? 'GroupName' : DB::raw('NULL as "GroupName"')])->get();
             $attempts[] = 'without_session:'.$rows->count();
         }
 

@@ -505,8 +505,8 @@ class AiAutoReplyService
                 'JudulPengetahuan',
                 'IsiPengetahuan',
                 'Tag',
-                SchemaCache::hasColumn('MPengetahuan', 'SearchKeywords') ? 'SearchKeywords' : DB::raw('NULL as SearchKeywords'),
-                SchemaCache::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : DB::raw('0 as PrioritasAi')
+                SchemaCache::hasColumn('MPengetahuan', 'SearchKeywords') ? 'SearchKeywords' : DB::raw('NULL as "SearchKeywords"'),
+                SchemaCache::hasColumn('MPengetahuan', 'PrioritasAi') ? 'PrioritasAi' : DB::raw('0 as "PrioritasAi"')
             );
 
         if ($mode !== 'AllKnowledge' && $tokens->isNotEmpty()) {
@@ -589,7 +589,7 @@ class AiAutoReplyService
         if ($used && SchemaCache::hasColumn('MPengetahuan', 'JumlahDipakaiAi')) {
             DB::table('MPengetahuan')->whereIn('Id', $used)->update([
                 'TerakhirDipakaiAi' => now(),
-                'JumlahDipakaiAi' => DB::raw('JumlahDipakaiAi + 1'),
+                'JumlahDipakaiAi' => DB::raw('"JumlahDipakaiAi" + 1'),
             ]);
         }
 

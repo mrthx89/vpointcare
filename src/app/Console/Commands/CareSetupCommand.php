@@ -137,6 +137,7 @@ class CareSetupCommand extends Command
                 'NamaPengguna' => $adminName,
                 'Password' => Hash::make($adminPassword),
                 'NonAktif' => false,
+                'StatusRegistrasi' => Pengguna::REGISTRATION_APPROVED,
                 'EmailTerverifikasiPada' => now(),
                 'TglEdit' => now(),
             ]

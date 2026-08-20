@@ -63,7 +63,7 @@ class ChatBelumTerbalasNotifier
 
             DB::table('TChat')->where('Id', $chat->Id)->update([
                 'TglNotifikasiBelumTerbalasTerakhir' => now(),
-                'JumlahNotifikasiBelumTerbalas' => DB::raw('JumlahNotifikasiBelumTerbalas + 1'),
+                'JumlahNotifikasiBelumTerbalas' => DB::raw('"JumlahNotifikasiBelumTerbalas" + 1'),
                 'TglEdit' => now(),
             ]);
         }
@@ -153,13 +153,13 @@ class ChatBelumTerbalasNotifier
     private function unansweredChats(int $waitMinutes, int $cooldownMinutes)
     {
         $latestIncoming = DB::table('TChatD')
-            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirMasuk'))
+            ->select('IdChat', DB::raw('MAX("TglPesan") as "TglPesanTerakhirMasuk"'))
             ->where('ArahPesan', 'Masuk')
             ->where('DikirimOlehCustomer', true)
             ->groupBy('IdChat');
 
         $latestCsReply = DB::table('TChatD')
-            ->select('IdChat', DB::raw('MAX(TglPesan) as TglPesanTerakhirCs'))
+            ->select('IdChat', DB::raw('MAX("TglPesan") as "TglPesanTerakhirCs"'))
             ->where('ArahPesan', 'Keluar')
             ->where(function ($query): void {
                 $query->whereNull('DihasilkanOlehAi')

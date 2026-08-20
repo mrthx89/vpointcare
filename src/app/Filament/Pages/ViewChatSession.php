@@ -89,10 +89,10 @@ class ViewChatSession extends Page
                 'c.TglChatTerakhir',
                 'c.DiambilOleh',
                 's.NamaStatusChat',
-                DB::raw('COALESCE(n.NamaKontak, g.NamaGrup, c.NomorWhatsapp) as NamaKontak'),
-                DB::raw('COALESCE(cu.NamaCustomer, \'\') as NamaCustomer'),
-                DB::raw('COALESCE(i.NamaInstansi, \'\') as NamaInstansi'),
-                DB::raw('COALESCE(pd.NamaPengguna, \'\') as NamaCS'),
+                DB::raw('COALESCE(n."NamaKontak", g."NamaGrup", c."NomorWhatsapp") as "NamaKontak"'),
+                DB::raw('COALESCE(cu."NamaCustomer", \'\') as "NamaCustomer"'),
+                DB::raw('COALESCE(i."NamaInstansi", \'\') as "NamaInstansi"'),
+                DB::raw('COALESCE(pd."NamaPengguna", \'\') as "NamaCS"'),
             )
             ->first();
 
@@ -131,8 +131,8 @@ class ViewChatSession extends Page
                 'PengirimNamaKontak',
                 'TglPesan',
                 'StatusKirim',
-                $hasMime ? 'TipeMime' : DB::raw('NULL as TipeMime'),
-                $hasFileName ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
+                $hasMime ? 'TipeMime' : DB::raw('NULL as "TipeMime"'),
+                $hasFileName ? 'NamaFileMedia' : DB::raw('NULL as "NamaFileMedia"'),
             )
             ->get()
             ->map(fn(object $r) => [

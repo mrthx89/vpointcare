@@ -25,8 +25,8 @@ class WahaMediaController extends Controller
                 'UrlMedia',
                 'PayloadJson',
                 'JenisPesan',
-                Schema::hasColumn('TChatD', 'NamaFileMedia') ? 'NamaFileMedia' : DB::raw('NULL as NamaFileMedia'),
-                Schema::hasColumn('TChatD', 'TipeMime') ? 'TipeMime' : DB::raw('NULL as TipeMime'),
+                Schema::hasColumn('TChatD', 'NamaFileMedia') ? 'NamaFileMedia' : DB::raw('NULL as "NamaFileMedia"'),
+                Schema::hasColumn('TChatD', 'TipeMime') ? 'TipeMime' : DB::raw('NULL as "TipeMime"'),
             )
             ->first();
 
