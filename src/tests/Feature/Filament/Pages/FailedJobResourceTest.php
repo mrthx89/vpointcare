@@ -47,4 +47,50 @@ class FailedJobResourceTest extends TestCase
             array_map(fn ($action) => $action->getName(), $table->getToolbarActions()),
         );
     }
+
+    public function test_queue_monitor_translations_are_available_in_both_locales(): void
+    {
+        $originalLocale = app()->getLocale();
+
+        try {
+            foreach (['id', 'en'] as $locale) {
+                app()->setLocale($locale);
+
+                foreach ([
+                    'ui.queue_monitor.label',
+                    'ui.queue_monitor.plural',
+                    'ui.queue_monitor.subtitle',
+                    'ui.queue_monitor.id',
+                    'ui.queue_monitor.uuid',
+                    'ui.queue_monitor.connection',
+                    'ui.queue_monitor.queue',
+                    'ui.queue_monitor.payload',
+                    'ui.queue_monitor.exception',
+                    'ui.queue_monitor.failed_at',
+                    'ui.queue_monitor.retry',
+                    'ui.queue_monitor.retry_selected',
+                    'ui.queue_monitor.retry_all',
+                    'ui.queue_monitor.flush_all',
+                    'ui.queue_monitor.retry_success',
+                    'ui.queue_monitor.retry_failed',
+                    'ui.queue_monitor.retry_all_success',
+                    'ui.queue_monitor.flush_all_success',
+                    'ui.queue_monitor.empty_heading',
+                    'ui.queue_monitor.empty_description',
+                    'ui.queue_monitor.confirm_retry_heading',
+                    'ui.queue_monitor.confirm_retry_description',
+                    'ui.queue_monitor.confirm_retry_bulk_heading',
+                    'ui.queue_monitor.confirm_retry_bulk_description',
+                    'ui.queue_monitor.confirm_retry_all_heading',
+                    'ui.queue_monitor.confirm_retry_all_description',
+                    'ui.queue_monitor.confirm_flush_all_heading',
+                    'ui.queue_monitor.confirm_flush_all_description',
+                ] as $key) {
+                    $this->assertNotSame($key, __($key), "Translation key {$key} is missing in locale {$locale}");
+                }
+            }
+        } finally {
+            app()->setLocale($originalLocale);
+        }
+    }
 }

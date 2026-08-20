@@ -84,8 +84,12 @@ class FailedJobResource extends Resource
     {
         return $schema
             ->components([
+                TextInput::make('id')
+                    ->label(__('ui.queue_monitor.id')),
                 TextInput::make('uuid')
                     ->label(__('ui.queue_monitor.uuid')),
+                TextInput::make('connection')
+                    ->label(__('ui.queue_monitor.connection')),
                 TextInput::make('queue')
                     ->label(__('ui.queue_monitor.queue')),
                 TextInput::make('failed_at')
@@ -106,11 +110,16 @@ class FailedJobResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')
+                    ->label(__('ui.queue_monitor.id'))
                     ->sortable(),
                 TextColumn::make('queue')
                     ->label(__('ui.queue_monitor.queue'))
                     ->sortable()
                     ->badge(),
+                TextColumn::make('connection')
+                    ->label(__('ui.queue_monitor.connection'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('failed_at')
                     ->label(__('ui.queue_monitor.failed_at'))
                     ->dateTime()
@@ -121,12 +130,20 @@ class FailedJobResource extends Resource
                     ->tooltip(fn ($record) => $record->exception)
                     ->color('danger'),
             ])
+            ->emptyStateHeading(__('ui.queue_monitor.empty_heading'))
+            ->emptyStateDescription(__('ui.queue_monitor.empty_description'))
+            ->emptyStateIcon('heroicon-o-check-circle')
             ->actions([
                 ViewAction::make(),
                 Action::make('retry')
                     ->label(__('ui.queue_monitor.retry'))
                     ->icon('heroicon-o-arrow-path')
                     ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('ui.queue_monitor.confirm_retry_heading'))
+                    ->modalDescription(__('ui.queue_monitor.confirm_retry_description'))
+                    ->modalSubmitActionLabel(__('ui.queue_monitor.retry'))
+                    ->modalCancelActionLabel(__('ui.common.cancel'))
                     ->action(function (FailedJob $record) {
                         try {
                             Artisan::call('queue:retry', ['id' => [$record->uuid]]);
@@ -147,9 +164,14 @@ class FailedJobResource extends Resource
             ->bulkActions([
                 DeleteBulkAction::make(),
                 BulkAction::make('retry_bulk')
-                    ->label(__('ui.queue_monitor.retry'))
+                    ->label(__('ui.queue_monitor.retry_selected'))
                     ->icon('heroicon-o-arrow-path')
                     ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('ui.queue_monitor.confirm_retry_bulk_heading'))
+                    ->modalDescription(__('ui.queue_monitor.confirm_retry_bulk_description'))
+                    ->modalSubmitActionLabel(__('ui.queue_monitor.retry_selected'))
+                    ->modalCancelActionLabel(__('ui.common.cancel'))
                     ->action(function (Collection $records) {
                         $uuids = $records->pluck('uuid')->toArray();
                         try {
