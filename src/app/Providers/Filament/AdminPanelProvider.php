@@ -40,10 +40,10 @@ class AdminPanelProvider extends PanelProvider
             ->registration(Register::class)
             ->brandName(fn() => AppSettings::brandName())
             ->brandLogo(fn() => new HtmlString(
-                '<div class="vpoint-brand"><img src="' . e(AppSettings::logoPrimaryUrl()) . '" alt="' . e(AppSettings::brandName()) . '"><span>' . e(AppSettings::brandName()) . '</span></div>'
+                '<div class="desk-brand"><img src="' . e(AppSettings::logoPrimaryUrl()) . '" alt="' . e(AppSettings::brandName()) . '"><span>' . e(AppSettings::brandName()) . '</span></div>'
             ))
             ->darkModeBrandLogo(fn() => new HtmlString(
-                '<div class="vpoint-brand vpoint-brand-dark"><img src="' . e(AppSettings::logoDarkUrl()) . '" alt="' . e(AppSettings::brandName()) . '"><span>' . e(AppSettings::brandName()) . '</span></div>'
+                '<div class="desk-brand desk-brand-dark"><img src="' . e(AppSettings::logoDarkUrl()) . '" alt="' . e(AppSettings::brandName()) . '"><span>' . e(AppSettings::brandName()) . '</span></div>'
             ))
             ->brandLogoHeight('2.25rem')
             ->maxContentWidth(Width::Full)
@@ -128,7 +128,7 @@ HTML
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,
-                fn(): string => request()->is('admin/v-point-assistant')
+                fn(): string => request()->is('admin/desk-assistant')
                     ? ''
                     : '<div class="wacs-admin-footer">' . AppSettings::footerText() . '</div>'
             )

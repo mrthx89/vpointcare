@@ -18,11 +18,11 @@ use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
-class VPointAssistant extends Page
+class DeskAssistant extends Page
 {
     use WithFileUploads;
 
-    protected string $view = 'filament.pages.vpoint-assistant';
+    protected string $view = 'filament.pages.desk-assistant';
 
     public string $userMessage = '';
     public string $responseMode = 'fast';
@@ -174,8 +174,8 @@ class VPointAssistant extends Page
                 'IdChat' => null,
                 'JudulDraft' => $title ?: __('ui.chatbot.draft_default_title'),
                 'IsiDraft' => $content,
-                'TagDraft' => implode(', ', array_filter((array) ($message['knowledge'] ?? []))) ?: 'vpoint-assistant',
-                'KategoriDraft' => 'VPoint Assistant',
+                'TagDraft' => implode(', ', array_filter((array) ($message['knowledge'] ?? []))) ?: 'desk-assistant',
+                'KategoriDraft' => 'Desk Assistant',
                 'RingkasanSumber' => __('ui.chatbot.draft_source_summary'),
                 'CuplikanSumberDisanitasi' => Str::limit(strip_tags($content), 2000, ''),
                 'ConfidenceScore' => null,

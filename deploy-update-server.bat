@@ -3,13 +3,13 @@ chcp 65001 >nul 2>&1
 setlocal EnableExtensions
 
 REM ==========================================================
-REM VPoint Care Docker Update Script
+REM Desk Care Docker Update Script
 REM Jalankan dari Windows. Untuk tanpa prompt password, install PuTTY CLI: plink.exe dan pscp.exe
 REM Jika plink/pscp tidak ada, script fallback ke OpenSSH ssh/scp dan password login tetap diprompt oleh OpenSSH.
 REM Script ini tidak mengupload .env, vendor, node_modules, storage.
 REM Script ini sudah mendukung stack baru: Redis + queue-webhooks + queue-ai + queue-broadcasts
 REM Usage PuTTY tanpa prompt password: deploy-update-server.bat "PASSWORD_SUDO_DAN_SSH"
-REM Usage OpenSSH key: deploy-update-server.bat "PASSWORD_SUDO" "C:\Users\nama\.ssh\vpoint_it"
+REM Usage OpenSSH key: deploy-update-server.bat "PASSWORD_SUDO" "C:\Users\nama\.ssh\desk_it"
 REM ==========================================================
 
 set "REMOTE_USER=it"
@@ -155,14 +155,14 @@ if errorlevel 1 (
 
 echo.
 echo [7/7] Health check...
-%SSH_CMD% "cd %REMOTE_APP_DIR% && printf '%SUDO_PASS%\n' | sudo -S docker compose ps && printf '%SUDO_PASS%\n' | sudo -S docker compose exec -T app php artisan about && printf '%SUDO_PASS%\n' | sudo -S docker compose exec -T app php artisan route:list | grep -E 'external-auth|v-point-assistant|webhooks.waha' || true && printf '%SUDO_PASS%\n' | sudo -S docker compose exec -T app php -m | grep -i redis || true"
+%SSH_CMD% "cd %REMOTE_APP_DIR% && printf '%SUDO_PASS%\n' | sudo -S docker compose ps && printf '%SUDO_PASS%\n' | sudo -S docker compose exec -T app php artisan about && printf '%SUDO_PASS%\n' | sudo -S docker compose exec -T app php artisan route:list | grep -E 'external-auth|desk-assistant|webhooks.waha' || true && printf '%SUDO_PASS%\n' | sudo -S docker compose exec -T app php -m | grep -i redis || true"
 if errorlevel 1 (
     echo [WARN] Health check ada error. Cek log manual.
 )
 
 echo.
 echo [DONE] Deploy update selesai.
-echo Buka: https://care.vpoint.my.id/admin/login
+echo Buka: https://care.desk.my.id/admin/login
 echo Cek worker: docker compose ps queue-webhooks queue-ai queue-broadcasts redis
 echo Cek log: docker compose logs -f queue-webhooks queue-ai queue-broadcasts reverb
 echo Jika SVG masih cache lama, purge Cloudflare atau ganti nama file SVG.

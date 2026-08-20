@@ -71,7 +71,7 @@
                             @endif
 
                             @if ($message['role'] === 'assistant')
-                                <div class="vpoint-ai-markdown pr-8 leading-6">
+                                <div class="desk-ai-markdown pr-8 leading-6">
                                     {!! $this->renderMarkdown((string) $message['content']) !!}
                                 </div>
                             @else
@@ -222,7 +222,7 @@
 
     <style>
         [x-cloak]{display:none!important}
-        .vpoint-ai-markdown :where(h1,h2,h3){font-weight:700;margin:.65rem 0 .35rem}.vpoint-ai-markdown h1{font-size:1.15rem}.vpoint-ai-markdown h2{font-size:1.05rem}.vpoint-ai-markdown h3{font-size:1rem}.vpoint-ai-markdown p{margin:.45rem 0}.vpoint-ai-markdown ul,.vpoint-ai-markdown ol{margin:.45rem 0 .45rem 1.25rem}.vpoint-ai-markdown ul{list-style:disc}.vpoint-ai-markdown ol{list-style:decimal}.vpoint-ai-markdown code{border-radius:.35rem;background:rgba(148,163,184,.22);padding:.1rem .3rem;font-size:.86em}.vpoint-ai-markdown pre{margin:.7rem 0;overflow:auto;border-radius:.85rem;background:#020617;color:#e2e8f0;padding:1rem}.vpoint-ai-markdown pre code{background:transparent;padding:0;color:inherit}.vpoint-ai-markdown table{margin:.7rem 0;width:100%;border-collapse:collapse;font-size:.9em}.vpoint-ai-markdown th,.vpoint-ai-markdown td{border:1px solid rgba(148,163,184,.35);padding:.45rem}.vpoint-ai-markdown blockquote{border-left:3px solid rgba(99,102,241,.65);padding-left:.8rem;color:#64748b}
+        .desk-ai-markdown :where(h1,h2,h3){font-weight:700;margin:.65rem 0 .35rem}.desk-ai-markdown h1{font-size:1.15rem}.desk-ai-markdown h2{font-size:1.05rem}.desk-ai-markdown h3{font-size:1rem}.desk-ai-markdown p{margin:.45rem 0}.desk-ai-markdown ul,.desk-ai-markdown ol{margin:.45rem 0 .45rem 1.25rem}.desk-ai-markdown ul{list-style:disc}.desk-ai-markdown ol{list-style:decimal}.desk-ai-markdown code{border-radius:.35rem;background:rgba(148,163,184,.22);padding:.1rem .3rem;font-size:.86em}.desk-ai-markdown pre{margin:.7rem 0;overflow:auto;border-radius:.85rem;background:#020617;color:#e2e8f0;padding:1rem}.desk-ai-markdown pre code{background:transparent;padding:0;color:inherit}.desk-ai-markdown table{margin:.7rem 0;width:100%;border-collapse:collapse;font-size:.9em}.desk-ai-markdown th,.desk-ai-markdown td{border:1px solid rgba(148,163,184,.35);padding:.45rem}.desk-ai-markdown blockquote{border-left:3px solid rgba(99,102,241,.65);padding-left:.8rem;color:#64748b}
 
     </style>
 </x-filament-panels::page>

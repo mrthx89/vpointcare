@@ -110,7 +110,7 @@ h6,
 .fi-widget-heading,
 .fi-page-header-title,
 .fi-table-header-cell,
-.vpoint-brand span,
+.desk-brand span,
 .fi-sidebar-brand-name,
 .font-semibold.text-base,
 .font-semibold.text-xl,
@@ -501,20 +501,20 @@ a.fi-breadcrumbs-item-label:hover {
     font-weight: 600 !important;
 }
 
-.vpoint-brand {
+.desk-brand {
     display: inline-flex;
     align-items: center;
     gap: 0.625rem;
     min-width: 0;
 }
 
-.vpoint-brand img {
+.desk-brand img {
     height: 2.125rem;
     width: 2.125rem;
     flex: none;
 }
 
-.vpoint-brand span {
+.desk-brand span {
     overflow: hidden;
     color: var(--md-sys-color-on-surface);
     font-size: 1.25rem;
@@ -524,8 +524,8 @@ a.fi-breadcrumbs-item-label:hover {
     white-space: nowrap;
 }
 
-.dark .vpoint-brand span,
-.vpoint-brand-dark span {
+.dark .desk-brand span,
+.desk-brand-dark span {
     color: #ffffff;
 }
 

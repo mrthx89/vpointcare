@@ -211,14 +211,14 @@ class DatabaseSeeder extends Seeder
         $jobs = [
             [
                 'name' => 'Notifikasi Chat Belum Terbalas',
-                'command' => 'vpoint:kirim-notifikasi-chat-belum-terbalas',
+                'command' => 'desk:kirim-notifikasi-chat-belum-terbalas',
                 'cron_expression' => 'everyMinute',
                 'is_active' => true,
                 'description' => 'Kirim notifikasi internal untuk chat customer yang belum terbalas.',
             ],
             [
                 'name' => 'Import Instansi VToken',
-                'command' => 'vpoint:import-instansi-vtoken',
+                'command' => 'desk:import-instansi-vtoken',
                 'cron_expression' => 'everyFiveMinutes',
                 'is_active' => false,
                 'description' => 'Sinkronisasi customer VToken ke MInstansi (mode queue).',

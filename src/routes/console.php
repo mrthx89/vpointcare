@@ -9,7 +9,7 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Artisan::command('serve:vpoint', function () {
+Artisan::command('serve:desk', function () {
     $host = env('APP_SERVE_HOST', '127.0.0.1');
     $port = env('APP_SERVE_PORT', '8008');
 

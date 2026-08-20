@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class KirimNotifikasiChatBelumTerbalas extends Command
 {
-    protected $signature = 'vpoint:kirim-notifikasi-chat-belum-terbalas';
+    protected $signature = 'desk:kirim-notifikasi-chat-belum-terbalas';
 
     protected $description = 'Kirim notifikasi WhatsApp ke user internal untuk chat customer yang belum terbalas.';
 

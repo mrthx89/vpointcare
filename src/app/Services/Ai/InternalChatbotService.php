@@ -55,7 +55,7 @@ class InternalChatbotService
         try {
             $reply = $this->callProvider($settings, $messages, $mode);
         } catch (Throwable $exception) {
-            Log::warning('VPoint Assistant AI provider failed.', [
+            Log::warning('Desk Assistant AI provider failed.', [
                 'provider' => (string) ($settings->ProviderAi ?? ''),
                 'model' => (string) ($settings->ModelAi ?? ''),
                 'error' => $this->safeError($exception->getMessage()),
