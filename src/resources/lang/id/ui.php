@@ -14,13 +14,6 @@ return [
             'ai_failed' => 'AI auto reply gagal, webhook tetap diterima.',
         ],
     ],
-    'jobs' => [
-        'import_vtoken' => [
-            'url_not_configured' => 'URL import customer VToken belum dikonfigurasi.',
-            'fetch_failed' => 'Gagal mengambil data customer VToken. HTTP :status',
-            'invalid_format' => 'Format response customer VToken tidak sesuai.',
-        ],
-    ],
     'seo' => [
         'title' => 'CareDesk',
         'description' => 'Sistem Informasi Manajemen Terpadu Care Desk System untuk mengelola layanan WhatsApp, AI Agent, ticketing, dan monitoring operasional customer service.',

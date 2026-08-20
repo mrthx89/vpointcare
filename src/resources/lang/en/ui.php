@@ -14,13 +14,6 @@ return [
             'ai_failed' => 'AI auto reply failed, webhook still accepted.',
         ],
     ],
-    'jobs' => [
-        'import_vtoken' => [
-            'url_not_configured' => 'VToken customer import URL is not configured.',
-            'fetch_failed' => 'Failed to fetch VToken customer data. HTTP :status',
-            'invalid_format' => 'VToken customer response format is invalid.',
-        ],
-    ],
     'seo' => [
         'title' => 'CareDesk',
         'description' => 'Care Desk System integrated service management system for WhatsApp support, AI Agent automation, ticketing, and customer service operations monitoring.',

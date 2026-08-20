@@ -13,7 +13,11 @@ class AppSettings
 
     public static function all(): ?object
     {
-        if (! Schema::hasTable('MPengaturanAplikasi')) {
+        try {
+            if (! Schema::hasTable('MPengaturanAplikasi')) {
+                return null;
+            }
+        } catch (\Throwable) {
             return null;
         }
 
