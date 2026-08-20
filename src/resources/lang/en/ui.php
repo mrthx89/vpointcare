@@ -451,7 +451,7 @@ return [
         'reject' => 'Reject',
         'approve_pending_user_desc' => 'Approve this user so they can log in after a role is assigned.',
         'reject_pending_user_desc' => 'Reject this registration. The user will remain unable to access the panel.',
-
+        'never' => 'Never',
     ],
 
     'waha' => [
@@ -645,6 +645,16 @@ return [
             'authenticated_success_body' => 'Device with number +:number is active and ready to use.',
             'auto_configured' => 'Auto-Configured',
             'qr_alt' => 'WhatsApp QR Code',
+            'api_key_encrypted_badge' => 'Stored Securely in Server Environment',
+            'copy_number' => 'Copy Number',
+            'copy_url' => 'Copy Endpoint URL',
+            'copy_pairing_code' => 'Copy Pairing Code',
+            'copied' => 'Copied!',
+            'active_session_badge' => 'Active Session',
+            'inactive_session_badge' => 'Inactive Session',
+            'gateway_connected_pill' => 'Gateway Connected',
+            'gateway_latency_pill' => 'Latency',
+            'gateway_offline_pill' => 'Gateway Offline',
         ],
         'ai_agent' => [
         'refine_whatsapp_replies' => 'Refine WhatsApp Replies by Default',

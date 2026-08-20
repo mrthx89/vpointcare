@@ -182,6 +182,7 @@ class WahaConnectionCenterTest extends TestCase
                 foreach ([
                     'ui.common.loading',
                     'ui.common.refreshing',
+                    'ui.common.never',
                     'ui.pages.waha_connection.testing_gateway',
                     'ui.pages.waha_connection.starting_session',
                     'ui.pages.waha_connection.disconnecting_device',

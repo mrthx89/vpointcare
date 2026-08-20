@@ -451,7 +451,7 @@ return [
         'reject' => 'Reject',
         'approve_pending_user_desc' => 'Setujui user ini agar dapat login setelah role diisi.',
         'reject_pending_user_desc' => 'Tolak pendaftaran user ini. User tetap tidak bisa masuk panel.',
-
+        'never' => 'Belum Pernah',
     ],
 
     'waha' => [
@@ -645,6 +645,16 @@ return [
             'authenticated_success_body' => 'Perangkat dengan nomor +:number telah aktif dan siap digunakan.',
             'auto_configured' => 'Terkonfigurasi Otomatis',
             'qr_alt' => 'WhatsApp QR Code',
+            'api_key_encrypted_badge' => 'Tersimpan Aman di Lingkungan Server',
+            'copy_number' => 'Salin Nomor',
+            'copy_url' => 'Salin URL Endpoint',
+            'copy_pairing_code' => 'Salin Kode Pairing',
+            'copied' => 'Disalin!',
+            'active_session_badge' => 'Sesi Aktif',
+            'inactive_session_badge' => 'Sesi Non-Aktif',
+            'gateway_connected_pill' => 'Gateway Terhubung',
+            'gateway_latency_pill' => 'Latensi',
+            'gateway_offline_pill' => 'Gateway Terputus',
         ],
         'ai_agent' => [
         'refine_whatsapp_replies' => 'Perhalus Jawaban WhatsApp secara Default',
