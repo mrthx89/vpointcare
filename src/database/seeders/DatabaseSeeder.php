@@ -216,14 +216,10 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
                 'description' => 'Kirim notifikasi internal untuk chat customer yang belum terbalas.',
             ],
-            [
-                'name' => 'Import Instansi VToken',
-                'command' => 'desk:import-instansi-vtoken',
-                'cron_expression' => 'everyFiveMinutes',
-                'is_active' => false,
-                'description' => 'Sinkronisasi customer VToken ke MInstansi (mode queue).',
-            ],
         ];
+
+        // Clean up decommissioned jobs
+        \App\Models\JobSchedule::where('command', 'desk:import-instansi-vtoken')->delete();
 
         foreach ($jobs as $job) {
             \App\Models\JobSchedule::firstOrCreate(

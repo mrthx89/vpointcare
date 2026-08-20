@@ -108,13 +108,6 @@ Master data yang dikelola aplikasi:
 - `MHariLibur`: kalender hari libur untuk logika auto-reply dan notifikasi.
 - `MPengetahuan`: knowledge base AI.
 
-### Integrasi VToken
-
-- Command import: `php artisan desk:import-instansi-vtoken`.
-- Mode sinkron langsung: `php artisan desk:import-instansi-vtoken --sync`.
-- URL sumber diatur melalui `VTOKEN_OPEN_CUSTOMERS_URL`.
-- Import dapat dijalankan manual dari admin atau queue.
-
 ### Scheduler dan Queue
 
 - Queue default menggunakan driver database.
@@ -288,7 +281,6 @@ Jika tidak membutuhkan realtime saat development, `BROADCAST_CONNECTION=log` dap
 | `php artisan migrate --seed` | Membuat/memperbarui schema database dan seed data awal. |
 | `php artisan queue:work` | Menjalankan queue worker production. |
 | `php artisan schedule:run` | Menjalankan scheduler Laravel. |
-| `php artisan desk:import-instansi-vtoken --sync` | Import customer VToken langsung tanpa queue. |
 | `php artisan desk:kirim-notifikasi-chat-belum-terbalas` | Mengirim notifikasi internal chat belum terbalas. |
 | `php artisan optimize:clear` | Membersihkan cache config/route/view. |
 | `php artisan optimize` | Membuat cache optimasi production. |
