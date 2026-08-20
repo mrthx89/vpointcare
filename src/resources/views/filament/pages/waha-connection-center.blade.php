@@ -31,7 +31,7 @@
                         wire:loading.attr="disabled"
                     >
                         <span wire:loading.remove wire:target="testGatewayConnection">{{ __('ui.pages.waha_connection.btn_test_gateway') }}</span>
-                        <span wire:loading wire:target="testGatewayConnection">{{ __('ui.common.loading') }}</span>
+                        <span wire:loading wire:target="testGatewayConnection">{{ __('ui.pages.waha_connection.testing_gateway') }}</span>
                     </x-filament::button>
 
                     <x-filament::button
@@ -48,6 +48,68 @@
                 </div>
             </div>
         </div>
+
+        @php
+            $gatewayBadgeColor = match ($gatewayStatus) {
+                'reachable' => 'success',
+                'authentication_failed' => 'warning',
+                'unreachable' => 'danger',
+                default => 'gray',
+            };
+        @endphp
+
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900" aria-labelledby="waha-gateway-overview-title">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="space-y-1">
+                    <h3 id="waha-gateway-overview-title" class="text-sm font-bold text-gray-950 dark:text-white">
+                        {{ __('ui.pages.waha_connection.gateway_overview_title') }}
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ __('ui.pages.waha_connection.gateway_overview_desc') }}
+                    </p>
+                </div>
+
+                <x-filament::badge color="{{ $gatewayBadgeColor }}" size="sm">
+                    {{ __('ui.pages.waha_connection.gateway_status_' . $gatewayStatus) }}
+                </x-filament::badge>
+            </div>
+
+            <div class="mt-4 grid gap-3 md:grid-cols-3">
+                <div class="rounded-xl border border-gray-100 bg-gray-50 p-3.5 dark:border-gray-800 dark:bg-gray-950/50 md:col-span-2">
+                    <div class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        {{ __('ui.pages.waha_connection.effective_base_url') }}
+                    </div>
+                    <code class="mt-1 block break-all text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $gatewayBaseUrl }}</code>
+                    <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                        {{ __('ui.pages.waha_connection.effective_base_url_help') }}
+                    </p>
+                </div>
+
+                <div class="rounded-xl border border-gray-100 bg-gray-50 p-3.5 dark:border-gray-800 dark:bg-gray-950/50">
+                    <div class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        {{ __('ui.pages.waha_connection.api_key_status') }}
+                    </div>
+                    <div class="mt-1 flex items-center gap-2 text-sm font-semibold {{ $gatewayApiKeyConfigured ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300' }}">
+                        <x-filament::icon icon="{{ $gatewayApiKeyConfigured ? 'heroicon-m-shield-check' : 'heroicon-m-exclamation-triangle' }}" class="h-4 w-4" />
+                        {{ $gatewayApiKeyConfigured ? __('ui.pages.waha_connection.api_key_configured') : __('ui.pages.waha_connection.api_key_not_configured') }}
+                    </div>
+                    <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                        {{ __('ui.pages.waha_connection.api_key_hidden_help') }}
+                    </p>
+                </div>
+            </div>
+
+            @if ($gatewayLatencyMs !== null || $gatewayHttpStatus !== null)
+                <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+                    @if ($gatewayLatencyMs !== null)
+                        <span>{{ __('ui.pages.waha_connection.gateway_latency') }}: <strong class="text-gray-700 dark:text-gray-200">{{ $gatewayLatencyMs }} ms</strong></span>
+                    @endif
+                    @if ($gatewayHttpStatus !== null)
+                        <span>{{ __('ui.pages.waha_connection.gateway_http_status') }}: <strong class="text-gray-700 dark:text-gray-200">{{ $gatewayHttpStatus }}</strong></span>
+                    @endif
+                </div>
+            @endif
+        </section>
 
         {{-- Connection Grid --}}
         <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -155,6 +217,13 @@
                                 </span>
                             </div>
 
+                            <div class="space-y-1 py-1 text-gray-600 dark:text-gray-400">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span>{{ __('ui.pages.waha_connection.session_base_url') }}</span>
+                                    <code class="max-w-[65%] truncate text-right text-[11px] text-gray-800 dark:text-gray-200" title="{{ $session['base_url'] }}">{{ $session['base_url'] }}</code>
+                                </div>
+                            </div>
+
                             {{-- Last Checked --}}
                             @if (!empty($live['checked_at']))
                                 <div class="flex items-center justify-between py-1 text-gray-600 dark:text-gray-400">
@@ -174,6 +243,35 @@
                         </div>
                     </div>
 
+                    @if ($this->canManageSession() && $session['configured_active'] && $session['misconfigured_base_url'])
+                        <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-3.5 dark:border-amber-900/50 dark:bg-amber-950/20">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="space-y-1">
+                                    <p class="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                                        {{ __('ui.pages.waha_connection.misconfigured_url_warning') }}
+                                    </p>
+                                    <p class="text-[11px] text-amber-700/80 dark:text-amber-300/80">
+                                        {{ __('ui.pages.waha_connection.align_base_url_help', ['url' => $gatewayBaseUrl]) }}
+                                    </p>
+                                </div>
+
+                                <x-filament::button
+                                    type="button"
+                                    size="xs"
+                                    color="warning"
+                                    icon="heroicon-m-arrows-right-left"
+                                    wire:click="alignSessionBaseUrl('{{ $session['code'] }}')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="alignSessionBaseUrl('{{ $session['code'] }}')"
+                                    wire:confirm="{{ __('ui.pages.waha_connection.confirm_align_base_url') }}"
+                                >
+                                    <span wire:loading.remove wire:target="alignSessionBaseUrl('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.btn_align_base_url') }}</span>
+                                    <span wire:loading wire:target="alignSessionBaseUrl('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.aligning_base_url') }}</span>
+                                </x-filament::button>
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Actions Toolbar --}}
                     @if ($this->canManageSession() && $session['configured_active'] && !$session['misconfigured_base_url'])
                         <div class="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
@@ -189,7 +287,7 @@
                                 title="{{ __('ui.pages.waha_connection.btn_sync_webhook_desc') }}"
                             >
                                 <span wire:loading.remove wire:target="syncWebhookAuto('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.btn_sync_webhook') }}</span>
-                                <span wire:loading wire:target="syncWebhookAuto('{{ $session['code'] }}')">{{ __('ui.common.loading') }}</span>
+                                <span wire:loading wire:target="syncWebhookAuto('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.syncing_webhook') }}</span>
                             </x-filament::button>
 
                             {{-- Right Actions --}}
@@ -203,7 +301,14 @@
                                             color="primary"
                                             icon="heroicon-m-qr-code"
                                             wire:click="openQrModal('{{ $session['code'] }}', '{{ $session['name'] }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="openQrModal('{{ $session['code'] }}', '{{ $session['name'] }}')"
                                         >
+                                            <span wire:loading.remove wire:target="openQrModal('{{ $session['code'] }}', '{{ $session['name'] }}')">{{ __('ui.pages.waha_connection.btn_qr') }}</span>
+                                            <span wire:loading wire:target="openQrModal('{{ $session['code'] }}', '{{ $session['name'] }}')">{{ __('ui.pages.waha_connection.loading_artifact') }}</span>
+                                        </x-filament::button>
+                                    @else
+                                        <x-filament::button type="button" size="xs" color="gray" outlined icon="heroicon-m-qr-code" disabled>
                                             {{ __('ui.pages.waha_connection.btn_qr') }}
                                         </x-filament::button>
                                     @endif
@@ -222,6 +327,20 @@
                                     @endif
                                 @endif
 
+                                @if ($status !== 'running' && $status !== 'scan_required')
+                                    <x-filament::button
+                                        type="button"
+                                        size="xs"
+                                        color="gray"
+                                        outlined
+                                        icon="heroicon-m-qr-code"
+                                        disabled
+                                        title="{{ __('ui.pages.waha_connection.qr_after_start_hint') }}"
+                                    >
+                                        {{ __('ui.pages.waha_connection.btn_qr') }}
+                                    </x-filament::button>
+                                @endif
+
                                 {{-- If Running: Show Logout / Restart --}}
                                 @if ($status === 'running')
                                     @if ($capabilities['restart'] ?? true)
@@ -232,9 +351,11 @@
                                             outlined
                                             wire:click="restartSession('{{ $session['code'] }}')"
                                             wire:loading.attr="disabled"
+                                            wire:target="restartSession('{{ $session['code'] }}')"
                                             wire:confirm="{{ __('ui.pages.waha_connection.confirm_restart') }}"
                                         >
-                                            {{ __('ui.pages.waha_connection.btn_restart') }}
+                                            <span wire:loading.remove wire:target="restartSession('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.btn_restart') }}</span>
+                                            <span wire:loading wire:target="restartSession('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.restarting_session') }}</span>
                                         </x-filament::button>
                                     @endif
 
@@ -245,9 +366,11 @@
                                         outlined
                                         wire:click="logoutSession('{{ $session['code'] }}')"
                                         wire:loading.attr="disabled"
+                                        wire:target="logoutSession('{{ $session['code'] }}')"
                                         wire:confirm="{{ __('ui.pages.waha_connection.confirm_logout') }}"
                                     >
-                                        {{ __('ui.pages.waha_connection.btn_logout') }}
+                                        <span wire:loading.remove wire:target="logoutSession('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.btn_logout') }}</span>
+                                        <span wire:loading wire:target="logoutSession('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.disconnecting_device') }}</span>
                                     </x-filament::button>
                                 @endif
 
@@ -259,12 +382,20 @@
                                         color="success"
                                         wire:click="startSession('{{ $session['code'] }}')"
                                         wire:loading.attr="disabled"
+                                        wire:target="startSession('{{ $session['code'] }}')"
                                     >
-                                        {{ __('ui.pages.waha_connection.btn_start') }}
+                                        <span wire:loading.remove wire:target="startSession('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.btn_start') }}</span>
+                                        <span wire:loading wire:target="startSession('{{ $session['code'] }}')">{{ __('ui.pages.waha_connection.starting_session') }}</span>
                                     </x-filament::button>
                                 @endif
                             </div>
                         </div>
+
+                        @if ($status !== 'running' && $status !== 'scan_required')
+                            <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                {{ __('ui.pages.waha_connection.qr_after_start_hint') }}
+                            </p>
+                        @endif
                     @endif
                 </div>
             @empty
@@ -272,6 +403,20 @@
                     <x-filament::icon icon="heroicon-o-signal-slash" class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
                     <h3 class="mt-4 text-sm font-bold text-gray-900 dark:text-white">{{ __('ui.pages.waha_connection.no_sessions') }}</h3>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('ui.pages.waha_connection.no_sessions_desc') }}</p>
+                    @if ($this->canManageSession())
+                        <x-filament::button
+                            type="button"
+                            class="mt-5"
+                            size="sm"
+                            icon="heroicon-m-plus"
+                            wire:click="initializeDefaultSession"
+                            wire:loading.attr="disabled"
+                            wire:target="initializeDefaultSession"
+                        >
+                            <span wire:loading.remove wire:target="initializeDefaultSession">{{ __('ui.pages.waha_connection.btn_initialize_default') }}</span>
+                            <span wire:loading wire:target="initializeDefaultSession">{{ __('ui.pages.waha_connection.initializing_default') }}</span>
+                        </x-filament::button>
+                    @endif
                 </div>
             @endforelse
         </div>
@@ -287,7 +432,7 @@
                     </div>
                     <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                        Auto-Configured
+                        {{ __('ui.pages.waha_connection.auto_configured') }}
                     </span>
                 </div>
 
@@ -404,15 +549,18 @@
                                 outlined
                                 class="mt-4"
                                 wire:click="fetchQrCode"
+                                wire:loading.attr="disabled"
+                                wire:target="fetchQrCode"
                             >
-                                {{ __('ui.common.retry') }}
+                                <span wire:loading.remove wire:target="fetchQrCode">{{ __('ui.common.retry') }}</span>
+                                <span wire:loading wire:target="fetchQrCode">{{ __('ui.pages.waha_connection.loading_artifact') }}</span>
                             </x-filament::button>
                         </div>
                     @elseif ($qrCodePayload)
                         {{-- QR Container with Scanner Frame --}}
                         <div class="relative rounded-2xl border-2 border-primary-500/30 bg-white p-4 shadow-lg dark:border-primary-500/20 dark:bg-gray-900">
                             @if (str_starts_with($qrCodePayload, 'data:image'))
-                                <img src="{{ $qrCodePayload }}" alt="WhatsApp QR Code" class="h-60 w-60 object-contain select-none rounded-lg" />
+                                <img src="{{ $qrCodePayload }}" alt="{{ __('ui.pages.waha_connection.qr_alt') }}" class="h-60 w-60 object-contain select-none rounded-lg" />
                             @else
                                 <div class="flex h-60 w-60 items-center justify-center bg-gray-50 p-2 dark:bg-gray-800">
                                     <span class="break-all font-mono text-[8px] text-gray-500">{{ $qrCodePayload }}</span>
@@ -444,8 +592,10 @@
                                 icon="heroicon-m-arrow-path"
                                 wire:click="fetchQrCode"
                                 wire:loading.attr="disabled"
+                                wire:target="fetchQrCode"
                             >
-                                {{ __('ui.common.refresh') }}
+                                <span wire:loading.remove wire:target="fetchQrCode">{{ __('ui.common.refresh') }}</span>
+                                <span wire:loading wire:target="fetchQrCode">{{ __('ui.common.refreshing') }}</span>
                             </x-filament::button>
                         </div>
                     @endif
@@ -517,8 +667,9 @@
                                     {{ __('ui.common.cancel') }}
                                 </x-filament::button>
                                 
-                                <x-filament::button type="submit" size="sm" color="primary">
-                                    {{ __('ui.pages.waha_connection.btn_generate_code') }}
+                                <x-filament::button type="submit" size="sm" color="primary" wire:loading.attr="disabled" wire:target="submitPairingCode">
+                                    <span wire:loading.remove wire:target="submitPairingCode">{{ __('ui.pages.waha_connection.btn_generate_code') }}</span>
+                                    <span wire:loading wire:target="submitPairingCode">{{ __('ui.pages.waha_connection.generating_pairing_code') }}</span>
                                 </x-filament::button>
                             </div>
                         </form>

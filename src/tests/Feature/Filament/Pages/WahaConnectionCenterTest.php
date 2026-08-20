@@ -3,11 +3,11 @@
 namespace Tests\Feature\Filament\Pages;
 
 use App\Filament\Pages\WahaConnectionCenter;
-use App\Services\Waha\WahaSessionService;
 use App\Models\Master\Pengguna;
+use App\Services\Waha\WahaSessionService;
 use App\Support\AccessPermissions;
-use Filament\Notifications\Notification;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +74,158 @@ class WahaConnectionCenterTest extends TestCase
             ->assertSee(__('ui.pages.waha_connection.title'))
             ->assertSee('default')
             ->assertSee(__('ui.pages.waha_connection.status_running'));
+    }
+
+    public function test_gateway_overview_displays_effective_url_without_exposing_api_key(): void
+    {
+        config()->set('services.waha.base_url', 'https://waha.internal.example');
+        config()->set('services.waha.api_key', 'super-secret-waha-key');
+
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'WORKING',
+            ], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee('https://waha.internal.example')
+            ->assertSee(__('ui.pages.waha_connection.api_key_configured'))
+            ->assertDontSee('super-secret-waha-key');
+    }
+
+    public function test_manager_can_initialize_default_session_without_persisting_global_api_key(): void
+    {
+        DB::table('MSesiWhatsapp')->delete();
+        config()->set('services.waha.base_url', 'https://waha.internal.example');
+        config()->set('services.waha.api_key', 'super-secret-waha-key');
+
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'SCAN_QR_CODE',
+            ], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.pages.waha_connection.btn_initialize_default'))
+            ->call('initializeDefaultSession')
+            ->assertHasNoErrors()
+            ->assertSee('default');
+
+        $this->assertDatabaseHas('MSesiWhatsapp', [
+            'KodeSesi' => 'default',
+            'BaseUrlWaha' => 'https://waha.internal.example',
+            'ApiKey' => null,
+        ]);
+    }
+
+    public function test_viewer_cannot_initialize_default_session_directly(): void
+    {
+        DB::table('MSesiWhatsapp')->delete();
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('initializeDefaultSession')
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('MSesiWhatsapp', ['KodeSesi' => 'default']);
+    }
+
+    public function test_manager_can_align_session_url_without_changing_session_api_key(): void
+    {
+        config()->set('services.waha.base_url', 'https://waha.internal.example');
+        DB::table('MSesiWhatsapp')->where('KodeSesi', 'default')->update([
+            'BaseUrlWaha' => 'https://legacy-waha.example',
+            'ApiKey' => 'stored-session-secret',
+        ]);
+
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'SCAN_QR_CODE',
+            ], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.pages.waha_connection.btn_align_base_url'))
+            ->assertDontSee('stored-session-secret')
+            ->call('alignSessionBaseUrl', 'default')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('MSesiWhatsapp', [
+            'KodeSesi' => 'default',
+            'BaseUrlWaha' => 'https://waha.internal.example',
+            'ApiKey' => 'stored-session-secret',
+        ]);
+    }
+
+    public function test_loading_translation_keys_are_available_in_both_locales(): void
+    {
+        $originalLocale = app()->getLocale();
+
+        try {
+            foreach (['id', 'en'] as $locale) {
+                app()->setLocale($locale);
+
+                foreach ([
+                    'ui.common.loading',
+                    'ui.common.refreshing',
+                    'ui.pages.waha_connection.testing_gateway',
+                    'ui.pages.waha_connection.starting_session',
+                    'ui.pages.waha_connection.disconnecting_device',
+                ] as $key) {
+                    $this->assertNotSame($key, __($key));
+                }
+            }
+        } finally {
+            app()->setLocale($originalLocale);
+        }
+    }
+
+    public function test_running_session_shows_logout_control(): void
+    {
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'WORKING',
+            ], 200),
+        ]);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.pages.waha_connection.btn_logout'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_qr'));
+    }
+
+    public function test_scan_required_session_shows_qr_control(): void
+    {
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Http::fake([
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'SCAN_QR_CODE',
+            ], 200),
+        ]);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->assertSee(__('ui.pages.waha_connection.btn_qr'))
+            ->assertDontSee(__('ui.pages.waha_connection.btn_logout'));
     }
 
     public function test_operator_with_manage_permission_can_trigger_qr_modal_and_fetch_qr(): void
@@ -147,7 +299,7 @@ class WahaConnectionCenterTest extends TestCase
                     ->title(__('ui.pages.waha_connection.webhook_sync_success_title'))
                     ->body(__('ui.pages.waha_connection.webhook_sync_success', [
                         'session' => 'default',
-                        'url' => config('app.url', 'http://127.0.0.1:8000') . '/webhooks/waha',
+                        'url' => config('app.url', 'http://127.0.0.1:8000').'/webhooks/waha',
                     ]))
                     ->success(),
             );
@@ -408,9 +560,14 @@ class WahaConnectionCenterTest extends TestCase
             $table->string('KodeSesi');
             $table->string('NamaSesi')->nullable();
             $table->string('BaseUrlWaha')->nullable();
+            $table->string('ApiKey')->nullable();
             $table->string('NomorTerhubung')->nullable();
             $table->string('StatusSesi')->default('Aktif');
             $table->boolean('NonAktif')->default(false);
+            $table->dateTime('TglBuat')->nullable();
+            $table->string('DibuatOleh')->nullable();
+            $table->dateTime('TglEdit')->nullable();
+            $table->string('DieditOleh')->nullable();
         });
 
         Schema::create('MPengguna', function (Blueprint $table): void {

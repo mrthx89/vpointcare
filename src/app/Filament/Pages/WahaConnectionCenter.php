@@ -13,6 +13,7 @@ use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Throwable;
 
 class WahaConnectionCenter extends Page
@@ -77,6 +78,14 @@ class WahaConnectionCenter extends Page
 
     public ?int $gatewayLatencyMs = null;
 
+    public string $gatewayBaseUrl = '';
+
+    public bool $gatewayApiKeyConfigured = false;
+
+    public string $gatewayStatus = 'not_checked';
+
+    public ?int $gatewayHttpStatus = null;
+
     public ?string $activeModalSession = null;
 
     public ?string $activeModalSessionName = null;
@@ -99,6 +108,8 @@ class WahaConnectionCenter extends Page
 
     public function mount(): void
     {
+        $this->loadGatewayConfiguration();
+
         $token = config('services.waha.webhook_token');
         $this->webhookUrl = url('/webhooks/waha'.($token ? '/'.$token : ''));
 
@@ -134,7 +145,7 @@ class WahaConnectionCenter extends Page
                 ->orderBy('KodeSesi')
                 ->get();
 
-            $globalBaseUrl = rtrim((string) config('services.waha.base_url', 'http://127.0.0.1:3000'), '/');
+            $globalBaseUrl = $this->gatewayBaseUrl;
             $sessionList = [];
 
             foreach ($rows as $row) {
@@ -175,6 +186,7 @@ class WahaConnectionCenter extends Page
             }
 
             $this->sessions = $sessionList;
+            $this->updateGatewayStatusFromSessions($sessionList);
             $this->loadWebhookStats();
             $this->clearAuthenticationArtifactsForRunningSession();
         } catch (Throwable $exception) {
@@ -195,7 +207,10 @@ class WahaConnectionCenter extends Page
             $service = app(WahaSessionService::class);
             $result = $service->pingGateway();
 
+            $this->gatewayBaseUrl = rtrim((string) ($result['base_url'] ?? $this->gatewayBaseUrl), '/');
             $this->gatewayLatencyMs = $result['latency_ms'] ?? null;
+            $this->gatewayHttpStatus = isset($result['http_status']) ? (int) $result['http_status'] : null;
+            $this->gatewayStatus = $this->gatewayStatusFromResult($result);
 
             if ($result['ok'] ?? false) {
                 Notification::make()
@@ -210,15 +225,80 @@ class WahaConnectionCenter extends Page
                     ->danger()
                     ->send();
             }
-        } catch (Throwable $e) {
+        } catch (Throwable) {
+            $this->gatewayStatus = 'unreachable';
+            $this->gatewayHttpStatus = null;
+
             Notification::make()
                 ->title(__('ui.pages.waha_connection.gateway_unreachable_title'))
-                ->body($e->getMessage())
+                ->body(__('ui.waha.unavailable'))
                 ->danger()
                 ->send();
         } finally {
             $this->isTestingGateway = false;
         }
+    }
+
+    public function initializeDefaultSession(): void
+    {
+        $this->authorizeManage();
+
+        if (DB::table('MSesiWhatsapp')->where('KodeSesi', 'default')->exists()) {
+            $this->loadSessions(true);
+
+            return;
+        }
+
+        $values = [
+            'Id' => (string) Str::orderedUuid(),
+            'KodeSesi' => 'default',
+            'NamaSesi' => 'default',
+            'BaseUrlWaha' => $this->gatewayBaseUrl,
+            'StatusSesi' => 'Aktif',
+            'NonAktif' => false,
+            'TglBuat' => now(),
+        ];
+
+        if (Schema::hasColumn('MSesiWhatsapp', 'DibuatOleh')) {
+            $values['DibuatOleh'] = auth()->id();
+        }
+
+        DB::table('MSesiWhatsapp')->insert($values);
+
+        Notification::make()
+            ->title(__('ui.pages.waha_connection.default_session_created_title'))
+            ->body(__('ui.pages.waha_connection.default_session_created_body'))
+            ->success()
+            ->send();
+
+        $this->loadSessions(true);
+    }
+
+    public function alignSessionBaseUrl(string $sessionCode): void
+    {
+        $this->authorizeManageSession($sessionCode);
+
+        $values = ['BaseUrlWaha' => $this->gatewayBaseUrl];
+
+        if (Schema::hasColumn('MSesiWhatsapp', 'TglEdit')) {
+            $values['TglEdit'] = now();
+        }
+
+        if (Schema::hasColumn('MSesiWhatsapp', 'DieditOleh')) {
+            $values['DieditOleh'] = auth()->id();
+        }
+
+        DB::table('MSesiWhatsapp')
+            ->where('KodeSesi', trim($sessionCode))
+            ->update($values);
+
+        Notification::make()
+            ->title(__('ui.pages.waha_connection.base_url_aligned_title'))
+            ->body(__('ui.pages.waha_connection.base_url_aligned_body', ['session' => $sessionCode]))
+            ->success()
+            ->send();
+
+        $this->loadSessions(true);
     }
 
     public function syncWebhookAuto(string $sessionCode): void
@@ -555,6 +635,67 @@ class WahaConnectionCenter extends Page
     private function artifactHasExpired(?string $expiresAt): bool
     {
         return $expiresAt !== null && now()->greaterThanOrEqualTo($expiresAt);
+    }
+
+    private function loadGatewayConfiguration(): void
+    {
+        $this->gatewayBaseUrl = rtrim((string) config('services.waha.base_url', 'http://127.0.0.1:3000'), '/');
+        $this->gatewayApiKeyConfigured = trim((string) config('services.waha.api_key', '')) !== '';
+    }
+
+    /** @param array<int, array<string, mixed>> $sessions */
+    private function updateGatewayStatusFromSessions(array $sessions): void
+    {
+        if ($sessions === []) {
+            $this->gatewayStatus = 'not_checked';
+            $this->gatewayHttpStatus = null;
+
+            return;
+        }
+
+        $hasSuccessfulResponse = false;
+        $hasAuthenticationFailure = false;
+        $hasApplicableSession = false;
+        $httpStatus = null;
+
+        foreach ($sessions as $session) {
+            if (! ($session['configured_active'] ?? false)) {
+                continue;
+            }
+
+            $hasApplicableSession = true;
+            $live = is_array($session['live'] ?? null) ? $session['live'] : [];
+            $hasSuccessfulResponse = $hasSuccessfulResponse || (bool) ($live['ok'] ?? false);
+            $hasAuthenticationFailure = $hasAuthenticationFailure || ($live['error_category'] ?? null) === 'authentication';
+
+            if ($httpStatus === null && isset($live['http_status'])) {
+                $httpStatus = (int) $live['http_status'];
+            }
+        }
+
+        if (! $hasApplicableSession) {
+            $this->gatewayStatus = 'not_checked';
+            $this->gatewayHttpStatus = null;
+
+            return;
+        }
+
+        $this->gatewayHttpStatus = $httpStatus;
+        $this->gatewayStatus = $hasSuccessfulResponse
+            ? 'reachable'
+            : ($hasAuthenticationFailure ? 'authentication_failed' : 'unreachable');
+    }
+
+    /** @param array<string, mixed> $result */
+    private function gatewayStatusFromResult(array $result): string
+    {
+        if ($result['ok'] ?? false) {
+            return 'reachable';
+        }
+
+        return in_array((int) ($result['http_status'] ?? 0), [401, 403], true)
+            ? 'authentication_failed'
+            : 'unreachable';
     }
 
     /** @param array<string, mixed> $result */
