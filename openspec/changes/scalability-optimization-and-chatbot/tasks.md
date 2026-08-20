@@ -18,8 +18,8 @@
 - [x] Migration `TChatbotInternal` dibuat.
 - [x] Model `ChatbotMessage` dibuat.
 - [x] `InternalChatbotService` dibuat dengan RAG ringan dari `MPengetahuan`.
-- [x] Page `VPointAssistant` dibuat di Filament.
-- [x] Blade view `vpoint-assistant` dibuat.
+- [x] Page `DeskAssistant` dibuat di Filament.
+- [x] Blade view `desk-assistant` dibuat.
 - [x] Multilanguage ID/EN ditambahkan untuk chatbot dan scalability messages.
 - [x] `src/.env.example` disiapkan untuk Redis production.
 - [x] `src/Dockerfile` ditambah ekstensi PHP Redis.
@@ -39,7 +39,7 @@
 - [ ] Backup database SQL Server production.
 - [ ] Jalankan `php artisan migrate --force` di production.
 - [ ] Jalankan queue worker untuk `webhooks`, `ai-replies`, `broadcasts`, dan `default`.
-- [ ] Jalankan browser test VPoint Assistant di locale `id` dan `en`.
+- [ ] Jalankan browser test Desk Assistant di locale `id` dan `en`.
 - [ ] Jalankan webhook test dengan payload WAHA asli.
 - [ ] Monitor queue depth, Redis memory, dan log WAHA setelah publish.
 
@@ -280,7 +280,7 @@
 
 ### A12. Queue Worker Strategy
 
-- [ ] Buat artisan command `vpoint:workers` atau shell script untuk menjalankan multiple workers:
+- [ ] Buat artisan command `desk:workers` atau shell script untuk menjalankan multiple workers:
   ```
   php artisan queue:work --queue=webhooks --timeout=60 --sleep=1 --tries=3
   php artisan queue:work --queue=ai-replies --timeout=90 --sleep=1 --tries=2
@@ -312,7 +312,7 @@
 
 ---
 
-## FASE B ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â INTERNAL CHATBOT (VPoint Assistant)
+## FASE B ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â INTERNAL CHATBOT (Desk Assistant)
 
 ### B0. Pre-Implementation Decisions
 
@@ -398,15 +398,15 @@
 
 ### B4. Filament Page
 
-- [ ] Buat `src/app/Filament/Pages/VPointAssistant.php`:
+- [ ] Buat `src/app/Filament/Pages/DeskAssistant.php`:
   - Properties:
     - `$userMessage: string`
     - `$messages: array`
     - `$isTyping: bool`
   - `getNavigationIcon()`: `heroicon-o-chat-bubble-bottom-center-text`
   - `getNavigationGroup()`: operational group
-  - `getNavigationLabel()`: `'VPoint Assistant'`
-  - `getTitle()`: `'VPoint Assistant'`
+  - `getNavigationLabel()`: `'Desk Assistant'`
+  - `getTitle()`: `'Desk Assistant'`
   - `canAccess()`: check permission
   - `mount()`: load history
   - `sendMessage()`: validate input, call service, update UI
@@ -418,7 +418,7 @@
 
 ### B5. Blade View
 
-- [ ] Buat `src/resources/views/filament/pages/vpoint-assistant.blade.php`:
+- [ ] Buat `src/resources/views/filament/pages/desk-assistant.blade.php`:
   - Chat container dengan overflow scroll
   - Empty state dengan icon dan welcome message
   - Message bubbles:
@@ -455,8 +455,8 @@
 
 ### B7. Integration Testing ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Fase B
 
-- [ ] Test: buka halaman VPoint Assistant, verify empty state.
-- [ ] Test: kirim pesan "Apa itu VPoint Care?", verify AI response.
+- [ ] Test: buka halaman Desk Assistant, verify empty state.
+- [ ] Test: kirim pesan "Apa itu Care Desk?", verify AI response.
 - [ ] Test: verify knowledge base digunakan (ada tag di bawah response).
 - [ ] Test: kirim pertanyaan lanjutan, verify context/history dipertahankan.
 - [ ] Test: verify riwayat tersimpan di database.
@@ -481,7 +481,7 @@
 - [ ] Update `README.md`:
   - Tambah section Redis setup
   - Tambah section queue worker strategy
-  - Tambah section VPoint Assistant usage
+  - Tambah section Desk Assistant usage
   - Update architecture diagram
 - [ ] Buat `docs/PLAN_SCALABILITY_OPTIMIZATION_CHATBOT.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â plan document lengkap.
 - [ ] Update `.env.example` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah semua env vars baru dengan komentar.
@@ -507,7 +507,7 @@
 - [ ] Verify webhook endpoint berfungsi.
 - [ ] Verify inbox real-time updates.
 - [ ] Verify dashboard load time.
-- [ ] Verify VPoint Assistant accessible.
+- [ ] Verify Desk Assistant accessible.
 - [ ] Monitor queue depth selama 24 jam pertama.
 - [ ] Monitor Redis memory usage.
 - [ ] Monitor AI provider usage dan cost.
@@ -515,12 +515,12 @@
 ### B8. Multilanguage Preservation
 
 - [ ] Audit `src/lang/id/ui.php` dan `src/lang/en/ui.php` untuk struktur key existing.
-- [ ] Tambahkan semua key UI VPoint Assistant di `src/lang/id/ui.php`.
-- [ ] Tambahkan semua key UI VPoint Assistant di `src/lang/en/ui.php`.
+- [ ] Tambahkan semua key UI Desk Assistant di `src/lang/id/ui.php`.
+- [ ] Tambahkan semua key UI Desk Assistant di `src/lang/en/ui.php`.
 - [ ] Tambahkan key notification/error untuk async webhook, AI skipped, dan circuit breaker bila tampil ke user.
-- [ ] Ganti semua hardcoded label di `VPointAssistant.php` dengan `__('ui.pages.chatbot....')`.
+- [ ] Ganti semua hardcoded label di `DeskAssistant.php` dengan `__('ui.pages.chatbot....')`.
 - [ ] Ganti semua hardcoded label di blade chatbot dengan localization keys.
-- [ ] Pastikan nama brand tetap literal bila memang brand (`VPoint Assistant`, `WAHA`, `Redis`).
+- [ ] Pastikan nama brand tetap literal bila memang brand (`Desk Assistant`, `WAHA`, `Redis`).
 - [ ] Test locale `id`: semua label tampil Bahasa Indonesia.
 - [ ] Test locale `en`: semua label tampil Bahasa Inggris.
 - [ ] Pastikan exception technical detail tidak tampil langsung ke user tanpa sanitasi/localization.

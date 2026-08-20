@@ -8,11 +8,11 @@
 
 ## Ringkasan
 
-Tiga kelompok perbaikan pada VPoint Care untuk meningkatkan fleksibilitas konfigurasi model AI dan kenyamanan antarmuka:
+Tiga kelompok perbaikan pada Care Desk untuk meningkatkan fleksibilitas konfigurasi model AI dan kenyamanan antarmuka:
 
-1. **Kelompok A — Model Instruct AI:** Tambah kolom `ModelInstructAi` di DB dan routing model ke `InternalChatbotService` agar mode Ringan VPoint Assistant menggunakan model yang berbeda dari auto-reply.
+1. **Kelompok A — Model Instruct AI:** Tambah kolom `ModelInstructAi` di DB dan routing model ke `InternalChatbotService` agar mode Ringan Desk Assistant menggunakan model yang berbeda dari auto-reply.
 
-2. **Kelompok B — Bug Fix VPoint Assistant:** (a) Hapus shadow berlebih di area input; (b) Batasi max-height textarea ke 200px; (c) Fix suggested replies agar tidak muncul saat load history.
+2. **Kelompok B — Bug Fix Desk Assistant:** (a) Hapus shadow berlebih di area input; (b) Batasi max-height textarea ke 200px; (c) Fix suggested replies agar tidak muncul saat load history.
 
 3. **Kelompok C — UI AI Agent:** Auto-grow textarea PromptSistem (min 120px) dan compact template pesan (min-h 80px, 2 kolom).
 
@@ -20,7 +20,7 @@ Tiga kelompok perbaikan pada VPoint Care untuk meningkatkan fleksibilitas konfig
 
 ## Motivasi
 
-- Model Utama yang dipakai untuk auto-reply WhatsApp biasanya model besar (lebih lambat, lebih mahal). VPoint Assistant untuk tim internal bisa menggunakan model yang lebih kecil/cepat untuk operasi ringan.
+- Model Utama yang dipakai untuk auto-reply WhatsApp biasanya model besar (lebih lambat, lebih mahal). Desk Assistant untuk tim internal bisa menggunakan model yang lebih kecil/cepat untuk operasi ringan.
 - Beberapa bug UI yang mengganggu pengalaman pengguna: shadow berlebih, textarea yang membesar terlalu besar, dan suggested replies yang muncul saat reload halaman.
 
 ---
@@ -32,8 +32,8 @@ Tiga kelompok perbaikan pada VPoint Care untuk meningkatkan fleksibilitas konfig
 | File | Kelompok | Tipe |
 |---|---|---|
 | `database/migrations/2026_06_29_000001_add_model_instruct_to_ai_settings.php` | A | Konfirmasi (sudah ada) |
-| `app/Filament/Pages/VPointAssistant.php` | B | Bug fix |
-| `resources/views/filament/pages/vpoint-assistant.blade.php` | B | Bug fix |
+| `app/Filament/Pages/DeskAssistant.php` | B | Bug fix |
+| `resources/views/filament/pages/desk-assistant.blade.php` | B | Bug fix |
 | `resources/views/filament/pages/ai-agent.blade.php` | C | UI improvement |
 
 ### File yang Tidak Diubah

@@ -3,7 +3,7 @@
 ## Status
 
 - Tipe pekerjaan: planning dan OpenSpec saja.
-- Target modul: AI Agent VPoint Care.
+- Target modul: AI Agent Care Desk.
 - Tanggal rencana: 2026-05-22.
 - Belum ada perubahan kode aplikasi.
 
@@ -255,7 +255,7 @@ Tambahkan bagian atas halaman `src/resources/views/filament/pages/ai-agent.blade
 
 - Card gradient lembut biru/ungu/emerald.
 - Icon robot/sparkle/AI orb.
-- Judul `AI Agent VPoint Care`.
+- Judul `AI Agent Care Desk`.
 - Subtitle singkat fungsi AI Agent.
 - Badge provider aktif.
 - Badge status API key.
@@ -284,7 +284,7 @@ Update translation file:
 
 Label yang perlu disiapkan:
 
-- `AI Agent VPoint Care`
+- `AI Agent Care Desk`
 - deskripsi hero AI Agent
 - label provider 9Router
 - summary 9Router

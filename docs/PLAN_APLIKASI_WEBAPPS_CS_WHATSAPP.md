@@ -1,8 +1,8 @@
-# Rencana Pembuatan Webapps VPoint Care
+# Rencana Pembuatan Webapps Care Desk
 
 ## 1. Tujuan Aplikasi
 
-**VPoint Care** adalah admin panel customer service untuk perusahaan software yang melayani customer melalui WhatsApp. Nomor WhatsApp perusahaan dihubungkan ke WAHA, lalu semua pesan masuk dikelola di satu aplikasi internal agar jelas:
+**Care Desk** adalah admin panel customer service untuk perusahaan software yang melayani customer melalui WhatsApp. Nomor WhatsApp perusahaan dihubungkan ke WAHA, lalu semua pesan masuk dikelola di satu aplikasi internal agar jelas:
 
 - customer berasal dari perusahaan / instansi / grup mana;
 - chat sedang ditangani oleh siapa;

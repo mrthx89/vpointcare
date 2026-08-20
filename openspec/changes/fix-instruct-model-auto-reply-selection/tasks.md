@@ -85,7 +85,7 @@
 
 ## 10. Dokumentasi
 
-- [ ] Perbarui `docs/PRD_VPOINT_CARE_WACS.md`: tandai TD-01 dan TD-02 sebagai teratasi.
+- [ ] Perbarui `docs/PRD_CARE_DESK_WACS.md`: tandai TD-01 dan TD-02 sebagai teratasi.
 - [ ] Perbarui FR-AIR-10 agar menyatakan aturan berlaku untuk seluruh provider dan menyebut fallback string kosong.
 - [ ] Perbarui FR-AIR-11 agar menyebut bahwa jalur chat-completions juga menerima flag balasan pertama.
 - [ ] Perbarui FR-AIR-13 agar menyatakan `TAiPermintaan.ModelAi` mencatat model efektif.

@@ -14,7 +14,7 @@ Selama dua sumber ini dipertahankan, setiap penambahan status baru harus dilakuk
 
 Verifikasi pada source code aktual.
 
-**Sumber 1 — `src/script/DATABASE_SCHEMA_WACS.sql`** (dieksekusi oleh migration `2026_04_27_000001_create_vpoint_care_schema.php`, hanya pada koneksi `sqlsrv`):
+**Sumber 1 — `src/script/DATABASE_SCHEMA_WACS.sql`** (dieksekusi oleh migration `2026_04_27_000001_create_desk_care_schema.php`, hanya pada koneksi `sqlsrv`):
 
 - `MStatusTicket` (baris 793-805): `DRAFT`, `BARU`, `DIANALISA_CS`, `BUTUH_DATA_CUSTOMER`, `DITERUSKAN_DEVELOPER`, `DALAM_PENGERJAAN`, `MENUNGGU_DEPLOY`, `SELESAI`(final), `DITUTUP`(final), `DIBATALKAN`(final) — 10 status.
 - `MKategoriTicket` (baris 815-822): `BUG`, `DATA`, `AKSES`, `REQUEST`, `KONSULTASI` — 5 kategori.
@@ -127,7 +127,7 @@ Menambahkan tabel pemetaan status lama → status kanonik pada `docs/` agar tim 
 | Localization | Tidak ada key baru; nama master tersimpan sebagai data, bukan translation key |
 | Queue/Scheduler/Broadcast | Tidak ada |
 | Frontend asset | Tidak ada; `npm run build` tidak diperlukan |
-| Dokumentasi | `docs/PRD_VPOINT_CARE_WACS.md` bagian TD-11 ditutup; tabel pemetaan status ditambahkan |
+| Dokumentasi | `docs/PRD_CARE_DESK_WACS.md` bagian TD-11 ditutup; tabel pemetaan status ditambahkan |
 
 ## Risks and Mitigations
 

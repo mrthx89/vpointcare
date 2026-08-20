@@ -31,7 +31,7 @@ Target utama:
 - Dashboard dan datatable harus punya ruang horizontal lebih lega.
 - Breadcrumbs dibuat ringkas, jelas, dan tidak mengganggu action button di kanan header.
 - Breadcrumbs jangan dibuat seperti card besar; cukup sebagai navigasi kecil yang terlihat profesional.
-- Warna tetap mengikuti tema Filament/VPoint: dominan putih/slate dengan aksen biru.
+- Warna tetap mengikuti tema Filament/Desk: dominan putih/slate dengan aksen biru.
 - Dark mode harus tetap rapi.
 
 ## Rencana Implementasi

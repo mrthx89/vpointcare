@@ -139,7 +139,7 @@ Pada `AiAgent::simpanPengaturan()`, normalisasi `ModelInstructAi` menjadi `NULL`
 | Broadcast/Scheduler | Tidak ada |
 | Frontend asset | Tidak ada; `npm run build` tidak diperlukan |
 | Biaya operasional | Instalasi non-OpenAI akan mulai memakai Model Instruct untuk balasan pertama; biaya per balasan pertama berpotensi turun, kualitasnya perlu dipantau |
-| Dokumentasi | `docs/PRD_VPOINT_CARE_WACS.md` — tutup TD-01 dan TD-02, sesuaikan FR-AIR-10 dan FR-AIR-11 |
+| Dokumentasi | `docs/PRD_CARE_DESK_WACS.md` — tutup TD-01 dan TD-02, sesuaikan FR-AIR-10 dan FR-AIR-11 |
 
 ## Risks and Mitigations
 

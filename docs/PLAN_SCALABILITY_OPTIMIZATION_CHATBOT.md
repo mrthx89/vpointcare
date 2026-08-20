@@ -1,4 +1,4 @@
-﻿# Plan: Scalability Optimization & Internal Chatbot (VPoint Assistant)
+﻿# Plan: Scalability Optimization & Internal Chatbot (Desk Assistant)
 
 > Dokumen ini adalah panduan implementasi untuk perubahan scalabilitas dan fitur chatbot internal.
 > Dibuat: 2026-06-28 | Status: **Belum Dimulai**
@@ -9,7 +9,7 @@
 
 1. [Ringkasan Perubahan](#1-ringkasan-perubahan)
 2. [Fase A — Scalability Optimization](#2-fase-a--scalability-optimization)
-3. [Fase B — VPoint Assistant (Internal Chatbot)](#3-fase-b--vpoint-assistant-internal-chatbot)
+3. [Fase B — Desk Assistant (Internal Chatbot)](#3-fase-b--desk-assistant-internal-chatbot)
 4. [Fase C — Deployment](#4-fase-c--deployment)
 5. [Rollback Plan](#5-rollback-plan)
 6. [Monitoring & Alerting](#6-monitoring--alerting)
@@ -36,7 +36,7 @@ Mengubah arsitektur dari synchronous ke asynchronous untuk menangani volume 10-1
 | A10 | Optimasi dashboard query | Performance | 1 hr |
 | A11 | Composite database indexes | Performance | 0.5 hr |
 
-### Fase B — VPoint Assistant (Internal Chatbot)
+### Fase B — Desk Assistant (Internal Chatbot)
 Fitur baru: AI chatbot untuk user admin panel.
 
 | # | Perubahan | Effort |
@@ -519,7 +519,7 @@ user=www-data
 
 ---
 
-## 3. Fase B — VPoint Assistant (Internal Chatbot)
+## 3. Fase B — Desk Assistant (Internal Chatbot)
 
 ### B1. Database Migration
 
@@ -611,7 +611,7 @@ class ChatbotMessage extends Model
 
 ### B4. Filament Page
 
-**File baru:** `src/app/Filament/Pages/VPointAssistant.php`
+**File baru:** `src/app/Filament/Pages/DeskAssistant.php`
 
 **Properties:**
 - `$userMessage: string` — wire:model
@@ -631,7 +631,7 @@ class ChatbotMessage extends Model
 
 ### B5. Blade View
 
-**File baru:** `src/resources/views/filament/pages/vpoint-assistant.blade.php`
+**File baru:** `src/resources/views/filament/pages/desk-assistant.blade.php`
 
 **Komponen:**
 1. **Chat container** — `h-[calc(100vh-200px)]`, flex column
@@ -691,7 +691,7 @@ php artisan config:show cache
 - [ ] Webhook POST → response 200 < 500ms
 - [ ] Queue worker memproses job
 - [ ] Dashboard load < 2 detik
-- [ ] VPoint Assistant bisa diakses
+- [ ] Desk Assistant bisa diakses
 - [ ] Broadcast event sampai ke browser
 
 ---
@@ -719,8 +719,8 @@ php artisan config:clear && php artisan optimize:clear
 
 Tidak ada perubahan schema pada tabel existing. Rollback cukup hapus page dan service:
 
-- Hapus `VPointAssistant.php`
-- Hapus `vpoint-assistant.blade.php`
+- Hapus `DeskAssistant.php`
+- Hapus `desk-assistant.blade.php`
 - Hapus `InternalChatbotService.php`
 - Hapus `ChatbotMessage.php`
 - Drop tabel `TChatbotInternal` (opsional, data tidak dipakai fitur lain)
@@ -865,7 +865,7 @@ Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existi
 - Semua label UI baru wajib memakai `__('ui....')`, bukan hardcoded string.
 - Semua notification success/error baru wajib memakai key localization.
 - Semua page title, navigation label, placeholder, button, modal title, helper text, empty state, loading text, dan confirmation text wajib tersedia minimal di `id` dan `en`.
-- Nama brand seperti `VPoint Assistant`, `WAHA`, `Redis`, `OpenAI`, `DeepSeek`, `OpenRouter`, `NineRouter` boleh tetap literal.
+- Nama brand seperti `Desk Assistant`, `WAHA`, `Redis`, `OpenAI`, `DeepSeek`, `OpenRouter`, `NineRouter` boleh tetap literal.
 - Error teknis dari exception boleh disimpan di log, tetapi pesan yang tampil ke user harus localized dan disanitasi.
 - Jika menambah permission/menu baru, label Indonesia dan Inggris harus sinkron.
 
@@ -891,7 +891,7 @@ Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existi
 - `ui.scalability.circuit_breaker_active`
 - `ui.scalability.ai_reply_skipped_cs_replied`
 
-## Addendum 2026-06-28 — VPoint Assistant UX & Scale-up
+## Addendum 2026-06-28 — Desk Assistant UX & Scale-up
 
 ### Fitur Baru
 - Attach file di internal chatbot: user bisa melampirkan file teks seperti `.txt`, `.md`, `.csv`, `.json`, `.log`, `.sql`, `.xml`, `.yml`, `.yaml`; konten file masuk ke konteks AI secara terbatas agar token tetap terkendali.
@@ -928,7 +928,7 @@ Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existi
 - Layout dibatasi `max-w-3xl` dengan padding bawah agar mirip chat modern.
 
 ### Files
-- `src/resources/views/filament/pages/vpoint-assistant.blade.php`
+- `src/resources/views/filament/pages/desk-assistant.blade.php`
 - `src/resources/lang/id/ui.php` / `src/resources/lang/en/ui.php` untuk label `paste_hint`.
 
 ## Addendum 2026-06-28-C — Structured Reasoning & Quick Replies
@@ -944,7 +944,7 @@ Semua perubahan implementasi SHALL mempertahankan mekanisme multilanguage existi
   - `reply` yang tampil ke user hanya jawaban utama.
   - `reasoning` disimpan di `KonteksJson` untuk audit/debug.
   - `suggested_replies` disimpan di `KonteksJson` dan dikirim ke Livewire.
-- `VPointAssistant` menyimpan `suggestedReplies` sebagai state Livewire.
+- `DeskAssistant` menyimpan `suggestedReplies` sebagai state Livewire.
 - UI menampilkan quick reply chips di atas composer floating.
 - Klik chip mengisi textarea, user tetap bisa edit sebelum menekan send.
 

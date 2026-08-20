@@ -1,12 +1,12 @@
-﻿# OpenSpec Project: VPoint Care / WACS
+﻿# OpenSpec Project: Care Desk / WACS
 
 ## Purpose
 
-VPoint Care adalah aplikasi WhatsApp Customer Service untuk mengelola percakapan customer, balasan agent, auto-reply AI, ticketing, master data, dan integrasi WhatsApp melalui WAHA dalam satu panel admin berbasis Laravel Filament.
+Care Desk adalah aplikasi WhatsApp Customer Service untuk mengelola percakapan customer, balasan agent, auto-reply AI, ticketing, master data, dan integrasi WhatsApp melalui WAHA dalam satu panel admin berbasis Laravel Filament.
 
 ## Product Context
 
-Aplikasi dipakai oleh tim operasional/customer service VPoint untuk:
+Aplikasi dipakai oleh tim operasional/customer service Desk untuk:
 
 - Menerima dan membaca pesan WhatsApp customer.
 - Membalas pesan secara manual dari admin panel.

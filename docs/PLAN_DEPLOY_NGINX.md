@@ -1,6 +1,6 @@
-# 🚀 Panduan Deployment VPoint Care (Ubuntu + Nginx Manual)
+# 🚀 Panduan Deployment Care Desk (Ubuntu + Nginx Manual)
 
-Panduan ini dikhususkan untuk mendeploy VPoint Care pada OS Linux **Ubuntu 20.04** yang sudah berjalan Nginx (di mana Nginx juga menjalankan aplikasi lain di port yang berbeda). Konfigurasi ini murni via Terminal (tanpa Web Panel).
+Panduan ini dikhususkan untuk mendeploy Care Desk pada OS Linux **Ubuntu 20.04** yang sudah berjalan Nginx (di mana Nginx juga menjalankan aplikasi lain di port yang berbeda). Konfigurasi ini murni via Terminal (tanpa Web Panel).
 
 > **Stack Utama:** Ubuntu · Nginx · PHP 8.3-FPM · SQL Server (Remote) · Supervisor (Queue & Reverb)
 
@@ -71,7 +71,7 @@ sudo systemctl restart php8.3-fpm
 
 ### 3.1 Pindahkan File ke Server
 
-Taruh seluruh *source code* VPoint Care Anda (kecuali `node_modules` & `.env`) ke folder `/var/www/caredesk`.
+Taruh seluruh *source code* Care Desk Anda (kecuali `node_modules` & `.env`) ke folder `/var/www/caredesk`.
 
 ```bash
 sudo mkdir -p /var/www/caredesk
@@ -93,7 +93,7 @@ nano .env
 ```ini
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://care.vpoint.my.id
+APP_URL=https://care.desk.my.id
 
 # Konfigurasi Database Remote
 DB_CONNECTION=sqlsrv
@@ -115,7 +115,7 @@ REVERB_SCHEME=http
 
 # VITE variables digunakan oleh Browser Client. 
 # Harus mengarah ke Domain Publik dan Port yang digunakan Nginx (82).
-VITE_REVERB_HOST="care.vpoint.my.id"
+VITE_REVERB_HOST="care.desk.my.id"
 VITE_REVERB_PORT=82
 VITE_REVERB_SCHEME=http
 ```
@@ -154,7 +154,7 @@ sudo chmod -R 775 /var/www/caredesk/storage /var/www/caredesk/bootstrap/cache
 
 ## TAHAP 4 — Konfigurasi Nginx & Reverse Proxy
 
-Kita buat file *Virtual Host* khusus untuk VPoint Care. (Tidak akan mengganggu aplikasi lain di Nginx).
+Kita buat file *Virtual Host* khusus untuk Care Desk. (Tidak akan mengganggu aplikasi lain di Nginx).
 
 ```bash
 sudo nano /etc/nginx/sites-available/caredesk
@@ -166,7 +166,7 @@ Isi dengan konfigurasi komprehensif berikut:
 server {
     # Nginx mendengarkan port 82 untuk domain ini
     listen 82;
-    server_name care.vpoint.my.id;
+    server_name care.desk.my.id;
     root /var/www/caredesk/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
@@ -224,7 +224,7 @@ sudo systemctl restart nginx
 ```
 
 > **Info:**
-> Karena Anda menggunakan port 82 (bukan port standar web 80/443), untuk mengakses aplikasi ini di browser Anda harus mengetikkan lengkap beserta port-nya: `http://care.vpoint.my.id:82`
+> Karena Anda menggunakan port 82 (bukan port standar web 80/443), untuk mengakses aplikasi ini di browser Anda harus mengetikkan lengkap beserta port-nya: `http://care.desk.my.id:82`
 
 ---
 
@@ -239,11 +239,11 @@ sudo apt install supervisor -y
 ### 5.1 Buat Konfigurasi Queue Worker
 
 ```bash
-sudo nano /etc/supervisor/conf.d/vpoint-queue.conf
+sudo nano /etc/supervisor/conf.d/desk-queue.conf
 ```
 Isi dengan:
 ```ini
-[program:vpoint-queue]
+[program:desk-queue]
 process_name=%(program_name)s_%(process_num)02d
 command=/usr/bin/php8.3 /var/www/caredesk/artisan queue:work --tries=3 --timeout=120 --sleep=3
 autostart=true
@@ -259,11 +259,11 @@ stdout_logfile=/var/www/caredesk/storage/logs/worker.log
 ### 5.2 Buat Konfigurasi Reverb WebSocket
 
 ```bash
-sudo nano /etc/supervisor/conf.d/vpoint-reverb.conf
+sudo nano /etc/supervisor/conf.d/desk-reverb.conf
 ```
 Isi dengan:
 ```ini
-[program:vpoint-reverb]
+[program:desk-reverb]
 process_name=%(program_name)s_%(process_num)02d
 command=/usr/bin/php8.3 /var/www/caredesk/artisan reverb:start --host=127.0.0.1 --port=7060
 autostart=true
@@ -295,7 +295,7 @@ sudo supervisorctl status
 
 ## 🏆 SELESAI! 
 
-Aplikasi VPoint Care kini sudah berjalan stabil di Ubuntu.
+Aplikasi Care Desk kini sudah berjalan stabil di Ubuntu.
 *   **Nginx** menyortir trafik dari internet. HTTP diberikan ke PHP-FPM, sedangkan WebSockets `/app/` dibelokkan (*proxy*) secara diam-diam ke port lokal `7060`.
 *   Ekstensi **SQLSRV ODBC** bertugas menyeberangkan *query* PHP ke Server Database 26.245...
 *   **Supervisor** terus memantau *Queue* dan *Reverb* agar tidak pernah tertidur apalagi mati.

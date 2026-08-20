@@ -1,4 +1,4 @@
-# 🐳 Rencana Deployment VPoint Care (menggunakan Docker)
+# 🐳 Rencana Deployment Care Desk (menggunakan Docker)
 
 Docker adalah solusi *silver bullet* (sapu jagat) untuk kasus server lama seperti Ubuntu 20.04. 
 Dengan Docker, kita akan membungkus **PHP 8.5, Nginx, Driver SQL Server, Queue Worker, dan Reverb** ke dalam "kotak kontainer" yang berjalan mandiri di dalam server Anda. 
@@ -27,20 +27,20 @@ sudo apt-get install docker-compose-plugin -y
 
 ## TAHAP 2 — Siapkan Kodingan Aplikasi
 
-Pastikan seluruh kodingan VPoint Care Anda (dari Windows) sudah di-copy / ditaruh di dalam server Ubuntu Anda, misalnya di folder `/home/it/GIT_VPOINT/2026-care-desk`.
+Pastikan seluruh kodingan Care Desk Anda (dari Windows) sudah di-copy / ditaruh di dalam server Ubuntu Anda, misalnya di folder `/home/it/GIT_DESK/2026-care-desk`.
 
 ```bash
 # Pindah ke dalam direktori aplikasi
-cd /home/it/GIT_VPOINT/2026-care-desk
+cd /home/it/GIT_DESK/2026-care-desk
 ```
 
-*(Semua langkah di bawah ini dilakukan di dalam folder `/home/it/GIT_VPOINT/2026-care-desk` tersebut)*
+*(Semua langkah di bawah ini dilakukan di dalam folder `/home/it/GIT_DESK/2026-care-desk` tersebut)*
 
 ---
 
 ## TAHAP 3 — Buat File-File Spesial Docker
 
-Kita butuh 3 file baru untuk "mengajari" Docker cara menghidupkan Laravel Anda. Buat file-file ini di dalam folder `/home/it/GIT_VPOINT/2026-care-desk`:
+Kita butuh 3 file baru untuk "mengajari" Docker cara menghidupkan Laravel Anda. Buat file-file ini di dalam folder `/home/it/GIT_DESK/2026-care-desk`:
 
 ### 1. Buat file `Dockerfile`
 
@@ -137,7 +137,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - desk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -151,7 +151,7 @@ services:
       - ./:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
-      - vpoint-net
+      - desk-net
     depends_on:
       - app
 
@@ -162,7 +162,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - desk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -178,27 +178,27 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - desk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - app
 
 networks:
-  vpoint-net:
+  desk-net:
     driver: bridge
 ```
 
 ---
 
-## TAHAP 4 — Sesuaikan File `.env` VPoint Care
+## TAHAP 4 — Sesuaikan File `.env` Care Desk
 
 Pastikan file `.env` Laravel Anda diubah menjadi seperti ini:
 
 ```ini
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=http://care.vpoint.my.id
+APP_URL=http://care.desk.my.id
 
 # DB SQL Server (Gunakan IP Publik, IP LAN Host, atau host.docker.internal jika DB ada di Ubuntu yang sama)
 DB_CONNECTION=sqlsrv
@@ -213,7 +213,7 @@ REVERB_PORT=7060
 REVERB_SCHEME=http
 
 # VITE
-VITE_REVERB_HOST="care.vpoint.my.id"
+VITE_REVERB_HOST="care.desk.my.id"
 VITE_REVERB_PORT=7060
 VITE_REVERB_SCHEME=http
 ```
@@ -224,7 +224,7 @@ VITE_REVERB_SCHEME=http
 
 ## TAHAP 5 — Eksekusi! 🚀
 
-Jalankan perintah sakti ini (di dalam folder `/home/it/GIT_VPOINT/2026-care-desk`):
+Jalankan perintah sakti ini (di dalam folder `/home/it/GIT_DESK/2026-care-desk`):
 
 ```bash
 # 1. Rakit container (Ini butuh waktu beberapa menit untuk mengunduh PHP & SQL Driver)
@@ -241,8 +241,8 @@ sudo docker compose exec app php artisan storage:link
 
 # 4. Beri hak akses agar Docker diizinkan membaca file di Ubuntu Anda
 sudo chmod +x /home/it
-sudo chmod -R 755 /home/it/GIT_VPOINT/2026-care-desk
-sudo chmod -R 777 /home/it/GIT_VPOINT/2026-care-desk/storage /home/it/GIT_VPOINT/2026-care-desk/bootstrap/cache
+sudo chmod -R 755 /home/it/GIT_DESK/2026-care-desk
+sudo chmod -R 777 /home/it/GIT_DESK/2026-care-desk/storage /home/it/GIT_DESK/2026-care-desk/bootstrap/cache
 
 # 5. Clear Cache & Jalankan Migrasi/Seeder (Jika Perlu)
 sudo docker compose exec app php artisan optimize:clear
@@ -250,7 +250,7 @@ sudo docker compose exec app php artisan optimize:clear
 ```
 
 Selesai! Sekarang aplikasi Anda sudah menyala di:
-**http://care.vpoint.my.id:82**
+**http://care.desk.my.id:82**
 
 Dan Queue Worker serta Reverb sudah berjalan aman di dalam Docker secara otomatis!
 
@@ -270,8 +270,8 @@ sudo docker compose exec app php artisan storage:link
 
 # 4. Beri hak akses agar Docker diizinkan membaca file di Ubuntu Anda
 sudo chmod +x /home/it
-sudo chmod -R 755 /home/it/GIT_VPOINT/2026-care-desk
-sudo chmod -R 777 /home/it/GIT_VPOINT/2026-care-desk/storage /home/it/GIT_VPOINT/2026-care-desk/bootstrap/cache
+sudo chmod -R 755 /home/it/GIT_DESK/2026-care-desk
+sudo chmod -R 777 /home/it/GIT_DESK/2026-care-desk/storage /home/it/GIT_DESK/2026-care-desk/bootstrap/cache
 
 # 5. Clear Cache & Jalankan Migrasi/Seeder (Jika Perlu)
 sudo docker compose exec app php artisan optimize:clear

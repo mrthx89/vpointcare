@@ -1,8 +1,8 @@
-﻿# Change: Modul Task dan Ticketing VPoint Care
+﻿# Change: Modul Task dan Ticketing Care Desk
 
 ## Summary
 
-Tambahkan modul **Ticketing** fungsional penuh dan modul **Task** mandiri ke aplikasi VPoint Care (WACS). Modul Ticketing sudah memiliki skema database lengkap (`TTicket`, `TTicketD`, `TTicketDPenugasan`, `TTicketDLampiran` beserta master `MStatusTicket`, `MKategoriTicket`, `MPrioritasTicket`) tetapi UI saat ini masih halaman demo statis dengan data hardcoded. Modul Task belum ada sama sekali.
+Tambahkan modul **Ticketing** fungsional penuh dan modul **Task** mandiri ke aplikasi Care Desk (WACS). Modul Ticketing sudah memiliki skema database lengkap (`TTicket`, `TTicketD`, `TTicketDPenugasan`, `TTicketDLampiran` beserta master `MStatusTicket`, `MKategoriTicket`, `MPrioritasTicket`) tetapi UI saat ini masih halaman demo statis dengan data hardcoded. Modul Task belum ada sama sekali.
 
 Perubahan ini akan:
 
@@ -14,7 +14,7 @@ Perubahan ini akan:
 
 ## Problem Statement
 
-Aplikasi VPoint Care saat ini belum dapat menindaklanjuti masalah customer menjadi ticket yang terkelola. Skema ticket sudah ada di database, tetapi:
+Aplikasi Care Desk saat ini belum dapat menindaklanjuti masalah customer menjadi ticket yang terkelola. Skema ticket sudah ada di database, tetapi:
 
 - Tidak ada model Eloquent untuk `TTicket` dan tabel turunannya.
 - Tidak ada Filament Resource untuk membuat, mengedit, menugaskan, dan menutup ticket.

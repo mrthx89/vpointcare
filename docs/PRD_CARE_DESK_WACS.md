@@ -1,10 +1,10 @@
-# PRD — VPoint Care (WACS: WhatsApp Customer Service)
+# PRD — Care Desk (WACS: WhatsApp Customer Service)
 
 ## 0. Informasi Dokumen
 
 | Item | Nilai |
 | --- | --- |
-| Nama produk | VPoint Care |
+| Nama produk | Care Desk |
 | Kode internal | WACS (WhatsApp Customer Service) |
 | Versi dokumen | 1.0 |
 | Tanggal | 2026-07-23 |
@@ -19,7 +19,7 @@
 
 ## 1. Ringkasan Eksekutif
 
-VPoint Care adalah aplikasi **customer service WhatsApp terpusat** untuk tim operasional VPoint. Pesan WhatsApp customer masuk melalui gateway **WAHA** ke endpoint webhook aplikasi, dinormalisasi dan disimpan ke SQL Server, lalu ditampilkan pada **Inbox WhatsApp** di panel admin Filament. Agent dapat membalas manual (teks/lampiran), menyimpan catatan internal, memetakan chat ke customer/instansi, menutup percakapan, dan mengeskalasi ke **Ticket** atau **Task**. Secara paralel, **AI Agent** dapat menghasilkan balasan otomatis (dikirim ke WhatsApp atau disimpan sebagai draft lokal) berdasarkan jam kerja, hari libur, sesi chat, dan knowledge base internal.
+Care Desk adalah aplikasi **customer service WhatsApp terpusat** untuk tim operasional Desk. Pesan WhatsApp customer masuk melalui gateway **WAHA** ke endpoint webhook aplikasi, dinormalisasi dan disimpan ke SQL Server, lalu ditampilkan pada **Inbox WhatsApp** di panel admin Filament. Agent dapat membalas manual (teks/lampiran), menyimpan catatan internal, memetakan chat ke customer/instansi, menutup percakapan, dan mengeskalasi ke **Ticket** atau **Task**. Secara paralel, **AI Agent** dapat menghasilkan balasan otomatis (dikirim ke WhatsApp atau disimpan sebagai draft lokal) berdasarkan jam kerja, hari libur, sesi chat, dan knowledge base internal.
 
 Nilai utama produk:
 
@@ -35,7 +35,7 @@ Nilai utama produk:
 
 ### 2.1 Kondisi tanpa produk
 
-Tim CS VPoint menerima keluhan, pertanyaan, dan permintaan customer melalui WhatsApp pada perangkat/nomor yang tersebar. Konsekuensinya:
+Tim CS Desk menerima keluhan, pertanyaan, dan permintaan customer melalui WhatsApp pada perangkat/nomor yang tersebar. Konsekuensinya:
 
 - Percakapan tidak terdokumentasi pada sistem yang dapat diaudit.
 - Tidak ada mekanisme yang menjamin setiap chat terbalas dalam SLA.
@@ -45,12 +45,12 @@ Tim CS VPoint menerima keluhan, pertanyaan, dan permintaan customer melalui What
 
 ### 2.2 Problem statement
 
-> Tim customer service VPoint membutuhkan satu tempat kerja terpusat yang menerima seluruh pesan WhatsApp customer secara realtime, menyediakan konteks customer/instansi saat membalas, menjamin tidak ada chat yang terlewat, mengeskalasi masalah menjadi ticket/task yang terlacak, dan mengotomasi balasan repetitif dengan AI tanpa kehilangan kontrol manusia.
+> Tim customer service Desk membutuhkan satu tempat kerja terpusat yang menerima seluruh pesan WhatsApp customer secara realtime, menyediakan konteks customer/instansi saat membalas, menjamin tidak ada chat yang terlewat, mengeskalasi masalah menjadi ticket/task yang terlacak, dan mengotomasi balasan repetitif dengan AI tanpa kehilangan kontrol manusia.
 
 ### 2.3 Kenapa arsitektur ini
 
 - **WAHA** dipilih sebagai gateway WhatsApp karena tidak memerlukan onboarding WhatsApp Business API resmi dan dapat dijalankan self-hosted.
-- **SQL Server** dipakai karena selaras dengan ekosistem data VPoint yang sudah ada (termasuk VToken).
+- **SQL Server** dipakai karena selaras dengan ekosistem data Desk yang sudah ada (termasuk VToken).
 - **Filament 5** dipakai agar seluruh CRUD master data, resource ticket/task, dan halaman kustom berada dalam satu panel dengan pola konsisten.
 - **Queue + Reverb** dipakai agar webhook merespons cepat (pekerjaan berat asinkron) dan UI mendapat update realtime.
 
@@ -117,7 +117,7 @@ Nilai berikut **belum** dienforce oleh kode dan diusulkan sebagai target operasi
 - AI Agent: pengaturan provider (OpenAI/DeepSeek/OpenRouter/9Router), model utama & model instruct, prompt sistem, template per mode, jam kerja/hari libur, nomor pengecualian, batas riwayat, mode kirim, test koneksi, hapus API key.
 - Auto-reply AI berbasis keputusan mode (Hari Libur / Luar Jam Kerja / Berlanjut / Sapaan Jam Kerja / Skip) dengan retrieval knowledge.
 - AI Knowledge Learning: ekstraksi draft knowledge dari chat + review manual (`TAiDraftPengetahuan`).
-- VPoint Assistant: chatbot internal untuk pengguna panel.
+- Desk Assistant: chatbot internal untuk pengguna panel.
 - Ticketing: dashboard statistik + resource CRUD + histori status + histori penugasan + lampiran privat + notifikasi assignee.
 - Task: resource CRUD mandiri/terkait ticket + checklist + komentar + lampiran + histori penugasan + notifikasi.
 - Master data: instansi, customer, nomor WhatsApp, grup WhatsApp, anggota grup, hari libur, pengetahuan, pengguna, hak akses, status/kategori/prioritas ticket, status task, job schedule.
@@ -136,7 +136,7 @@ Nilai berikut **belum** dienforce oleh kode dan diusulkan sebagai target operasi
 - SLA breach escalation otomatis pada ticket (hanya penanda overdue).
 - Laporan/ekspor terjadwal (PDF/Excel) dan BI eksternal.
 - Aplikasi mobile native.
-- Multi-tenant terpisah per instansi (aplikasi single-tenant untuk VPoint).
+- Multi-tenant terpisah per instansi (aplikasi single-tenant untuk Desk).
 - Fine-tuning model AI dari data chat (desain sengaja memakai human-in-the-loop RAG).
 
 ---
@@ -147,7 +147,7 @@ Nilai berikut **belum** dienforce oleh kode dan diusulkan sebagai target operasi
 
 | Persona | Kebutuhan utama | Modul yang dipakai |
 | --- | --- | --- |
-| **Agent CS** | Membalas cepat, tahu siapa customer, tidak melewatkan chat | Inbox, Histori Chat, Ticket, Task, VPoint Assistant |
+| **Agent CS** | Membalas cepat, tahu siapa customer, tidak melewatkan chat | Inbox, Histori Chat, Ticket, Task, Desk Assistant |
 | **Supervisor CS** | Memantau beban & performa tim, mengatur AI dan knowledge | Dashboard, AI Agent, Knowledge, Hari Libur, Hak Akses |
 | **Developer/Teknis** | Menerima eskalasi teknis dan menelusuri error integrasi | Ticket, Task, Log Data |
 | **Administrator** | Mengelola pengguna, role, master data, jadwal job, deployment | Semua modul |
@@ -180,7 +180,7 @@ Didefinisikan di `App\Support\AccessPermissions::defaultRoles()` dan `defaultRol
 | `user.view` / `user.manage` | Lihat / kelola pengguna |
 | `hak_akses.view` / `hak_akses.manage` | Lihat / kelola hak akses & struktur menu |
 | `chat_history.view` | Akses Histori Chat |
-| `chatbot.access` | Akses VPoint Assistant |
+| `chatbot.access` | Akses Desk Assistant |
 | `log_data.view` | Akses Log Data |
 | `job_schedule.view` | Akses & edit Job Schedule |
 | `menu.master.instansi`, `menu.master.customer`, `menu.master.nomor_whatsapp`, `menu.master.grup_whatsapp`, `menu.master.anggota_grup` | Penanda menu sidebar untuk resource master (bukan permission aksi) |
@@ -291,7 +291,7 @@ Ditetapkan pada header `src/script/DATABASE_SCHEMA_WACS.sql`:
 - PK `uniqueidentifier` dengan `DEFAULT NEWSEQUENTIALID()`; aplikasi umumnya mengisi sendiri dengan `Str::orderedUuid()`.
 - Semua tabel punya kolom audit: `TglBuat`, `DibuatOleh`, `TglEdit`, `DieditOleh`.
 - Kolom audit user **tidak** dibuat FK agar data historis aman saat user berubah.
-- Migration schema utama (`2026_04_27_000001_create_vpoint_care_schema`) mengeksekusi file SQL dan **wajib** koneksi `sqlsrv`.
+- Migration schema utama (`2026_04_27_000001_create_desk_care_schema`) mengeksekusi file SQL dan **wajib** koneksi `sqlsrv`.
 
 ### 7.2 Master data
 
@@ -335,7 +335,7 @@ Ditetapkan pada header `src/script/DATABASE_SCHEMA_WACS.sql`:
 | `TAiPermintaan` | Permintaan AI (jenis, provider, model, prompt ringkas/JSON, status, waktu, error) |
 | `TAiRespon` | Respons AI (ringkas, JSON, token in/out, biaya estimasi, approval) |
 | `TAiDraftPengetahuan` | Draft knowledge hasil ekstraksi AI + status review + `HashKonten` |
-| `TChatbotInternal` | Riwayat VPoint Assistant per pengguna (`PeranPengirim` CHECK `user`/`assistant`) |
+| `TChatbotInternal` | Riwayat Desk Assistant per pengguna (`PeranPengirim` CHECK `user`/`assistant`) |
 | `TLogWebhookWaha` | Payload webhook mentah + status proses + error |
 | `TLogIntegrasi` | Request/response HTTP keluar (WAHA, VToken) + status + durasi |
 | `TLogError`, `TLogAktivitas` | Log error dan aktivitas pengguna |
@@ -778,9 +778,9 @@ Draft disimpan berstatus `STATUS_DRAFT` dan **tidak** otomatis menjadi `MPengeta
 **FR-LEARN-06 — Sanitasi pesan error**
 Pesan error yang ditampilkan HARUS menyensor pola `Bearer ...` dan `sk-...` menjadi `[secret]`.
 
-### 8.11 VPoint Assistant (Chatbot Internal)
+### 8.11 Desk Assistant (Chatbot Internal)
 
-`App\Filament\Pages\VPointAssistant` + `App\Services\Ai\InternalChatbotService`, tabel `TChatbotInternal`. Permission `chatbot.access`.
+`App\Filament\Pages\DeskAssistant` + `App\Services\Ai\InternalChatbotService`, tabel `TChatbotInternal`. Permission `chatbot.access`.
 
 **FR-BOT-01 — Tanya jawab internal**
 Pengguna panel HARUS dapat bertanya (maks 4000 karakter) dan menerima jawaban AI berbasis knowledge base internal dan riwayat percakapannya sendiri (maks 20 pesan konteks).
@@ -920,7 +920,7 @@ Status ticket/task, kategori, dan prioritas dikelola melalui resource khusus yan
 ### 8.16 Integrasi VToken
 
 **FR-VT-01 — Command import**
-`php artisan vpoint:import-instansi-vtoken` mendispatch `ImportVTokenCustomersToInstansi` ke queue; opsi `--sync` menjalankannya langsung (`Bus::dispatchSync`).
+`php artisan desk:import-instansi-vtoken` mendispatch `ImportVTokenCustomersToInstansi` ke queue; opsi `--sync` menjalankannya langsung (`Bus::dispatchSync`).
 
 **FR-VT-02 — Sumber data**
 Endpoint dibaca dari `VTOKEN_OPEN_CUSTOMERS_URL` (`config('services.vtoken.open_customers_url')`).
@@ -945,10 +945,10 @@ Seeder menyediakan job schedule `Import Instansi VToken` (`everyFiveMinutes`) da
 Resource `JobScheduleResource` (permission `job_schedule.view`) mengizinkan **edit** (termasuk toggle `is_active`) tetapi **melarang create dan delete** (`canCreate()`/`canDelete()` = false).
 
 **FR-SCH-03 — Jadwal bawaan**
-Seeder membuat: `vpoint:kirim-notifikasi-chat-belum-terbalas` (`everyMinute`, aktif) dan `vpoint:import-instansi-vtoken` (`everyFiveMinutes`, nonaktif).
+Seeder membuat: `desk:kirim-notifikasi-chat-belum-terbalas` (`everyMinute`, aktif) dan `desk:import-instansi-vtoken` (`everyFiveMinutes`, nonaktif).
 
 **FR-SCH-04 — Command serve kustom**
-`php artisan serve:vpoint` menjalankan server pada `APP_SERVE_HOST`/`APP_SERVE_PORT` (default `127.0.0.1:8008`) tanpa timeout.
+`php artisan serve:desk` menjalankan server pada `APP_SERVE_HOST`/`APP_SERVE_PORT` (default `127.0.0.1:8008`) tanpa timeout.
 
 ### 8.18 Notifikasi Chat Belum Terbalas
 
@@ -1162,7 +1162,7 @@ Resolusi API key: kolom terenkripsi di `MPengaturanAi` → gagal dekripsi/kosong
 
 | Aspek | Detail |
 | --- | --- |
-| Endpoint | `VTOKEN_OPEN_CUSTOMERS_URL` (contoh `https://vtoken.vpoint.my.id/api/open/customers`) |
+| Endpoint | `VTOKEN_OPEN_CUSTOMERS_URL` (contoh `https://vtoken.desk.my.id/api/open/customers`) |
 | Arah | Keluar (aplikasi menarik data) |
 | Target | Upsert `MInstansi` berdasarkan kode instansi |
 | Pemicu | Command manual, `--sync`, atau job schedule |
@@ -1186,7 +1186,7 @@ Resolusi API key: kolom terenkripsi di `MPengaturanAi` → gagal dekripsi/kosong
 | `APP_NAME`, `APP_ENV`, `APP_KEY`, `APP_DEBUG`, `APP_URL` | Dasar Laravel. `APP_KEY` production **tidak boleh** di-generate ulang (merusak data terenkripsi) |
 | `APP_FORCE_HTTPS`, `TRUSTED_PROXIES` | Untuk deployment di belakang reverse proxy SSL |
 | `APP_LOCALE`, `APP_FALLBACK_LOCALE`, `APP_TIMEZONE` | Default `id`, `id`, `Asia/Jakarta` |
-| `APP_SERVE_HOST`, `APP_SERVE_PORT` | Dipakai `php artisan serve:vpoint` (default `127.0.0.1:8008`) |
+| `APP_SERVE_HOST`, `APP_SERVE_PORT` | Dipakai `php artisan serve:desk` (default `127.0.0.1:8008`) |
 
 ### 11.2 Database, queue, cache, session
 
@@ -1311,7 +1311,7 @@ Restart layanan queue worker, scheduler, dan Reverb bila process manager tidak m
 
 ### 13.4 Chat tidak terbalas → notifikasi internal
 
-1. Scheduler menjalankan `vpoint:kirim-notifikasi-chat-belum-terbalas` sesuai `job_schedules`.
+1. Scheduler menjalankan `desk:kirim-notifikasi-chat-belum-terbalas` sesuai `job_schedules`.
 2. Sistem memeriksa jam kerja, hari kerja, dan hari libur; bila di luar jadwal, dilewati.
 3. Chat yang balasan CS-nya lebih lama dari pesan masuk terakhir dan sudah menunggu ≥ `MenitTungguNotifikasi` dikumpulkan (maks 20).
 4. Notifikasi WhatsApp dikirim ke pengguna internal berdasarkan role penerima.
@@ -1323,7 +1323,7 @@ Restart layanan queue worker, scheduler, dan Reverb bila process manager tidak m
 2. Sistem menyanitasi PII, memanggil AI, dan meminta output JSON terstruktur.
 3. Draft disimpan ke `TAiDraftPengetahuan` berstatus draft (bukan knowledge aktif) dengan pengecekan duplikat berbasis hash.
 4. Supervisor mereview, mengedit, lalu mempromosikan draft menjadi `MPengetahuan`.
-5. Knowledge aktif otomatis dipakai sebagai konteks auto-reply dan VPoint Assistant.
+5. Knowledge aktif otomatis dipakai sebagai konteks auto-reply dan Desk Assistant.
 
 ---
 
@@ -1413,7 +1413,7 @@ Temuan berikut berasal dari pembacaan source code aktual dan **perlu ditindaklan
 | `add-9router-ai-agent` | Provider 9Router + test koneksi + ikon provider | Terimplementasi |
 | `add-google-sso-auth` | Login/registrasi Google & SSO | Terimplementasi |
 | `add-reviewed-ai-learning` | Draft knowledge human-in-the-loop | Terimplementasi |
-| `scalability-optimization-and-chatbot` | Async webhook, index, cache, circuit breaker, VPoint Assistant | Terimplementasi |
+| `scalability-optimization-and-chatbot` | Async webhook, index, cache, circuit breaker, Desk Assistant | Terimplementasi |
 | `add-model-instruct` / `add-ai-instruct-model` / `ai-model-instruct-and-ui-improvements` | Pemisahan model utama vs model instruct | Terimplementasi untuk OpenAI; lihat TD-02 |
 | `audit-ai-agent-light-outline-ui` | Perapihan UI/UX light outline | Terimplementasi |
 
@@ -1511,7 +1511,7 @@ Temuan berikut berasal dari pembacaan source code aktual dan **perlu ditindaklan
 | **Mode auto-reply** | `Hari Libur`, `Luar Jam Kerja`, `Berlanjut`, `Sapaan Jam Kerja`, `Skip` |
 | **Model instruct** | Model AI terpisah (`ModelInstructAi`) untuk balasan pertama/asisten internal, umumnya lebih cepat/murah |
 | **Draft lokal** | Balasan tersimpan di sistem tanpa dikirim ke customer |
-| **Instansi (`MInstansi`)** | Organisasi/klien VPoint, disinkronkan dari VToken |
+| **Instansi (`MInstansi`)** | Organisasi/klien Desk, disinkronkan dari VToken |
 | **Human-in-the-loop RAG** | Pola knowledge: AI mengusulkan, manusia menyetujui, baru dipakai sebagai konteks |
 | **Circuit breaker** | Mekanisme menghentikan sementara panggilan ke layanan yang berulang kali gagal |
 | **Debounce broadcast** | Penekanan event realtime beruntun dalam jendela waktu singkat |
@@ -1533,7 +1533,7 @@ Temuan berikut berasal dari pembacaan source code aktual dan **perlu ditindaklan
 | Media | `app/Http/Controllers/WahaMediaController.php`, `app/Http/Controllers/PublicStorageController.php` |
 | AI Agent | `app/Filament/Pages/AiAgent.php`, `app/Services/Ai/AiAutoReplyService.php`, `app/Jobs/ProcessAiAutoReplyJob.php`, `app/Support/AiSettings.php` |
 | AI Learning | `app/Services/Ai/AiKnowledgeLearningService.php`, `app/Models/Ai/DraftPengetahuan.php`, `app/Filament/Resources/Ai/DraftPengetahuans/*` |
-| Chatbot internal | `app/Filament/Pages/VPointAssistant.php`, `app/Services/Ai/InternalChatbotService.php`, `app/Models/ChatbotMessage.php` |
+| Chatbot internal | `app/Filament/Pages/DeskAssistant.php`, `app/Services/Ai/InternalChatbotService.php`, `app/Models/ChatbotMessage.php` |
 | Dashboard | `app/Filament/Pages/Dashboard.php`, `resources/views/filament/pages/dashboard.blade.php` |
 | Ticketing | `app/Filament/Pages/Ticketing.php`, `app/Filament/Resources/Operational/Tickets/*`, `app/Models/Ticketing/{Ticket,TicketActivity,TicketAssignment,TicketAttachment}.php` |
 | Task | `app/Filament/Resources/Operational/Tasks/*`, `app/Models/Ticketing/{Task,TaskAssignment,TaskAttachment,TaskChecklist,TaskComment}.php` |

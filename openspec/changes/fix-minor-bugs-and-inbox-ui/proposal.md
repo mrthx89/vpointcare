@@ -2,7 +2,7 @@
 
 ## Summary
 
-Change ini menyelesaikan 5 isu utama yang ditemukan pada aplikasi VPoint Care:
+Change ini menyelesaikan 5 isu utama yang ditemukan pada aplikasi Care Desk:
 1. **Breadcrumbs Lengkap**: Seluruh halaman Filament (termasuk Resource Ticket, Task, dan Master Ticketing) dikonfigurasi menggunakan `HasMenuBreadcrumbs` / `getBreadcrumbs()` agar selalu menampilkan label breadcrumb dan navigasi grup yang konsisten.
 2. **Perbaikan Layout & UI Entri Ticket & Task**: Memperbaiki form input Ticket dan Task yang sebelumnya terpotong pada desktop, hp, dan tablet dengan menerapkan `Section`, `Grid` multi-kolom yang responsif, `columnSpanFull()` untuk textarea dan repeater, serta memperluas lebar modal `ManageRecords`.
 3. **Perbaikan Bug AutoReply AI**: Memperbaiki bug di mana AI AutoReply tidak membalas chat masuk meskipun sesi atau setting AI telah diaktifkan, disebabkan oleh fatal `TypeError` (penggunaan `$isFirstReply` sebelum inisialisasi), perbaikan gate global vs session-level auto-reply (`AutoReplyAktif` vs `AutoReplyAiAktif`), serta penanganan timestamp deduplikasi jawaban.

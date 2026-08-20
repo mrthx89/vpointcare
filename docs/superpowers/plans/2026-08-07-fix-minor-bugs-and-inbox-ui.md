@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Perbaiki 5 isu utama pada VPoint Care — menambahkan breadcrumb pada semua halaman, merombak form Ticket/Task agar responsif, memperbaiki fatal TypeError dan logika AutoReply, mengoptimasi performa Inbox WhatsApp dengan menghilangkan N+1 query, serta mendesain ulang antarmuka Inbox agar setara WhatsApp Web/Professional Desktop.
+**Goal:** Perbaiki 5 isu utama pada Care Desk — menambahkan breadcrumb pada semua halaman, merombak form Ticket/Task agar responsif, memperbaiki fatal TypeError dan logika AutoReply, mengoptimasi performa Inbox WhatsApp dengan menghilangkan N+1 query, serta mendesain ulang antarmuka Inbox agar setara WhatsApp Web/Professional Desktop.
 
 **Architecture:**
 1. Breadcrumbs menggunakan trait `HasMenuBreadcrumbs` kustom dengan menu code konsisten.

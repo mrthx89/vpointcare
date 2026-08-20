@@ -144,7 +144,7 @@ Perubahan penting:
 ### Migrations dan Schema
 
 - `DATABASE_SCHEMA_WACS.sql`
-- `database/migrations/2026_04_27_000001_create_vpoint_care_schema.php`
+- `database/migrations/2026_04_27_000001_create_desk_care_schema.php`
 - `database/migrations/2026_04_27_000002_add_whatsapp_group_mapping.php`
 - `database/migrations/2026_04_27_000003_add_ai_auto_reply_settings.php`
 - `database/migrations/2026_04_27_000004_add_unanswered_chat_notification_settings.php`
@@ -252,7 +252,7 @@ Update `DATABASE_SCHEMA_WACS.sql`:
 3. Rename tabel detail turunan sesuai mapping.
 4. Rename semua kolom FK sesuai mapping.
 5. Rename semua constraint/index sesuai target.
-6. Update urutan create/drop di `2026_04_27_000001_create_vpoint_care_schema.php`:
+6. Update urutan create/drop di `2026_04_27_000001_create_desk_care_schema.php`:
    - drop child tables lebih dulu:
      - `TTicketDLampiran`
      - `TTicketDPenugasan`

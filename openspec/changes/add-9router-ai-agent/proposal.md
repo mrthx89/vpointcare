@@ -2,7 +2,7 @@
 
 ## Summary
 
-Tambahkan opsi provider AI **9Router** pada halaman AI Agent VPoint Care, lengkap dengan preset provider, pengelolaan API key, konfigurasi model/base URL, dukungan service auto-reply, tombol test koneksi AI, dan visual icon AI Agent yang lebih menarik.
+Tambahkan opsi provider AI **9Router** pada halaman AI Agent Care Desk, lengkap dengan preset provider, pengelolaan API key, konfigurasi model/base URL, dukungan service auto-reply, tombol test koneksi AI, dan visual icon AI Agent yang lebih menarik.
 
 > Catatan validasi: istilah user adalah `9router`. Saat implementasi perlu dikonfirmasi apakah yang dimaksud adalah brand/provider baru bernama **9Router** atau alias UI untuk **OpenRouter** yang sudah tersedia di sebagian kode.
 

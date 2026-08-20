@@ -154,14 +154,14 @@ ensure_generated_env_val() {
     fi
 }
 
-ensure_generated_env_val "DB_PASSWORD" "VPoint_" 6 "!#2026"
+ensure_generated_env_val "DB_PASSWORD" "Desk_" 6 "!#2026"
 ensure_generated_env_val "REDIS_PASSWORD" "Redis_" 8 ""
 ensure_generated_env_val "WAHA_API_KEY" "waha_api_" 16 ""
 ensure_generated_env_val "WAHA_DASHBOARD_PASSWORD" "Waha_" 6 "!2026"
 ensure_generated_env_val "WHATSAPP_SWAGGER_PASSWORD" "Waha_" 6 "!2026"
 ensure_generated_env_val "WAHA_WEBHOOK_TOKEN" "wh_token_" 16 ""
 ensure_generated_env_val "WAHA_WEBHOOK_HMAC_KEY" "wh_hmac_" 16 ""
-ensure_env_val "REVERB_APP_ID" "vpoint-app"
+ensure_env_val "REVERB_APP_ID" "desk-app"
 ensure_generated_env_val "REVERB_APP_KEY" "" 10 ""
 ensure_generated_env_val "REVERB_APP_SECRET" "" 16 ""
 ensure_env_val "VITE_REVERB_APP_KEY" "$(get_env_val "REVERB_APP_KEY" "")"

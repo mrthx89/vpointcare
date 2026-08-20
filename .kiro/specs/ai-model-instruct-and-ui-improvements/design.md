@@ -68,11 +68,11 @@ Lihat bagian **Strategi Pengujian** di bawah.
 
 ## Ikhtisar
 
-Feature ini mencakup tiga kelompok perubahan yang saling terkait pada aplikasi VPoint Care (Laravel 11 + Filament 3 + Livewire 3):
+Feature ini mencakup tiga kelompok perubahan yang saling terkait pada aplikasi Care Desk (Laravel 11 + Filament 3 + Livewire 3):
 
-**Kelompok A — Model Instruct AI:** Menambahkan kolom `ModelInstructAi` ke tabel `MPengaturanAi` melalui migrasi kondisional SQL Server, lalu memperbarui logika pemilihan model di `InternalChatbotService` agar VPoint Assistant (mode Ringan) menggunakan model khusus instruct — dengan fallback ke Model Utama jika kosong.
+**Kelompok A — Model Instruct AI:** Menambahkan kolom `ModelInstructAi` ke tabel `MPengaturanAi` melalui migrasi kondisional SQL Server, lalu memperbarui logika pemilihan model di `InternalChatbotService` agar Desk Assistant (mode Ringan) menggunakan model khusus instruct — dengan fallback ke Model Utama jika kosong.
 
-**Kelompok B — Bug Fix UI VPoint Assistant:** (1) Hapus `shadow-sm` dari tombol submit area input bawah; (2) Batasi max-height textarea pesan ke 200px (ganti `max-h-[60vh]` dan kalkulasi Alpine.js); (3) Perbaiki `loadHistory()` agar tidak mengisi `$suggestedReplies` dari data historis.
+**Kelompok B — Bug Fix UI Desk Assistant:** (1) Hapus `shadow-sm` dari tombol submit area input bawah; (2) Batasi max-height textarea pesan ke 200px (ganti `max-h-[60vh]` dan kalkulasi Alpine.js); (3) Perbaiki `loadHistory()` agar tidak mengisi `$suggestedReplies` dari data historis.
 
 **Kelompok C — Perbaikan UI AI Agent:** (1) Ubah textarea `PromptSistem` ke mode auto-grow (min 120px, tanpa `resize-y`) menggunakan Alpine.js; (2) Kompres layout template dari `min-h-60` ke `min-h-[80px]` agar dua kolom di desktop terlihat proporsional.
 
@@ -95,7 +95,7 @@ Sebelum merancang perubahan, dilakukan audit kode untuk memastikan kondisi awal:
 | Field UI `ModelInstructAi` di `ai-agent.blade.php` | ✅ Sudah ada |
 | Translation keys `primary_model`, `instruct_model`, `*_help` di `id` & `en` | ✅ Sudah ada |
 | Bug fix `loadHistory()` — suggestedReplies | ⚠️ **Belum diperbaiki** |
-| Bug shadow di `vpoint-assistant.blade.php` | ⚠️ **Belum diperbaiki** |
+| Bug shadow di `desk-assistant.blade.php` | ⚠️ **Belum diperbaiki** |
 | Bug max-height textarea 200px | ⚠️ **Belum diperbaiki** |
 | Auto-grow `PromptSistem` | ⚠️ **Belum diperbaiki** |
 | Compact template `min-h-[80px]` | ⚠️ **Belum diperbaiki** |
@@ -114,12 +114,12 @@ Sistem dibagi menjadi empat lapisan yang terlibat dalam feature ini:
 graph TB
     subgraph UI["Layer UI (Blade + Alpine.js + Livewire)"]
         AIAGENT["ai-agent.blade.php<br/>- Field Model Utama & Instruct<br/>- Auto-grow PromptSistem<br/>- Compact template 2 kolom"]
-        VPASSIST["vpoint-assistant.blade.php<br/>- Fix shadow input area<br/>- Max-height 200px textarea<br/>- Suggested replies lifecycle"]
+        VPASSIST["desk-assistant.blade.php<br/>- Fix shadow input area<br/>- Max-height 200px textarea<br/>- Suggested replies lifecycle"]
     end
 
     subgraph LIVEWIRE["Layer Livewire (PHP Components)"]
         AIAGENTPHP["AiAgent.php<br/>- loadPengaturan() + guard<br/>- simpanPengaturan() + guard<br/>- applyProviderPreset() + guard<br/>- Validasi ModelInstructAi"]
-        VPASSISTPHP["VPointAssistant.php<br/>- loadHistory() [FIX: no suggestedReplies]<br/>- sendMessage()<br/>- useSuggestedReply()"]
+        VPASSISTPHP["DeskAssistant.php<br/>- loadHistory() [FIX: no suggestedReplies]<br/>- sendMessage()<br/>- useSuggestedReply()"]
     end
 
     subgraph SERVICE["Layer Service (Business Logic)"]
@@ -185,8 +185,8 @@ stateDiagram-v2
 | **Migrasi** | `database/migrations/2026_06_29_000001_add_model_instruct_to_ai_settings.php` | Verifikasi/konfirmasi (sudah ada) |
 | **AiAgent (Controller)** | `app/Filament/Pages/AiAgent.php` | Verifikasi guard di load/simpan/preset (sudah ada) |
 | **AI Agent View** | `resources/views/filament/pages/ai-agent.blade.php` | Auto-grow PromptSistem + compact template |
-| **VPointAssistant (Controller)** | `app/Filament/Pages/VPointAssistant.php` | Fix loadHistory() — hapus suggestedReplies dari history |
-| **VPoint Assistant View** | `resources/views/filament/pages/vpoint-assistant.blade.php` | Fix shadow + max-height 200px |
+| **DeskAssistant (Controller)** | `app/Filament/Pages/DeskAssistant.php` | Fix loadHistory() — hapus suggestedReplies dari history |
+| **Desk Assistant View** | `resources/views/filament/pages/desk-assistant.blade.php` | Fix shadow + max-height 200px |
 | **InternalChatbotService** | `app/Services/Ai/InternalChatbotService.php` | Verifikasi getAssistantModel() (sudah ada) |
 | **Translation ID** | `resources/lang/id/ui.php` | Verifikasi keys (sudah ada) |
 | **Translation EN** | `resources/lang/en/ui.php` | Verifikasi keys (sudah ada) |
@@ -210,7 +210,7 @@ private function getPrimaryModel(object $settings): string
 // Post: return ModelAi jika non-empty, else config("services.{provider}.model")
 ```
 
-#### `VPointAssistant` — Kontrak Suggested Replies
+#### `DeskAssistant` — Kontrak Suggested Replies
 
 ```php
 // Invariant: setelah loadHistory() selesai → $this->suggestedReplies === []
@@ -258,7 +258,7 @@ object {
 }
 ```
 
-### State `VPointAssistant` — Properti Relevan
+### State `DeskAssistant` — Properti Relevan
 
 ```php
 public array  $messages        = [];   // Array pesan yang ditampilkan di UI
@@ -380,7 +380,7 @@ $model = $this->getAssistantModel($settings, $mode);
 
 ---
 
-### LLD-B1: `VPointAssistant.php` — Fix Bug Suggested Replies
+### LLD-B1: `DeskAssistant.php` — Fix Bug Suggested Replies
 
 **Masalah saat ini di `loadHistory()`:**
 
@@ -452,7 +452,7 @@ private function loadHistory(InternalChatbotService $chatbot): void
 
 ---
 
-### LLD-B2: `vpoint-assistant.blade.php` — Fix Shadow
+### LLD-B2: `desk-assistant.blade.php` — Fix Shadow
 
 **Masalah saat ini:**
 
@@ -485,7 +485,7 @@ Hapus juga blok `<style>` yang menggunakan selector `[class*="shadow-"]` karena 
 
 ---
 
-### LLD-B3: `vpoint-assistant.blade.php` — Fix Max-Height Textarea 200px
+### LLD-B3: `desk-assistant.blade.php` — Fix Max-Height Textarea 200px
 
 **Masalah saat ini:**
 
@@ -551,7 +551,7 @@ Hapus juga blok `<style>` yang menggunakan selector `[class*="shadow-"]` karena 
 - `min-h-[220px]` dihapus; diganti inline style `min-height: 120px`
 - `resize-y` dihapus — ukuran dikontrol oleh Alpine.js
 - Batas atas 500px dipilih agar prompt panjang masih bisa dilihat tanpa memenuhi layar
-- Pola Alpine.js (`x-on:input` + `x-effect`) identik dengan yang dipakai di `vpoint-assistant.blade.php`
+- Pola Alpine.js (`x-on:input` + `x-effect`) identik dengan yang dipakai di `desk-assistant.blade.php`
 - `x-effect` memastikan textarea menyesuaikan ukuran saat konten dimuat dari Livewire (bukan hanya saat user mengetik)
 
 ---
@@ -704,7 +704,7 @@ Feature ini memiliki komponen logika bisnis murni (pemilihan model, lifecycle st
 | Nilai `ModelInstructAi` melebihi 100 karakter | Validasi Laravel `max:100` di `simpanPengaturan()` — form error ditampilkan |
 | DB connection gagal saat load | Livewire akan menampilkan error standar Filament |
 
-### Error Handling di `VPointAssistant`
+### Error Handling di `DeskAssistant`
 
 | Kondisi | Penanganan |
 |---|---|
@@ -735,7 +735,7 @@ tests/Unit/InternalChatbotServiceModelSelectionTest.php
   ✓ mode_fast_menggunakan_primary_model
   ✓ mode_fast_dengan_modelai_kosong_menggunakan_config_default
 
-tests/Unit/VPointAssistantSuggestedRepliesTest.php
+tests/Unit/DeskAssistantSuggestedRepliesTest.php
   ✓ load_history_menghasilkan_suggested_replies_kosong_meski_history_punya_suggested_replies
   ✓ use_suggested_reply_mereset_suggested_replies_ke_kosong
   ✓ send_message_sukses_mengisi_suggested_replies
@@ -769,7 +769,7 @@ tests/Property/InternalChatbotModelSelectionPropertyTest.php
     AND:  getAssistantModel(settings, 'fast') === ModelAi
 
 
-tests/Property/VPointAssistantPropertyTest.php
+tests/Property/DeskAssistantPropertyTest.php
 
   // Feature: ai-model-instruct-and-ui-improvements, Property 4: loadHistory tidak mengisi suggestedReplies
   @test @property(iterations=100)
@@ -795,7 +795,7 @@ tests/Feature/AiAgentBladeSmoke.php
   ✓ textarea_prompt_sistem_punya_auto_grow_alpine_directive
   ✓ keempat_textarea_template_punya_class_min_h_80px
 
-tests/Feature/VPointAssistantBladeSmoke.php
+tests/Feature/DeskAssistantBladeSmoke.php
   ✓ tombol_submit_tidak_punya_class_shadow_sm
   ✓ textarea_input_punya_class_max_h_200px
   ✓ textarea_input_alpine_menggunakan_batas_200_bukan_viewport
@@ -818,9 +818,9 @@ tests/Integration/MigrasiModelInstructTest.php
 |---|---|---|
 | `database/migrations/2026_06_29_000001_add_model_instruct_to_ai_settings.php` | Konfirmasi (sudah benar) | ✅ Tidak perlu edit |
 | `app/Filament/Pages/AiAgent.php` | Konfirmasi guard konsisten; opsional: pakai SchemaCache | ⚡ Opsional optimasi |
-| `app/Filament/Pages/VPointAssistant.php` | **Bug fix** `loadHistory()` — hapus blok `$latest` | 🔴 Perlu edit |
+| `app/Filament/Pages/DeskAssistant.php` | **Bug fix** `loadHistory()` — hapus blok `$latest` | 🔴 Perlu edit |
 | `resources/views/filament/pages/ai-agent.blade.php` | Auto-grow PromptSistem + compact template 80px | 🔴 Perlu edit |
-| `resources/views/filament/pages/vpoint-assistant.blade.php` | Hapus `shadow-sm` + max-height 200px | 🔴 Perlu edit |
+| `resources/views/filament/pages/desk-assistant.blade.php` | Hapus `shadow-sm` + max-height 200px | 🔴 Perlu edit |
 | `resources/lang/id/ui.php` | Konfirmasi keys (sudah ada) | ✅ Tidak perlu edit |
 | `resources/lang/en/ui.php` | Konfirmasi keys (sudah ada) | ✅ Tidak perlu edit |
 | `app/Services/Ai/InternalChatbotService.php` | Konfirmasi (sudah benar) | ✅ Tidak perlu edit |

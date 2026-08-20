@@ -1,7 +1,7 @@
-# Deployment VPoint Care ke Laragon Windows 10
+# Deployment Care Desk ke Laragon Windows 10
 
 > **Stack:** Laravel 13 - Filament v5 - PHP 8.3+ - SQL Server - Reverb WebSocket
-> **Source:** `D:\GIT VPOINT\2026-WACS\src`
+> **Source:** `D:\GIT DESK\2026-WACS\src`
 > **Target App:** `C:\laragon\care_apps`
 > **Target Public:** `C:\laragon\www` (root langsung)
 
@@ -46,7 +46,7 @@ New-Item -ItemType Directory -Force "C:\laragon\care_apps"
 ### 2.2 Salin seluruh source ke care_apps
 
 ```powershell
-$src = "D:\GIT VPOINT\2026-WACS\src"
+$src = "D:\GIT DESK\2026-WACS\src"
 $dst = "C:\laragon\care_apps"
 
 # Salin semua file (kecuali .git, node_modules - vendor akan di-install ulang)
@@ -58,7 +58,7 @@ robocopy $src $dst /E /XD ".git" "node_modules" /XF ".env"
 ### 2.3 Salin folder `public` langsung ke `C:\laragon\www`
 
 ```powershell
-robocopy "D:\GIT VPOINT\2026-WACS\src\public" "C:\laragon\www" /E
+robocopy "D:\GIT DESK\2026-WACS\src\public" "C:\laragon\www" /E
 ```
 
 > Ini akan menyalin `index.php`, `.htaccess`, dan file public lainnya langsung ke root `www`.
@@ -70,11 +70,11 @@ robocopy "D:\GIT VPOINT\2026-WACS\src\public" "C:\laragon\www" /E
 Buat file baru `C:\laragon\care_apps\.env`:
 
 ```ini
-APP_NAME="VPoint Care"
+APP_NAME="Care Desk"
 APP_ENV=production
 APP_KEY=                          # akan diisi otomatis di Tahap 4.2
 APP_DEBUG=false
-APP_URL=https://care.vpoint.my.id
+APP_URL=https://care.desk.my.id
 APP_FORCE_HTTPS=true
 TRUSTED_PROXIES=*
 
@@ -102,7 +102,7 @@ BROADCAST_CONNECTION=reverb
 REVERB_APP_ID=612204
 REVERB_APP_KEY=g2zwnuebwgen7zqywz51
 REVERB_APP_SECRET=9nkdnjml6pxrnxtrm6jm
-REVERB_HOST=care.vpoint.my.id
+REVERB_HOST=care.desk.my.id
 REVERB_PORT=7060
 REVERB_SCHEME=https
 
@@ -112,7 +112,7 @@ VITE_REVERB_PORT="${REVERB_PORT}"
 VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 
 OPENROUTER_SITE_URL="${APP_URL}"
-OPENROUTER_APP_NAME="VPoint Care"
+OPENROUTER_APP_NAME="Care Desk"
 # Salin juga: WAHA_*, OPENROUTER_API_KEY, dll dari .env dev
 ```
 
@@ -202,23 +202,23 @@ php artisan filament:cache-components
 
 ### 5.1 Tambahkan Virtual Host
 
-Edit atau buat file `C:\laragon\etc\apache2\sites-enabled\care-vpoint.conf`:
+Edit atau buat file `C:\laragon\etc\apache2\sites-enabled\care-desk.conf`:
 
 ```apache
 # Redirect HTTP ke HTTPS
 <VirtualHost *:80>
-    ServerName care.vpoint.my.id
-    Redirect permanent / https://care.vpoint.my.id/
+    ServerName care.desk.my.id
+    Redirect permanent / https://care.desk.my.id/
 </VirtualHost>
 
 # HTTPS Virtual Host
 <VirtualHost *:443>
-    ServerName care.vpoint.my.id
+    ServerName care.desk.my.id
     DocumentRoot "C:/laragon/www"
 
     SSLEngine on
-    SSLCertificateFile     "C:/laragon/etc/ssl/care.vpoint.my.id.crt"
-    SSLCertificateKeyFile  "C:/laragon/etc/ssl/care.vpoint.my.id.key"
+    SSLCertificateFile     "C:/laragon/etc/ssl/care.desk.my.id.crt"
+    SSLCertificateKeyFile  "C:/laragon/etc/ssl/care.desk.my.id.key"
 
     <Directory "C:/laragon/www">
         AllowOverride All
@@ -226,8 +226,8 @@ Edit atau buat file `C:\laragon\etc\apache2\sites-enabled\care-vpoint.conf`:
         Options -Indexes +FollowSymLinks
     </Directory>
 
-    ErrorLog "C:/laragon/logs/apache2/care-vpoint-error.log"
-    CustomLog "C:/laragon/logs/apache2/care-vpoint-access.log" combined
+    ErrorLog "C:/laragon/logs/apache2/care-desk-error.log"
+    CustomLog "C:/laragon/logs/apache2/care-desk-access.log" combined
 </VirtualHost>
 ```
 
@@ -236,7 +236,7 @@ Edit atau buat file `C:\laragon\etc\apache2\sites-enabled\care-vpoint.conf`:
 
 ### 5.1.a Mendapatkan Sertifikat SSL Gratis (Let's Encrypt via win-acme)
 
-**Prasyarat:** Domain `care.vpoint.my.id` sudah diarahkan ke IP publik server
+**Prasyarat:** Domain `care.desk.my.id` sudah diarahkan ke IP publik server
 dan port **80** sudah bisa diakses dari internet.
 
 **Langkah 1 — Download win-acme**
@@ -254,7 +254,7 @@ cd C:\laragon\bin\win-acme
 Pilih menu interaktif:
 ```
 N  : Create certificate (default settings)
-    Domain: care.vpoint.my.id
+    Domain: care.desk.my.id
     Validation: [2] Save verification files to a website folder
     Web root: C:\laragon\www
     Store: [1] PEM encoded files (untuk Apache)
@@ -263,9 +263,9 @@ N  : Create certificate (default settings)
 
 Setelah selesai, file berikut akan dibuat otomatis:
 ```
-C:\laragon\etc\ssl\care.vpoint.my.id-crt.pem   -> isi: sertifikat
-C:\laragon\etc\ssl\care.vpoint.my.id-key.pem   -> isi: private key
-C:\laragon\etc\ssl\care.vpoint.my.id-chain.pem -> isi: chain (CA)
+C:\laragon\etc\ssl\care.desk.my.id-crt.pem   -> isi: sertifikat
+C:\laragon\etc\ssl\care.desk.my.id-key.pem   -> isi: private key
+C:\laragon\etc\ssl\care.desk.my.id-chain.pem -> isi: chain (CA)
 ```
 
 **Langkah 3 — Sesuaikan path di Virtual Host**
@@ -273,9 +273,9 @@ C:\laragon\etc\ssl\care.vpoint.my.id-chain.pem -> isi: chain (CA)
 Ubah konfigurasi Apache menjadi:
 
 ```apache
-SSLCertificateFile     "C:/laragon/etc/ssl/care.vpoint.my.id-crt.pem"
-SSLCertificateKeyFile  "C:/laragon/etc/ssl/care.vpoint.my.id-key.pem"
-SSLCertificateChainFile "C:/laragon/etc/ssl/care.vpoint.my.id-chain.pem"
+SSLCertificateFile     "C:/laragon/etc/ssl/care.desk.my.id-crt.pem"
+SSLCertificateKeyFile  "C:/laragon/etc/ssl/care.desk.my.id-key.pem"
+SSLCertificateChainFile "C:/laragon/etc/ssl/care.desk.my.id-chain.pem"
 ```
 
 **Langkah 4 — win-acme auto-renew**
@@ -287,21 +287,21 @@ sertifikat setiap 60 hari — tidak perlu diurus manual.
 
 ### 5.1.b Alternatif: Ambil dari Panel Hosting (jika domain di-manage hPanel/cPanel)
 
-Jika domain `vpoint.my.id` dikelola di hosting panel (misal Hostinger hPanel):
+Jika domain `desk.my.id` dikelola di hosting panel (misal Hostinger hPanel):
 
 1. Masuk ke hPanel - **SSL** - **Let's Encrypt**
-2. Issue sertifikat untuk subdomain `care.vpoint.my.id`
+2. Issue sertifikat untuk subdomain `care.desk.my.id`
 3. Setelah issued, klik **Details** - salin isi:
-   - **Certificate** → simpan sebagai `care.vpoint.my.id.crt`
-   - **Private Key** → simpan sebagai `care.vpoint.my.id.key`
+   - **Certificate** → simpan sebagai `care.desk.my.id.crt`
+   - **Private Key** → simpan sebagai `care.desk.my.id.key`
 4. Upload/taruh di `C:\laragon\etc\ssl\`
 
 ---
 
 ### 5.2 Catatan DNS
 
-Karena `care.vpoint.my.id` adalah domain publik, **tidak perlu** mengubah file `hosts`.
-Pastikan DNS subdomain `care.vpoint.my.id` sudah diarahkan ke **IP publik server**
+Karena `care.desk.my.id` adalah domain publik, **tidak perlu** mengubah file `hosts`.
+Pastikan DNS subdomain `care.desk.my.id` sudah diarahkan ke **IP publik server**
 menggunakan record **A** di panel DNS domain.
 
 > Jika menggunakan **Cloudflare** sebagai DNS:
@@ -389,8 +389,8 @@ $appDir = "C:\laragon\care_apps"
 & $nssm install CareDeskQueue $php
 & $nssm set CareDeskQueue AppParameters "$appDir\artisan queue:work --tries=3 --timeout=120 --sleep=3 --max-jobs=500"
 & $nssm set CareDeskQueue AppDirectory $appDir
-& $nssm set CareDeskQueue DisplayName "VPoint Care - Queue Worker"
-& $nssm set CareDeskQueue Description "Laravel Queue Worker untuk VPoint Care"
+& $nssm set CareDeskQueue DisplayName "Care Desk - Queue Worker"
+& $nssm set CareDeskQueue Description "Laravel Queue Worker untuk Care Desk"
 & $nssm set CareDeskQueue Start SERVICE_AUTO_START
 
 # Sembunyikan window CMD sepenuhnya
@@ -420,8 +420,8 @@ $appDir = "C:\laragon\care_apps"
 & $nssm install CareDeskReverb $php
 & $nssm set CareDeskReverb AppParameters "$appDir\artisan reverb:start --host=0.0.0.0 --port=7060"
 & $nssm set CareDeskReverb AppDirectory $appDir
-& $nssm set CareDeskReverb DisplayName "VPoint Care - Reverb WebSocket"
-& $nssm set CareDeskReverb Description "Laravel Reverb WebSocket Server untuk VPoint Care (port 7060)"
+& $nssm set CareDeskReverb DisplayName "Care Desk - Reverb WebSocket"
+& $nssm set CareDeskReverb Description "Laravel Reverb WebSocket Server untuk Care Desk (port 7060)"
 & $nssm set CareDeskReverb Start SERVICE_AUTO_START
 
 # Sembunyikan window CMD sepenuhnya
@@ -459,7 +459,7 @@ Get-Service CareDeskQueue
 Get-Service CareDeskReverb
 
 # Atau via Services panel Windows:
-# Tekan Win+R - ketik services.msc - cari "VPoint Care"
+# Tekan Win+R - ketik services.msc - cari "Care Desk"
 ```
 
 Kedua service harusnya terlihat statusnya **Running** dan Startup Type **Automatic**.
@@ -500,7 +500,7 @@ Sehingga Apache otomatis jalan saat Windows boot.
 
 ## TAHAP 8 - Verifikasi Akhir
 
-Buka browser ke `https://care.vpoint.my.id/admin` dan pastikan:
+Buka browser ke `https://care.desk.my.id/admin` dan pastikan:
 
 - [ ] Halaman login muncul tanpa error
 - [ ] Login berhasil dengan akun admin (dari seeder)
@@ -510,7 +510,7 @@ Buka browser ke `https://care.vpoint.my.id/admin` dan pastikan:
 - [ ] Ganti bahasa ID/EN berfungsi
 - [ ] Log Data menampilkan data dari DB
 - [ ] Notifikasi realtime muncul (WebSocket port 7060 aktif)
-- [ ] Di `services.msc` kedua service VPoint Care statusnya **Running**
+- [ ] Di `services.msc` kedua service Care Desk statusnya **Running**
 
 ---
 
@@ -552,8 +552,8 @@ C:\laragon\
 
 ```powershell
 # === SALIN FILE ===
-robocopy "D:\GIT VPOINT\2026-WACS\src" "C:\laragon\care_apps" /E /XD ".git" "node_modules" /XF ".env"
-robocopy "D:\GIT VPOINT\2026-WACS\src\public" "C:\laragon\www" /E
+robocopy "D:\GIT DESK\2026-WACS\src" "C:\laragon\care_apps" /E /XD ".git" "node_modules" /XF ".env"
+robocopy "D:\GIT DESK\2026-WACS\src\public" "C:\laragon\www" /E
 
 # === SETUP ===
 cd C:\laragon\care_apps
@@ -611,7 +611,7 @@ $dir  = "C:\laragon\care_apps"
 cd C:\laragon\care_apps
 
 # Salin file terbaru
-robocopy "D:\GIT VPOINT\2026-WACS\src" "C:\laragon\care_apps" /E /XD ".git" "node_modules" /XF ".env"
+robocopy "D:\GIT DESK\2026-WACS\src" "C:\laragon\care_apps" /E /XD ".git" "node_modules" /XF ".env"
 
 # Rebuild assets
 npm run build

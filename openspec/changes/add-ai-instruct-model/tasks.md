@@ -1,4 +1,4 @@
-﻿# Tasks: Tambah Model Instruct untuk VPoint Assistant dan Inbox WhatsApp
+﻿# Tasks: Tambah Model Instruct untuk Desk Assistant dan Inbox WhatsApp
 
 ## 1. Database
 
@@ -28,7 +28,7 @@
 - [x] Tambahkan input text `wire:model="pengaturan.ModelInstructAi"`.
 - [x] Letakkan `Model Utama` dan `Model Instruct` berdekatan di section provider.
 - [x] Tambahkan helper text bahwa `Model Utama` untuk auto-reply/test koneksi.
-- [x] Tambahkan helper text bahwa `Model Instruct` untuk VPoint Assistant dan Inbox WhatsApp/suggestion cepat.
+- [x] Tambahkan helper text bahwa `Model Instruct` untuk Desk Assistant dan Inbox WhatsApp/suggestion cepat.
 - [x] Pastikan layout responsive dan dark mode tetap rapi.
 
 ## 5. Translation
@@ -40,7 +40,7 @@
 - [x] Pastikan nama key di bahasa Indonesia dan English sama persis agar fallback locale tidak rusak.
 - [x] Verifikasi halaman AI Agent pada locale `id` dan `en`.
 
-## 6. VPoint Assistant Runtime
+## 6. Desk Assistant Runtime
 
 - [x] Update `src/app/Services/Ai/InternalChatbotService.php` agar pemilihan model memakai helper khusus assistant.
 - [x] Untuk OpenAI Responses API, isi request `model` dari `ModelInstructAi` fallback `ModelAi` fallback config.
@@ -64,18 +64,18 @@
 - [x] Pastikan `src/app/Services/Ai/AiAutoReplyService.php` tidak berubah memakai `ModelInstructAi`.
 - [x] Pastikan `testKoneksiAi()` tetap membangun settings dengan `ModelAi` sebagai model uji.
 - [x] Pastikan flow `KirimKeWaha`, `ModeKirim`, jam kerja, hari libur, dan exclude number tidak berubah.
-- [x] Pastikan fallback settings di `VPointAssistant` menambahkan `ModelInstructAi => null` bila diperlukan.
+- [x] Pastikan fallback settings di `DeskAssistant` menambahkan `ModelInstructAi => null` bila diperlukan.
 
 ## 9. Validation
 
 - [x] Jalankan `php -l` untuk file PHP yang diubah.
 - [ ] Jalankan migration pada database dev/staging.
 - [ ] Buka halaman Pengaturan AI dan simpan dua model berbeda.
-- [ ] Test VPoint Assistant dengan `ModelInstructAi` terisi dan cek provider menerima model instruct.
+- [ ] Test Desk Assistant dengan `ModelInstructAi` terisi dan cek provider menerima model instruct.
 - [ ] Test opsi jawaban ringan di Inbox WhatsApp bila fitur sudah tersedia/diimplementasikan dan cek provider menerima model instruct.
 - [ ] Test chat Inbox WhatsApp baru: jawaban pertama memakai Model Instruct.
 - [ ] Test chat Inbox WhatsApp lanjutan: jawaban berikutnya memakai Model Utama.
-- [ ] Kosongkan `ModelInstructAi`, test VPoint Assistant fallback ke `ModelAi`.
+- [ ] Kosongkan `ModelInstructAi`, test Desk Assistant fallback ke `ModelAi`.
 - [ ] Test koneksi AI dan pastikan tetap memakai Model Utama.
 - [ ] Test satu skenario auto-reply atau dry-run untuk memastikan tetap memakai Model Utama.
 - [ ] Jalankan `php artisan view:clear` dan `php artisan optimize:clear` setelah deploy bila cache lama muncul.

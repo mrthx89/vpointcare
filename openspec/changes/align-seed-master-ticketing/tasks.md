@@ -82,7 +82,7 @@
 ## 7. Dokumentasi
 
 - [ ] Tambahkan tabel pemetaan status/kategori lama → kanonik pada `docs/` (lampiran change ini) untuk dipakai tim operasional.
-- [ ] Perbarui `docs/PRD_VPOINT_CARE_WACS.md`: tandai TD-11 sebagai teratasi dan sesuaikan daftar master ticketing pada Bagian 7 dan 8.15.
+- [ ] Perbarui `docs/PRD_CARE_DESK_WACS.md`: tandai TD-11 sebagai teratasi dan sesuaikan daftar master ticketing pada Bagian 7 dan 8.15.
 - [ ] Bila hasil audit menunjukkan ada ticket yang masih memakai kode lama, catat daftar tersebut pada catatan deployment beserta rencana pemetaan manualnya.
 
 ## 8. Deployment

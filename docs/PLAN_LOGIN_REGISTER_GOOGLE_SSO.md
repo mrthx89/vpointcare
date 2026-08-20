@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Membangun login dan registrasi user baru melalui Google dan SSO untuk panel admin VPoint Care, tanpa mengganti auth utama aplikasi yang memakai `MPengguna`, role, dan permission internal.
+Membangun login dan registrasi user baru melalui Google dan SSO untuk panel admin Care Desk, tanpa mengganti auth utama aplikasi yang memakai `MPengguna`, role, dan permission internal.
 
 ## Prinsip Desain
 
@@ -36,7 +36,7 @@ Membangun login dan registrasi user baru melalui Google dan SSO untuk panel admi
 
 ## Rekomendasi UI/UX Login
 
-- Buat halaman login dengan card modern: logo VPoint Care, judul singkat, subtitle keamanan, dan layout center responsif.
+- Buat halaman login dengan card modern: logo Care Desk, judul singkat, subtitle keamanan, dan layout center responsif.
 - Tombol utama: **Masuk dengan Google** memakai ikon Google, warna netral putih, border halus, hover state jelas.
 - Tombol kedua: **Masuk dengan SSO Perusahaan** memakai ikon shield/building, warna primary brand, dan teks yang mudah dipahami user awam.
 - Pisahkan tombol social login dan form password dengan divider `atau masuk dengan akun aplikasi`.
@@ -108,7 +108,7 @@ GOOGLE_AUTH_ENABLED=true
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI=https://domain.test/auth/google/callback
-GOOGLE_ALLOWED_DOMAINS=vpoint.co.id
+GOOGLE_ALLOWED_DOMAINS=desk.co.id
 
 SSO_AUTH_ENABLED=false
 SSO_PROVIDER=oidc
@@ -116,7 +116,7 @@ SSO_CLIENT_ID=
 SSO_CLIENT_SECRET=
 SSO_ISSUER_URL=
 SSO_REDIRECT_URI=https://domain.test/auth/sso/callback
-SSO_ALLOWED_DOMAINS=vpoint.co.id
+SSO_ALLOWED_DOMAINS=desk.co.id
 
 EXTERNAL_REGISTRATION_ENABLED=true
 EXTERNAL_REGISTRATION_DEFAULT_STATUS=pending

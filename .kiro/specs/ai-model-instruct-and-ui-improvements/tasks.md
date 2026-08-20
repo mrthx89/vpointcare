@@ -4,7 +4,7 @@
 
 Implementasi dibagi menjadi empat kelompok berurutan:
 - **Kelompok A** — Konfirmasi read-only: verifikasi migrasi dan `InternalChatbotService` sudah benar
-- **Kelompok B** — Bug fix PHP: perbaiki `loadHistory()` di `VPointAssistant.php`
+- **Kelompok B** — Bug fix PHP: perbaiki `loadHistory()` di `DeskAssistant.php`
 - **Kelompok C** — Bug fix & perbaikan UI: edit dua file Blade
 - **Tests** — Unit test, property test, dan smoke test
 
@@ -32,8 +32,8 @@ Implementasi dibagi menjadi empat kelompok berurutan:
 - [x] 2. Checkpoint A — Konfirmasi Kelompok A Selesai
   - Pastikan migrasi dan `InternalChatbotService` sudah terverifikasi. Tanyakan ke user jika ada keraguan.
 
-- [x] 3. Kelompok B — Bug Fix: `VPointAssistant.php` — `loadHistory()` Suggested Replies
-  - [x] 3.1 Perbaiki method `loadHistory()` di `app/Filament/Pages/VPointAssistant.php`
+- [x] 3. Kelompok B — Bug Fix: `DeskAssistant.php` — `loadHistory()` Suggested Replies
+  - [x] 3.1 Perbaiki method `loadHistory()` di `app/Filament/Pages/DeskAssistant.php`
     - Temukan blok di akhir `loadHistory()` yang mencari pesan asisten terakhir dengan `suggested_replies` non-kosong dari `$this->messages`, lalu mengisi `$this->suggestedReplies` dari data tersebut
     - Hapus seluruh blok `$latest = collect(array_reverse(...))...` dan baris `$this->suggestedReplies = ...` di akhir method
     - Ganti dengan satu baris: `$this->suggestedReplies = [];`
@@ -41,16 +41,16 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - _Requirements: 6.1, 6.2_
 
 - [x] 4. Checkpoint B — Bug Fix PHP Selesai
-  - Jalankan `php artisan test --filter VPointAssistantSuggestedRepliesTest` (jika test sudah ada). Pastikan tidak ada error sintaks di file PHP. Tanyakan ke user jika ada pertanyaan.
+  - Jalankan `php artisan test --filter DeskAssistantSuggestedRepliesTest` (jika test sudah ada). Pastikan tidak ada error sintaks di file PHP. Tanyakan ke user jika ada pertanyaan.
 
-- [x] 5. Kelompok C — Perbaikan UI: `vpoint-assistant.blade.php`
-  - [x] 5.1 Hapus `shadow-sm` dari tombol submit di `resources/views/filament/pages/vpoint-assistant.blade.php`
+- [x] 5. Kelompok C — Perbaikan UI: `desk-assistant.blade.php`
+  - [x] 5.1 Hapus `shadow-sm` dari tombol submit di `resources/views/filament/pages/desk-assistant.blade.php`
     - Temukan elemen `<button type="submit" ...>` di area input bawah
     - Hapus kelas `shadow-sm` dari atribut `class` tombol tersebut
     - Jika ada blok `<style>` yang menggunakan selector agresif `[class*="shadow-"]` untuk override shadow, hapus juga blok `<style>` tersebut karena efeknya terlalu luas
     - _Requirements: 7.1, 7.2, 7.3_
 
-  - [x] 5.2 Perbaiki `max-height` textarea input pesan di `vpoint-assistant.blade.php`
+  - [x] 5.2 Perbaiki `max-height` textarea input pesan di `desk-assistant.blade.php`
     - Temukan `<textarea>` input pesan (yang memiliki `wire:model="userMessage"`)
     - Ganti kelas `max-h-[60vh]` menjadi `max-h-[200px]`
     - Di atribut `x-on:input`, ganti `Math.floor(window.innerHeight * 0.6)` menjadi `200`
@@ -103,7 +103,7 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - Minimum 100 iterasi
     - **Validates: Requirements 2.1, 2.2, 2.3, 12.1, 12.2**
 
-  - [~] 8.4 Buat `tests/Unit/VPointAssistantSuggestedRepliesTest.php`
+  - [~] 8.4 Buat `tests/Unit/DeskAssistantSuggestedRepliesTest.php`
     - Tulis test: `loadHistory()` menghasilkan `$suggestedReplies === []` meski history punya `suggested_replies` non-kosong
     - Tulis test: `useSuggestedReply()` mereset `$suggestedReplies` ke `[]`
     - Tulis test: `sendMessage()` sukses mengisi `$suggestedReplies` dari respons AI
@@ -135,8 +135,8 @@ Implementasi dibagi menjadi empat kelompok berurutan:
     - Assert: symmetric difference antara dua set key tersebut harus kosong
     - **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5**
 
-  - [~] 8.9 Buat smoke test Blade: `tests/Feature/VPointAssistantBladeSmoke.php`
-    - Render halaman VPoint Assistant, assert tombol submit tidak punya kelas `shadow-sm`
+  - [~] 8.9 Buat smoke test Blade: `tests/Feature/DeskAssistantBladeSmoke.php`
+    - Render halaman Desk Assistant, assert tombol submit tidak punya kelas `shadow-sm`
     - Assert textarea input punya kelas `max-h-[200px]`
     - Assert Alpine.js directive menggunakan batas `200` bukan nilai `window.innerHeight`
     - _Requirements: 7.1, 7.2, 8.2, 8.4_

@@ -17,25 +17,25 @@ Urutan implementasi yang direkomendasikan berdasarkan risiko dan dependensi.
 
 ---
 
-## Kelompok B — Bug Fix VPoint Assistant
+## Kelompok B — Bug Fix Desk Assistant
 
-- [ ] B1. **`VPointAssistant.php`** — Fix `loadHistory()`: hapus blok `$latest` dan ganti dengan `$this->suggestedReplies = []`
-  - File: `app/Filament/Pages/VPointAssistant.php`
+- [ ] B1. **`DeskAssistant.php`** — Fix `loadHistory()`: hapus blok `$latest` dan ganti dengan `$this->suggestedReplies = []`
+  - File: `app/Filament/Pages/DeskAssistant.php`
   - Hapus baris: `$latest = collect(array_reverse($this->messages))->first(...);`
   - Hapus baris: `$this->suggestedReplies = is_array($latest) ? ... : [];`
   - Tambah: `$this->suggestedReplies = [];`
 
-- [ ] B2. **`vpoint-assistant.blade.php`** — Hapus `shadow-sm` dari tombol submit
-  - File: `resources/views/filament/pages/vpoint-assistant.blade.php`
+- [ ] B2. **`desk-assistant.blade.php`** — Hapus `shadow-sm` dari tombol submit
+  - File: `resources/views/filament/pages/desk-assistant.blade.php`
   - Cari class `shadow-sm` pada tombol submit, hapus
 
-- [ ] B3. **`vpoint-assistant.blade.php`** — Ganti max-height textarea ke 200px
+- [ ] B3. **`desk-assistant.blade.php`** — Ganti max-height textarea ke 200px
   - `max-h-[60vh]` → `max-h-[200px]`
   - `Math.floor(window.innerHeight * 0.6)` → `200` (dua tempat: `x-on:input` dan `x-effect`)
 
-- [ ] B4. **`vpoint-assistant.blade.php`** — Hapus/bersihkan blok `<style>` override shadow yang terlalu luas
+- [ ] B4. **`desk-assistant.blade.php`** — Hapus/bersihkan blok `<style>` override shadow yang terlalu luas
   - Hapus selector `[class*="shadow-"]` dan `[class*="ring-"]` dari blok `<style>`
-  - Pertahankan style untuk `.vpoint-ai-markdown` dan `[x-cloak]`
+  - Pertahankan style untuk `.desk-ai-markdown` dan `[x-cloak]`
 
 ---
 
@@ -57,9 +57,9 @@ Urutan implementasi yang direkomendasikan berdasarkan risiko dan dependensi.
 
 - [ ] T1. Buka halaman AI Agent, isi PromptSistem panjang — pastikan auto-grow bekerja
 - [ ] T2. Buka halaman AI Agent, lihat layout template dua kolom — pastikan tidak terlalu tinggi
-- [ ] T3. Buka VPoint Assistant, kirim pesan — pastikan suggested replies muncul
-- [ ] T4. Refresh halaman VPoint Assistant — pastikan suggested replies TIDAK muncul
+- [ ] T3. Buka Desk Assistant, kirim pesan — pastikan suggested replies muncul
+- [ ] T4. Refresh halaman Desk Assistant — pastikan suggested replies TIDAK muncul
 - [ ] T5. Klik salah satu suggested reply — pastikan suggested replies hilang setelah klik
-- [ ] T6. Ketik pesan panjang di VPoint Assistant — pastikan textarea tidak melebihi 200px
-- [ ] T7. Cek area input VPoint Assistant — pastikan tidak ada shadow berlebih
+- [ ] T6. Ketik pesan panjang di Desk Assistant — pastikan textarea tidak melebihi 200px
+- [ ] T7. Cek area input Desk Assistant — pastikan tidak ada shadow berlebih
 - [ ] T8. Konfirmasi `AiAutoReplyService` masih berjalan normal (test koneksi di AI Agent)

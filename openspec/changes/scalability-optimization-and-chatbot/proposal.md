@@ -2,7 +2,7 @@
 
 ## Summary
 
-Melakukan optimasi scalabilitas menyeluruh pada WACS (WhatsApp Customer Service) yang mencakup pergeseran dari synchronous ke asynchronous processing, pengaktifan Redis sebagai cache dan queue driver, optimasi query dashboard, caching konfigurasi, serta penambahan fitur baru **VPoint Assistant** — chatbot internal berbasis AI untuk pengguna admin panel yang membantu lookup knowledge, operasional queries, draft reply, dan guidance aplikasi.
+Melakukan optimasi scalabilitas menyeluruh pada WACS (WhatsApp Customer Service) yang mencakup pergeseran dari synchronous ke asynchronous processing, pengaktifan Redis sebagai cache dan queue driver, optimasi query dashboard, caching konfigurasi, serta penambahan fitur baru **Desk Assistant** — chatbot internal berbasis AI untuk pengguna admin panel yang membantu lookup knowledge, operasional queries, draft reply, dan guidance aplikasi.
 
 Perubahan ini terbagi menjadi dua fase utama:
 
@@ -135,7 +135,7 @@ Saat ini semua harus dilakukan secara manual melalui UI yang berbeda-beda.
 9. **Deduplicate WahaChatId helper** — Memusatkan logic ke satu shared utility.
 10. **Optimasi database indexes** — Menambahkan composite indexes untuk query hot path.
 
-### Fase B — Internal Chatbot (VPoint Assistant)
+### Fase B — Internal Chatbot (Desk Assistant)
 
 1. **Membangun chatbot internal** — Chatbot AI untuk pengguna admin panel (CS, Supervisor, Admin).
 2. **Knowledge Base RAG** — Chatbot otomatis mencari knowledge relevan dari `MPengetahuan`.
@@ -177,8 +177,8 @@ Saat ini semua harus dilakukan secara manual melalui UI yang berbeda-beda.
 
 ### Fase B
 - `src/app/Services/Ai/InternalChatbotService.php` — **Baru** — Chatbot service
-- `src/app/Filament/Pages/VPointAssistant.php` — **Baru** — Chat page
-- `src/resources/views/filament/pages/vpoint-assistant.blade.php` — **Baru** — Chat UI
+- `src/app/Filament/Pages/DeskAssistant.php` — **Baru** — Chat page
+- `src/resources/views/filament/pages/desk-assistant.blade.php` — **Baru** — Chat UI
 - `src/app/Support/AccessPermissions.php` — Tambah permission chatbot (opsional)
 - `src/script/DATABASE_SCHEMA_WACS.sql` — Tambah `TChatbotInternal` table
 - `src/lang/*/ui.php` — Tambah label chatbot
@@ -218,7 +218,7 @@ Saat ini semua harus dilakukan secara manual melalui UI yang berbeda-beda.
 1. Buat migration TChatbotInternal — 0.5 hari
 2. Buat ChatbotMessage model — 0.5 hari
 3. Buat InternalChatbotService — 1 hari
-4. Buat VPointAssistant Filament page — 1 hari
+4. Buat DeskAssistant Filament page — 1 hari
 5. Buat Blade view chat UI — 0.5 hari
 6. Tambah permission dan localization — 0.5 hari
 7. Test end-to-end — 0.5 hari
@@ -239,7 +239,7 @@ Saat ini semua harus dilakukan secara manual melalui UI yang berbeda-beda.
 - Semua test existing tetap passing
 
 ### Fase B
-- Pengguna admin panel bisa membuka halaman VPoint Assistant
+- Pengguna admin panel bisa membuka halaman Desk Assistant
 - Pengguna bisa mengirim pesan dan menerima jawaban AI
 - Chatbot menggunakan knowledge base dari `MPengetahuan` (RAG)
 - Riwayat percakapan tersimpan per user

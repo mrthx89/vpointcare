@@ -110,8 +110,8 @@ Master data yang dikelola aplikasi:
 
 ### Integrasi VToken
 
-- Command import: `php artisan vpoint:import-instansi-vtoken`.
-- Mode sinkron langsung: `php artisan vpoint:import-instansi-vtoken --sync`.
+- Command import: `php artisan desk:import-instansi-vtoken`.
+- Mode sinkron langsung: `php artisan desk:import-instansi-vtoken --sync`.
 - URL sumber diatur melalui `VTOKEN_OPEN_CUSTOMERS_URL`.
 - Import dapat dijalankan manual dari admin atau queue.
 
@@ -119,7 +119,7 @@ Master data yang dikelola aplikasi:
 
 - Queue default menggunakan driver database.
 - Scheduler membaca command aktif dari tabel `job_schedules`.
-- Command notifikasi chat belum terbalas: `php artisan vpoint:kirim-notifikasi-chat-belum-terbalas`.
+- Command notifikasi chat belum terbalas: `php artisan desk:kirim-notifikasi-chat-belum-terbalas`.
 - Proses production wajib menjalankan queue worker dan scheduler agar fitur background berjalan.
 
 ## Prasyarat Development
@@ -210,7 +210,7 @@ composer run dev
 
 Script `composer run dev` menjalankan proses berikut secara paralel:
 
-- `php artisan serve:vpoint` pada host/port dari `.env`.
+- `php artisan serve:desk` pada host/port dari `.env`.
 - `php artisan queue:listen --tries=1 --timeout=0`.
 - `npm run dev`.
 - `php artisan reverb:start`.
@@ -288,8 +288,8 @@ Jika tidak membutuhkan realtime saat development, `BROADCAST_CONNECTION=log` dap
 | `php artisan migrate --seed` | Membuat/memperbarui schema database dan seed data awal. |
 | `php artisan queue:work` | Menjalankan queue worker production. |
 | `php artisan schedule:run` | Menjalankan scheduler Laravel. |
-| `php artisan vpoint:import-instansi-vtoken --sync` | Import customer VToken langsung tanpa queue. |
-| `php artisan vpoint:kirim-notifikasi-chat-belum-terbalas` | Mengirim notifikasi internal chat belum terbalas. |
+| `php artisan desk:import-instansi-vtoken --sync` | Import customer VToken langsung tanpa queue. |
+| `php artisan desk:kirim-notifikasi-chat-belum-terbalas` | Mengirim notifikasi internal chat belum terbalas. |
 | `php artisan optimize:clear` | Membersihkan cache config/route/view. |
 | `php artisan optimize` | Membuat cache optimasi production. |
 
@@ -401,7 +401,7 @@ WAHA_WEBHOOK_HMAC_KEY=production_hmac_secret
 WAHA_SEND_TEXT_PATH=/api/sendText
 WAHA_NOTIFICATION_SESSION=default
 
-VTOKEN_OPEN_CUSTOMERS_URL=https://vtoken.vpoint.my.id/api/open/customers
+VTOKEN_OPEN_CUSTOMERS_URL=https://vtoken.desk.my.id/api/open/customers
 
 OPENAI_API_KEY=production_secret
 OPENAI_MODEL=gpt-5

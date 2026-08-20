@@ -469,7 +469,7 @@ Update `database/seeders/DatabaseSeeder.php`:
 
 Target admin default:
 
-- `NamaPengguna`: Admin VPoint Care
+- `NamaPengguna`: Admin Care Desk
 - `Email`: sesuai seed saat ini
 - `Password`: hash password default dari env atau nilai seed saat ini
 - `IdPeran`: role admin/root

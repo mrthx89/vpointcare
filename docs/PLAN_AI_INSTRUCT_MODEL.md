@@ -1,11 +1,11 @@
-﻿# Plan Implementasi: Model Instruct untuk VPoint Assistant dan Inbox WhatsApp
+﻿# Plan Implementasi: Model Instruct untuk Desk Assistant dan Inbox WhatsApp
 
 ## Ringkasan
 
 Tujuan perubahan ini adalah menambahkan dua jalur model dalam Pengaturan AI:
 
 - **Model Utama**: tetap memakai kolom existing `ModelAi`; digunakan untuk auto-reply, test koneksi AI, dan flow customer-facing.
-- **Model Instruct**: kolom baru `ModelInstructAi`; digunakan khusus oleh VPoint Assistant, opsi jawaban ringan Inbox WhatsApp, dan jawaban pertama sesi Inbox agar lebih cepat serta hemat token.
+- **Model Instruct**: kolom baru `ModelInstructAi`; digunakan khusus oleh Desk Assistant, opsi jawaban ringan Inbox WhatsApp, dan jawaban pertama sesi Inbox agar lebih cepat serta hemat token.
 
 Perubahan harus kecil dan terisolasi. Auto-reply tidak boleh ikut pindah ke model instruct.
 Multilanguage harus tetap dipertahankan: semua teks UI baru wajib lewat translation key di `id` dan `en`, bukan hardcoded.
@@ -15,8 +15,8 @@ Multilanguage harus tetap dipertahankan: semua teks UI baru wajib lewat translat
 - Halaman setting AI ada di `src/app/Filament/Pages/AiAgent.php` dan `src/resources/views/filament/pages/ai-agent.blade.php`.
 - Field model existing adalah `pengaturan.ModelAi` dan tersimpan di `MPengaturanAi.ModelAi`.
 - `AiSettings::get()` membaca row `MPengaturanAi` default dan cache selama 5 menit.
-- `InternalChatbotService` saat ini memakai `$settings->ModelAi` untuk VPoint Assistant dan Inbox WhatsApp.
-- Opsi jawaban terstruktur saat ini terlihat pada VPoint Assistant melalui `suggested_replies`; Inbox WhatsApp belum terlihat memiliki generator opsi jawaban ringan terpisah dari hasil pencarian kode.
+- `InternalChatbotService` saat ini memakai `$settings->ModelAi` untuk Desk Assistant dan Inbox WhatsApp.
+- Opsi jawaban terstruktur saat ini terlihat pada Desk Assistant melalui `suggested_replies`; Inbox WhatsApp belum terlihat memiliki generator opsi jawaban ringan terpisah dari hasil pencarian kode.
 - `AiAutoReplyService` memakai model yang sama untuk auto-reply.
 - `testKoneksiAi()` memanggil `AiAutoReplyService::testProviderConnection()`, sehingga saat ini otomatis memakai Model Utama.
 - Provider yang perlu tetap kompatibel: OpenAI, DeepSeek, OpenRouter, dan 9Router/NineRouter.
@@ -25,7 +25,7 @@ Multilanguage harus tetap dipertahankan: semua teks UI baru wajib lewat translat
 
 - Jangan rename kolom `ModelAi`; cukup ubah label UI menjadi **Model Utama**.
 - Tambahkan kolom nullable baru, bukan memodifikasi data existing.
-- Runtime VPoint Assistant memilih model dengan urutan: `ModelInstructAi` -> `ModelAi` -> default config provider.
+- Runtime Desk Assistant memilih model dengan urutan: `ModelInstructAi` -> `ModelAi` -> default config provider.
 - Runtime opsi jawaban ringan WhatsApp, baik dari Assistant maupun Inbox, memakai urutan model yang sama karena hasilnya berupa saran/draft.
 - Runtime jawaban pertama Inbox WhatsApp memakai `ModelInstructAi` untuk hemat token; session lanjutan kembali memakai `ModelAi`.
 - Runtime auto-reply tetap memilih `ModelAi` -> default config provider.
@@ -119,14 +119,14 @@ Bahasa Indonesia:
 - `primary_model` => `Model Utama`
 - `primary_model_help` => `Dipakai untuk auto-reply customer dan test koneksi AI.`
 - `instruct_model` => `Model Instruct`
-- `instruct_model_help` => `Dipakai VPoint Assistant agar suggestion dan draft lebih cepat. Kosongkan untuk mengikuti Model Utama.`
+- `instruct_model_help` => `Dipakai Desk Assistant agar suggestion dan draft lebih cepat. Kosongkan untuk mengikuti Model Utama.`
 
 English:
 
 - `primary_model` => `Primary Model`
 - `primary_model_help` => `Used for customer auto-replies and AI connection tests.`
 - `instruct_model` => `Instruct Model`
-- `instruct_model_help` => `Used by VPoint Assistant for faster suggestions and drafts. Leave empty to follow the Primary Model.`
+- `instruct_model_help` => `Used by Desk Assistant for faster suggestions and drafts. Leave empty to follow the Primary Model.`
 
 Aturan multilingual:
 
@@ -135,7 +135,7 @@ Aturan multilingual:
 - Gunakan `__('ui.pages.ai_agent.primary_model')`, `__('ui.pages.ai_agent.primary_model_help')`, `__('ui.pages.ai_agent.instruct_model')`, dan `__('ui.pages.ai_agent.instruct_model_help')`.
 - Jika ada teks tambahan di notification/error, tambahkan juga di kedua file bahasa.
 
-### 6. Update VPoint Assistant Runtime
+### 6. Update Desk Assistant Runtime
 
 File: `src/app/Services/Ai/InternalChatbotService.php`
 
@@ -158,7 +158,7 @@ Untuk OpenAI, `$key` adalah `openai`. Untuk 9Router/NineRouter, pakai key normal
 
 Target perilaku:
 
-- Opsi jawaban ringan di VPoint Assistant memakai `ModelInstructAi`.
+- Opsi jawaban ringan di Desk Assistant memakai `ModelInstructAi`.
 - Opsi jawaban ringan di Inbox WhatsApp juga memakai `ModelInstructAi` bila fitur/service suggest reply tersedia atau dibuat setelah ini.
 - Hasil opsi jawaban harus masuk sebagai saran/draft yang direview user, bukan dikirim otomatis ke WAHA.
 - Jawaban pertama sesi Inbox WhatsApp memakai `ModelInstructAi` untuk sapaan/routing ringan agar hemat token.
@@ -175,9 +175,9 @@ Implementasi aman:
 - Jangan panggil helper ini dari `AiAutoReplyService` untuk auto-reply customer-facing.
 - Semua teks tombol/label opsi jawaban Inbox wajib memakai translation key `id` dan `en`.
 
-### 8. Update Fallback VPointAssistant Page
+### 8. Update Fallback DeskAssistant Page
 
-File: `src/app/Filament/Pages/VPointAssistant.php`
+File: `src/app/Filament/Pages/DeskAssistant.php`
 
 Perubahan:
 
@@ -201,7 +201,7 @@ Jalankan:
 ```bash
 php -l src/app/Filament/Pages/AiAgent.php
 php -l src/app/Services/Ai/InternalChatbotService.php
-php -l src/app/Filament/Pages/VPointAssistant.php
+php -l src/app/Filament/Pages/DeskAssistant.php
 php artisan migrate
 php artisan view:clear
 ```
@@ -211,10 +211,10 @@ Manual test:
 1. Buka halaman AI Agent.
 2. Isi Model Utama dan Model Instruct berbeda.
 3. Simpan pengaturan.
-4. Kirim pesan lewat VPoint Assistant.
+4. Kirim pesan lewat Desk Assistant.
 5. Pastikan provider menerima model instruct.
 6. Kosongkan Model Instruct dan simpan.
-7. Kirim pesan VPoint Assistant lagi.
+7. Kirim pesan Desk Assistant lagi.
 8. Pastikan fallback memakai Model Utama.
 9. Jika fitur opsi jawaban ringan Inbox WhatsApp tersedia, generate opsi dari Inbox dan pastikan memakai Model Instruct.
 10. Test chat Inbox WhatsApp baru dan pastikan jawaban pertama memakai Model Instruct.

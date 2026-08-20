@@ -2,11 +2,11 @@
 
 ## Introduction
 
-Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel + Filament + Livewire):
+Feature ini mencakup tiga kelompok perubahan pada aplikasi Care Desk (Laravel + Filament + Livewire):
 
-**Kelompok A — Model Instruct AI:** Menambahkan jalur model kedua (`ModelInstructAi`) pada pengaturan AI, yang digunakan khusus oleh VPoint Assistant (mode Ringan), opsi suggested replies, dan jawaban pertama sesi Inbox WhatsApp. Model Utama (`ModelAi`) tetap dipakai oleh `AiAutoReplyService`, test koneksi, dan mode Cepat, tanpa perubahan apapun pada alur yang sudah berjalan.
+**Kelompok A — Model Instruct AI:** Menambahkan jalur model kedua (`ModelInstructAi`) pada pengaturan AI, yang digunakan khusus oleh Desk Assistant (mode Ringan), opsi suggested replies, dan jawaban pertama sesi Inbox WhatsApp. Model Utama (`ModelAi`) tetap dipakai oleh `AiAutoReplyService`, test koneksi, dan mode Cepat, tanpa perubahan apapun pada alur yang sudah berjalan.
 
-**Kelompok B — Tiga Bug Fix UI VPoint Assistant:** Menghapus shadow berlebih di area input bawah, membatasi textarea pesan ke max-height ~200px mengikuti pola ChatGPT, dan memperbaiki perilaku suggested replies agar hanya muncul sesaat setelah AI membalas — bukan saat load history atau setelah user memilih salah satu opsi.
+**Kelompok B — Tiga Bug Fix UI Desk Assistant:** Menghapus shadow berlebih di area input bawah, membatasi textarea pesan ke max-height ~200px mengikuti pola ChatGPT, dan memperbaiki perilaku suggested replies agar hanya muncul sesaat setelah AI membalas — bukan saat load history atau setelah user memilih salah satu opsi.
 
 **Kelompok C — Perbaikan UI PromptSistem dan Template di AI Agent:** Mengubah textarea PromptSistem menjadi auto-grow dengan Alpine.js (min-height 120px, tanpa resize handle), dan mempercompact layout template pesan dari `min-h-60` menjadi `min-h-[80px]` agar layout dua kolom di desktop terasa lebih proporsional.
 
@@ -17,18 +17,18 @@ Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel 
 - **MPengaturanAi**: Tabel SQL Server yang menyimpan pengaturan AI Agent, satu baris dengan `KodePengaturan = 'DEFAULT'`.
 - **ModelAi**: Kolom yang sudah ada di `MPengaturanAi`, menyimpan nama model AI utama. Tidak diganti nama. Label UI berubah menjadi "Model Utama".
 - **ModelInstructAi**: Kolom baru `nvarchar(100) NULL` yang ditambahkan ke `MPengaturanAi` melalui migrasi. Menyimpan nama model AI khusus untuk operasi instruct/ringan.
-- **Model Utama**: Label UI untuk kolom `ModelAi`. Dipakai untuk auto-reply customer, test koneksi, dan mode Cepat VPoint Assistant.
-- **Model Instruct**: Label UI untuk kolom `ModelInstructAi`. Dipakai untuk mode Ringan VPoint Assistant, suggested replies, dan jawaban pertama sesi Inbox WhatsApp. Fallback ke Model Utama jika kosong.
-- **VPoint Assistant**: Halaman chatbot internal (`VPointAssistant.php`) dengan dua mode respons: Ringan (`light`) dan Cepat (`fast`).
-- **Mode Ringan (light)**: Mode respons VPoint Assistant yang menggunakan `ModelInstructAi` (fallback ke `ModelAi` jika kosong). Jawaban lebih singkat dan langsung.
-- **Mode Cepat (fast)**: Mode respons VPoint Assistant yang menggunakan `ModelAi`. Jawaban lebih lengkap.
+- **Model Utama**: Label UI untuk kolom `ModelAi`. Dipakai untuk auto-reply customer, test koneksi, dan mode Cepat Desk Assistant.
+- **Model Instruct**: Label UI untuk kolom `ModelInstructAi`. Dipakai untuk mode Ringan Desk Assistant, suggested replies, dan jawaban pertama sesi Inbox WhatsApp. Fallback ke Model Utama jika kosong.
+- **Desk Assistant**: Halaman chatbot internal (`DeskAssistant.php`) dengan dua mode respons: Ringan (`light`) dan Cepat (`fast`).
+- **Mode Ringan (light)**: Mode respons Desk Assistant yang menggunakan `ModelInstructAi` (fallback ke `ModelAi` jika kosong). Jawaban lebih singkat dan langsung.
+- **Mode Cepat (fast)**: Mode respons Desk Assistant yang menggunakan `ModelAi`. Jawaban lebih lengkap.
 - **Suggested Replies**: Daftar opsi tindak lanjut yang dihasilkan AI dan ditampilkan di bawah area input setelah AI membalas.
-- **InternalChatbotService**: Service PHP (`InternalChatbotService.php`) yang menangani logika AI untuk VPoint Assistant.
+- **InternalChatbotService**: Service PHP (`InternalChatbotService.php`) yang menangani logika AI untuk Desk Assistant.
 - **AiAutoReplyService**: Service PHP yang menangani auto-reply WhatsApp customer. Tidak diubah dalam feature ini.
 - **AiAgent**: Halaman pengaturan AI (`AiAgent.php` + `ai-agent.blade.php`) tempat admin mengkonfigurasi provider, model, dan template.
-- **loadHistory()**: Method di `VPointAssistant.php` yang memuat riwayat percakapan saat halaman dimuat (`mount()`).
-- **useSuggestedReply()**: Method di `VPointAssistant.php` yang menangani klik pada salah satu suggested reply.
-- **sendMessage()**: Method di `VPointAssistant.php` yang mengirim pesan dan memproses respons AI.
+- **loadHistory()**: Method di `DeskAssistant.php` yang memuat riwayat percakapan saat halaman dimuat (`mount()`).
+- **useSuggestedReply()**: Method di `DeskAssistant.php` yang menangani klik pada salah satu suggested reply.
+- **sendMessage()**: Method di `DeskAssistant.php` yang mengirim pesan dan memproses respons AI.
 - **PromptSistem**: Field textarea di halaman AI Agent untuk mengatur system prompt AI auto-reply.
 - **Migrasi Kondisional (Conditional DDL)**: Migrasi Laravel yang menggunakan pengecekan `Schema::hasColumn` sebelum menjalankan DDL, aman untuk dijalankan berulang kali di SQL Server.
 - **Translation Key**: Kunci terjemahan dalam format `__('ui.pages.ai_agent.*')` yang harus ada di kedua file bahasa (`id` dan `en`).
@@ -52,7 +52,7 @@ Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel 
 
 ### Requirement 2: Pemilihan Model di InternalChatbotService
 
-**User Story:** Sebagai developer, saya ingin `InternalChatbotService` memilih model AI yang tepat berdasarkan mode respons dan ketersediaan `ModelInstructAi`, sehingga VPoint Assistant menggunakan model yang sesuai untuk setiap konteks penggunaan.
+**User Story:** Sebagai developer, saya ingin `InternalChatbotService` memilih model AI yang tepat berdasarkan mode respons dan ketersediaan `ModelInstructAi`, sehingga Desk Assistant menggunakan model yang sesuai untuk setiap konteks penggunaan.
 
 #### Acceptance Criteria
 
@@ -113,42 +113,42 @@ Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel 
 
 ### Requirement 6: Bug Fix — Suggested Replies Hanya Muncul Setelah Respons AI Baru
 
-**User Story:** Sebagai pengguna VPoint Assistant, saya ingin suggested replies hilang setelah saya memilih salah satu opsi dan mengirimkan pesan, dan tidak muncul kembali saat halaman di-refresh atau di-reload, sehingga antarmuka terasa bersih dan tidak membingungkan.
+**User Story:** Sebagai pengguna Desk Assistant, saya ingin suggested replies hilang setelah saya memilih salah satu opsi dan mengirimkan pesan, dan tidak muncul kembali saat halaman di-refresh atau di-reload, sehingga antarmuka terasa bersih dan tidak membingungkan.
 
 #### Acceptance Criteria
 
-1. WHEN `VPointAssistant` memuat halaman (`mount()`), THE `VPointAssistant` SHALL menginisialisasi `$suggestedReplies` sebagai array kosong `[]` tanpa membaca data suggested replies dari riwayat percakapan.
-2. WHEN `loadHistory()` dipanggil, THE `VPointAssistant` SHALL TIDAK mengisi `$suggestedReplies` dari data `suggested_replies` yang tersimpan di kolom `KonteksJson` riwayat pesan.
-3. WHEN `sendMessage()` menerima respons sukses dari AI yang mengandung suggested replies, THE `VPointAssistant` SHALL mengisi `$suggestedReplies` dengan array opsi dari respons tersebut.
-4. WHEN `useSuggestedReply()` dipanggil dengan salah satu opsi, THE `VPointAssistant` SHALL mereset `$suggestedReplies` menjadi array kosong `[]`.
-5. AFTER `useSuggestedReply()` dipanggil, THE `VPointAssistant` SHALL mempertahankan `$suggestedReplies` sebagai `[]` hingga `sendMessage()` berikutnya menerima respons AI baru yang mengandung suggested replies.
-6. WHEN respons AI dari `sendMessage()` tidak mengandung suggested replies (array kosong atau error), THE `VPointAssistant` SHALL menyetel `$suggestedReplies` menjadi `[]`.
+1. WHEN `DeskAssistant` memuat halaman (`mount()`), THE `DeskAssistant` SHALL menginisialisasi `$suggestedReplies` sebagai array kosong `[]` tanpa membaca data suggested replies dari riwayat percakapan.
+2. WHEN `loadHistory()` dipanggil, THE `DeskAssistant` SHALL TIDAK mengisi `$suggestedReplies` dari data `suggested_replies` yang tersimpan di kolom `KonteksJson` riwayat pesan.
+3. WHEN `sendMessage()` menerima respons sukses dari AI yang mengandung suggested replies, THE `DeskAssistant` SHALL mengisi `$suggestedReplies` dengan array opsi dari respons tersebut.
+4. WHEN `useSuggestedReply()` dipanggil dengan salah satu opsi, THE `DeskAssistant` SHALL mereset `$suggestedReplies` menjadi array kosong `[]`.
+5. AFTER `useSuggestedReply()` dipanggil, THE `DeskAssistant` SHALL mempertahankan `$suggestedReplies` sebagai `[]` hingga `sendMessage()` berikutnya menerima respons AI baru yang mengandung suggested replies.
+6. WHEN respons AI dari `sendMessage()` tidak mengandung suggested replies (array kosong atau error), THE `DeskAssistant` SHALL menyetel `$suggestedReplies` menjadi `[]`.
 
 ---
 
-### Requirement 7: Bug Fix — Penghapusan Shadow Berlebih di Area Input VPoint Assistant
+### Requirement 7: Bug Fix — Penghapusan Shadow Berlebih di Area Input Desk Assistant
 
-**User Story:** Sebagai pengguna VPoint Assistant, saya ingin area input di bagian bawah tampak ringan tanpa shadow yang berlebihan, sehingga tampilan terasa lebih bersih dan konsisten dengan desain Filament.
+**User Story:** Sebagai pengguna Desk Assistant, saya ingin area input di bagian bawah tampak ringan tanpa shadow yang berlebihan, sehingga tampilan terasa lebih bersih dan konsisten dengan desain Filament.
 
 #### Acceptance Criteria
 
-1. THE `VPointAssistant` SHALL menampilkan container area input bawah tanpa shadow CSS (`box-shadow` / `shadow-*` Tailwind) pada elemen container utama area input.
-2. THE `VPointAssistant` SHALL menampilkan tombol submit tanpa kelas `shadow-sm` atau shadow Tailwind lainnya yang menambahkan efek bayangan.
-3. WHEN pengguna membuka halaman VPoint Assistant, THE `VPointAssistant` SHALL menampilkan area input yang terasa ringan secara visual tanpa efek bayangan yang menonjol.
+1. THE `DeskAssistant` SHALL menampilkan container area input bawah tanpa shadow CSS (`box-shadow` / `shadow-*` Tailwind) pada elemen container utama area input.
+2. THE `DeskAssistant` SHALL menampilkan tombol submit tanpa kelas `shadow-sm` atau shadow Tailwind lainnya yang menambahkan efek bayangan.
+3. WHEN pengguna membuka halaman Desk Assistant, THE `DeskAssistant` SHALL menampilkan area input yang terasa ringan secara visual tanpa efek bayangan yang menonjol.
 
 ---
 
 ### Requirement 8: Bug Fix — Textarea Input Pesan dengan Max-Height yang Tepat
 
-**User Story:** Sebagai pengguna VPoint Assistant, saya ingin textarea input pesan tumbuh mengikuti konten saya hingga batas maksimum ~200px (sekitar 12rem), sehingga pola interaksi terasa seperti ChatGPT — tidak memenuhi hampir seluruh layar saat mengetik pesan panjang.
+**User Story:** Sebagai pengguna Desk Assistant, saya ingin textarea input pesan tumbuh mengikuti konten saya hingga batas maksimum ~200px (sekitar 12rem), sehingga pola interaksi terasa seperti ChatGPT — tidak memenuhi hampir seluruh layar saat mengetik pesan panjang.
 
 #### Acceptance Criteria
 
-1. THE `VPointAssistant` SHALL menampilkan textarea input pesan yang tumbuh secara otomatis mengikuti tinggi konten saat pengguna mengetik (auto-grow behavior menggunakan Alpine.js).
-2. THE `VPointAssistant` SHALL membatasi tinggi maksimum textarea input pesan tidak melebihi `200px` (atau setara `~12rem` / `max-h-[200px]`).
-3. WHEN konten textarea melebihi batas tinggi maksimum, THE `VPointAssistant` SHALL mengaktifkan scrollbar vertikal pada textarea sehingga konten tetap dapat digulir.
-4. THE `VPointAssistant` SHALL mengganti nilai `max-h-[60vh]` pada textarea input dengan `max-h-[200px]` atau nilai yang setara tidak lebih dari 200px.
-5. THE `VPointAssistant` SHALL mempertahankan perilaku `x-on:input` dan `x-effect` Alpine.js untuk auto-resize textarea, dengan perhitungan tinggi dibatasi pada 200px sebagai batas atas.
+1. THE `DeskAssistant` SHALL menampilkan textarea input pesan yang tumbuh secara otomatis mengikuti tinggi konten saat pengguna mengetik (auto-grow behavior menggunakan Alpine.js).
+2. THE `DeskAssistant` SHALL membatasi tinggi maksimum textarea input pesan tidak melebihi `200px` (atau setara `~12rem` / `max-h-[200px]`).
+3. WHEN konten textarea melebihi batas tinggi maksimum, THE `DeskAssistant` SHALL mengaktifkan scrollbar vertikal pada textarea sehingga konten tetap dapat digulir.
+4. THE `DeskAssistant` SHALL mengganti nilai `max-h-[60vh]` pada textarea input dengan `max-h-[200px]` atau nilai yang setara tidak lebih dari 200px.
+5. THE `DeskAssistant` SHALL mempertahankan perilaku `x-on:input` dan `x-effect` Alpine.js untuk auto-resize textarea, dengan perhitungan tinggi dibatasi pada 200px sebagai batas atas.
 
 ---
 
@@ -162,7 +162,7 @@ Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel 
 2. THE `AiAgent` SHALL menetapkan tinggi minimum textarea `PromptSistem` sebesar `120px` (menggantikan `min-h-[220px]` yang ada saat ini).
 3. THE `AiAgent` SHALL menghapus atribut `resize-y` dari textarea `PromptSistem` sehingga pengguna tidak dapat mengubah tinggi secara manual.
 4. WHEN konten textarea `PromptSistem` sangat panjang, THE `AiAgent` SHALL mengaktifkan scroll vertikal otomatis (`overflow-y-auto`) agar konten tetap dapat diakses.
-5. THE `AiAgent` SHALL mengimplementasikan auto-grow dengan pola Alpine.js yang konsisten dengan pola yang sudah dipakai di `vpoint-assistant.blade.php`.
+5. THE `AiAgent` SHALL mengimplementasikan auto-grow dengan pola Alpine.js yang konsisten dengan pola yang sudah dipakai di `desk-assistant.blade.php`.
 
 ---
 
@@ -196,7 +196,7 @@ Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel 
 
 ### Requirement 12: Perilaku Fallback Model pada InternalChatbotService
 
-**User Story:** Sebagai operator sistem, saya ingin VPoint Assistant tetap berfungsi meski `ModelInstructAi` tidak dikonfigurasi, sehingga perubahan konfigurasi tidak memutus layanan yang sudah berjalan.
+**User Story:** Sebagai operator sistem, saya ingin Desk Assistant tetap berfungsi meski `ModelInstructAi` tidak dikonfigurasi, sehingga perubahan konfigurasi tidak memutus layanan yang sudah berjalan.
 
 #### Acceptance Criteria
 
@@ -212,7 +212,7 @@ Feature ini mencakup tiga kelompok perubahan pada aplikasi VPoint Care (Laravel 
 
 Bagian ini mendefinisikan properti yang dapat diuji secara otomatis menggunakan property-based testing.
 
-### PBT-1: Isolasi Pemilihan Model VPoint Assistant
+### PBT-1: Isolasi Pemilihan Model Desk Assistant
 
 **Properti:** Untuk semua nilai `ModelInstructAi` yang non-null dan non-kosong, `getAssistantModel(settings, 'light')` TIDAK PERNAH mengembalikan nilai yang sama dengan `ModelAi` kecuali keduanya identik secara eksplisit.
 

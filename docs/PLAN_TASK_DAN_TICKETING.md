@@ -1,8 +1,8 @@
-﻿# Plan Implementasi Modul Task dan Ticketing VPoint Care
+﻿# Plan Implementasi Modul Task dan Ticketing Care Desk
 
 **Tanggal:** 2026-07-13  
 **Status:** Diimplementasikan 2026-07-13  
-**Target:** Menambahkan modul Ticketing fungsional penuh dan modul Task mandiri ke aplikasi VPoint Care (WACS).
+**Target:** Menambahkan modul Ticketing fungsional penuh dan modul Task mandiri ke aplikasi Care Desk (WACS).
 
 ## Tujuan
 

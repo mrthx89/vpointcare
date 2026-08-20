@@ -95,7 +95,7 @@ Urutan audit dan implementasi global untuk seluruh halaman/menu Filament admin.
 - [ ] D4. Verifikasi browser manual semua menu utama
   - Dashboard/home.
   - AI Agent.
-  - VPoint Assistant.
+  - Desk Assistant.
   - Inbox WhatsApp.
   - Ticketing.
   - Resource table/form Master.
