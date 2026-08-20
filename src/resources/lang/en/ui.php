@@ -14,6 +14,15 @@ return [
             'ai_failed' => 'AI auto reply failed, webhook still accepted.',
         ],
     ],
+    'common' => [
+        'retry' => 'Retry',
+        'refresh' => 'Refresh',
+        'cancel' => 'Cancel',
+        'copy' => 'Copy',
+        'close' => 'Close',
+        'save' => 'Save',
+        'delete' => 'Delete',
+    ],
     'seo' => [
         'title' => 'CareDesk',
         'description' => 'Care Desk System integrated service management system for WhatsApp support, AI Agent automation, ticketing, and customer service operations monitoring.',

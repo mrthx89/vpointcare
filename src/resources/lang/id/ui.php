@@ -14,6 +14,15 @@ return [
             'ai_failed' => 'AI auto reply gagal, webhook tetap diterima.',
         ],
     ],
+    'common' => [
+        'retry' => 'Coba Lagi',
+        'refresh' => 'Muat Ulang',
+        'cancel' => 'Batal',
+        'copy' => 'Salin',
+        'close' => 'Tutup',
+        'save' => 'Simpan',
+        'delete' => 'Hapus',
+    ],
     'seo' => [
         'title' => 'CareDesk',
         'description' => 'Sistem Informasi Manajemen Terpadu Care Desk System untuk mengelola layanan WhatsApp, AI Agent, ticketing, dan monitoring operasional customer service.',

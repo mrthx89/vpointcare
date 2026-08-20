@@ -41,6 +41,8 @@ class InboxWhatsappTest extends TestCase
             'TChatD',
             'TChat',
             'MPengguna',
+            'MPengaturanAi',
+            'TLogIntegrasi',
             'MStatusChat',
             'MSesiWhatsapp',
             'MGrupWhatsapp',
@@ -635,6 +637,8 @@ class InboxWhatsappTest extends TestCase
 
     public function test_group_inbox_render_does_not_call_waha_for_metadata(): void
     {
+        $this->seedSessionStatusCache('default', 'running');
+
         Http::fake();
 
         Livewire::actingAs($this->agent())->test(InboxWhatsapp::class)->assertStatus(200);
@@ -740,6 +744,37 @@ class InboxWhatsappTest extends TestCase
         Schema::create('MPengguna', function (Blueprint $table): void {
             $table->string('Id')->primary();
             $table->string('NamaPengguna');
+            $table->boolean('PerhalusJawabanWhatsapp')->nullable();
+        });
+
+        Schema::create('MPengaturanAi', function (Blueprint $table): void {
+            $table->string('Id')->primary();
+            $table->string('KodePengaturan')->default('DEFAULT');
+            $table->string('NamaPengaturan')->nullable();
+            $table->string('ProviderAi')->nullable();
+            $table->string('ModelAi')->nullable();
+            $table->string('ModelInstructAi')->nullable();
+            $table->string('BaseUrl')->nullable();
+            $table->string('TandaTanganAi')->nullable();
+            $table->boolean('PerhalusJawabanWhatsappDefault')->default(false);
+            $table->boolean('NonAktif')->default(false);
+        });
+
+        Schema::create('TLogIntegrasi', function (Blueprint $table): void {
+            $table->string('Id')->primary();
+            $table->string('IdEndpointIntegrasi')->nullable();
+            $table->string('KodeIntegrasi')->nullable();
+            $table->string('UrlEndpoint')->nullable();
+            $table->string('MetodeHttp')->nullable();
+            $table->text('RequestJson')->nullable();
+            $table->text('ResponseJson')->nullable();
+            $table->integer('StatusHttp')->nullable();
+            $table->boolean('Berhasil')->default(false);
+            $table->text('PesanError')->nullable();
+            $table->dateTime('TglRequest')->nullable();
+            $table->dateTime('TglResponse')->nullable();
+            $table->dateTime('TglBuat')->nullable();
+            $table->dateTime('TglEdit')->nullable();
         });
 
         Schema::create('TChat', function (Blueprint $table): void {
@@ -764,6 +799,9 @@ class InboxWhatsappTest extends TestCase
             $table->dateTime('TglAutoReplyAiTerakhir')->nullable();
             $table->dateTime('TglDibalasTerakhir')->nullable();
             $table->string('DiambilOleh')->nullable();
+            $table->dateTime('TglDiambil')->nullable();
+            $table->string('DitutupOleh')->nullable();
+            $table->dateTime('TglDitutup')->nullable();
             $table->dateTime('TglBuat');
             $table->dateTime('TglEdit')->nullable();
         });
@@ -788,6 +826,7 @@ class InboxWhatsappTest extends TestCase
             $table->boolean('DihasilkanOlehAi')->default(false);
             $table->string('DibalasOleh')->nullable();
             $table->dateTime('TglBuat');
+            $table->dateTime('TglEdit')->nullable();
         });
 
         Schema::create('TChatDCatatanInternal', function (Blueprint $table): void {
@@ -1000,6 +1039,8 @@ class InboxWhatsappTest extends TestCase
 
     public function test_inbox_render_does_not_make_waha_http_request(): void
     {
+        $this->seedSessionStatusCache('default', 'running');
+
         Http::fake();
 
         $component = Livewire::actingAs($this->agent())->test(InboxWhatsapp::class);
@@ -1085,7 +1126,7 @@ class InboxWhatsappTest extends TestCase
         $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
 
         $component->assertStatus(200)
-            ->assertSee('DEFAULT: RUNNING');
+            ->assertSee('DEFAULT: ' . __('ui.pages.waha_connection.status_running'));
     }
 
     public function test_inbox_renders_gracefully_when_waha_endpoint_is_unavailable(): void
@@ -1098,7 +1139,7 @@ class InboxWhatsappTest extends TestCase
         $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
 
         $component->assertStatus(200)
-            ->assertSee('DEFAULT: UNAVAILABLE');
+            ->assertSee('DEFAULT: ' . __('ui.pages.waha_connection.status_unavailable'));
     }
 
     public function test_inbox_hides_recovery_action_from_agents_without_waha_manage_permission(): void
@@ -1115,7 +1156,7 @@ class InboxWhatsappTest extends TestCase
         $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
 
         $component->assertStatus(200)
-            ->assertSee('DEFAULT: STOPPED')
+            ->assertSee('DEFAULT: ' . __('ui.pages.waha_connection.status_stopped'))
             ->assertDontSee(__('ui.pages.waha_connection.btn_reconnect'));
     }
 
@@ -1132,8 +1173,18 @@ class InboxWhatsappTest extends TestCase
         $component = Livewire::actingAs($agent)->test(InboxWhatsapp::class);
 
         $component->assertStatus(200)
-            ->assertSee('DEFAULT: STOPPED')
+            ->assertSee('DEFAULT: ' . __('ui.pages.waha_connection.status_stopped'))
             ->assertSee(__('ui.pages.waha_connection.btn_reconnect'));
+    }
+
+    private function seedSessionStatusCache(string $session = 'default', string $status = 'running'): void
+    {
+        Cache::put('waha_session_status:' . hash('sha256', $session), [
+            'ok' => true,
+            'status' => $status,
+            'http_status' => 200,
+            'session' => $session,
+        ], 60);
     }
 
     private function agent(array $permissions = [AccessPermissions::INBOX_VIEW]): Pengguna
@@ -1160,23 +1211,16 @@ class InboxWhatsappTest extends TestCase
 
     public function test_handle_inbox_update_refreshes_chat_without_session_status_refresh(): void
     {
-        $session = MSesiWhatsapp::first();
-        if (! $session) {
-            $session = MSesiWhatsapp::factory()->create();
-        }
+        $chat = $this->createChatFixture();
 
-        $chat = TChat::factory()->create([
-            'IdSesiWhatsapp' => $session->Id,
-            'JenisChat' => 'Personal',
-            'NomorWhatsapp' => '62800000000',
-            'TglChatTerakhir' => now(),
-        ]);
+        $this->seedSessionStatusCache('default', 'stopped');
 
         Http::fake([
             '*/api/sessions' => Http::response([['name' => 'default', 'status' => 'STOPPED']], 200),
         ]);
 
-        Livewire::test(InboxWhatsapp::class)
+        Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
             ->call('handleInboxUpdate', $chat->Id);
 
         Http::assertSentCount(0);
@@ -1184,7 +1228,8 @@ class InboxWhatsappTest extends TestCase
 
     public function test_inbox_renders_responsive_workspace_controls_and_notification_elements(): void
     {
-        Livewire::test(InboxWhatsapp::class)
+        Livewire::actingAs($this->agent())
+            ->test(InboxWhatsapp::class)
             ->assertSeeHtml('wacs-inbox-shell')
             ->assertSeeHtml('mobilePane');
     }
@@ -1196,7 +1241,7 @@ class InboxWhatsappTest extends TestCase
         DB::table('MPengguna')->where('Id', 'agent-1')->update(['PerhalusJawabanWhatsapp' => true]);
 
         Http::fake([
-            'api.openai.com/v1/*' => Http::response(['choices' => [['message' => ['content' => 'Refined response']]]], 200),
+            '*api.openai.com*' => Http::response(['choices' => [['message' => ['content' => 'Refined response']]]], 200),
             '*/api/sendText' => Http::response(['session' => 'default'], 200),
         ]);
 
@@ -1209,7 +1254,7 @@ class InboxWhatsappTest extends TestCase
             ->assertSet('originalDraft', 'original text')
             ->assertSet('refinedDraft', 'Refined response');
 
-        self::assertDatabaseCount('TChatD', 0);
+        $this->assertDatabaseMissing('TChatD', ['IdChat' => $chat->Id, 'IsiPesan' => 'Refined response']);
     }
 
     public function test_confirmed_refined_reply_is_sent_once(): void
@@ -1230,15 +1275,17 @@ class InboxWhatsappTest extends TestCase
 
     public function test_edit_refined_reply_returns_to_composer(): void
     {
+        $chat = $this->createChatFixture();
         $component = Livewire::actingAs($this->agent([AccessPermissions::INBOX_VIEW, AccessPermissions::INBOX_REPLY]))
             ->test(InboxWhatsapp::class)
+            ->set('selectedChatId', $chat->Id)
             ->set('refinedDraft', 'Refined response')
             ->set('reviewModalOpen', true)
             ->call('editRefinedReply')
             ->assertSet('reviewModalOpen', false)
             ->assertSet('replyText', 'Refined response');
 
-        self::assertDatabaseCount('TChatD', 0);
+        $this->assertDatabaseMissing('TChatD', ['IdChat' => $chat->Id, 'IsiPesan' => 'Refined response']);
     }
 
     public function test_refinement_failure_requires_explicit_original_send(): void
@@ -1248,7 +1295,7 @@ class InboxWhatsappTest extends TestCase
         DB::table('MPengguna')->where('Id', 'agent-1')->update(['PerhalusJawabanWhatsapp' => true]);
 
         Http::fake([
-            'api.openai.com/v1/*' => Http::response([], 500),
+            '*api.openai.com*' => Http::response([], 500),
             '*/api/sendText' => Http::response(['session' => 'default'], 200),
         ]);
 
@@ -1261,7 +1308,7 @@ class InboxWhatsappTest extends TestCase
             ->assertSet('originalDraft', 'original text')
             ->assertSet('refinementError', 'Gagal menghubungi AI provider.');
 
-        self::assertDatabaseCount('TChatD', 0);
+        $this->assertDatabaseMissing('TChatD', ['IdChat' => $chat->Id, 'IsiPesan' => 'original text']);
 
         $component->call('sendOriginalAfterRefinementFailure')
             ->assertSet('reviewModalOpen', false);
@@ -1289,6 +1336,8 @@ class InboxWhatsappTest extends TestCase
 
     private function seedSettingsForRefinement(): void
     {
+        config()->set('services.openai.api_key', 'testing-openai-key');
+        Cache::forget('mpengaturan_ai_default_v2');
         DB::table('MPengaturanAi')->insert([
             'Id' => 'ai-settings-default',
             'KodePengaturan' => 'DEFAULT',
@@ -1297,12 +1346,22 @@ class InboxWhatsappTest extends TestCase
             'ModelAi' => 'gpt-4',
             'ModelInstructAi' => 'gpt-4-instruct',
             'BaseUrl' => 'https://api.openai.com/v1/chat/completions',
+            'NonAktif' => false,
         ]);
     }
 
-    private function createChatFixture() {
-        $session = \App\Models\Master\MSesiWhatsapp::first() ?? \App\Models\Master\MSesiWhatsapp::factory()->create();
-        return \App\Models\Chat\TChat::factory()->create(['IdSesiWhatsapp' => $session->Id, 'JenisChat' => 'Personal', 'NomorWhatsapp' => '62800000000']);
+    private function createChatFixture(): object
+    {
+        $id = 'chat-fixture-' . uniqid();
+        DB::table('TChat')->insert([
+            'Id' => $id,
+            'IdSesiWhatsapp' => 'session-1',
+            'JenisChat' => 'Personal',
+            'NomorWhatsapp' => '62800000000',
+            'TglBuat' => now(),
+        ]);
+
+        return (object) ['Id' => $id];
     }
 
 }

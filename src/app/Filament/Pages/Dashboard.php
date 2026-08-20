@@ -134,12 +134,12 @@ class Dashboard extends BaseDashboard
         $messageStats = DB::table('TChatD')
             ->whereBetween('TglPesan', [$start, $end])
             ->selectRaw("
-                SUM(CASE WHEN ArahPesan = 'Masuk' THEN 1 ELSE 0 END) as IncomingMessages,
-                COUNT(DISTINCT CASE WHEN ArahPesan = 'Masuk' THEN IdChat END) as IncomingChats,
-                SUM(CASE WHEN ArahPesan = 'Keluar' AND (DihasilkanOlehAi = 0 OR DihasilkanOlehAi IS NULL) THEN 1 ELSE 0 END) as OutgoingCs,
-                SUM(CASE WHEN ArahPesan = 'Keluar' AND DihasilkanOlehAi = 1 THEN 1 ELSE 0 END) as OutgoingAi,
-                SUM(CASE WHEN ArahPesan = 'Keluar' AND StatusKirim = 'Gagal WAHA' THEN 1 ELSE 0 END) as FailedWaha,
-                SUM(CASE WHEN ArahPesan = 'Keluar' AND StatusKirim = 'Terkirim WAHA' THEN 1 ELSE 0 END) as SentWaha
+                SUM(CASE WHEN \"ArahPesan\" = 'Masuk' THEN 1 ELSE 0 END) as IncomingMessages,
+                COUNT(DISTINCT CASE WHEN \"ArahPesan\" = 'Masuk' THEN \"IdChat\" END) as IncomingChats,
+                SUM(CASE WHEN \"ArahPesan\" = 'Keluar' AND (\"DihasilkanOlehAi\" = false OR \"DihasilkanOlehAi\" IS NULL) THEN 1 ELSE 0 END) as OutgoingCs,
+                SUM(CASE WHEN \"ArahPesan\" = 'Keluar' AND \"DihasilkanOlehAi\" = true THEN 1 ELSE 0 END) as OutgoingAi,
+                SUM(CASE WHEN \"ArahPesan\" = 'Keluar' AND \"StatusKirim\" = 'Gagal WAHA' THEN 1 ELSE 0 END) as FailedWaha,
+                SUM(CASE WHEN \"ArahPesan\" = 'Keluar' AND \"StatusKirim\" = 'Terkirim WAHA' THEN 1 ELSE 0 END) as SentWaha
             ")
             ->first();
 
@@ -329,10 +329,10 @@ class Dashboard extends BaseDashboard
             ->fromSub($firstIncoming, 'masuk')
             ->join('TChatD as keluar', function ($join): void {
                 $join->on('keluar.IdChat', '=', 'masuk.IdChat')
-                    ->whereRaw("keluar.ArahPesan = 'Keluar'")
+                    ->where('keluar.ArahPesan', '=', 'Keluar')
                     ->whereColumn('keluar.TglPesan', '>', 'masuk.TglMasuk');
             })
-            ->select('masuk.IdChat', 'masuk.TglMasuk', DB::raw('MIN(keluar.TglPesan) as TglKeluar'))
+            ->select('masuk.IdChat', 'masuk.TglMasuk', DB::raw('MIN(keluar."TglPesan") as TglKeluar'))
             ->groupBy('masuk.IdChat', 'masuk.TglMasuk')
             ->get();
 
@@ -361,9 +361,9 @@ class Dashboard extends BaseDashboard
                 'p.NamaPengguna',
                 'p.Email',
                 DB::raw('COUNT(*) as JumlahBalasan'),
-                DB::raw('COUNT(DISTINCT d.IdChat) as JumlahChat'),
-                DB::raw("SUM(CASE WHEN d.StatusKirim = 'Terkirim WAHA' THEN 1 ELSE 0 END) as Terkirim"),
-                DB::raw("SUM(CASE WHEN d.StatusKirim = 'Gagal WAHA' THEN 1 ELSE 0 END) as Gagal")
+                DB::raw('COUNT(DISTINCT d."IdChat") as JumlahChat'),
+                DB::raw('SUM(CASE WHEN d."StatusKirim" = \'Terkirim WAHA\' THEN 1 ELSE 0 END) as Terkirim'),
+                DB::raw('SUM(CASE WHEN d."StatusKirim" = \'Gagal WAHA\' THEN 1 ELSE 0 END) as Gagal')
             )
             ->groupBy('d.DibalasOleh', 'p.NamaPengguna', 'p.Email')
             ->orderByDesc('JumlahBalasan')
@@ -384,7 +384,7 @@ class Dashboard extends BaseDashboard
             ->where('ArahPesan', 'Keluar')
             ->where('DihasilkanOlehAi', true)
             ->whereBetween('TglPesan', [$start, $end])
-            ->selectRaw("COUNT(*) as JumlahBalasan, COUNT(DISTINCT IdChat) as JumlahChat, SUM(CASE WHEN StatusKirim = 'Terkirim WAHA' THEN 1 ELSE 0 END) as Terkirim, SUM(CASE WHEN StatusKirim = 'Gagal WAHA' THEN 1 ELSE 0 END) as Gagal")
+            ->selectRaw('COUNT(*) as JumlahBalasan, COUNT(DISTINCT "IdChat") as JumlahChat, SUM(CASE WHEN "StatusKirim" = \'Terkirim WAHA\' THEN 1 ELSE 0 END) as Terkirim, SUM(CASE WHEN "StatusKirim" = \'Gagal WAHA\' THEN 1 ELSE 0 END) as Gagal')
             ->first();
 
         if ((int) ($aiStats->JumlahBalasan ?? 0) > 0) {
@@ -409,8 +409,8 @@ class Dashboard extends BaseDashboard
     {
         $grouped = DB::table('TChatD')
             ->whereBetween('TglPesan', [$start, $end])
-            ->selectRaw("CAST(TglPesan AS date) as Tanggal, SUM(CASE WHEN ArahPesan = 'Masuk' THEN 1 ELSE 0 END) as Masuk, SUM(CASE WHEN ArahPesan = 'Keluar' AND (DihasilkanOlehAi = 0 OR DihasilkanOlehAi IS NULL) THEN 1 ELSE 0 END) as Cs, SUM(CASE WHEN ArahPesan = 'Keluar' AND DihasilkanOlehAi = 1 THEN 1 ELSE 0 END) as Ai")
-            ->groupBy(DB::raw('CAST(TglPesan AS date)'))
+            ->selectRaw('CAST("TglPesan" AS date) as Tanggal, SUM(CASE WHEN "ArahPesan" = \'Masuk\' THEN 1 ELSE 0 END) as Masuk, SUM(CASE WHEN "ArahPesan" = \'Keluar\' AND ("DihasilkanOlehAi" = false OR "DihasilkanOlehAi" IS NULL) THEN 1 ELSE 0 END) as Cs, SUM(CASE WHEN "ArahPesan" = \'Keluar\' AND "DihasilkanOlehAi" = true THEN 1 ELSE 0 END) as Ai')
+            ->groupBy(DB::raw('CAST("TglPesan" AS date)'))
             ->get()
             ->keyBy(fn (object $row): string => Carbon::parse($row->Tanggal)->toDateString());
 

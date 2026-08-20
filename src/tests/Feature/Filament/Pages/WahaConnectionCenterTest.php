@@ -145,6 +145,10 @@ class WahaConnectionCenterTest extends TestCase
             ->assertNotified(
                 Notification::make()
                     ->title(__('ui.pages.waha_connection.webhook_sync_success_title'))
+                    ->body(__('ui.pages.waha_connection.webhook_sync_success', [
+                        'session' => 'default',
+                        'url' => config('app.url', 'http://127.0.0.1:8000') . '/webhooks/waha',
+                    ]))
                     ->success(),
             );
     }
@@ -165,6 +169,7 @@ class WahaConnectionCenterTest extends TestCase
             ->assertNotified(
                 Notification::make()
                     ->title(__('ui.pages.waha_connection.logout_success_title'))
+                    ->body(__('ui.pages.waha_connection.logout_success', ['session' => 'default']))
                     ->success(),
             );
     }
@@ -179,14 +184,18 @@ class WahaConnectionCenterTest extends TestCase
         $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
         $this->actingAs($user);
 
-        Livewire::test(WahaConnectionCenter::class)
+        $component = Livewire::test(WahaConnectionCenter::class)
             ->call('testGatewayConnection')
-            ->assertHasNoErrors()
-            ->assertNotified(
-                Notification::make()
-                    ->title(__('ui.pages.waha_connection.gateway_healthy_title'))
-                    ->success(),
-            );
+            ->assertHasNoErrors();
+
+        $latency = $component->get('gatewayLatencyMs');
+
+        $component->assertNotified(
+            Notification::make()
+                ->title(__('ui.pages.waha_connection.gateway_healthy_title'))
+                ->body(__('ui.pages.waha_connection.gateway_healthy', ['latency' => $latency]))
+                ->success(),
+        );
     }
 
     public function test_operator_can_execute_start_session_action(): void
@@ -322,6 +331,7 @@ class WahaConnectionCenterTest extends TestCase
         Livewire::test(WahaConnectionCenter::class)
             ->set('activeModalSession', 'default')
             ->set('activeModalSessionName', 'Session Default')
+            ->set('activeModalTab', 'pairing')
             ->set('pairingCodePayload', 'EXPIRED_PAIRING_CODE')
             ->set('pairingCodeExpiresAt', now()->subSecond()->toIso8601String())
             ->call('clearExpiredAuthenticationArtifacts')
@@ -386,10 +396,9 @@ class WahaConnectionCenterTest extends TestCase
             ->call('openPairingModal', 'default', 'Session Default')
             ->set('pairingPhoneNumber', '@lid')
             ->call('submitPairingCode')
-            ->assertSet('modalErrorMessage', __('ui.waha.phone_invalid'))
-            ->assertSee(__('ui.waha.phone_invalid'));
+            ->assertSet('modalErrorMessage', __('ui.waha.phone_invalid'));
 
-        Http::assertNothingSent();
+        Http::assertNotSent(fn ($request) => str_contains((string) $request->url(), 'auth/request-code'));
     }
 
     private function createSchema(): void

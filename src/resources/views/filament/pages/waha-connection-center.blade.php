@@ -196,26 +196,30 @@
                             <div class="flex items-center gap-1.5">
                                 {{-- If Scan Required: Show QR & PIN Buttons --}}
                                 @if ($status === 'scan_required')
-                                    <x-filament::button
-                                        type="button"
-                                        size="xs"
-                                        color="primary"
-                                        icon="heroicon-m-qr-code"
-                                        wire:click="openQrModal('{{ $session['code'] }}', '{{ $session['name'] }}')"
-                                    >
-                                        {{ __('ui.pages.waha_connection.btn_qr') }}
-                                    </x-filament::button>
+                                    @if ($capabilities['qr'] ?? true)
+                                        <x-filament::button
+                                            type="button"
+                                            size="xs"
+                                            color="primary"
+                                            icon="heroicon-m-qr-code"
+                                            wire:click="openQrModal('{{ $session['code'] }}', '{{ $session['name'] }}')"
+                                        >
+                                            {{ __('ui.pages.waha_connection.btn_qr') }}
+                                        </x-filament::button>
+                                    @endif
 
-                                    <x-filament::button
-                                        type="button"
-                                        size="xs"
-                                        color="gray"
-                                        outlined
-                                        icon="heroicon-m-key"
-                                        wire:click="openPairingModal('{{ $session['code'] }}', '{{ $session['name'] }}')"
-                                    >
-                                        {{ __('ui.pages.waha_connection.btn_pairing') }}
-                                    </x-filament::button>
+                                    @if ($capabilities['pairing'] ?? true)
+                                        <x-filament::button
+                                            type="button"
+                                            size="xs"
+                                            color="gray"
+                                            outlined
+                                            icon="heroicon-m-key"
+                                            wire:click="openPairingModal('{{ $session['code'] }}', '{{ $session['name'] }}')"
+                                        >
+                                            {{ __('ui.pages.waha_connection.btn_pairing') }}
+                                        </x-filament::button>
+                                    @endif
                                 @endif
 
                                 {{-- If Running: Show Logout / Restart --}}
@@ -353,6 +357,7 @@
         </div>
     </div>
 
+    @if ($activeModalSession)
     {{-- Seamless WhatsApp Auth Modal (QR Code & Pairing PIN) --}}
     <x-filament::modal id="whatsapp-auth-modal" width="lg" alignment="center" x-on:close-modal.window="if ($event.detail.id === 'whatsapp-auth-modal') $wire.clearAuthenticationArtifacts()">
         <x-slot name="heading">
@@ -474,49 +479,41 @@
 
                             <x-filament::button
                                 type="button"
+                                size="sm"
                                 color="gray"
                                 outlined
-                                size="sm"
-                                wire:click="$set('pairingCodePayload', null)"
+                                wire:click="clearPairingPayload"
                             >
-                                {{ __('ui.pages.waha_connection.use_different_number') }}
+                                {{ __('ui.pages.waha_connection.btn_input_other_number') }}
                             </x-filament::button>
                         </div>
                     @else
-                        <form wire:submit="submitPairingCode" class="space-y-4">
-                            @if ($modalErrorMessage)
-                                <div class="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-medium text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/10 dark:text-rose-400">
-                                    {{ $modalErrorMessage }}
-                                </div>
-                            @endif
-
-                            <div class="space-y-1.5">
-                                <label for="pairing-phone-input" class="text-xs font-semibold text-gray-900 dark:text-white">
+                        <form wire:submit.prevent="submitPairingCode" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     {{ __('ui.pages.waha_connection.phone_label') }}
                                 </label>
-                                <x-filament::input.wrapper>
+                                <x-filament::input.wrapper :valid="!$modalErrorMessage">
                                     <x-filament::input
-                                        id="pairing-phone-input"
                                         type="text"
-                                        wire:model="pairingPhoneNumber"
                                         placeholder="628123456789"
+                                        wire:model.defer="pairingPhoneNumber"
                                         required
-                                        autofocus
                                     />
                                 </x-filament::input.wrapper>
-                                <p class="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                                <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
                                     {{ __('ui.pages.waha_connection.phone_help') }}
                                 </p>
                             </div>
 
-                            <div class="flex justify-end gap-2.5 pt-2">
-                                <x-filament::button
-                                    type="button"
-                                    color="gray"
-                                    outlined
-                                    size="sm"
-                                    x-on:click="$dispatch('close-modal', { id: 'whatsapp-auth-modal' })"
-                                >
+                            @if ($modalErrorMessage)
+                                <div class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/10 dark:text-rose-400">
+                                    {{ $modalErrorMessage }}
+                                </div>
+                            @endif
+
+                            <div class="flex items-center justify-end gap-2 pt-2">
+                                <x-filament::button type="button" size="sm" color="gray" outlined x-on:click="$dispatch('close-modal', { id: 'whatsapp-auth-modal' })">
                                     {{ __('ui.common.cancel') }}
                                 </x-filament::button>
                                 
@@ -530,4 +527,5 @@
             @endif
         </div>
     </x-filament::modal>
+    @endif
 </x-filament-panels::page>

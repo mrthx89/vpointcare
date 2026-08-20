@@ -126,8 +126,8 @@ class ChatBelumTerbalasNotifier
                     ->orWhere(function ($query) use ($date): void {
                         $query
                             ->where('BerlakuTahunan', true)
-                            ->whereRaw('MONTH(TanggalLibur) = ?', [$date->month])
-                            ->whereRaw('DAY(TanggalLibur) = ?', [$date->day]);
+                            ->whereMonth('TanggalLibur', $date->month)
+                            ->whereDay('TanggalLibur', $date->day);
                     });
             })
             ->exists();

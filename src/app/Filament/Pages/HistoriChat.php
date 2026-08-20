@@ -76,7 +76,7 @@ class HistoriChat extends Page implements HasTable
                 TextColumn::make('NamaKontakDisplay')
                     ->label(__('ui.pages.chat_history.contact'))
                     ->searchable(query: fn (Builder $query, string $search): Builder => $this->applyContactSearch($query, $search))
-                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw("COALESCE(n.NamaKontak, g.NamaGrup, c.NamaKontak, c.NamaGrupWhatsapp, c.NomorWhatsapp) {$direction}"))
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw('COALESCE(n."NamaKontak", g."NamaGrup", c."NamaKontak", c."NamaGrupWhatsapp", c."NomorWhatsapp") ' . ($direction === 'desc' ? 'desc' : 'asc')))
                     ->weight('semibold')
                     ->wrap(),
                 TextColumn::make('NomorWhatsappDisplay')
@@ -90,7 +90,7 @@ class HistoriChat extends Page implements HasTable
                 TextColumn::make('NamaInstansiDisplay')
                     ->label(__('ui.pages.chat_history.client'))
                     ->searchable(query: fn (Builder $query, string $search): Builder => $this->applyClientSearch($query, $search))
-                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw("COALESCE(i.NamaInstansi, gi.NamaInstansi) {$direction}"))
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw('COALESCE(i."NamaInstansi", gi."NamaInstansi") ' . ($direction === 'desc' ? 'desc' : 'asc')))
                     ->placeholder(__('ui.common.not_mapped'))
                     ->wrap(),
                 TextColumn::make('NamaCustomer')

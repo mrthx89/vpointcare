@@ -130,7 +130,7 @@ class WahaConnectionCenter extends Page
         try {
             $service = app(WahaSessionService::class);
             $rows = DB::table('MSesiWhatsapp')
-                ->orderByRaw("CASE WHEN KodeSesi = 'default' THEN 0 ELSE 1 END")
+                ->orderByRaw('CASE WHEN "KodeSesi" = \'default\' THEN 0 ELSE 1 END')
                 ->orderBy('KodeSesi')
                 ->get();
 
@@ -471,6 +471,22 @@ class WahaConnectionCenter extends Page
 
     public function clearExpiredAuthenticationArtifacts(): void
     {
+        if ($this->artifactHasExpired($this->qrCodeExpiresAt)) {
+            $this->qrCodePayload = null;
+            $this->qrCodeExpiresAt = null;
+            $this->modalErrorMessage = __('ui.waha.qr_unavailable');
+
+            return;
+        }
+
+        if ($this->artifactHasExpired($this->pairingCodeExpiresAt)) {
+            $this->pairingCodePayload = null;
+            $this->pairingCodeExpiresAt = null;
+            $this->modalErrorMessage = __('ui.waha.pairing_unavailable');
+
+            return;
+        }
+
         if ($this->activeModalSession) {
             // Check if active modal session is already connected
             $service = app(WahaSessionService::class);
@@ -487,21 +503,7 @@ class WahaConnectionCenter extends Page
                     ->body(__('ui.pages.waha_connection.authenticated_success_body', ['number' => $connectedNumber]))
                     ->success()
                     ->send();
-
-                return;
             }
-        }
-
-        if ($this->artifactHasExpired($this->qrCodeExpiresAt)) {
-            $this->qrCodePayload = null;
-            $this->qrCodeExpiresAt = null;
-            $this->modalErrorMessage = __('ui.waha.qr_unavailable');
-        }
-
-        if ($this->artifactHasExpired($this->pairingCodeExpiresAt)) {
-            $this->pairingCodePayload = null;
-            $this->pairingCodeExpiresAt = null;
-            $this->modalErrorMessage = __('ui.waha.pairing_unavailable');
         }
     }
 

@@ -291,7 +291,7 @@ $this->dispatch('inbox-refreshed');
     {
         return DB::table('MSesiWhatsapp')
             ->where('NonAktif', false)
-            ->orderByRaw("CASE WHEN KodeSesi = 'default' THEN 0 ELSE 1 END")
+            ->orderByRaw('CASE WHEN "KodeSesi" = \'default\' THEN 0 ELSE 1 END')
             ->orderBy('KodeSesi')
             ->limit(30)
             ->get()
@@ -331,7 +331,7 @@ $this->dispatch('inbox-refreshed');
     {
         return DB::table('MSesiWhatsapp')
             ->where('NonAktif', false)
-            ->orderByRaw("CASE WHEN KodeSesi = 'default' THEN 0 ELSE 1 END")
+            ->orderByRaw('CASE WHEN "KodeSesi" = \'default\' THEN 0 ELSE 1 END')
             ->orderBy('KodeSesi')
             ->value('Id');
     }

@@ -342,8 +342,8 @@ class AiAutoReplyService
                     ->orWhere(function ($query) use ($date): void {
                         $query
                             ->where('BerlakuTahunan', true)
-                            ->whereRaw('MONTH(TanggalLibur) = ?', [$date->month])
-                            ->whereRaw('DAY(TanggalLibur) = ?', [$date->day]);
+                            ->whereMonth('TanggalLibur', $date->month)
+                            ->whereDay('TanggalLibur', $date->day);
                     });
             })
             ->orderByDesc('BerlakuTahunan')
@@ -665,7 +665,7 @@ class AiAutoReplyService
      */
     private function generateOpenAiReply(object $settings, string $prompt, string $apiKey, bool $isFirstReply = false): ?array
     {
-        $baseUrl = $settings->BaseUrl ?: config('services.openai.base_url');
+        $baseUrl = ($settings->BaseUrl ?? null) ?: config('services.openai.base_url');
         $model = $this->inboxReplyModel($settings, $isFirstReply);
 
         $response = Http::withToken($apiKey)
@@ -674,7 +674,7 @@ class AiAutoReplyService
             ->timeout(30)
             ->post($baseUrl, [
                 'model' => $model,
-                'instructions' => $settings->PromptSistem ?: null,
+                'instructions' => ($settings->PromptSistem ?? null) ?: null,
                 'input' => $prompt,
                 'store' => true,
             ]);
@@ -701,7 +701,7 @@ class AiAutoReplyService
      */
     private function generateChatCompletionReply(object $settings, string $prompt, string $apiKey, string $provider, bool $isFirstReply = false): ?array
     {
-        $baseUrl = $this->chatCompletionEndpoint((string) ($settings->BaseUrl ?: config("services.{$provider}.base_url")));
+        $baseUrl = $this->chatCompletionEndpoint((string) (($settings->BaseUrl ?? null) ?: config("services.{$provider}.base_url")));
         $model = $this->inboxReplyModel($settings, $isFirstReply);
         $request = Http::withToken($apiKey)
             ->acceptJson()
@@ -720,7 +720,7 @@ class AiAutoReplyService
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => $settings->PromptSistem ?: 'Anda adalah AI Agent customer service yang menjawab singkat, sopan, dan jelas.',
+                    'content' => ($settings->PromptSistem ?? null) ?: 'Anda adalah AI Agent customer service yang menjawab singkat, sopan, dan jelas.',
                 ],
                 [
                     'role' => 'user',
@@ -812,6 +812,11 @@ class AiAutoReplyService
 
         if ($outputText !== '') {
             return $outputText;
+        }
+
+        $choiceText = trim((string) Arr::get($payload, 'choices.0.message.content', ''));
+        if ($choiceText !== '') {
+            return $choiceText;
         }
 
         foreach ((array) Arr::get($payload, 'output', []) as $output) {

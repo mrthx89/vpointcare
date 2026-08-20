@@ -308,14 +308,14 @@ class HakAksesResource extends Resource
         return $query->orderByRaw(
             "
             CASE
-                WHEN MHakAkses.KodeHakAkses = ? THEN 0
-                WHEN MHakAkses.KodeHakAkses IS NULL AND MHakAkses.IdHakAkses IS NULL THEN 1
-                WHEN MHakAkses.IdHakAkses IS NOT NULL THEN 2
+                WHEN \"MHakAkses\".\"KodeHakAkses\" = ? THEN 0
+                WHEN \"MHakAkses\".\"KodeHakAkses\" IS NULL AND \"MHakAkses\".\"IdHakAkses\" IS NULL THEN 1
+                WHEN \"MHakAkses\".\"IdHakAkses\" IS NOT NULL THEN 2
                 ELSE 3
             END {$direction},
             COALESCE(
-                (SELECT parent_group.SortOrder FROM MHakAkses parent_group WHERE parent_group.Id = MHakAkses.IdHakAkses),
-                MHakAkses.SortOrder,
+                (SELECT parent_group.\"SortOrder\" FROM \"MHakAkses\" parent_group WHERE parent_group.\"Id\" = \"MHakAkses\".\"IdHakAkses\"),
+                \"MHakAkses\".\"SortOrder\",
                 9999
             ) {$direction}
             ",

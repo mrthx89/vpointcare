@@ -269,7 +269,7 @@ class ChatInitiationService
 
         $default = DB::table('MSesiWhatsapp')
             ->where('NonAktif', false)
-            ->orderByRaw("CASE WHEN KodeSesi = 'default' THEN 0 ELSE 1 END")
+            ->orderByRaw('CASE WHEN "KodeSesi" = \'default\' THEN 0 ELSE 1 END')
             ->orderBy('KodeSesi')
             ->first();
 

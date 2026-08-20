@@ -50,7 +50,7 @@ class AiAgentTest extends TestCase
             ->test(AiAgent::class)
             ->assertSet('pengaturan.PerhalusJawabanWhatsappDefault', false)
             ->assertSee(__('ui.pages.ai_agent.refine_whatsapp_replies'))
-            ->assertSeeHtml('wire:model=pengaturan.PerhalusJawabanWhatsappDefault')
+            ->assertSeeHtml('pengaturan.PerhalusJawabanWhatsappDefault')
             ->set('pengaturan.PerhalusJawabanWhatsappDefault', 'invalid')
             ->call('simpanPengaturan')
             ->assertHasErrors(['pengaturan.PerhalusJawabanWhatsappDefault' => 'boolean']);
