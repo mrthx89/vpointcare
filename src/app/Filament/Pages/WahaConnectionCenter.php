@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class WahaConnectionCenter extends Page
@@ -64,9 +65,23 @@ class WahaConnectionCenter extends Page
 
     public bool $isRefreshing = false;
 
+    public bool $isSyncingWebhook = false;
+
+    public bool $isTestingGateway = false;
+
+    public string $webhookUrl = '';
+
+    public ?string $lastWebhookReceivedAt = null;
+
+    public int $totalWebhooksToday = 0;
+
+    public ?int $gatewayLatencyMs = null;
+
     public ?string $activeModalSession = null;
 
     public ?string $activeModalSessionName = null;
+
+    public string $activeModalTab = 'qr';
 
     public ?string $qrCodePayload = null;
 
@@ -84,7 +99,28 @@ class WahaConnectionCenter extends Page
 
     public function mount(): void
     {
+        $token = config('services.waha.webhook_token');
+        $this->webhookUrl = url('/webhooks/waha'.($token ? '/'.$token : ''));
+
+        $this->loadWebhookStats();
         $this->loadSessions(true);
+    }
+
+    public function loadWebhookStats(): void
+    {
+        try {
+            if (Schema::hasTable('TLogWebhookWaha')) {
+                $this->lastWebhookReceivedAt = DB::table('TLogWebhookWaha')
+                    ->latest('TglDiterima')
+                    ->value('TglDiterima');
+
+                $this->totalWebhooksToday = DB::table('TLogWebhookWaha')
+                    ->whereDate('TglDiterima', today())
+                    ->count();
+            }
+        } catch (Throwable) {
+            // Silently ignore stat loading failures
+        }
     }
 
     public function loadSessions(bool $forceRefresh = false): void
@@ -114,6 +150,7 @@ class WahaConnectionCenter extends Page
                         'status' => WahaSessionService::STATUS_STOPPED,
                         'session' => $sessionCode,
                         'connected_number' => null,
+                        'connected_name' => null,
                         'capabilities' => ['qr' => false, 'pairing' => false, 'start' => false, 'stop' => false, 'restart' => false],
                         'checked_at' => now()->toIso8601String(),
                         'message' => __('ui.pages.waha_connection.disabled_in_wacs'),
@@ -138,6 +175,7 @@ class WahaConnectionCenter extends Page
             }
 
             $this->sessions = $sessionList;
+            $this->loadWebhookStats();
             $this->clearAuthenticationArtifactsForRunningSession();
         } catch (Throwable $exception) {
             Notification::make()
@@ -149,21 +187,125 @@ class WahaConnectionCenter extends Page
         }
     }
 
+    public function testGatewayConnection(): void
+    {
+        $this->isTestingGateway = true;
+
+        try {
+            $service = app(WahaSessionService::class);
+            $result = $service->pingGateway();
+
+            $this->gatewayLatencyMs = $result['latency_ms'] ?? null;
+
+            if ($result['ok'] ?? false) {
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.gateway_healthy_title'))
+                    ->body(__('ui.pages.waha_connection.gateway_healthy', ['latency' => $this->gatewayLatencyMs]))
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.gateway_unreachable_title'))
+                    ->body(__('ui.waha.unavailable'))
+                    ->danger()
+                    ->send();
+            }
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title(__('ui.pages.waha_connection.gateway_unreachable_title'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        } finally {
+            $this->isTestingGateway = false;
+        }
+    }
+
+    public function syncWebhookAuto(string $sessionCode): void
+    {
+        $this->authorizeManageSession($sessionCode);
+        $this->isSyncingWebhook = true;
+
+        try {
+            $service = app(WahaSessionService::class);
+            $result = $service->syncWebhook($sessionCode);
+
+            $this->loadSessions(true);
+
+            if ($result['ok'] ?? false) {
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.webhook_sync_success_title'))
+                    ->body(__('ui.pages.waha_connection.webhook_sync_success', [
+                        'session' => $sessionCode,
+                        'url' => $result['webhook_url'] ?? $this->webhookUrl,
+                    ]))
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.webhook_sync_failed_title'))
+                    ->body(__('ui.pages.waha_connection.webhook_sync_failed', [
+                        'session' => $sessionCode,
+                    ]))
+                    ->danger()
+                    ->send();
+            }
+        } catch (Throwable $e) {
+            $this->loadSessions(true);
+            Notification::make()
+                ->title(__('ui.pages.waha_connection.webhook_sync_failed_title'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        } finally {
+            $this->isSyncingWebhook = false;
+        }
+    }
+
+    public function setModalTab(string $tab): void
+    {
+        $this->activeModalTab = in_array($tab, ['qr', 'pairing'], true) ? $tab : 'qr';
+
+        if ($this->activeModalTab === 'qr' && ! $this->qrCodePayload && ! $this->modalLoading) {
+            $this->fetchQrCode();
+        }
+    }
+
     public function openQrModal(string $sessionCode, string $sessionName): void
     {
         $this->authorizeManageSession($sessionCode);
 
         $this->activeModalSession = $sessionCode;
         $this->activeModalSessionName = $sessionName;
+        $this->activeModalTab = 'qr';
         $this->qrCodePayload = null;
         $this->qrCodeExpiresAt = null;
+        $this->pairingPhoneNumber = '';
         $this->pairingCodePayload = null;
         $this->pairingCodeExpiresAt = null;
         $this->modalErrorMessage = null;
         $this->modalLoading = true;
 
-        $this->dispatch('open-modal', id: 'waha-qr-modal');
+        $this->dispatch('open-modal', id: 'whatsapp-auth-modal');
         $this->fetchQrCode();
+    }
+
+    public function openPairingModal(string $sessionCode, string $sessionName): void
+    {
+        $this->authorizeManageSession($sessionCode);
+
+        $this->activeModalSession = $sessionCode;
+        $this->activeModalSessionName = $sessionName;
+        $this->activeModalTab = 'pairing';
+        $this->pairingPhoneNumber = '';
+        $this->pairingCodePayload = null;
+        $this->pairingCodeExpiresAt = null;
+        $this->qrCodePayload = null;
+        $this->qrCodeExpiresAt = null;
+        $this->modalErrorMessage = null;
+        $this->modalLoading = false;
+
+        $this->dispatch('open-modal', id: 'whatsapp-auth-modal');
     }
 
     public function fetchQrCode(): void
@@ -192,23 +334,6 @@ class WahaConnectionCenter extends Page
         } finally {
             $this->modalLoading = false;
         }
-    }
-
-    public function openPairingModal(string $sessionCode, string $sessionName): void
-    {
-        $this->authorizeManageSession($sessionCode);
-
-        $this->activeModalSession = $sessionCode;
-        $this->activeModalSessionName = $sessionName;
-        $this->pairingPhoneNumber = '';
-        $this->pairingCodePayload = null;
-        $this->pairingCodeExpiresAt = null;
-        $this->qrCodePayload = null;
-        $this->qrCodeExpiresAt = null;
-        $this->modalErrorMessage = null;
-        $this->modalLoading = false;
-
-        $this->dispatch('open-modal', id: 'waha-pairing-modal');
     }
 
     public function submitPairingCode(): void
@@ -260,6 +385,38 @@ class WahaConnectionCenter extends Page
     public function restartSession(string $sessionCode): void
     {
         $this->executeLifecycleAction('restart', $sessionCode);
+    }
+
+    public function logoutSession(string $sessionCode): void
+    {
+        $this->authorizeManageSession($sessionCode);
+
+        try {
+            $service = app(WahaSessionService::class);
+            $result = $service->logoutSession($sessionCode);
+
+            $this->loadSessions(true);
+
+            if ($result['ok'] ?? false) {
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.logout_success_title'))
+                    ->body(__('ui.pages.waha_connection.logout_success', ['session' => $sessionCode]))
+                    ->success()
+                    ->send();
+            } else {
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.logout_failed_title'))
+                    ->danger()
+                    ->send();
+            }
+        } catch (Throwable $exception) {
+            $this->loadSessions(true);
+            Notification::make()
+                ->title(__('ui.pages.waha_connection.logout_failed_title'))
+                ->body($exception->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     private function executeLifecycleAction(string $action, string $sessionCode): void
@@ -314,6 +471,27 @@ class WahaConnectionCenter extends Page
 
     public function clearExpiredAuthenticationArtifacts(): void
     {
+        if ($this->activeModalSession) {
+            // Check if active modal session is already connected
+            $service = app(WahaSessionService::class);
+            $liveStatus = $service->getSessionStatus($this->activeModalSession, true);
+
+            if (($liveStatus['status'] ?? null) === WahaSessionService::STATUS_RUNNING) {
+                $connectedNumber = $liveStatus['connected_number'] ?? '';
+                $this->clearAuthenticationArtifacts();
+                $this->dispatch('close-modal', id: 'whatsapp-auth-modal');
+                $this->loadSessions(true);
+
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.authenticated_success_title'))
+                    ->body(__('ui.pages.waha_connection.authenticated_success_body', ['number' => $connectedNumber]))
+                    ->success()
+                    ->send();
+
+                return;
+            }
+        }
+
         if ($this->artifactHasExpired($this->qrCodeExpiresAt)) {
             $this->qrCodePayload = null;
             $this->qrCodeExpiresAt = null;
@@ -331,6 +509,7 @@ class WahaConnectionCenter extends Page
     {
         $this->activeModalSession = null;
         $this->activeModalSessionName = null;
+        $this->activeModalTab = 'qr';
         $this->qrCodePayload = null;
         $this->qrCodeExpiresAt = null;
         $this->pairingPhoneNumber = null;
@@ -364,6 +543,7 @@ class WahaConnectionCenter extends Page
         foreach ($this->sessions as $session) {
             if ($session['code'] === $this->activeModalSession && ($session['live']['status'] ?? null) === WahaSessionService::STATUS_RUNNING) {
                 $this->clearAuthenticationArtifacts();
+                $this->dispatch('close-modal', id: 'whatsapp-auth-modal');
 
                 return;
             }

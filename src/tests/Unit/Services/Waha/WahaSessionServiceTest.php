@@ -398,6 +398,89 @@ class WahaSessionServiceTest extends TestCase
         self::assertStringNotContainsString('super-secret-key', $result['message']);
     }
 
+    public function test_create_or_update_session_sends_webhook_configuration_payload(): void
+    {
+        Http::fake([
+            '*/api/sessions' => Http::response(['name' => 'default', 'status' => 'STARTING'], 201),
+            '*/api/sessions/default' => Http::response([
+                'name' => 'default',
+                'status' => 'WORKING',
+                'me' => ['id' => '628123456789@c.us'],
+            ], 200),
+        ]);
+
+        $service = new WahaSessionService;
+        $result = $service->createOrUpdateSession('default', 'https://example.com/webhooks/waha/secret', ['message', 'session.status'], 'hmac-key');
+
+        self::assertTrue($result['ok']);
+        self::assertSame('running', $result['status']);
+        self::assertSame('https://example.com/webhooks/waha/secret', $result['webhook_url']);
+
+        Http::assertSent(function ($request) {
+            return str_ends_with($request->url(), '/api/sessions')
+                && $request['name'] === 'default'
+                && $request['config']['webhooks'][0]['url'] === 'https://example.com/webhooks/waha/secret'
+                && $request['config']['webhooks'][0]['hmac']['key'] === 'hmac-key';
+        });
+    }
+
+    public function test_sync_webhook_calls_create_or_update_session(): void
+    {
+        Http::fake([
+            '*/api/sessions' => Http::response(['name' => 'default', 'status' => 'STARTING'], 201),
+            '*/api/sessions/default' => Http::response(['name' => 'default', 'status' => 'WORKING'], 200),
+        ]);
+
+        $service = new WahaSessionService;
+        $result = $service->syncWebhook('default');
+
+        self::assertTrue($result['ok']);
+        self::assertNotEmpty($result['webhook_url']);
+    }
+
+    public function test_logout_session_calls_logout_endpoint_and_refreshes_status(): void
+    {
+        Http::fake([
+            '*/api/sessions/default/logout' => Http::response(['ok' => true], 200),
+            '*/api/sessions/default' => Http::response(['name' => 'default', 'status' => 'SCAN_QR_CODE'], 200),
+        ]);
+
+        $service = new WahaSessionService;
+        $result = $service->logoutSession('default');
+
+        self::assertTrue($result['ok']);
+        self::assertSame('scan_required', $result['status']);
+    }
+
+    public function test_get_profile_me_returns_profile_data(): void
+    {
+        Http::fake([
+            '*/api/default/me' => Http::response([
+                'id' => '628123456789@c.us',
+                'pushName' => 'CareDesk CS',
+            ], 200),
+        ]);
+
+        $service = new WahaSessionService;
+        $profile = $service->getProfileMe('default');
+
+        self::assertNotNull($profile);
+        self::assertSame('CareDesk CS', $profile['pushName']);
+    }
+
+    public function test_ping_gateway_measures_latency_and_returns_status(): void
+    {
+        Http::fake([
+            '*/api/sessions' => Http::response([['name' => 'default', 'status' => 'WORKING']], 200),
+        ]);
+
+        $service = new WahaSessionService;
+        $ping = $service->pingGateway();
+
+        self::assertTrue($ping['ok']);
+        self::assertIsInt($ping['latency_ms']);
+    }
+
     private function privateSessionKey(WahaSessionService $service, string $method, string $session): string
     {
         $reflection = new \ReflectionMethod($service, $method);

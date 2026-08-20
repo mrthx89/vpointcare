@@ -257,6 +257,141 @@ class WahaSessionService
     }
 
     /**
+     * @param  array<int, string>  $events
+     * @return array<string, mixed>
+     */
+    public function createOrUpdateSession(string $session, ?string $webhookUrl = null, array $events = [], ?string $hmacKey = null): array
+    {
+        $session = trim($session);
+
+        if ($session === '') {
+            return $this->failureResult(self::STATUS_UNKNOWN, 'validation', __('ui.waha.session_required'));
+        }
+
+        if ($webhookUrl === null || trim($webhookUrl) === '') {
+            $token = config('services.waha.webhook_token');
+            $webhookUrl = url('/webhooks/waha'.($token ? '/'.$token : ''));
+        }
+
+        $defaultEvents = [
+            'message',
+            'message.any',
+            'message.ack',
+            'session.status',
+            'group.join',
+            'group.leave',
+        ];
+
+        $webhookConfig = [
+            'url' => $webhookUrl,
+            'events' => ! empty($events) ? $events : $defaultEvents,
+        ];
+
+        $hmacKey = $hmacKey ?? config('services.waha.webhook_hmac_key');
+        if (! empty($hmacKey)) {
+            $webhookConfig['hmac'] = ['key' => $hmacKey];
+        }
+
+        $payload = [
+            'name' => $session,
+            'start' => true,
+            'config' => [
+                'webhooks' => [$webhookConfig],
+            ],
+        ];
+
+        $result = $this->requestJson('POST', (string) config('services.waha.control_plane.sessions_path', '/api/sessions'), $payload, 'create_session');
+
+        if (! ($result['ok'] ?? false) && in_array($result['http_status'] ?? 0, [400, 409, 422], true)) {
+            $this->startSession($session);
+        }
+
+        $status = $this->getSessionStatus($session, true);
+        $status['webhook_url'] = $webhookUrl;
+
+        $this->auditAction('sync_webhook', $session, $status);
+
+        return $status;
+    }
+
+    /**
+     * @param  array<int, string>  $events
+     * @return array<string, mixed>
+     */
+    public function syncWebhook(string $session, ?string $webhookUrl = null, ?string $hmacKey = null, array $events = []): array
+    {
+        return $this->createOrUpdateSession($session, $webhookUrl, $events, $hmacKey);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function logoutSession(string $session): array
+    {
+        $session = trim($session);
+
+        if ($session === '') {
+            return $this->failureResult(self::STATUS_UNKNOWN, 'validation', __('ui.waha.session_required'));
+        }
+
+        $path = str_replace('{session}', rawurlencode($session), (string) config('services.waha.control_plane.logout_path', '/api/sessions/{session}/logout'));
+        $payload = ['name' => $session, 'session' => $session];
+
+        $result = $this->requestJson('POST', $path, $payload, 'logout');
+
+        if (! ($result['ok'] ?? false)) {
+            $fallbackPath = str_replace('{session}', rawurlencode($session), '/api/{session}/auth/logout');
+            $result = $this->requestJson('POST', $fallbackPath, $payload, 'logout');
+        }
+
+        $status = $this->getSessionStatus($session, true);
+        $this->auditAction('logout', $session, $status);
+
+        return $status;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function getProfileMe(string $session): ?array
+    {
+        $session = trim($session);
+
+        if ($session === '') {
+            return null;
+        }
+
+        $path = str_replace('{session}', rawurlencode($session), '/api/{session}/me');
+        $result = $this->requestJson('GET', $path, [], 'me');
+
+        if (! ($result['ok'] ?? false) || ! is_array($result['payload'] ?? null)) {
+            return null;
+        }
+
+        return $result['payload'];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function pingGateway(): array
+    {
+        $startTime = microtime(true);
+        $baseUrl = rtrim((string) config('services.waha.base_url', 'http://127.0.0.1:3000'), '/');
+
+        $result = $this->requestJson('GET', (string) config('services.waha.control_plane.sessions_path', '/api/sessions'), [], 'ping');
+        $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+
+        return [
+            'ok' => (bool) ($result['ok'] ?? false),
+            'latency_ms' => $latencyMs,
+            'base_url' => $baseUrl,
+            'http_status' => $result['http_status'] ?? null,
+            'message' => ($result['ok'] ?? false) ? __('ui.pages.waha_connection.gateway_healthy', ['latency' => $latencyMs]) : __('ui.waha.unavailable'),
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
@@ -480,6 +615,7 @@ class WahaSessionService
             'status' => $status,
             'session' => $session,
             'connected_number' => $this->connectedNumber($payload),
+            'connected_name' => $this->connectedName($payload),
             'capabilities' => $capabilities,
             'checked_at' => now()->toIso8601String(),
             'message' => $this->statusMessage($status),
@@ -559,6 +695,29 @@ class WahaSessionService
 
             if (is_string($value) && ($normalized = WahaChatHelper::normalizePhoneNumber($value)) !== null) {
                 return $normalized;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function connectedName(array $payload): ?string
+    {
+        foreach ([
+            'me.pushName',
+            'me.name',
+            'pushName',
+            'name',
+            'data.me.pushName',
+            'data.me.name',
+        ] as $key) {
+            $value = Arr::get($payload, $key);
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
             }
         }
 

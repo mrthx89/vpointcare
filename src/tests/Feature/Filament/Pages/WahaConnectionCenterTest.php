@@ -62,7 +62,7 @@ class WahaConnectionCenterTest extends TestCase
             '*/api/sessions/default' => Http::response([
                 'name' => 'default',
                 'status' => 'WORKING',
-                'me' => ['id' => '628123456789@c.us'],
+                'me' => ['id' => '628123456789@c.us', 'pushName' => 'CareDesk CS'],
             ], 200),
         ]);
 
@@ -71,9 +71,9 @@ class WahaConnectionCenterTest extends TestCase
 
         Livewire::test(WahaConnectionCenter::class)
             ->assertStatus(200)
-            ->assertSee('WAHA Connection Center')
+            ->assertSee(__('ui.pages.waha_connection.title'))
             ->assertSee('default')
-            ->assertSee('BERJALAN');
+            ->assertSee(__('ui.pages.waha_connection.status_running'));
     }
 
     public function test_operator_with_manage_permission_can_trigger_qr_modal_and_fetch_qr(): void
@@ -90,7 +90,25 @@ class WahaConnectionCenterTest extends TestCase
         Livewire::test(WahaConnectionCenter::class)
             ->call('openQrModal', 'default', 'Session Default')
             ->assertSet('activeModalSession', 'default')
+            ->assertSet('activeModalTab', 'qr')
             ->assertSet('qrCodePayload', 'data:image/png;base64,TEST_QR_DATA');
+    }
+
+    public function test_operator_can_switch_modal_tabs(): void
+    {
+        Http::fake([
+            '*/api/default/auth/qr' => Http::response(['qr' => 'data:image/png;base64,TEST_QR_DATA'], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('openQrModal', 'default', 'Session Default')
+            ->call('setModalTab', 'pairing')
+            ->assertSet('activeModalTab', 'pairing')
+            ->call('setModalTab', 'qr')
+            ->assertSet('activeModalTab', 'qr');
     }
 
     public function test_operator_can_submit_pairing_code(): void
@@ -109,6 +127,66 @@ class WahaConnectionCenterTest extends TestCase
             ->set('pairingPhoneNumber', '628123456789')
             ->call('submitPairingCode')
             ->assertSet('pairingCodePayload', '1234-5678');
+    }
+
+    public function test_operator_can_auto_sync_webhook(): void
+    {
+        Http::fake([
+            '*/api/sessions' => Http::response(['name' => 'default', 'status' => 'STARTING'], 201),
+            '*/api/sessions/default' => Http::response(['name' => 'default', 'status' => 'WORKING'], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('syncWebhookAuto', 'default')
+            ->assertHasNoErrors()
+            ->assertNotified(
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.webhook_sync_success_title'))
+                    ->success(),
+            );
+    }
+
+    public function test_operator_can_logout_device(): void
+    {
+        Http::fake([
+            '*/api/sessions/default/logout' => Http::response(['ok' => true], 200),
+            '*/api/sessions/default' => Http::response(['name' => 'default', 'status' => 'SCAN_QR_CODE'], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('logoutSession', 'default')
+            ->assertHasNoErrors()
+            ->assertNotified(
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.logout_success_title'))
+                    ->success(),
+            );
+    }
+
+    public function test_operator_can_test_gateway_connection(): void
+    {
+        Http::fake([
+            '*/api/sessions' => Http::response([['name' => 'default']], 200),
+            '*/api/sessions/default' => Http::response(['name' => 'default', 'status' => 'WORKING'], 200),
+        ]);
+
+        $user = $this->user([AccessPermissions::WAHA_SESSION_VIEW, AccessPermissions::WAHA_SESSION_MANAGE]);
+        $this->actingAs($user);
+
+        Livewire::test(WahaConnectionCenter::class)
+            ->call('testGatewayConnection')
+            ->assertHasNoErrors()
+            ->assertNotified(
+                Notification::make()
+                    ->title(__('ui.pages.waha_connection.gateway_healthy_title'))
+                    ->success(),
+            );
     }
 
     public function test_operator_can_execute_start_session_action(): void
