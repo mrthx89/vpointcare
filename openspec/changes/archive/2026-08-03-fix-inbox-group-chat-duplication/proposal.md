@@ -58,8 +58,8 @@ Pengguna melihat pesan grup terbaru terlambat atau tidak muncul karena room besa
 
 ### Modified Capabilities
 
-- `vpoint-care`: requirement `WhatsApp Inbox` diperluas agar room grup menampilkan jendela terbaru, pagination cursor bebas duplikasi, dan realtime refresh tidak menunggu I/O WAHA.
-- `vpoint-care`: requirement `WhatsApp Webhook Intake` diperjelas agar persistence/idempotency selesai sebelum broadcast, sedangkan metadata grup boleh diproses async.
+- `care-desk`: requirement `WhatsApp Inbox` diperluas agar room grup menampilkan jendela terbaru, pagination cursor bebas duplikasi, dan realtime refresh tidak menunggu I/O WAHA.
+- `care-desk`: requirement `WhatsApp Webhook Intake` diperjelas agar persistence/idempotency selesai sebelum broadcast, sedangkan metadata grup boleh diproses async.
 
 ## Impacted Areas
 

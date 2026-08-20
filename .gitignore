@@ -1,5 +1,5 @@
 ﻿# ============================================================
-# VPoint Care / WACS repository ignores
+# Care Desk repository ignores
 # Root repository contains Laravel source in src/ plus docs/specs.
 # Keep dependency lock files tracked for reproducible installs.
 # ============================================================

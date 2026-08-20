@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# VPoint Care / WACS - Remote VPS Deployment Orchestrator
+# Care Desk / WACS - Remote VPS Deployment Orchestrator
 # ==============================================================================
 set -euo pipefail
 
-ARCHIVE_PATH="${1:-/tmp/vpoint-care-deploy.tar.gz}"
-TARGET_DIR="${2:-/opt/vpoint-care}"
+ARCHIVE_PATH="${1:-/tmp/care-desk-deploy.tar.gz}"
+TARGET_DIR="${2:-/opt/care-desk}"
 
 echo "============================================================"
-echo " [VPS Deploy] Memulai Proses Deployment VPoint Care (WACS)"
+echo " [VPS Deploy] Memulai Proses Deployment Care Desk (WACS)"
 echo " Target Directory : ${TARGET_DIR}"
 echo " Archive Source   : ${ARCHIVE_PATH}"
 echo "============================================================"
@@ -57,7 +57,7 @@ fi
 
 # 4. Ekstrak archive secara aman (termasuk dotfiles seperti .env.production.example)
 echo "[1/7] Mengekstrak source code baru..."
-TMP_EXTRACT_DIR="/tmp/vpoint-care-extract-$$"
+TMP_EXTRACT_DIR="/tmp/care-desk-extract-$$"
 mkdir -p "${TMP_EXTRACT_DIR}"
 
 if tar -tzf "${ARCHIVE_PATH}" | grep -Eq '(^/|(^|/)\.\.(/|$))'; then
@@ -165,7 +165,7 @@ ensure_env_val "REVERB_APP_ID" "vpoint-app"
 ensure_generated_env_val "REVERB_APP_KEY" "" 10 ""
 ensure_generated_env_val "REVERB_APP_SECRET" "" 16 ""
 ensure_env_val "VITE_REVERB_APP_KEY" "$(get_env_val "REVERB_APP_KEY" "")"
-ensure_env_val "DB_DATABASE" "DBVPointCare"
+ensure_env_val "DB_DATABASE" "DBCareDesk"
 ensure_env_val "APP_PORT" "8080"
 ensure_env_val "WAHA_PORT" "3000"
 ensure_env_val "REVERB_PORT" "7060"
@@ -175,7 +175,7 @@ if ! has_env_val "APP_KEY"; then
 fi
 
 DB_PASSWORD_VAL=$(get_env_val "DB_PASSWORD" "")
-DB_DATABASE_VAL=$(get_env_val "DB_DATABASE" "DBVPointCare")
+DB_DATABASE_VAL=$(get_env_val "DB_DATABASE" "DBCareDesk")
 APP_PORT_VAL=$(get_env_val "APP_PORT" "8080")
 WAHA_PORT_VAL=$(get_env_val "WAHA_PORT" "3000")
 REVERB_PORT_VAL=$(get_env_val "REVERB_PORT" "7060")
@@ -284,13 +284,13 @@ echo "[INFO] Merekam ulang seluruh worker dan service untuk memuat source code t
 docker compose --env-file .env.production restart app web reverb queue-webhooks queue-ai queue-broadcasts scheduler
 
 echo "============================================================"
-echo " [SUCCESS] Proses Deployment VPoint Care Selesai!"
+echo " [SUCCESS] Proses Deployment Care Desk Selesai!"
 echo "============================================================"
 docker compose --env-file .env.production ps
 echo ""
 
 echo "============================================================"
-echo " Aplikasi VPoint Care (WACS) sukses ter-deploy di Docker VPS!"
+echo " Aplikasi Care Desk (WACS) sukses ter-deploy di Docker VPS!"
 echo " - URL Admin Panel  : http://<IP_VPS>:${APP_PORT_VAL}/admin"
 echo " - WAHA Dashboard   : http://<IP_VPS>:${WAHA_PORT_VAL}"
 echo " - Reverb Websocket : http://<IP_VPS>:${REVERB_PORT_VAL}"

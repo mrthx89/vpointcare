@@ -69,7 +69,7 @@ Karena user menyebut `9router`, tahap pertama harus memastikan apakah `9Router` 
 
 ### 2.3 Spec Delta
 
-- File dibuat: `openspec/changes/add-9router-ai-agent/specs/vpoint-care/spec.md`.
+- File dibuat: `openspec/changes/add-9router-ai-agent/specs/care-desk/spec.md`.
 - Spec menambahkan requirement provider `9Router`, auto-reply via `9Router`, test koneksi AI, dan visual icon AI Agent.
 
 ## Phase 3 — Backend Configuration Plan

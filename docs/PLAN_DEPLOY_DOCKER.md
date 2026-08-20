@@ -27,20 +27,20 @@ sudo apt-get install docker-compose-plugin -y
 
 ## TAHAP 2 — Siapkan Kodingan Aplikasi
 
-Pastikan seluruh kodingan VPoint Care Anda (dari Windows) sudah di-copy / ditaruh di dalam server Ubuntu Anda, misalnya di folder `/home/it/GIT_VPOINT/2026-vpoint-care`.
+Pastikan seluruh kodingan VPoint Care Anda (dari Windows) sudah di-copy / ditaruh di dalam server Ubuntu Anda, misalnya di folder `/home/it/GIT_VPOINT/2026-care-desk`.
 
 ```bash
 # Pindah ke dalam direktori aplikasi
-cd /home/it/GIT_VPOINT/2026-vpoint-care
+cd /home/it/GIT_VPOINT/2026-care-desk
 ```
 
-*(Semua langkah di bawah ini dilakukan di dalam folder `/home/it/GIT_VPOINT/2026-vpoint-care` tersebut)*
+*(Semua langkah di bawah ini dilakukan di dalam folder `/home/it/GIT_VPOINT/2026-care-desk` tersebut)*
 
 ---
 
 ## TAHAP 3 — Buat File-File Spesial Docker
 
-Kita butuh 3 file baru untuk "mengajari" Docker cara menghidupkan Laravel Anda. Buat file-file ini di dalam folder `/home/it/GIT_VPOINT/2026-vpoint-care`:
+Kita butuh 3 file baru untuk "mengajari" Docker cara menghidupkan Laravel Anda. Buat file-file ini di dalam folder `/home/it/GIT_VPOINT/2026-care-desk`:
 
 ### 1. Buat file `Dockerfile`
 
@@ -132,7 +132,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     volumes:
       - ./:/var/www/html
@@ -156,7 +156,7 @@ services:
       - app
 
   queue:
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     command: php artisan queue:work --tries=3 --timeout=120 --sleep=3
     volumes:
@@ -169,7 +169,7 @@ services:
       - app
 
   reverb:
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     command: php artisan reverb:start --host=0.0.0.0 --port=7060
     ports:
@@ -203,7 +203,7 @@ APP_URL=http://care.vpoint.my.id
 # DB SQL Server (Gunakan IP Publik, IP LAN Host, atau host.docker.internal jika DB ada di Ubuntu yang sama)
 DB_CONNECTION=sqlsrv
 DB_HOST=host.docker.internal
-DB_DATABASE=DBVPointCare
+DB_DATABASE=DBCareDesk
 DB_USERNAME=sa
 DB_PASSWORD=
 
@@ -224,7 +224,7 @@ VITE_REVERB_SCHEME=http
 
 ## TAHAP 5 — Eksekusi! 🚀
 
-Jalankan perintah sakti ini (di dalam folder `/home/it/GIT_VPOINT/2026-vpoint-care`):
+Jalankan perintah sakti ini (di dalam folder `/home/it/GIT_VPOINT/2026-care-desk`):
 
 ```bash
 # 1. Rakit container (Ini butuh waktu beberapa menit untuk mengunduh PHP & SQL Driver)
@@ -241,8 +241,8 @@ sudo docker compose exec app php artisan storage:link
 
 # 4. Beri hak akses agar Docker diizinkan membaca file di Ubuntu Anda
 sudo chmod +x /home/it
-sudo chmod -R 755 /home/it/GIT_VPOINT/2026-vpoint-care
-sudo chmod -R 777 /home/it/GIT_VPOINT/2026-vpoint-care/storage /home/it/GIT_VPOINT/2026-vpoint-care/bootstrap/cache
+sudo chmod -R 755 /home/it/GIT_VPOINT/2026-care-desk
+sudo chmod -R 777 /home/it/GIT_VPOINT/2026-care-desk/storage /home/it/GIT_VPOINT/2026-care-desk/bootstrap/cache
 
 # 5. Clear Cache & Jalankan Migrasi/Seeder (Jika Perlu)
 sudo docker compose exec app php artisan optimize:clear
@@ -270,8 +270,8 @@ sudo docker compose exec app php artisan storage:link
 
 # 4. Beri hak akses agar Docker diizinkan membaca file di Ubuntu Anda
 sudo chmod +x /home/it
-sudo chmod -R 755 /home/it/GIT_VPOINT/2026-vpoint-care
-sudo chmod -R 777 /home/it/GIT_VPOINT/2026-vpoint-care/storage /home/it/GIT_VPOINT/2026-vpoint-care/bootstrap/cache
+sudo chmod -R 755 /home/it/GIT_VPOINT/2026-care-desk
+sudo chmod -R 777 /home/it/GIT_VPOINT/2026-care-desk/storage /home/it/GIT_VPOINT/2026-care-desk/bootstrap/cache
 
 # 5. Clear Cache & Jalankan Migrasi/Seeder (Jika Perlu)
 sudo docker compose exec app php artisan optimize:clear

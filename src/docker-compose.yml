@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     environment:
       CACHE_STORE: redis
@@ -17,7 +17,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - caredesk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -32,12 +32,12 @@ services:
       - ./:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
-      - vpoint-net
+      - caredesk-net
     depends_on:
       - app
 
   queue-webhooks:
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     command: php artisan queue:work --queue=webhooks --tries=3 --timeout=60 --sleep=1
     environment:
@@ -52,7 +52,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - caredesk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -60,7 +60,7 @@ services:
       - redis
 
   queue-ai:
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     command: php artisan queue:work --queue=ai-replies --tries=2 --timeout=90 --sleep=1
     environment:
@@ -75,7 +75,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - caredesk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -83,7 +83,7 @@ services:
       - redis
 
   queue-broadcasts:
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     command: php artisan queue:work --queue=broadcasts,default --tries=3 --timeout=30 --sleep=1
     environment:
@@ -98,7 +98,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - caredesk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -106,7 +106,7 @@ services:
       - redis
 
   reverb:
-    image: vpointcare-php85
+    image: caredesk-php85
     restart: unless-stopped
     command: php artisan reverb:start --host=0.0.0.0 --port=7060
     environment:
@@ -123,7 +123,7 @@ services:
     volumes:
       - ./:/var/www/html
     networks:
-      - vpoint-net
+      - caredesk-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -137,10 +137,10 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - vpoint-net
+      - caredesk-net
 
 networks:
-  vpoint-net:
+  caredesk-net:
     driver: bridge
 
 volumes:

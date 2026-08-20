@@ -27,7 +27,7 @@ class WahaSessionServiceTest extends TestCase
                 'status' => 'WORKING',
                 'me' => [
                     'id' => '628123456789@c.us',
-                    'pushName' => 'VPoint Care CS',
+                    'pushName' => 'Care Desk CS',
                 ],
             ], 200),
         ]);

@@ -1,6 +1,6 @@
 ## Context
 
-Perubahan ini melanjutkan `fix-inbox-group-chat-duplication`. Jalur webhook dan broadcast sudah dipisahkan melalui `ProcessWebhookJob` dan `SendBroadcastDebouncedJob`, tetapi `InboxWhatsapp` masih menggabungkan refresh daftar, resolusi identitas, request WAHA, dan pemuatan message history dalam satu siklus Livewire. Lihat `proposal.md` untuk motivasi dan `specs/vpoint-care/spec.md` untuk kontrak perilaku.
+Perubahan ini melanjutkan `fix-inbox-group-chat-duplication`. Jalur webhook dan broadcast sudah dipisahkan melalui `ProcessWebhookJob` dan `SendBroadcastDebouncedJob`, tetapi `InboxWhatsapp` masih menggabungkan refresh daftar, resolusi identitas, request WAHA, dan pemuatan message history dalam satu siklus Livewire. Lihat `proposal.md` untuk motivasi dan `specs/care-desk/spec.md` untuk kontrak perilaku.
 
 Constraint utama adalah PHP 8.3+, Laravel 13, Filament 5, SQL Server, queue yang sudah dipakai deployment, dan kompatibilitas dengan `TChat`/`TChatD` legacy. Tidak ada perubahan route, payload webhook, nama channel `waha-inbox`, atau tabel.
 

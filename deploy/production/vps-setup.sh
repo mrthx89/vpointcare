@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ==============================================================================
-# VPoint Care / WACS - Remote VPS Docker Setup Script (Ubuntu)
+# Care Desk / WACS - Remote VPS Docker Setup Script (Ubuntu)
 # ==============================================================================
 
 echo "============================================================"

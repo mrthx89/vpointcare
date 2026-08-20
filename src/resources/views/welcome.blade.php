@@ -15,7 +15,7 @@
 
     <script>
         (() => {
-            const key = 'vpoint-care-landing-theme';
+            const key = 'care-desk-landing-theme';
             const saved = localStorage.getItem(key) || 'system';
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const resolved = saved === 'system' ? (prefersDark ? 'dark' : 'light') : saved;
@@ -771,9 +771,9 @@
 
     <div class="page">
         <header class="nav">
-            <a class="brand" href="{{ url('/') }}" aria-label="{{ config('app.name', 'VPoint Care') }}">
-                <img src="{{ asset('images/logo_primary.svg') }}" alt="{{ config('app.name', 'VPoint Care') }}">
-                <span>{{ config('app.name', 'VPoint Care') }}</span>
+            <a class="brand" href="{{ url('/') }}" aria-label="{{ config('app.name', 'Care Desk') }}">
+                <img src="{{ asset('images/logo_primary.svg') }}" alt="{{ config('app.name', 'Care Desk') }}">
+                <span>{{ config('app.name', 'Care Desk') }}</span>
             </a>
 
             <nav class="nav-links" aria-label="{{ __('ui.landing.nav_label') }}">
@@ -995,7 +995,7 @@
 
     <script>
         (() => {
-            const key = 'vpoint-care-landing-theme';
+            const key = 'care-desk-landing-theme';
             const media = window.matchMedia('(prefers-color-scheme: dark)');
             const buttons = [...document.querySelectorAll('[data-theme-choice]')];
             const menu = document.querySelector('[data-mobile-menu]');

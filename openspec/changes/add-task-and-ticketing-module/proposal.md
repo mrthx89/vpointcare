@@ -159,7 +159,7 @@ Assignment role:
 - `src/database/seeders/DatabaseSeeder.php` -- seed master ticket/task + permission task.
 - `src/resources/lang/id/ui.php` + `en/ui.php` -- label lengkap.
 - `README.md` -- update modul Ticketing & Task.
-- `openspec/specs/vpoint-care/spec.md` -- update base spec setelah change diterima.
+- `openspec/specs/care-desk/spec.md` -- update base spec setelah change diterima.
 
 ## Acceptance Criteria
 
@@ -187,11 +187,11 @@ Assignment role:
 - **Akses tidak sengaja ke role VIEWER**: Explicit assign `task.view` read-only; tidak memberikan `task.manage` ke VIEWER.
 ## OpenSpec Base Spec Relationship
 
-Base spec `openspec/specs/vpoint-care/spec.md` sudah mendefinisikan `### Requirement: Ticketing` (high-level) dan `### Requirement: Master Data Management`. Change ini:
+Base spec `openspec/specs/care-desk/spec.md` sudah mendefinisikan `### Requirement: Ticketing` (high-level) dan `### Requirement: Master Data Management`. Change ini:
 
 - **Memperluas** `### Requirement: Ticketing` di delta spec dengan nama heading yang sama, menambahkan scenario detail (create from chat, assign, status change, final status, overdue SLA, attachment, master managed, dashboard real, authorization) sambil mempertahankan dua scenario awal ("Agent creates ticket", "Ticket appears in operational view").
 - **Menambah** `### Requirement: Task Management` sebagai capability baru yang belum ada di base spec.
-- Base spec akan di-update setelah change diterima/diimplementasi (merge delta ke `openspec/specs/vpoint-care/spec.md`), sesuai konvensi OpenSpec.
+- Base spec akan di-update setelah change diterima/diimplementasi (merge delta ke `openspec/specs/care-desk/spec.md`), sesuai konvensi OpenSpec.
 ## Assignment, Reassignment & Notification
 
 Baik Ticket maupun Task mendukung penugasan ke pengguna lain (`MPengguna`) sebagai handler/PIC. Ini adalah bagian inti modul agar jelas siapa yang menangani setiap item.

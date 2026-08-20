@@ -36,7 +36,7 @@ class CareSetupCommand extends Command
     public function handle(): int
     {
         $this->info('====================================================');
-        $this->info('   CareDesk / VPoint Care - Setup Awal Sistem       ');
+        $this->info('   Care Desk - Setup Awal Sistem                    ');
         $this->info('====================================================');
 
         if (! Schema::hasTable('MPeran') || ! Schema::hasTable('MPengguna')) {

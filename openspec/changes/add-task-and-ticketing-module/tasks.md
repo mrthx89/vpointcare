@@ -178,7 +178,7 @@
 
 - [ ] Update `docs/PLAN_TASK_DAN_TICKETING.md` sesuai implementasi final.
 - [ ] Update `README.md` modul Ticketing & Task (termasuk alur assignment, notes, lampiran, limit ukuran).
-- [ ] Update `openspec/specs/vpoint-care/spec.md` setelah change diterima.
+- [ ] Update `openspec/specs/care-desk/spec.md` setelah change diterima.
 - [ ] Dokumentasikan SOP penanganan ticket & task termasuk penugasan, eskalasi, catatan, dan lampiran.
 
 ## 16. Deployment Notes

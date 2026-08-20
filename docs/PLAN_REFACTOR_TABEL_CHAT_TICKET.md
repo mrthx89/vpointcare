@@ -171,7 +171,7 @@ Catatan penting:
    - queue worker
    - WAHA webhook delivery jika memungkinkan
    - Reverb tidak wajib stop, tetapi UI realtime sebaiknya tidak dipakai selama migration
-2. Backup database `DBVPointCare`.
+2. Backup database `DBCareDesk`.
 3. Catat jumlah row sebelum migration:
    - `TChatM`
    - `TChatD`

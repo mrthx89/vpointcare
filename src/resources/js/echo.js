@@ -292,7 +292,7 @@ window.Echo.channel("waha-inbox").listen(".inbox.updated", (event) => {
 
             if (isTabHidden || activeChatId !== event.chat_id) {
                 try {
-                    const title = "VPoint Care";
+                    const title = window.CareDeskBrandName || window.wacsNotificationTitleCopy || "Care Desk";
                     const body =
                         window.wacsNotificationBodyCopy ||
                         window.wacsReverbCopy?.notification_body ||

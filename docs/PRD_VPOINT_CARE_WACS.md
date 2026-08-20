@@ -9,7 +9,7 @@
 | Versi dokumen | 1.0 |
 | Tanggal | 2026-07-23 |
 | Jenis dokumen | Product Requirements Document (reverse-engineered dari source code aktual) |
-| Sumber kebenaran | `src/` (Laravel 13 + Filament 5), `openspec/specs/vpoint-care/spec.md`, `openspec/project.md`, `README.md`, `src/script/DATABASE_SCHEMA_WACS.sql` |
+| Sumber kebenaran | `src/` (Laravel 13 + Filament 5), `openspec/specs/care-desk/spec.md`, `openspec/project.md`, `README.md`, `src/script/DATABASE_SCHEMA_WACS.sql` |
 | Status | Menggambarkan perilaku sistem yang sudah terimplementasi per commit `3c10872` |
 | Bahasa kerja | Bahasa Indonesia; nama class/tabel/kolom/route/command dipertahankan sesuai source code |
 
@@ -224,7 +224,7 @@ Didefinisikan di `App\Support\AccessPermissions::defaultRoles()` dan `defaultRol
                      │                  │
               ┌──────▼──────┐   ┌───────▼────────┐   ┌──────────────┐
               │ Laravel     │   │  SQL Server    │   │ AI Provider  │
-              │ Reverb (WS) │   │  DBVPointCare  │   │ OpenAI /     │
+              │ Reverb (WS) │   │  DBCareDesk  │   │ OpenAI /     │
               └──────┬──────┘   └───────┬────────┘   │ DeepSeek /   │
                      │                  │            │ OpenRouter / │
               ┌──────▼──────────────────▼──────┐     │ 9Router      │
@@ -1554,7 +1554,7 @@ Temuan berikut berasal dari pembacaan source code aktual dan **perlu ditindaklan
 - `README.md` — instalasi, konfigurasi, deployment, troubleshooting.
 - `AGENTS.md` — aturan kerja, standar OpenSpec, aturan teknis WACS, definition of done.
 - `openspec/project.md` — konteks produk, stack, aturan development & deployment.
-- `openspec/specs/vpoint-care/spec.md` — spec kemampuan dan acceptance criteria (format GIVEN/WHEN/THEN).
+- `openspec/specs/care-desk/spec.md` — spec kemampuan dan acceptance criteria (format GIVEN/WHEN/THEN).
 - `openspec/changes/*/` — proposal, delta spec, dan tasks per perubahan.
 - `docs/PLAN_*.md` — dokumen perencanaan historis per fitur (chatbot scalability, ticketing/task, SSO, 9Router, deployment Docker/Nginx/Laragon, dsb).
 - `docs/BUG-ANALISIS-DUPLICATE-TCHAT.md` — analisis bug duplikasi chat.

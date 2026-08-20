@@ -72,8 +72,8 @@ private function inboxReplyModel(object $settings, bool $isFirstReply): string
 
 | Sumber | Requirement |
 | --- | --- |
-| `openspec/changes/add-model-instruct/specs/vpoint-care/spec.md` | "Auto-Reply uses Primary Model Only — The system SHALL NOT use Model Instruct for customer auto-replies **under any circumstances**" |
-| `openspec/changes/add-ai-instruct-model/specs/vpoint-care/spec.md` | "Jawaban pertama Inbox WhatsApp memakai Model Instruct" **dan** "Auto-reply tetap memakai Model Utama" — dua requirement yang saling bertentangan dalam satu dokumen |
+| `openspec/changes/add-model-instruct/specs/care-desk/spec.md` | "Auto-Reply uses Primary Model Only — The system SHALL NOT use Model Instruct for customer auto-replies **under any circumstances**" |
+| `openspec/changes/add-ai-instruct-model/specs/care-desk/spec.md` | "Jawaban pertama Inbox WhatsApp memakai Model Instruct" **dan** "Auto-reply tetap memakai Model Utama" — dua requirement yang saling bertentangan dalam satu dokumen |
 | `openspec/changes/add-ai-instruct-model/tasks.md` bagian 8 | "Pastikan `AiAutoReplyService.php` tidak berubah memakai `ModelInstructAi`" — tercentang selesai, padahal kode memakainya |
 
 Keputusan pemilik produk pada 2026-07-23: **aturan balasan pertama memakai Model Instruct dipertahankan**. Karena itu spec yang melarangnya harus dicabut, dan klaim tugas yang keliru harus dikoreksi.

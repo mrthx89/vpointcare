@@ -1,4 +1,4 @@
-# AGENTS.md - VPoint Care / WACS
+# AGENTS.md - Care Desk / WACS
 
 ## Scope
 
@@ -342,7 +342,7 @@ Sebelum planning/implementasi, baca yang relevan dari:
 
 1. `README.md`;
 2. `openspec/project.md`;
-3. `openspec/specs/vpoint-care/spec.md`;
+3. `openspec/specs/care-desk/spec.md`;
 4. `AGENTS.md` yang berlaku;
 5. source, migration, config, test, dan caller terkait;
 6. change aktif di `openspec/changes/` yang beririsan.
@@ -422,7 +422,7 @@ openspec/changes/<change-slug>/
 |-- proposal.md
 |-- tasks.md
 `-- specs/
-    `-- vpoint-care/
+    `-- care-desk/
         `-- spec.md
 ```
 

@@ -477,7 +477,7 @@
 ### C1. Documentation
 
 - [ ] Update `openspec/project.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah referensi ke change ini.
-- [ ] Update `openspec/specs/vpoint-care/spec.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah requirements baru.
+- [ ] Update `openspec/specs/care-desk/spec.md` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tambah requirements baru.
 - [ ] Update `README.md`:
   - Tambah section Redis setup
   - Tambah section queue worker strategy

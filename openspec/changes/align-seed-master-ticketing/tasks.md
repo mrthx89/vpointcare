@@ -2,7 +2,7 @@
 
 ## 0. Persiapan dan Data Safety
 
-- [ ] Backup penuh database `DBVPointCare` sebelum menjalankan migration apa pun. **Wajib** karena change ini mengubah data master production.
+- [ ] Backup penuh database `DBCareDesk` sebelum menjalankan migration apa pun. **Wajib** karena change ini mengubah data master production.
 - [ ] Jalankan audit pemakaian kode non-kanonik pada database target dan simpan hasilnya sebagai lampiran deployment:
   ```sql
   SELECT s.KodeStatusTicket, COUNT(t.Id) AS JumlahTicket

@@ -178,7 +178,7 @@ Verifikasi manual:
 
 Perubahan menyentuh data master production, sehingga **backup database wajib dilakukan sebelum deploy**.
 
-1. Backup penuh `DBVPointCare` sebelum menjalankan migration.
+1. Backup penuh `DBCareDesk` sebelum menjalankan migration.
 2. Bila perlu rollback:
 
 ```powershell

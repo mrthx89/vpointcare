@@ -14,10 +14,10 @@ REM ==========================================================
 
 set "REMOTE_USER=it"
 set "REMOTE_HOST=172.22.225.169"
-set "REMOTE_APP_DIR=/home/it/PROGRAM/VPOINTCARE"
+set "REMOTE_APP_DIR=/home/it/PROGRAM/CAREDESK"
 set "LOCAL_SRC=%~dp0src"
-set "ARCHIVE=%TEMP%\vpoint-care-update.tar.gz"
-set "REMOTE_ARCHIVE=/tmp/vpoint-care-update.tar.gz"
+set "ARCHIVE=%TEMP%\care-desk-update.tar.gz"
+set "REMOTE_ARCHIVE=/tmp/care-desk-update.tar.gz"
 set "REMOTE_HOSTKEY=SHA256:CHcacaIZHvo8oH0P5mJq4fsMbPa16bqDV3zeTRAoeqw"
 set "SSH_KEY=%~2"
 set "SSH_OPTS="
@@ -119,7 +119,7 @@ if errorlevel 1 (
 
 echo.
 echo [3/7] Extract file update di server...
-%SSH_CMD% "cd %REMOTE_APP_DIR% && mkdir -p /tmp/vpoint-care-update && rm -rf /tmp/vpoint-care-update/* && tar -xzf %REMOTE_ARCHIVE% -C /tmp/vpoint-care-update && cp -R /tmp/vpoint-care-update/app /tmp/vpoint-care-update/config /tmp/vpoint-care-update/database /tmp/vpoint-care-update/public /tmp/vpoint-care-update/resources /tmp/vpoint-care-update/routes . && cp /tmp/vpoint-care-update/composer.json /tmp/vpoint-care-update/composer.lock /tmp/vpoint-care-update/package.json /tmp/vpoint-care-update/package-lock.json /tmp/vpoint-care-update/vite.config.js . && printf '%SUDO_PASS%\n' | sudo -S cp /tmp/vpoint-care-update/Dockerfile /tmp/vpoint-care-update/docker-compose.yml ."
+%SSH_CMD% "cd %REMOTE_APP_DIR% && mkdir -p /tmp/care-desk-update && rm -rf /tmp/care-desk-update/* && tar -xzf %REMOTE_ARCHIVE% -C /tmp/care-desk-update && cp -R /tmp/care-desk-update/app /tmp/care-desk-update/config /tmp/care-desk-update/database /tmp/care-desk-update/public /tmp/care-desk-update/resources /tmp/care-desk-update/routes . && cp /tmp/care-desk-update/composer.json /tmp/care-desk-update/composer.lock /tmp/care-desk-update/package.json /tmp/care-desk-update/package-lock.json /tmp/care-desk-update/vite.config.js . && printf '%SUDO_PASS%\n' | sudo -S cp /tmp/care-desk-update/Dockerfile /tmp/care-desk-update/docker-compose.yml ."
 if errorlevel 1 (
     echo [ERROR] Extract/copy gagal.
     pause

@@ -108,7 +108,7 @@
 
 ## 11. Documentation
 
-- [ ] Update `openspec/specs/vpoint-care/spec.md` bila change diterima.
+- [ ] Update `openspec/specs/care-desk/spec.md` bila change diterima.
 - [ ] Update README bagian AI provider bila ada.
 - [ ] Catat env var 9Router di dokumentasi deployment.
 - [ ] Catat cara memakai tombol **Test Koneksi AI**.

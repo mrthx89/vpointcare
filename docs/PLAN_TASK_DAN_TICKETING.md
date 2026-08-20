@@ -44,7 +44,7 @@ Aplikasi memakai:
 - Migration raw SQL Server idempotent (`IF OBJECT_ID(...) IS NULL`), guard `sqlsrv`.
 - Filament Resource pakai `NavigationHelper` + `FilamentAccess` + `HasMenuBreadcrumbs`.
 - Localization di `resources/lang/id/ui.php` dan `resources/lang/en/ui.php`.
-- OpenSpec di `openspec/changes/<id>/` dengan `proposal.md`, `tasks.md`, `specs/vpoint-care/spec.md`.
+- OpenSpec di `openspec/changes/<id>/` dengan `proposal.md`, `tasks.md`, `specs/care-desk/spec.md`.
 - Sumber user/assignee: `MPengguna` (model auth) dengan relasi role `MPeran`.
 - Pola penyajian file: `PublicStorageController`/`WahaMediaController` (auth-gated), `Storage` facade.
 
@@ -213,7 +213,7 @@ Modul mendukung penugasan ticket & task ke pengguna lain (`MPengguna`) sebagai h
 
 ### Dokumentasi (ubah)
 - `README.md`
-- `openspec/specs/vpoint-care/spec.md`
+- `openspec/specs/care-desk/spec.md`
 
 ## Tahap Eksekusi
 

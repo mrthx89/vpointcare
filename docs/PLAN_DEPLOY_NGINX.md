@@ -71,14 +71,14 @@ sudo systemctl restart php8.3-fpm
 
 ### 3.1 Pindahkan File ke Server
 
-Taruh seluruh *source code* VPoint Care Anda (kecuali `node_modules` & `.env`) ke folder `/var/www/vpointcare`.
+Taruh seluruh *source code* VPoint Care Anda (kecuali `node_modules` & `.env`) ke folder `/var/www/caredesk`.
 
 ```bash
-sudo mkdir -p /var/www/vpointcare
+sudo mkdir -p /var/www/caredesk
 # (Pindahkan/Clone file Laravel Anda ke dalam folder ini...)
 
 # Masuk ke direktori
-cd /var/www/vpointcare
+cd /var/www/caredesk
 ```
 
 ### 3.2 Konfigurasi `.env`
@@ -99,7 +99,7 @@ APP_URL=https://care.vpoint.my.id
 DB_CONNECTION=sqlsrv
 DB_HOST=26.245.185.82\SQL2019
 DB_PORT=
-DB_DATABASE=DBVPointCare
+DB_DATABASE=DBCareDesk
 DB_USERNAME=sa
 DB_PASSWORD=Sg1
 DB_TRUST_SERVER_CERTIFICATE=true
@@ -146,8 +146,8 @@ php artisan filament:cache-components
 Nginx berjalan atas nama *user* `www-data`. Beri wewenang tulis pada folder yang membutuhkan:
 
 ```bash
-sudo chown -R www-data:www-data /var/www/vpointcare/storage /var/www/vpointcare/bootstrap/cache
-sudo chmod -R 775 /var/www/vpointcare/storage /var/www/vpointcare/bootstrap/cache
+sudo chown -R www-data:www-data /var/www/caredesk/storage /var/www/caredesk/bootstrap/cache
+sudo chmod -R 775 /var/www/caredesk/storage /var/www/caredesk/bootstrap/cache
 ```
 
 ---
@@ -157,7 +157,7 @@ sudo chmod -R 775 /var/www/vpointcare/storage /var/www/vpointcare/bootstrap/cach
 Kita buat file *Virtual Host* khusus untuk VPoint Care. (Tidak akan mengganggu aplikasi lain di Nginx).
 
 ```bash
-sudo nano /etc/nginx/sites-available/vpointcare
+sudo nano /etc/nginx/sites-available/caredesk
 ```
 
 Isi dengan konfigurasi komprehensif berikut:
@@ -167,7 +167,7 @@ server {
     # Nginx mendengarkan port 82 untuk domain ini
     listen 82;
     server_name care.vpoint.my.id;
-    root /var/www/vpointcare/public;
+    root /var/www/caredesk/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
@@ -218,7 +218,7 @@ server {
 Simpan file, lalu aktifkan *Virtual Host* dan *restart* Nginx:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/vpointcare /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/caredesk /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -245,7 +245,7 @@ Isi dengan:
 ```ini
 [program:vpoint-queue]
 process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php8.3 /var/www/vpointcare/artisan queue:work --tries=3 --timeout=120 --sleep=3
+command=/usr/bin/php8.3 /var/www/caredesk/artisan queue:work --tries=3 --timeout=120 --sleep=3
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -253,7 +253,7 @@ killasgroup=true
 user=www-data
 numprocs=1
 redirect_stderr=true
-stdout_logfile=/var/www/vpointcare/storage/logs/worker.log
+stdout_logfile=/var/www/caredesk/storage/logs/worker.log
 ```
 
 ### 5.2 Buat Konfigurasi Reverb WebSocket
@@ -265,7 +265,7 @@ Isi dengan:
 ```ini
 [program:vpoint-reverb]
 process_name=%(program_name)s_%(process_num)02d
-command=/usr/bin/php8.3 /var/www/vpointcare/artisan reverb:start --host=127.0.0.1 --port=7060
+command=/usr/bin/php8.3 /var/www/caredesk/artisan reverb:start --host=127.0.0.1 --port=7060
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -273,7 +273,7 @@ killasgroup=true
 user=www-data
 numprocs=1
 redirect_stderr=true
-stdout_logfile=/var/www/vpointcare/storage/logs/reverb.log
+stdout_logfile=/var/www/caredesk/storage/logs/reverb.log
 ```
 
 ### 5.3 Hidupkan Daemons

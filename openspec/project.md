@@ -77,4 +77,4 @@ WhatsApp Customer
 
 ## Spec Index
 
-- `specs/vpoint-care/spec.md`: application capabilities and acceptance criteria.
+- `specs/care-desk/spec.md`: application capabilities and acceptance criteria.

@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param (
     [Parameter(Mandatory = $false, HelpMessage = "IP atau Domain Server VPS Ubuntu")]
     [string]$VpsHost,
@@ -13,13 +13,13 @@ param (
     [string]$SshKey = "",
 
     [Parameter(Mandatory = $false, HelpMessage = "Direktori target deployment di VPS")]
-    [string]$RemoteDir = "/opt/vpoint-care"
+    [string]$RemoteDir = "/opt/care-desk"
 )
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host " VPoint Care (WACS) - Automated Ubuntu VPS Deployment" -ForegroundColor Green
+Write-Host " Care Desk (WACS) - Automated Ubuntu VPS Deployment" -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Cyan
 
 # 1. Interactive Prompts jika parameter belum diisi
@@ -108,7 +108,7 @@ $ScpOpts = @("-i", $SshKey, "-P", $VpsPort, "-o", "StrictHostKeyChecking=accept-
 $RepoRoot = $PSScriptRoot
 $LocalSrc = Join-Path $RepoRoot "src"
 $LocalDeploy = Join-Path $RepoRoot "deploy\production"
-$TempArchive = Join-Path $env:TEMP "vpoint-care-deploy-$([guid]::NewGuid().ToString('N').Substring(0,8)).tar.gz"
+$TempArchive = Join-Path $env:TEMP "care-desk-deploy-$([guid]::NewGuid().ToString('N').Substring(0,8)).tar.gz"
 
 if (-not (Test-Path (Join-Path $LocalSrc "artisan"))) {
     Write-Error "Tidak dapat menemukan folder 'src/artisan'. Pastikan script dijalankan dari root repository."
@@ -141,7 +141,7 @@ try {
 }
 
 # 5. Transfer File ke VPS
-$RemoteArchive = "/tmp/vpoint-care-deploy.tar.gz"
+$RemoteArchive = "/tmp/care-desk-deploy.tar.gz"
 Write-Host "`n[2/4] Mengunggah arsip ke $VpsUser@${VpsHost}..." -ForegroundColor Cyan
 
 $ScpTarget = "${VpsUser}@${VpsHost}:${RemoteArchive}"
@@ -181,7 +181,7 @@ if ($LASTEXITCODE -ne 0) {
 # 7. Selesai
 Write-Host "`n[4/4] Process Selesai!" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host " Aplikasi VPoint Care (WACS) telah sukses ter-deploy di Docker VPS!" -ForegroundColor Green
+Write-Host " Aplikasi Care Desk (WACS) telah sukses ter-deploy di Docker VPS!" -ForegroundColor Green
 Write-Host " - URL Admin Panel  : http://${VpsHost}:8080/admin" -ForegroundColor Yellow
 Write-Host " - WAHA Dashboard   : http://${VpsHost}:3000" -ForegroundColor Yellow
 Write-Host " - Reverb Websocket : http://${VpsHost}:7060" -ForegroundColor Yellow

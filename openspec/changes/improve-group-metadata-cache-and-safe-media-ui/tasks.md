@@ -1,6 +1,6 @@
 ﻿## 1. Planning and Baseline
 
-- [x] 1.1 Read `README.md`, `openspec/project.md`, `openspec/specs/vpoint-care/spec.md`, active changes, and related Inbox/WAHA/media files.
+- [x] 1.1 Read `README.md`, `openspec/project.md`, `openspec/specs/care-desk/spec.md`, active changes, and related Inbox/WAHA/media files.
 - [x] 1.2 Analyze group metadata flow, render-time WAHA calls, PayloadJson media handling, and Blade rendering.
 - [x] 1.3 Run OpenSpec validation for this change before implementation.
 

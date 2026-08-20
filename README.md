@@ -57,7 +57,7 @@ Fokus utama aplikasi:
 - Panel utama tersedia di `/admin`.
 - Login dan registrasi memakai model pengguna internal `MPengguna`, bukan tabel `users` default Laravel.
 - Sidebar, breadcrumb, label menu, dan hak akses diambil dari konfigurasi permission serta data `MHakAkses`.
-- Brand panel menggunakan identitas VPoint Care dan mendukung dark mode.
+- Brand panel menggunakan identitas Care Desk dan mendukung dark mode.
 
 ### Inbox WhatsApp
 
@@ -187,7 +187,7 @@ OPENAI_MODEL=gpt-5
 Siapkan database SQL Server:
 
 ```sql
-CREATE DATABASE DBVPointCare;
+CREATE DATABASE DBCareDesk;
 ```
 
 Jalankan migration dan seeder:
@@ -256,7 +256,7 @@ Untuk fitur realtime, gunakan Reverb sebagai broadcast connection:
 
 ```env
 BROADCAST_CONNECTION=reverb
-REVERB_APP_ID=vpoint-care
+REVERB_APP_ID=care-desk
 REVERB_APP_KEY=local-key
 REVERB_APP_SECRET=local-secret
 REVERB_HOST=127.0.0.1
@@ -336,8 +336,8 @@ Server production minimal harus memiliki:
 ### 2. Ambil source code
 
 ```powershell
-git clone <repository-url> vpoint-care
-cd vpoint-care\src
+git clone <repository-url> care-desk
+cd care-desk\src
 ```
 
 Atau update dari checkout yang sudah ada:
@@ -384,7 +384,7 @@ LOG_LEVEL=info
 DB_CONNECTION=sqlsrv
 DB_HOST=sqlserver-host
 DB_PORT=1433
-DB_DATABASE=DBVPointCare
+DB_DATABASE=DBCareDesk
 DB_USERNAME=app_user
 DB_PASSWORD=strong_password
 
@@ -629,7 +629,7 @@ Periksa:
 OpenSpec proyek tersedia di:
 
 - `openspec/project.md`
-- `openspec/specs/vpoint-care/spec.md`
+- `openspec/specs/care-desk/spec.md`
 
 Gunakan OpenSpec sebagai acuan requirement saat menambah fitur, memperbaiki flow WhatsApp, atau mengubah behavior AI/ticketing.
 

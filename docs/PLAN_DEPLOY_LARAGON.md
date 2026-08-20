@@ -84,7 +84,7 @@ LOG_LEVEL=error
 DB_CONNECTION=sqlsrv
 DB_HOST=26.245.185.82\SQL2019
 DB_PORT=
-DB_DATABASE=DBVPointCare
+DB_DATABASE=DBCareDesk
 DB_USERNAME=sa
 DB_PASSWORD=Sg1
 DB_ENCRYPT=no
@@ -386,25 +386,25 @@ $php    = "C:\laragon\bin\php\php-8.5.5-Win32-vs17-x64\php.exe"   # sesuaikan ve
 $appDir = "C:\laragon\care_apps"
 
 # Install service
-& $nssm install VPointCareQueue $php
-& $nssm set VPointCareQueue AppParameters "$appDir\artisan queue:work --tries=3 --timeout=120 --sleep=3 --max-jobs=500"
-& $nssm set VPointCareQueue AppDirectory $appDir
-& $nssm set VPointCareQueue DisplayName "VPoint Care - Queue Worker"
-& $nssm set VPointCareQueue Description "Laravel Queue Worker untuk VPoint Care"
-& $nssm set VPointCareQueue Start SERVICE_AUTO_START
+& $nssm install CareDeskQueue $php
+& $nssm set CareDeskQueue AppParameters "$appDir\artisan queue:work --tries=3 --timeout=120 --sleep=3 --max-jobs=500"
+& $nssm set CareDeskQueue AppDirectory $appDir
+& $nssm set CareDeskQueue DisplayName "VPoint Care - Queue Worker"
+& $nssm set CareDeskQueue Description "Laravel Queue Worker untuk VPoint Care"
+& $nssm set CareDeskQueue Start SERVICE_AUTO_START
 
 # Sembunyikan window CMD sepenuhnya
-& $nssm set VPointCareQueue AppNoConsole 1
+& $nssm set CareDeskQueue AppNoConsole 1
 
 # Redirect log ke file
-& $nssm set VPointCareQueue AppStdout "$appDir\storage\logs\queue-stdout.log"
-& $nssm set VPointCareQueue AppStderr "$appDir\storage\logs\queue-stderr.log"
-& $nssm set VPointCareQueue AppStdoutCreationDisposition 4
-& $nssm set VPointCareQueue AppStderrCreationDisposition 4
+& $nssm set CareDeskQueue AppStdout "$appDir\storage\logs\queue-stdout.log"
+& $nssm set CareDeskQueue AppStderr "$appDir\storage\logs\queue-stderr.log"
+& $nssm set CareDeskQueue AppStdoutCreationDisposition 4
+& $nssm set CareDeskQueue AppStderrCreationDisposition 4
 
 # Auto-restart jika crash, tunggu 5 detik
-& $nssm set VPointCareQueue AppRestartDelay 5000
-& $nssm set VPointCareQueue AppExit Default Restart
+& $nssm set CareDeskQueue AppRestartDelay 5000
+& $nssm set CareDeskQueue AppExit Default Restart
 ```
 
 ---
@@ -417,25 +417,25 @@ $php    = "C:\laragon\bin\php\php-8.5.5-Win32-vs17-x64\php.exe"   # sesuaikan ve
 $appDir = "C:\laragon\care_apps"
 
 # Install service
-& $nssm install VPointCareReverb $php
-& $nssm set VPointCareReverb AppParameters "$appDir\artisan reverb:start --host=0.0.0.0 --port=7060"
-& $nssm set VPointCareReverb AppDirectory $appDir
-& $nssm set VPointCareReverb DisplayName "VPoint Care - Reverb WebSocket"
-& $nssm set VPointCareReverb Description "Laravel Reverb WebSocket Server untuk VPoint Care (port 7060)"
-& $nssm set VPointCareReverb Start SERVICE_AUTO_START
+& $nssm install CareDeskReverb $php
+& $nssm set CareDeskReverb AppParameters "$appDir\artisan reverb:start --host=0.0.0.0 --port=7060"
+& $nssm set CareDeskReverb AppDirectory $appDir
+& $nssm set CareDeskReverb DisplayName "VPoint Care - Reverb WebSocket"
+& $nssm set CareDeskReverb Description "Laravel Reverb WebSocket Server untuk VPoint Care (port 7060)"
+& $nssm set CareDeskReverb Start SERVICE_AUTO_START
 
 # Sembunyikan window CMD sepenuhnya
-& $nssm set VPointCareReverb AppNoConsole 1
+& $nssm set CareDeskReverb AppNoConsole 1
 
 # Redirect log
-& $nssm set VPointCareReverb AppStdout "$appDir\storage\logs\reverb-stdout.log"
-& $nssm set VPointCareReverb AppStderr "$appDir\storage\logs\reverb-stderr.log"
-& $nssm set VPointCareReverb AppStdoutCreationDisposition 4
-& $nssm set VPointCareReverb AppStderrCreationDisposition 4
+& $nssm set CareDeskReverb AppStdout "$appDir\storage\logs\reverb-stdout.log"
+& $nssm set CareDeskReverb AppStderr "$appDir\storage\logs\reverb-stderr.log"
+& $nssm set CareDeskReverb AppStdoutCreationDisposition 4
+& $nssm set CareDeskReverb AppStderrCreationDisposition 4
 
 # Auto-restart jika crash
-& $nssm set VPointCareReverb AppRestartDelay 5000
-& $nssm set VPointCareReverb AppExit Default Restart
+& $nssm set CareDeskReverb AppRestartDelay 5000
+& $nssm set CareDeskReverb AppExit Default Restart
 ```
 
 ---
@@ -445,8 +445,8 @@ $appDir = "C:\laragon\care_apps"
 ```powershell
 $nssm = "C:\laragon\bin\nssm\nssm.exe"
 
-& $nssm start VPointCareQueue
-& $nssm start VPointCareReverb
+& $nssm start CareDeskQueue
+& $nssm start CareDeskReverb
 ```
 
 ---
@@ -455,8 +455,8 @@ $nssm = "C:\laragon\bin\nssm\nssm.exe"
 
 ```powershell
 # Cek status
-Get-Service VPointCareQueue
-Get-Service VPointCareReverb
+Get-Service CareDeskQueue
+Get-Service CareDeskReverb
 
 # Atau via Services panel Windows:
 # Tekan Win+R - ketik services.msc - cari "VPoint Care"
@@ -472,20 +472,20 @@ Kedua service harusnya terlihat statusnya **Running** dan Startup Type **Automat
 $nssm = "C:\laragon\bin\nssm\nssm.exe"
 
 # Stop service
-& $nssm stop VPointCareQueue
-& $nssm stop VPointCareReverb
+& $nssm stop CareDeskQueue
+& $nssm stop CareDeskReverb
 
 # Restart service
-& $nssm restart VPointCareQueue
-& $nssm restart VPointCareReverb
+& $nssm restart CareDeskQueue
+& $nssm restart CareDeskReverb
 
 # Edit konfigurasi (membuka GUI NSSM)
-& $nssm edit VPointCareQueue
-& $nssm edit VPointCareReverb
+& $nssm edit CareDeskQueue
+& $nssm edit CareDeskReverb
 
 # Hapus service (jika perlu reinstall)
-& $nssm stop VPointCareQueue; & $nssm remove VPointCareQueue confirm
-& $nssm stop VPointCareReverb; & $nssm remove VPointCareReverb confirm
+& $nssm stop CareDeskQueue; & $nssm remove CareDeskQueue confirm
+& $nssm stop CareDeskReverb; & $nssm remove CareDeskReverb confirm
 ```
 
 ---
@@ -580,26 +580,26 @@ $nssm = "C:\laragon\bin\nssm\nssm.exe"
 $php  = "C:\laragon\bin\php\php-8.5.5-Win32-vs17-x64\php.exe"   # sesuaikan
 $dir  = "C:\laragon\care_apps"
 
-& $nssm install VPointCareQueue $php
-& $nssm set VPointCareQueue AppParameters "$dir\artisan queue:work --tries=3 --timeout=120 --sleep=3"
-& $nssm set VPointCareQueue AppDirectory $dir
-& $nssm set VPointCareQueue Start SERVICE_AUTO_START
-& $nssm set VPointCareQueue AppNoConsole 1
-& $nssm set VPointCareQueue AppStdout "$dir\storage\logs\queue-stdout.log"
-& $nssm set VPointCareQueue AppStderr "$dir\storage\logs\queue-stderr.log"
-& $nssm set VPointCareQueue AppRestartDelay 5000
+& $nssm install CareDeskQueue $php
+& $nssm set CareDeskQueue AppParameters "$dir\artisan queue:work --tries=3 --timeout=120 --sleep=3"
+& $nssm set CareDeskQueue AppDirectory $dir
+& $nssm set CareDeskQueue Start SERVICE_AUTO_START
+& $nssm set CareDeskQueue AppNoConsole 1
+& $nssm set CareDeskQueue AppStdout "$dir\storage\logs\queue-stdout.log"
+& $nssm set CareDeskQueue AppStderr "$dir\storage\logs\queue-stderr.log"
+& $nssm set CareDeskQueue AppRestartDelay 5000
 
-& $nssm install VPointCareReverb $php
-& $nssm set VPointCareReverb AppParameters "$dir\artisan reverb:start --host=0.0.0.0 --port=7060"
-& $nssm set VPointCareReverb AppDirectory $dir
-& $nssm set VPointCareReverb Start SERVICE_AUTO_START
-& $nssm set VPointCareReverb AppNoConsole 1
-& $nssm set VPointCareReverb AppStdout "$dir\storage\logs\reverb-stdout.log"
-& $nssm set VPointCareReverb AppStderr "$dir\storage\logs\reverb-stderr.log"
-& $nssm set VPointCareReverb AppRestartDelay 5000
+& $nssm install CareDeskReverb $php
+& $nssm set CareDeskReverb AppParameters "$dir\artisan reverb:start --host=0.0.0.0 --port=7060"
+& $nssm set CareDeskReverb AppDirectory $dir
+& $nssm set CareDeskReverb Start SERVICE_AUTO_START
+& $nssm set CareDeskReverb AppNoConsole 1
+& $nssm set CareDeskReverb AppStdout "$dir\storage\logs\reverb-stdout.log"
+& $nssm set CareDeskReverb AppStderr "$dir\storage\logs\reverb-stderr.log"
+& $nssm set CareDeskReverb AppRestartDelay 5000
 
-& $nssm start VPointCareQueue
-& $nssm start VPointCareReverb
+& $nssm start CareDeskQueue
+& $nssm start CareDeskReverb
 ```
 
 ---
@@ -629,7 +629,7 @@ php artisan migrate --force
 
 # Restart services agar pakai kode terbaru
 $nssm = "C:\laragon\bin\nssm\nssm.exe"
-& $nssm restart VPointCareQueue
-& $nssm restart VPointCareReverb
+& $nssm restart CareDeskQueue
+& $nssm restart CareDeskReverb
 ```
 

@@ -2,7 +2,7 @@
 set -e
 
 # ==============================================================================
-# VPoint Care (WACS) - Automated Ubuntu VPS Deployment Script (Bash)
+# Care Desk - Automated Ubuntu VPS Deployment Script (Bash)
 # Usage: ./deploy-to-vps.sh [VPS_HOST] [VPS_USER] [VPS_PORT] [SSH_KEY_PATH] [REMOTE_DIR]
 # ==============================================================================
 
@@ -10,10 +10,10 @@ VPS_HOST="${1}"
 VPS_USER="${2:-root}"
 VPS_PORT="${3:-22}"
 SSH_KEY="${4:-}"
-REMOTE_DIR="${5:-/opt/vpoint-care}"
+REMOTE_DIR="${5:-/opt/care-desk}"
 
 echo "============================================================"
-echo " VPoint Care (WACS) - Automated Ubuntu VPS Deployment"
+echo " Care Desk - Automated Ubuntu VPS Deployment"
 echo "============================================================"
 
 # 1. Interactive Prompts jika parameter belum diisi
@@ -86,7 +86,7 @@ SCP_OPTS=("-i" "${SSH_KEY}" "-P" "${VPS_PORT}" "-o" "StrictHostKeyChecking=accep
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCAL_SRC="${REPO_ROOT}/src"
-TEMP_ARCHIVE="/tmp/vpoint-care-deploy-$$.tar.gz"
+TEMP_ARCHIVE="/tmp/care-desk-deploy-$$.tar.gz"
 
 if [ ! -f "${LOCAL_SRC}/artisan" ]; then
     echo "[ERROR] Tidak dapat menemukan folder 'src/artisan'. Pastikan script dijalankan dari root repository."
@@ -116,7 +116,7 @@ tar -czf "${TEMP_ARCHIVE}" \
 
 echo "[OK] Arsip berhasil dibuat: ${TEMP_ARCHIVE}"
 
-REMOTE_ARCHIVE="/tmp/vpoint-care-deploy.tar.gz"
+REMOTE_ARCHIVE="/tmp/care-desk-deploy.tar.gz"
 echo ""
 echo "[2/4] Mengunggah arsip ke ${VPS_USER}@${VPS_HOST}..."
 
@@ -140,7 +140,7 @@ ssh "${SSH_OPTS[@]}" "${VPS_USER}@${VPS_HOST}" "${REMOTE_CMD}"
 echo ""
 echo "[4/4] Process Selesai!"
 echo "============================================================"
-echo " Aplikasi VPoint Care (WACS) telah sukses ter-deploy di Docker VPS!"
+echo " Aplikasi Care Desk telah sukses ter-deploy di Docker VPS!"
 echo " - URL Admin Panel  : http://${VPS_HOST}:8080/admin"
 echo " - WAHA Dashboard   : http://${VPS_HOST}:3000"
 echo " - Reverb Websocket : http://${VPS_HOST}:7060"
