@@ -58,6 +58,10 @@ class AccessPermissions
 
     public const QUEUE_MONITOR_VIEW = 'queue_monitor.view';
 
+    public const APP_SETTINGS_VIEW = 'app_settings.view';
+
+    public const APP_SETTINGS_MANAGE = 'app_settings.manage';
+
     public const MENU_MASTER_INSTANSI = 'menu.master.instansi';
 
     public const MENU_MASTER_CUSTOMER = 'menu.master.customer';
@@ -185,6 +189,7 @@ class AccessPermissions
             self::HOLIDAY_VIEW => self::sidebarPermissionMenu($definitions, self::HOLIDAY_VIEW, 'master_data', 70, 'heroicon-o-calendar-days'),
             self::LOG_DATA_VIEW => self::sidebarPermissionMenu($definitions, self::LOG_DATA_VIEW, 'monitoring', 10, 'heroicon-o-clipboard-document-list'),
             self::WAHA_SESSION_VIEW => self::sidebarPermissionMenu($definitions, self::WAHA_SESSION_VIEW, 'monitoring', 20, 'heroicon-o-signal'),
+            self::APP_SETTINGS_VIEW => self::sidebarPermissionMenu($definitions, self::APP_SETTINGS_VIEW, 'settings', 5, 'heroicon-o-cog-6-tooth'),
             self::HAK_AKSES_VIEW => self::sidebarPermissionMenu($definitions, self::HAK_AKSES_VIEW, 'settings', 10, 'heroicon-o-shield-check'),
             self::USER_VIEW => self::sidebarPermissionMenu($definitions, self::USER_VIEW, 'settings', 20, 'heroicon-o-user-group'),
             self::JOB_SCHEDULE_VIEW => self::sidebarPermissionMenu($definitions, self::JOB_SCHEDULE_VIEW, 'settings', 30, 'heroicon-o-clock'),
@@ -209,6 +214,7 @@ class AccessPermissions
             self::WAHA_SESSION_MANAGE => 'monitoring',
             self::USER_MANAGE => 'settings',
             self::HAK_AKSES_MANAGE => 'settings',
+            self::APP_SETTINGS_MANAGE => 'settings',
         ];
     }
 
@@ -410,6 +416,16 @@ class AccessPermissions
                 'label' => 'ui.permissions.queue_monitor_view',
                 'module' => 'ui.permissions.settings_module',
                 'description' => 'ui.permissions.queue_monitor_view_desc',
+            ],
+            self::APP_SETTINGS_VIEW => [
+                'label' => 'ui.permissions.app_settings_view',
+                'module' => 'ui.permissions.settings_module',
+                'description' => 'ui.permissions.app_settings_view_desc',
+            ],
+            self::APP_SETTINGS_MANAGE => [
+                'label' => 'ui.permissions.app_settings_manage',
+                'module' => 'ui.permissions.settings_module',
+                'description' => 'ui.permissions.app_settings_manage_desc',
             ],
         ];
     }

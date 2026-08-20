@@ -378,6 +378,41 @@ CREATE TABLE IF NOT EXISTS MPengaturanAi (
     CONSTRAINT UQ_MPengaturanAi_KodePengaturan UNIQUE (KodePengaturan)
 );
 
+CREATE TABLE IF NOT EXISTS MPengaturanAplikasi (
+    Id UUID NOT NULL DEFAULT gen_random_uuid(),
+    KodePengaturan varchar(50) NOT NULL DEFAULT 'DEFAULT',
+    NamaAplikasi varchar(100) NULL,
+    Tagline varchar(255) NULL,
+    NamaPerusahaan varchar(200) NULL,
+    LogoUtamaPath varchar(500) NULL,
+    LogoSekunderPath varchar(500) NULL,
+    FaviconPath varchar(500) NULL,
+    TeksFooter TEXT NULL,
+    BahasaDefault varchar(10) NOT NULL DEFAULT 'id',
+    ZonaWaktu varchar(100) NOT NULL DEFAULT 'Asia/Jakarta',
+    FormatTanggal varchar(50) NOT NULL DEFAULT 'd/m/Y',
+    EmailSupport varchar(150) NULL,
+    NomorTeleponSupport varchar(50) NULL,
+    AlamatKantor varchar(500) NULL,
+    MailMailer varchar(50) NOT NULL DEFAULT 'smtp',
+    MailHost varchar(255) NULL,
+    MailPort int NOT NULL DEFAULT 587,
+    MailUsername varchar(255) NULL,
+    MailPasswordTerenkripsi TEXT NULL,
+    MailEncryption varchar(20) NOT NULL DEFAULT 'tls',
+    MailFromAddress varchar(255) NULL,
+    MailFromName varchar(255) NULL,
+    SetupSelesai BOOLEAN NOT NULL DEFAULT FALSE,
+    LangkahOnboardingJson TEXT NULL,
+    NonAktif BOOLEAN NOT NULL DEFAULT FALSE,
+    TglBuat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    DibuatOleh UUID NULL,
+    TglEdit TIMESTAMP NULL,
+    DieditOleh UUID NULL,
+    CONSTRAINT PK_MPengaturanAplikasi PRIMARY KEY (Id),
+    CONSTRAINT UQ_MPengaturanAplikasi_KodePengaturan UNIQUE (KodePengaturan)
+);
+
 CREATE TABLE IF NOT EXISTS MPengetahuan (
     Id UUID NOT NULL DEFAULT gen_random_uuid(),
     KodePengetahuan varchar(50) NOT NULL,

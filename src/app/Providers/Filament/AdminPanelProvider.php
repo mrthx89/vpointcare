@@ -7,6 +7,7 @@ use App\Filament\Auth\Login;
 use App\Filament\Auth\Register;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\SetLocale;
+use App\Support\AppSettings;
 use App\Support\NavigationHelper;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -31,20 +32,18 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        $brandName = config('app.name', 'CareDesk');
-
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
             ->registration(Register::class)
-            ->brandName($brandName)
+            ->brandName(fn() => AppSettings::brandName())
             ->brandLogo(fn() => new HtmlString(
-                '<div class="vpoint-brand"><img src="' . asset('images/logo_primary.svg') . '" alt="' . e($brandName) . '"><span>' . e($brandName) . '</span></div>'
+                '<div class="vpoint-brand"><img src="' . e(AppSettings::logoPrimaryUrl()) . '" alt="' . e(AppSettings::brandName()) . '"><span>' . e(AppSettings::brandName()) . '</span></div>'
             ))
             ->darkModeBrandLogo(fn() => new HtmlString(
-                '<div class="vpoint-brand vpoint-brand-dark"><img src="' . asset('images/logo_secondary.svg') . '" alt="' . e($brandName) . '"><span>' . e($brandName) . '</span></div>'
+                '<div class="vpoint-brand vpoint-brand-dark"><img src="' . e(AppSettings::logoDarkUrl()) . '" alt="' . e(AppSettings::brandName()) . '"><span>' . e(AppSettings::brandName()) . '</span></div>'
             ))
             ->brandLogoHeight('2.25rem')
             ->maxContentWidth(Width::Full)
@@ -53,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarFullyCollapsibleOnDesktop()
             ->sidebarWidth('18rem')
             ->collapsedSidebarWidth('4.75rem')
-            ->favicon(asset('images/logo_primary.svg'))
+            ->favicon(fn() => AppSettings::faviconUrl())
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
@@ -131,7 +130,7 @@ HTML
                 PanelsRenderHook::FOOTER,
                 fn(): string => request()->is('admin/v-point-assistant')
                     ? ''
-                    : '<div class="wacs-admin-footer">&copy; ' . date('Y') . ' Care Desk System. Dibuat oleh <a href="https://yhdev.click" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">YHDev</a>. All rights reserved.</div>'
+                    : '<div class="wacs-admin-footer">' . AppSettings::footerText() . '</div>'
             )
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,

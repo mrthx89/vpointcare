@@ -27,25 +27,36 @@ class DatabaseSeeder extends Seeder
         $this->seedPermissions();
         $this->seedTicketingMasters();
         $this->seedJobSchedules();
+        $this->seedAppSettings();
 
         NavigationHelper::flush();
+    }
 
-        $peranAdmin = DB::table('MPeran')->where('KodePeran', 'ADMIN')->first();
-
-        if (! $peranAdmin) {
-            throw new RuntimeException(__('ui.seeders.admin_role_not_found'));
+    private function seedAppSettings(): void
+    {
+        if (! Schema::hasTable('MPengaturanAplikasi')) {
+            return;
         }
 
-        Pengguna::firstOrCreate([
-            'Email' => 'mrthx.89@gmail.com',
-        ], [
-            'IdPeran' => $peranAdmin->Id,
-            'NamaPengguna' => 'Admin CareDesk',
-            'Password' => Hash::make('Ell1t3s3rv'),
-            'NonAktif' => false,
-            'EmailTerverifikasiPada' => now(),
-            'TglEdit' => now(),
-        ]);
+        $existing = DB::table('MPengaturanAplikasi')->where('KodePengaturan', 'DEFAULT')->first();
+
+        if (! $existing) {
+            DB::table('MPengaturanAplikasi')->insert([
+                'Id' => (string) Str::uuid(),
+                'KodePengaturan' => 'DEFAULT',
+                'NamaAplikasi' => config('app.name', 'CareDesk'),
+                'Tagline' => 'Integrated WhatsApp & AI Helpdesk System',
+                'NamaPerusahaan' => 'CareDesk SaaS',
+                'TeksFooter' => 'Care Desk System. All rights reserved.',
+                'BahasaDefault' => 'id',
+                'ZonaWaktu' => 'Asia/Jakarta',
+                'FormatTanggal' => 'd/m/Y',
+                'SetupSelesai' => false,
+                'NonAktif' => false,
+                'TglBuat' => now(),
+                'TglEdit' => now(),
+            ]);
+        }
     }
 
     private function seedRoles(): void

@@ -405,6 +405,42 @@ CREATE TABLE MPengaturanAi (
 );
 GO
 
+CREATE TABLE MPengaturanAplikasi (
+    Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengaturanAplikasi_Id DEFAULT NEWSEQUENTIALID(),
+    KodePengaturan varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAplikasi_KodePengaturan DEFAULT 'DEFAULT',
+    NamaAplikasi nvarchar(100) NULL,
+    Tagline nvarchar(255) NULL,
+    NamaPerusahaan nvarchar(200) NULL,
+    LogoUtamaPath nvarchar(500) NULL,
+    LogoSekunderPath nvarchar(500) NULL,
+    FaviconPath nvarchar(500) NULL,
+    TeksFooter nvarchar(max) NULL,
+    BahasaDefault varchar(10) NOT NULL CONSTRAINT DF_MPengaturanAplikasi_BahasaDefault DEFAULT 'id',
+    ZonaWaktu varchar(100) NOT NULL CONSTRAINT DF_MPengaturanAplikasi_ZonaWaktu DEFAULT 'Asia/Jakarta',
+    FormatTanggal varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAplikasi_FormatTanggal DEFAULT 'd/m/Y',
+    EmailSupport varchar(150) NULL,
+    NomorTeleponSupport varchar(50) NULL,
+    AlamatKantor nvarchar(500) NULL,
+    MailMailer varchar(50) NOT NULL CONSTRAINT DF_MPengaturanAplikasi_MailMailer DEFAULT 'smtp',
+    MailHost varchar(255) NULL,
+    MailPort int NOT NULL CONSTRAINT DF_MPengaturanAplikasi_MailPort DEFAULT 587,
+    MailUsername varchar(255) NULL,
+    MailPasswordTerenkripsi nvarchar(max) NULL,
+    MailEncryption varchar(20) NOT NULL CONSTRAINT DF_MPengaturanAplikasi_MailEncryption DEFAULT 'tls',
+    MailFromAddress varchar(255) NULL,
+    MailFromName nvarchar(255) NULL,
+    SetupSelesai bit NOT NULL CONSTRAINT DF_MPengaturanAplikasi_SetupSelesai DEFAULT 0,
+    LangkahOnboardingJson nvarchar(max) NULL,
+    NonAktif bit NOT NULL CONSTRAINT DF_MPengaturanAplikasi_NonAktif DEFAULT 0,
+    TglBuat datetime2 NOT NULL CONSTRAINT DF_MPengaturanAplikasi_TglBuat DEFAULT SYSDATETIME(),
+    DibuatOleh uniqueidentifier NULL,
+    TglEdit datetime2 NULL,
+    DieditOleh uniqueidentifier NULL,
+    CONSTRAINT PK_MPengaturanAplikasi PRIMARY KEY (Id),
+    CONSTRAINT UQ_MPengaturanAplikasi_KodePengaturan UNIQUE (KodePengaturan)
+);
+GO
+
 CREATE TABLE MPengetahuan (
     Id uniqueidentifier NOT NULL CONSTRAINT DF_MPengetahuan_Id DEFAULT NEWSEQUENTIALID(),
     KodePengetahuan varchar(50) NOT NULL,

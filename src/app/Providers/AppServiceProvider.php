@@ -33,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
         Number::useLocale(LocaleManager::regional(config('app.locale')));
         Number::useCurrency('IDR');
 
+        \App\Support\AppSettings::applyMailConfig();
+
         $appUrl = (string) config('app.url');
         $appUrlUsesHttps = str_starts_with($appUrl, 'https://');
 
